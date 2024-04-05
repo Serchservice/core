@@ -27,8 +27,8 @@ public class Help extends BaseDateTime {
 
     @ManyToOne
     @JoinColumn(
-            name = "group_key",
-            referencedColumnName = "key",
+            name = "group_id",
+            referencedColumnName = "id",
             nullable = false,
             foreignKey = @ForeignKey(name = "group_id_fkey")
     )

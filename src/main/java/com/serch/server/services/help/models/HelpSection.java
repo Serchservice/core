@@ -14,7 +14,7 @@ import java.util.List;
 public class HelpSection extends BaseDateTime {
     @Id
     @Column(nullable = false, columnDefinition = "TEXT")
-    private String key;
+    private String id;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String section;
@@ -24,8 +24,8 @@ public class HelpSection extends BaseDateTime {
 
     @ManyToOne
     @JoinColumn(
-            name = "category_key",
-            referencedColumnName = "key",
+            name = "category_id",
+            referencedColumnName = "id",
             nullable = false,
             foreignKey = @ForeignKey(name = "category_id_fkey")
     )

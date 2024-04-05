@@ -40,7 +40,7 @@ class MediaNewsroomImplementationTest {
         MediaNewsroom newsroom = new MediaNewsroom();
         newsroom.setCreatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
         newsroom.setImage("Image");
-        newsroom.setKey("Key");
+        newsroom.setId("Key");
         newsroom.setNews("News");
         newsroom.setRegion("us-east-2");
         newsroom.setTitle("Dr");
@@ -56,7 +56,7 @@ class MediaNewsroomImplementationTest {
         MediaNewsroomResponse data = actualFindNewsResult.getData();
         assertEquals("Dr", data.getTitle());
         assertEquals("Image", data.getImage());
-        assertEquals("Key", data.getKey());
+        assertEquals("Key", data.getId());
         assertEquals("News fetched", actualFindNewsResult.getMessage());
         assertEquals("News", data.getNews());
         assertEquals("Thursday, 1\" January | us-east-2", data.getRegion());
@@ -72,7 +72,7 @@ class MediaNewsroomImplementationTest {
         // Arrange
         MediaNewsroom newsroom = mock(MediaNewsroom.class);
         when(newsroom.getImage()).thenReturn("Image");
-        when(newsroom.getKey()).thenReturn("Key");
+        when(newsroom.getId()).thenReturn("Key");
         when(newsroom.getNews()).thenReturn("News");
         when(newsroom.getRegion()).thenReturn("us-east-2");
         when(newsroom.getTitle()).thenReturn("Dr");
@@ -80,13 +80,13 @@ class MediaNewsroomImplementationTest {
         doNothing().when(newsroom).setCreatedAt(Mockito.any());
         doNothing().when(newsroom).setUpdatedAt(Mockito.any());
         doNothing().when(newsroom).setImage(Mockito.any());
-        doNothing().when(newsroom).setKey(Mockito.any());
+        doNothing().when(newsroom).setId(Mockito.any());
         doNothing().when(newsroom).setNews(Mockito.any());
         doNothing().when(newsroom).setRegion(Mockito.any());
         doNothing().when(newsroom).setTitle(Mockito.any());
         newsroom.setCreatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
         newsroom.setImage("Image");
-        newsroom.setKey("Key");
+        newsroom.setId("Key");
         newsroom.setNews("News");
         newsroom.setRegion("us-east-2");
         newsroom.setTitle("Dr");
@@ -102,12 +102,12 @@ class MediaNewsroomImplementationTest {
         verify(newsroom).setCreatedAt(Mockito.any());
         verify(newsroom).setUpdatedAt(Mockito.any());
         verify(newsroom).getImage();
-        verify(newsroom).getKey();
+        verify(newsroom).getId();
         verify(newsroom).getNews();
         verify(newsroom, atLeast(1)).getRegion();
         verify(newsroom).getTitle();
         verify(newsroom).setImage(Mockito.any());
-        verify(newsroom).setKey(Mockito.any());
+        verify(newsroom).setId(Mockito.any());
         verify(newsroom).setNews(Mockito.any());
         verify(newsroom).setRegion(Mockito.any());
         verify(newsroom).setTitle(Mockito.any());
@@ -115,7 +115,7 @@ class MediaNewsroomImplementationTest {
         MediaNewsroomResponse data = actualFindNewsResult.getData();
         assertEquals("Dr", data.getTitle());
         assertEquals("Image", data.getImage());
-        assertEquals("Key", data.getKey());
+        assertEquals("Key", data.getId());
         assertEquals("News fetched", actualFindNewsResult.getMessage());
         assertEquals("News", data.getNews());
         assertEquals("Thursday, 1\" January | us-east-2", data.getRegion());

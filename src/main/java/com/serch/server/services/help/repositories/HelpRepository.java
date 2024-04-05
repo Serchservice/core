@@ -14,11 +14,11 @@ public interface HelpRepository extends JpaRepository<Help, UUID> {
             "c.category AS category," +
             "CONCAT(s.section, ' ', '>', ' ', g.name) AS section," +
             "c.image AS image, " +
-            "CONCAT('/', c.key, '/', s.key, '/', g.key, '/', f.id) AS link " +
+            "CONCAT('/', c.id, '/', s.id, '/', g.id, '/', f.id) AS link " +
             "FROM company.help_faqs f " +
-            "JOIN company.help_groups g ON f.group_key = g.key " +
-            "JOIN company.help_sections s ON g.section_key = s.key " +
-            "JOIN company.help_categories c ON s.category_key = c.key " +
+            "JOIN company.help_groups g ON f.group_id = g.id " +
+            "JOIN company.help_sections s ON g.section_id = s.id " +
+            "JOIN company.help_categories c ON s.category_id = c.id " +
             "WHERE to_tsvector(f.question) @@ plainto_tsquery(:keyword) " +
             "   OR to_tsvector(c.category) @@ plainto_tsquery(:keyword) " +
             "   OR to_tsvector(s.section) @@ plainto_tsquery(:keyword) " +

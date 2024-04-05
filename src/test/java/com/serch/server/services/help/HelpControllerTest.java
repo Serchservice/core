@@ -77,7 +77,7 @@ class HelpControllerTest {
         category.setCategory("HelpCategory");
         category.setCreatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
         category.setImage("Image");
-        category.setKey("Key");
+        category.setId("Key");
         category.setSections(new ArrayList<>());
         category.setUpdatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
         Optional<HelpCategory> ofResult = Optional.of(category);
@@ -116,7 +116,7 @@ class HelpControllerTest {
         category.setCategory("HelpCategory");
         category.setCreatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
         category.setImage("Image");
-        category.setKey("Key");
+        category.setId("Key");
         category.setSections(new ArrayList<>());
         category.setUpdatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
 
@@ -125,12 +125,12 @@ class HelpControllerTest {
         section.setCreatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
         section.setGroups(new ArrayList<>());
         section.setImage("Image");
-        section.setKey("Key");
+        section.setId("Key");
         section.setSection("HelpSection");
         section.setUpdatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
         Optional<HelpSection> ofResult = Optional.of(section);
         HelpSectionRepository sectionRepository = mock(HelpSectionRepository.class);
-        when(sectionRepository.findByCategory_KeyAndKey(Mockito.any(), Mockito.any())).thenReturn(ofResult);
+        when(sectionRepository.findByCategory_IdAndId(Mockito.any(), Mockito.any())).thenReturn(ofResult);
 
         // Act
         ResponseEntity<ApiResponse<List<HelpGroupResponse>>> actualFetchGroupsResult = (new HelpController(
@@ -142,7 +142,7 @@ class HelpControllerTest {
                 .fetchGroups("Key", "Key");
 
         // Assert
-        verify(sectionRepository).findByCategory_KeyAndKey(Mockito.any(), Mockito.any());
+        verify(sectionRepository).findByCategory_IdAndId(Mockito.any(), Mockito.any());
         ApiResponse<List<HelpGroupResponse>> body = actualFetchGroupsResult.getBody();
         assert body != null;
         assertEquals("Groups fetched", body.getMessage());
@@ -164,7 +164,7 @@ class HelpControllerTest {
         category.setCategory("HelpCategory");
         category.setCreatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
         category.setImage("Image");
-        category.setKey("Key");
+        category.setId("Key");
         category.setSections(new ArrayList<>());
         category.setUpdatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
 
@@ -173,7 +173,7 @@ class HelpControllerTest {
         section.setCreatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
         section.setGroups(new ArrayList<>());
         section.setImage("Image");
-        section.setKey("Key");
+        section.setId("Key");
         section.setSection("HelpSection");
         section.setUpdatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
 
@@ -181,7 +181,7 @@ class HelpControllerTest {
         group.setCreatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
         group.setGroup("HelpGroup");
         group.setHelps(new ArrayList<>());
-        group.setKey("Key");
+        group.setId("Key");
         group.setSection(section);
         group.setUpdatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
 

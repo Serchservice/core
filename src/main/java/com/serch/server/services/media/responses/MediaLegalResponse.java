@@ -9,7 +9,7 @@ import lombok.Setter;
 public class MediaLegalResponse {
     private String legal;
     private String image;
-    private String key;
+    private String id;
     private String lineOfBusiness;
     private LegalLineOfBusiness lob;
     private String title;

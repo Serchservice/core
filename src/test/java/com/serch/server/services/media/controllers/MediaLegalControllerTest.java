@@ -47,7 +47,7 @@ class MediaLegalControllerTest {
         MediaLegal legal = new MediaLegal();
         legal.setCreatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
         legal.setImage("Image");
-        legal.setKey("Key");
+        legal.setId("Key");
         legal.setLegal("MediaLegal");
         legal.setLob(LegalLineOfBusiness.USER);
         legal.setTitle("Dr");
@@ -67,7 +67,7 @@ class MediaLegalControllerTest {
         MediaLegalResponse data = body.getData();
         assertEquals("Dr", data.getTitle());
         assertEquals("Image", data.getImage());
-        assertEquals("Key", data.getKey());
+        assertEquals("Key", data.getId());
         assertEquals("Legal Document fetched", body.getMessage());
         assertEquals("MediaLegal", data.getLegal());
         assertEquals("Request/User", data.getLineOfBusiness());

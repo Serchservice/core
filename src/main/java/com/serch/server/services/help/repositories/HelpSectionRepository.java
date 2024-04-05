@@ -7,5 +7,5 @@ import org.springframework.lang.NonNull;
 import java.util.Optional;
 
 public interface HelpSectionRepository extends JpaRepository<HelpSection, String> {
-    Optional<HelpSection> findByCategory_KeyAndKey(@NonNull String key, @NonNull String key1);
+    Optional<HelpSection> findByCategory_IdAndId(@NonNull String key, @NonNull String key1);
 }

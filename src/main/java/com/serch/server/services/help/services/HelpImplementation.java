@@ -74,7 +74,7 @@ public class HelpImplementation implements HelpService {
 
     @Override
     public ApiResponse<List<HelpGroupResponse>> fetchGroups(String category, String section) {
-        HelpSection foundSection = sectionRepository.findByCategory_KeyAndKey(category, section)
+        HelpSection foundSection = sectionRepository.findByCategory_IdAndId(category, section)
                 .orElseThrow(() -> new HelpException("Section not found"));
 
         return new ApiResponse<>(

@@ -88,7 +88,7 @@ class HelpImplementationTest {
         category.setCategory("HelpCategory");
         category.setCreatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
         category.setImage("Image");
-        category.setKey("Key");
+        category.setId("Key");
         category.setSections(new ArrayList<>());
         category.setUpdatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
         Optional<HelpCategory> ofResult = Optional.of(category);
@@ -142,7 +142,7 @@ class HelpImplementationTest {
         category.setCategory("HelpCategory");
         category.setCreatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
         category.setImage("Image");
-        category.setKey("Key");
+        category.setId("Key");
         category.setSections(new ArrayList<>());
         category.setUpdatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
 
@@ -151,11 +151,11 @@ class HelpImplementationTest {
         section.setCreatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
         section.setGroups(new ArrayList<>());
         section.setImage("Image");
-        section.setKey("Key");
+        section.setId("Key");
         section.setSection("HelpSection");
         section.setUpdatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
         Optional<HelpSection> ofResult = Optional.of(section);
-        when(sectionRepository.findByCategory_KeyAndKey(Mockito.any(), Mockito.any())).thenReturn(ofResult);
+        when(sectionRepository.findByCategory_IdAndId(Mockito.any(), Mockito.any())).thenReturn(ofResult);
 
         // Act
         ApiResponse<List<HelpGroupResponse>> actualFetchGroupsResult = helpImplementation.fetchGroups(
@@ -163,7 +163,7 @@ class HelpImplementationTest {
         );
 
         // Assert
-        verify(sectionRepository).findByCategory_KeyAndKey(Mockito.any(), Mockito.any());
+        verify(sectionRepository).findByCategory_IdAndId(Mockito.any(), Mockito.any());
         assertEquals("Groups fetched", actualFetchGroupsResult.getMessage());
         assertEquals(200, actualFetchGroupsResult.getCode().intValue());
         assertEquals(HttpStatus.OK, actualFetchGroupsResult.getStatus());
@@ -177,11 +177,11 @@ class HelpImplementationTest {
     void testFetchGroups2() {
         // Arrange
         Optional<HelpSection> emptyResult = Optional.empty();
-        when(sectionRepository.findByCategory_KeyAndKey(Mockito.any(), Mockito.any())).thenReturn(emptyResult);
+        when(sectionRepository.findByCategory_IdAndId(Mockito.any(), Mockito.any())).thenReturn(emptyResult);
 
         // Act and Assert
         assertThrows(HelpException.class, () -> helpImplementation.fetchGroups("Key", "Key"));
-        verify(sectionRepository).findByCategory_KeyAndKey(Mockito.any(), Mockito.any());
+        verify(sectionRepository).findByCategory_IdAndId(Mockito.any(), Mockito.any());
     }
 
     /**
@@ -194,7 +194,7 @@ class HelpImplementationTest {
 
         // Act and Assert
         assertThrows(HelpException.class, () -> helpImplementation.fetchGroups("Key", "Key"));
-        verify(sectionRepository).findByCategory_KeyAndKey(Mockito.any(), Mockito.any());
+        verify(sectionRepository).findByCategory_IdAndId(Mockito.any(), Mockito.any());
     }
 
     /**
@@ -207,7 +207,7 @@ class HelpImplementationTest {
         category.setCategory("HelpCategory");
         category.setCreatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
         category.setImage("Image");
-        category.setKey("Key");
+        category.setId("Key");
         category.setSections(new ArrayList<>());
         category.setUpdatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
 
@@ -216,7 +216,7 @@ class HelpImplementationTest {
         section.setCreatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
         section.setGroups(new ArrayList<>());
         section.setImage("Image");
-        section.setKey("Key");
+        section.setId("Key");
         section.setSection("HelpSection");
         section.setUpdatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
 
@@ -224,7 +224,7 @@ class HelpImplementationTest {
         group.setCreatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
         group.setGroup("HelpGroup");
         group.setHelps(new ArrayList<>());
-        group.setKey("Key");
+        group.setId("Key");
         group.setSection(section);
         group.setUpdatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
 

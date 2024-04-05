@@ -8,5 +8,5 @@ import lombok.Data;
 public class HelpSectionResponse {
     private String section;
     private String image;
-    private String key;
+    private String id;
 }

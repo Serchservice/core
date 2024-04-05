@@ -64,7 +64,7 @@ class MediaLegalImplementationTest {
         MediaLegal legal = new MediaLegal();
         legal.setCreatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
         legal.setImage("Legals fetched");
-        legal.setKey("Legals fetched");
+        legal.setId("Legals fetched");
         legal.setLegal("Legals fetched");
         legal.setLob(LegalLineOfBusiness.USER);
         legal.setTitle("Dr");
@@ -99,7 +99,7 @@ class MediaLegalImplementationTest {
         MediaLegal legal = new MediaLegal();
         legal.setCreatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
         legal.setImage("Legals fetched");
-        legal.setKey("Legals fetched");
+        legal.setId("Legals fetched");
         legal.setLegal("Legals fetched");
         legal.setLob(LegalLineOfBusiness.USER);
         legal.setTitle("Dr");
@@ -108,7 +108,7 @@ class MediaLegalImplementationTest {
         MediaLegal legal2 = new MediaLegal();
         legal2.setCreatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
         legal2.setImage("Image");
-        legal2.setKey("Key");
+        legal2.setId("Key");
         legal2.setLegal("MediaLegal");
         legal2.setLob(LegalLineOfBusiness.GUEST);
         legal2.setTitle("Mr");
@@ -161,7 +161,7 @@ class MediaLegalImplementationTest {
         MediaLegal legal = new MediaLegal();
         legal.setCreatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
         legal.setImage("Image");
-        legal.setKey("Key");
+        legal.setId("Key");
         legal.setLegal("MediaLegal");
         legal.setLob(LegalLineOfBusiness.USER);
         legal.setTitle("Dr");
@@ -177,7 +177,7 @@ class MediaLegalImplementationTest {
         MediaLegalResponse data = actualFetchLegalResult.getData();
         assertEquals("Dr", data.getTitle());
         assertEquals("Image", data.getImage());
-        assertEquals("Key", data.getKey());
+        assertEquals("Key", data.getId());
         assertEquals("Legal Document fetched", actualFetchLegalResult.getMessage());
         assertEquals("MediaLegal", data.getLegal());
         assertEquals("Request/User", data.getLineOfBusiness());

@@ -14,7 +14,7 @@ import java.util.List;
 public class HelpCategory extends BaseDateTime {
     @Id
     @Column(nullable = false, columnDefinition = "TEXT")
-    private String key;
+    private String id;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String image;

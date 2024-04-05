@@ -69,7 +69,7 @@ class MediaNewsroomControllerTest {
         MediaNewsroom newsroom = new MediaNewsroom();
         newsroom.setCreatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
         newsroom.setImage("Image");
-        newsroom.setKey("Key");
+        newsroom.setId("Key");
         newsroom.setNews("News");
         newsroom.setRegion("us-east-2");
         newsroom.setTitle("Dr");
@@ -89,7 +89,7 @@ class MediaNewsroomControllerTest {
         MediaNewsroomResponse data = body.getData();
         assertEquals("Dr", data.getTitle());
         assertEquals("Image", data.getImage());
-        assertEquals("Key", data.getKey());
+        assertEquals("Key", data.getId());
         assertEquals("News fetched", body.getMessage());
         assertEquals("News", data.getNews());
         assertEquals("Thursday, 1\" January | us-east-2", data.getRegion());

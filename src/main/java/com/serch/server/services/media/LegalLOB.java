@@ -1,9 +1,9 @@
-package com.serch.server.services.media.enums;
+package com.serch.server.services.media;
 
 import lombok.Getter;
 
 @Getter
-public enum LegalLineOfBusiness {
+public enum LegalLOB {
     USER("Request/User"),
     GUEST("Request/Guest"),
     PROVIDER("Provide/Independent Provider"),
@@ -12,7 +12,7 @@ public enum LegalLineOfBusiness {
 
     private final String type;
 
-    LegalLineOfBusiness(String type) {
+    LegalLOB(String type) {
         this.type = type;
     }
 }

@@ -1,6 +1,6 @@
 package com.serch.server.services.media.responses;
 
-import com.serch.server.services.media.enums.LegalLineOfBusiness;
+import com.serch.server.services.media.LegalLOB;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,6 +11,6 @@ public class MediaLegalResponse {
     private String image;
     private String id;
     private String lineOfBusiness;
-    private LegalLineOfBusiness lob;
+    private LegalLOB lob;
     private String title;
 }

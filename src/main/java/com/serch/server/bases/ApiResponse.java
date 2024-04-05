@@ -29,4 +29,11 @@ public class ApiResponse<T> {
         this.status = status;
         this.code = status.value();
     }
+
+    public ApiResponse(T data) {
+        this.data = data;
+        this.message = "Successful";
+        this.status = HttpStatus.OK;
+        this.code = HttpStatus.OK.value();
+    }
 }

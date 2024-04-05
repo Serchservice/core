@@ -2,7 +2,7 @@ package com.serch.server.services.media.services;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.exceptions.MediaLegalException;
-import com.serch.server.services.media.enums.LegalLineOfBusiness;
+import com.serch.server.services.media.LegalLOB;
 import com.serch.server.services.media.mappers.MediaLegalMapper;
 import com.serch.server.services.media.models.MediaLegal;
 import com.serch.server.services.media.repositories.MediaLegalRepository;
@@ -24,7 +24,7 @@ public class MediaLegalImplementation implements MediaLegalService {
 
     @Override
     public ApiResponse<List<MediaLegalGroupResponse>> fetchAllLegals() {
-        Map<LegalLineOfBusiness, List<MediaLegalResponse>> groupedByLOB = legalRepository.findAll()
+        Map<LegalLOB, List<MediaLegalResponse>> groupedByLOB = legalRepository.findAll()
                 .stream()
                 .map(this::getLegalResponse)
                 .collect(Collectors.groupingBy(MediaLegalResponse::getLob));

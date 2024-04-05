@@ -2,6 +2,7 @@ package com.serch.server.services.email.services;
 
 import com.resend.services.emails.model.SendEmailResponse;
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.services.email.models.SendEmail;
 
 public interface EmailAuthService {
     /**
@@ -20,4 +21,11 @@ public interface EmailAuthService {
      * @return ApiResponse of SendEmailResponse
      */
     ApiResponse<SendEmailResponse> sendReset(String to, String firstName, String content);
+
+    /**
+     * @param email SendEmail content
+     *
+     * @return ApiResponse of SendEmailResponse
+     */
+    ApiResponse<SendEmailResponse> send(SendEmail email);
 }

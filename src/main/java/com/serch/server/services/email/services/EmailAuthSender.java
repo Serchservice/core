@@ -3,6 +3,7 @@ package com.serch.server.services.email.services;
 import com.resend.services.emails.model.SendEmailResponse;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.services.email.models.Email;
+import com.serch.server.services.email.models.SendEmail;
 import com.serch.server.services.email.template.EmailAuthTemplate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -56,5 +57,13 @@ public class EmailAuthSender implements EmailAuthService {
                 EmailAuthTemplate.email(email),
                 true
         );
+    }
+
+    @Override
+    public ApiResponse<SendEmailResponse> send(SendEmail email) {
+        return switch (email.getType()) {
+            case SIGNUP -> sendSignup(email.getTo(), email.getContent());
+            case RESET -> sendReset(email.getTo(), email.getFirstName(), email.getContent());
+        };
     }
 }

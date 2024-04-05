@@ -6,7 +6,6 @@ import com.resend.services.emails.model.SendEmailRequest;
 import com.resend.services.emails.model.SendEmailResponse;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.exceptions.EmailException;
-import com.serch.server.services.email.models.SendEmail;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -16,8 +15,6 @@ import org.springframework.stereotype.Service;
 public class EmailSender implements EmailService {
     @Value("${serch.mail-api-key}")
     private String API_KEY;
-
-    private final EmailAuthService emailAuthService;
 
     private SendEmailRequest htmlContent(String from, String to, String subject, String content) {
         return SendEmailRequest.builder()
@@ -45,22 +42,13 @@ public class EmailSender implements EmailService {
     ) {
         try {
             Resend resend = new Resend(API_KEY);
-
-            SendEmailResponse response = resend.emails().send(isHTML
-                    ? htmlContent(from, to, subject, content)
-                    : textContent(from, to, subject, content)
-            );
-            return new ApiResponse<>(response);
+            return switch (String.valueOf(isHTML).toLowerCase()) {
+                case "true" -> new ApiResponse<>(resend.emails().send(htmlContent(from, to, subject, content)));
+                case "false" -> new ApiResponse<>(resend.emails().send(textContent(from, to, subject, content)));
+                default -> throw new EmailException("Unexpected value: " + String.valueOf(isHTML).toLowerCase());
+            };
         } catch (ResendException e) {
             throw new EmailException(e.getMessage());
         }
-    }
-
-    @Override
-    public ApiResponse<SendEmailResponse> send(SendEmail email) {
-        return switch (email.getType()) {
-            case SIGNUP -> emailAuthService.sendSignup(email.getTo(), email.getContent());
-            case RESET -> emailAuthService.sendReset(email.getTo(), email.getFirstName(), email.getContent());
-        };
     }
 }

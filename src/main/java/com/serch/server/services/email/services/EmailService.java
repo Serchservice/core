@@ -2,7 +2,6 @@ package com.serch.server.services.email.services;
 
 import com.resend.services.emails.model.SendEmailResponse;
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.services.email.models.SendEmail;
 
 public interface EmailService {
     /**
@@ -17,11 +16,4 @@ public interface EmailService {
             String subject, String content,
             boolean isHTML
     );
-
-    /**
-     * @param email SendEmail content
-     *
-     * @return ApiResponse of SendEmailResponse
-     */
-    ApiResponse<SendEmailResponse> send(SendEmail email);
 }

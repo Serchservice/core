@@ -3,7 +3,7 @@ package com.serch.server.services.email;
 import com.resend.services.emails.model.SendEmailResponse;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.services.email.models.SendEmail;
-import com.serch.server.services.email.services.EmailService;
+import com.serch.server.services.email.services.EmailAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/email")
 public class EmailController {
-    private final EmailService service;
+    private final EmailAuthService service;
 
     @PostMapping("/send")
     public ResponseEntity<ApiResponse<SendEmailResponse>> send(@RequestBody SendEmail email) {

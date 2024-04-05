@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.resend.services.emails.model.SendEmailResponse;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.services.email.models.SendEmail;
-import com.serch.server.services.email.services.EmailService;
+import com.serch.server.services.email.services.EmailAuthService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -27,7 +27,7 @@ class EmailControllerTest {
     private EmailController emailController;
 
     @MockBean
-    private EmailService emailService;
+    private EmailAuthService emailService;
 
     /**
      * Method under test: {@link EmailController#send(SendEmail)}

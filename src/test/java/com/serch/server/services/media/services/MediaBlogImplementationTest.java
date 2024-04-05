@@ -41,7 +41,7 @@ class MediaBlogImplementationTest {
         blog.setBlog("MediaBlog");
         blog.setCreatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
         blog.setImage("Image");
-        blog.setKey("Key");
+        blog.setId("Key");
         blog.setRegion("us-east-2");
         blog.setTitle("Dr");
         blog.setUpdatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
@@ -58,7 +58,7 @@ class MediaBlogImplementationTest {
         assertEquals("MediaBlog", data.getBlog());
         assertEquals("Dr", data.getTitle());
         assertEquals("Image", data.getImage());
-        assertEquals("Key", data.getKey());
+        assertEquals("Key", data.getId());
         assertEquals("Thursday, 1\" January | us-east-2", data.getRegion());
         assertEquals(200, actualFindBlogResult.getCode().intValue());
         assertEquals(HttpStatus.OK, actualFindBlogResult.getStatus());
@@ -73,7 +73,7 @@ class MediaBlogImplementationTest {
         MediaBlog blog = mock(MediaBlog.class);
         when(blog.getBlog()).thenReturn("MediaBlog");
         when(blog.getImage()).thenReturn("Image");
-        when(blog.getKey()).thenReturn("Key");
+        when(blog.getId()).thenReturn("Key");
         when(blog.getRegion()).thenReturn("us-east-2");
         when(blog.getTitle()).thenReturn("Dr");
         when(blog.getCreatedAt()).thenReturn(LocalDate.of(1970, 1, 1).atStartOfDay());
@@ -81,13 +81,13 @@ class MediaBlogImplementationTest {
         doNothing().when(blog).setUpdatedAt(Mockito.any());
         doNothing().when(blog).setBlog(Mockito.any());
         doNothing().when(blog).setImage(Mockito.any());
-        doNothing().when(blog).setKey(Mockito.any());
+        doNothing().when(blog).setId(Mockito.any());
         doNothing().when(blog).setRegion(Mockito.any());
         doNothing().when(blog).setTitle(Mockito.any());
         blog.setBlog("MediaBlog");
         blog.setCreatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
         blog.setImage("Image");
-        blog.setKey("Key");
+        blog.setId("Key");
         blog.setRegion("us-east-2");
         blog.setTitle("Dr");
         blog.setUpdatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
@@ -103,12 +103,12 @@ class MediaBlogImplementationTest {
         verify(blog).setUpdatedAt(Mockito.any());
         verify(blog).getBlog();
         verify(blog).getImage();
-        verify(blog).getKey();
+        verify(blog).getId();
         verify(blog, atLeast(1)).getRegion();
         verify(blog).getTitle();
         verify(blog).setBlog(Mockito.any());
         verify(blog).setImage(Mockito.any());
-        verify(blog).setKey(Mockito.any());
+        verify(blog).setId(Mockito.any());
         verify(blog).setRegion(Mockito.any());
         verify(blog).setTitle(Mockito.any());
         verify(blogRepository).findById(Mockito.any());
@@ -117,7 +117,7 @@ class MediaBlogImplementationTest {
         assertEquals("MediaBlog", data.getBlog());
         assertEquals("Dr", data.getTitle());
         assertEquals("Image", data.getImage());
-        assertEquals("Key", data.getKey());
+        assertEquals("Key", data.getId());
         assertEquals("Thursday, 1\" January | us-east-2", data.getRegion());
         assertEquals(200, actualFindBlogResult.getCode().intValue());
         assertEquals(HttpStatus.OK, actualFindBlogResult.getStatus());

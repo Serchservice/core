@@ -9,6 +9,6 @@ public class MediaNewsroomResponse {
     private String news;
     private String region;
     private String image;
-    private String key;
+    private String id;
     private String title;
 }

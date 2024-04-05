@@ -14,15 +14,15 @@ import java.util.List;
 public class HelpGroup extends BaseDateTime {
     @Id
     @Column(nullable = false, columnDefinition = "TEXT")
-    private String key;
+    private String id;
 
     @Column(nullable = false, columnDefinition = "TEXT", name = "name")
     private String group;
 
     @ManyToOne
     @JoinColumn(
-            name = "section_key",
-            referencedColumnName = "key",
+            name = "section_id",
+            referencedColumnName = "id",
             nullable = false,
             foreignKey = @ForeignKey(name = "section_id_fkey")
     )

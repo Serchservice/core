@@ -67,7 +67,7 @@ class MediaBlogControllerTest {
         blog.setBlog("MediaBlog");
         blog.setCreatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
         blog.setImage("Image");
-        blog.setKey("Key");
+        blog.setId("Key");
         blog.setRegion("us-east-2");
         blog.setTitle("Dr");
         blog.setUpdatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
@@ -88,7 +88,7 @@ class MediaBlogControllerTest {
         assertEquals("MediaBlog", data.getBlog());
         assertEquals("Dr", data.getTitle());
         assertEquals("Image", data.getImage());
-        assertEquals("Key", data.getKey());
+        assertEquals("Key", data.getId());
         assertEquals("Thursday, 1\" January | us-east-2", data.getRegion());
         assertEquals(200, body.getCode().intValue());
         assertEquals(200, actualFetchBlogResult.getStatusCode().value());

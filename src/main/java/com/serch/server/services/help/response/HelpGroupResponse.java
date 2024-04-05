@@ -10,7 +10,7 @@ import java.util.List;
 @Hidden
 public class HelpGroupResponse {
     private String group;
-    private String key;
+    private String id;
 
     @JsonProperty("help")
     private List<HelpResponse> helpResponses;

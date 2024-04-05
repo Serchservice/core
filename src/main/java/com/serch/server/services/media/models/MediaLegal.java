@@ -1,7 +1,7 @@
 package com.serch.server.services.media.models;
 
 import com.serch.server.bases.BaseDateTime;
-import com.serch.server.services.media.enums.LegalLineOfBusiness;
+import com.serch.server.services.media.LegalLOB;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,5 +26,5 @@ public class MediaLegal extends BaseDateTime {
 
     @Enumerated(value = EnumType.STRING)
     @Column(nullable = false, name = "line_of_business")
-    private LegalLineOfBusiness lob;
+    private LegalLOB lob;
 }

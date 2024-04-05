@@ -1,7 +1,7 @@
 package com.serch.server.services.media.controllers;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.services.media.enums.LegalLineOfBusiness;
+import com.serch.server.services.media.LegalLOB;
 import com.serch.server.services.media.models.MediaLegal;
 import com.serch.server.services.media.repositories.MediaLegalRepository;
 import com.serch.server.services.media.responses.MediaLegalResponse;
@@ -49,7 +49,7 @@ class MediaLegalControllerTest {
         legal.setImage("Image");
         legal.setId("Key");
         legal.setLegal("MediaLegal");
-        legal.setLob(LegalLineOfBusiness.USER);
+        legal.setLob(LegalLOB.USER);
         legal.setTitle("Dr");
         legal.setUpdatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
         Optional<MediaLegal> ofResult = Optional.of(legal);
@@ -73,7 +73,7 @@ class MediaLegalControllerTest {
         assertEquals("Request/User", data.getLineOfBusiness());
         assertEquals(200, body.getCode().intValue());
         assertEquals(200, actualFetchLegalResult.getStatusCode().value());
-        assertEquals(LegalLineOfBusiness.USER, data.getLob());
+        assertEquals(LegalLOB.USER, data.getLob());
         assertEquals(HttpStatus.OK, body.getStatus());
         assertTrue(actualFetchLegalResult.hasBody());
         assertTrue(actualFetchLegalResult.getHeaders().isEmpty());

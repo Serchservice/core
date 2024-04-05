@@ -1,6 +1,6 @@
 package com.serch.server.services.media.responses;
 
-import com.serch.server.services.media.enums.LegalLineOfBusiness;
+import com.serch.server.services.media.LegalLOB;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,6 +10,6 @@ import java.util.List;
 @Setter
 public class MediaLegalGroupResponse {
     private String lineOfBusiness;
-    private LegalLineOfBusiness lob;
+    private LegalLOB lob;
     private List<MediaLegalResponse> legalList;
 }

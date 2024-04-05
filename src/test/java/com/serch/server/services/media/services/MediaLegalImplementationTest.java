@@ -2,7 +2,7 @@ package com.serch.server.services.media.services;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.exceptions.MediaLegalException;
-import com.serch.server.services.media.enums.LegalLineOfBusiness;
+import com.serch.server.services.media.LegalLOB;
 import com.serch.server.services.media.models.MediaLegal;
 import com.serch.server.services.media.repositories.MediaLegalRepository;
 import com.serch.server.services.media.responses.MediaLegalGroupResponse;
@@ -66,7 +66,7 @@ class MediaLegalImplementationTest {
         legal.setImage("Legals fetched");
         legal.setId("Legals fetched");
         legal.setLegal("Legals fetched");
-        legal.setLob(LegalLineOfBusiness.USER);
+        legal.setLob(LegalLOB.USER);
         legal.setTitle("Dr");
         legal.setUpdatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
 
@@ -86,7 +86,7 @@ class MediaLegalImplementationTest {
         assertEquals("Request/User", getResult.getLineOfBusiness());
         assertEquals(1, getResult.getLegalList().size());
         assertEquals(200, actualFetchAllLegalsResult.getCode().intValue());
-        assertEquals(LegalLineOfBusiness.USER, getResult.getLob());
+        assertEquals(LegalLOB.USER, getResult.getLob());
         assertEquals(HttpStatus.OK, actualFetchAllLegalsResult.getStatus());
     }
 
@@ -101,7 +101,7 @@ class MediaLegalImplementationTest {
         legal.setImage("Legals fetched");
         legal.setId("Legals fetched");
         legal.setLegal("Legals fetched");
-        legal.setLob(LegalLineOfBusiness.USER);
+        legal.setLob(LegalLOB.USER);
         legal.setTitle("Dr");
         legal.setUpdatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
 
@@ -110,7 +110,7 @@ class MediaLegalImplementationTest {
         legal2.setImage("Image");
         legal2.setId("Key");
         legal2.setLegal("MediaLegal");
-        legal2.setLob(LegalLineOfBusiness.GUEST);
+        legal2.setLob(LegalLOB.GUEST);
         legal2.setTitle("Mr");
         legal2.setUpdatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
 
@@ -154,7 +154,7 @@ class MediaLegalImplementationTest {
         legal.setImage("Image");
         legal.setId("Key");
         legal.setLegal("MediaLegal");
-        legal.setLob(LegalLineOfBusiness.USER);
+        legal.setLob(LegalLOB.USER);
         legal.setTitle("Dr");
         legal.setUpdatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
         Optional<MediaLegal> ofResult = Optional.of(legal);
@@ -173,7 +173,7 @@ class MediaLegalImplementationTest {
         assertEquals("MediaLegal", data.getLegal());
         assertEquals("Request/User", data.getLineOfBusiness());
         assertEquals(200, actualFetchLegalResult.getCode().intValue());
-        assertEquals(LegalLineOfBusiness.USER, data.getLob());
+        assertEquals(LegalLOB.USER, data.getLob());
         assertEquals(HttpStatus.OK, actualFetchLegalResult.getStatus());
     }
 

@@ -4,8 +4,9 @@ FROM maven:3.9.6-amazoncorretto-21 AS Build
 WORKDIR /app
 LABEL authors="iamevaristus"
 COPY pom.xml .
+RUN mvn -B dependency:go-offline
 COPY src ./src
-RUN mvn clean install
+RUN mvn -B clean package
 
 ## Stage 2: Run the application
 ## docker push evastorm/app-server:1.0

@@ -38,6 +38,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 		"management.endpoints.web.cors.allowed-methods=*",
 		"management.endpoints.web.cors.allowed-origin-patterns={http://localhost:3000, *}",
 		"management.endpoints.web.cors.allowed-origins=*",
+		"serch.mail-api-key=re_send"
 })
 class ServerApplicationTests {
 	@Test

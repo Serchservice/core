@@ -1,0 +1,30 @@
+package com.serch.server.services.media.models;
+
+import com.serch.server.bases.BaseDateTime;
+import com.serch.server.services.media.enums.LegalLineOfBusiness;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+@Entity
+@Table(schema = "company", name = "legal_documents")
+public class MediaLegal extends BaseDateTime {
+    @Id
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String key;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String image;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String legal;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String title;
+
+    @Enumerated(value = EnumType.STRING)
+    @Column(nullable = false, name = "line_of_business")
+    private LegalLineOfBusiness lob;
+}

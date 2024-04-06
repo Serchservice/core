@@ -43,10 +43,8 @@ public class ProfileImplementation implements ProfileService {
             phoneInformation.setProfile(profile);
             phoneInformationRepository.save(phoneInformation);
 
-            if(request.getProfileReferral() != null) {
-                referralService.create(profile, request.getProfileReferral());
-            } else if(request.getBusinessReferral() != null) {
-                referralService.create(profile, request.getBusinessReferral());
+            if(request.getReferredBy() != null) {
+                referralService.create(request.getUser(), request.getReferredBy());
             }
 
             walletService.createWallet(profile);

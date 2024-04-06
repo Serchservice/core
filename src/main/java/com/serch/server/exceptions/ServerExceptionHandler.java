@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.zxing.WriterException;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.exceptions.account.AccountException;
+import com.serch.server.exceptions.account.ReferralException;
 import com.serch.server.exceptions.auth.AuthException;
 import com.serch.server.exceptions.auth.SessionException;
 import com.serch.server.exceptions.media.MediaBlogException;
@@ -51,6 +52,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(AccountException.class)
     public ApiResponse<String> handleAccountException(AccountException exception) {
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        response.setData(exception.getLocalizedMessage());
+        return response;
+    }
+
+    @ExceptionHandler(ReferralException.class)
+    public ApiResponse<String> handleReferralException(ReferralException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
         return response;

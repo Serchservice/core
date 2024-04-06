@@ -1,8 +1,12 @@
 package com.serch.server.services.account.services.implementations;
 
+import com.serch.server.exceptions.account.ReferralException;
 import com.serch.server.models.account.BusinessProfile;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.account.Referral;
+import com.serch.server.models.auth.User;
+import com.serch.server.repositories.account.BusinessProfileRepository;
+import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.account.ReferralRepository;
 import com.serch.server.services.account.services.ReferralService;
 import lombok.RequiredArgsConstructor;
@@ -12,36 +16,25 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ReferralImplementation implements ReferralService {
     private final ReferralRepository referralRepository;
+    private final ProfileRepository profileRepository;
+    private final BusinessProfileRepository businessProfileRepository;
 
     @Override
-    public void create(Profile profile, Profile referring) {
-        Referral referral = new Referral();
-        referral.setProfile(profile);
-        referral.setReferredBy(referring);
-        referralRepository.save(referral);
+    public void create(User referral, User referredBy) {
+        Referral refer = new Referral();
+        refer.setReferral(referral);
+        refer.setReferredBy(referredBy);
+        referralRepository.save(refer);
     }
 
     @Override
-    public void create(BusinessProfile profile, BusinessProfile referring) {
-        Referral referral = new Referral();
-        referral.setBusiness(profile);
-        referral.setBusinessReferredBy(referring);
-        referralRepository.save(referral);
-    }
-
-    @Override
-    public void create(Profile profile, BusinessProfile referring) {
-        Referral referral = new Referral();
-        referral.setProfile(profile);
-        referral.setBusinessReferredBy(referring);
-        referralRepository.save(referral);
-    }
-
-    @Override
-    public void create(BusinessProfile profile, Profile referring) {
-        Referral referral = new Referral();
-        referral.setBusiness(profile);
-        referral.setReferredBy(referring);
-        referralRepository.save(referral);
+    public User verifyReferralCode(String code) {
+        return profileRepository.findByReferralCodeIgnoreCase(code)
+                .map(Profile::getUser)
+                .orElse(
+                        businessProfileRepository.findByReferralCodeIgnoreCase(code)
+                                .map(BusinessProfile::getUser)
+                                .orElseThrow(() -> new ReferralException("Referral not found"))
+                );
     }
 }

@@ -4,6 +4,7 @@ import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.shared.UseStatus;
 import com.serch.server.generators.ReferralID;
+import com.serch.server.models.auth.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -31,33 +32,18 @@ public class Referral extends BaseDateTime {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
-            name = "referring",
-            referencedColumnName = "serch_id",
-            foreignKey = @ForeignKey(name = "referring_user_id_fkey")
+            name = "referred_by",
+            referencedColumnName = "id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "referred_by_user_id_fkey")
     )
-    private Profile referredBy;
+    private User referredBy;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(
-            name = "referred",
-            referencedColumnName = "serch_id",
-            foreignKey = @ForeignKey(name = "referred_user_id_fkey")
+            name = "referral",
+            referencedColumnName = "id",
+            foreignKey = @ForeignKey(name = "referral_user_id_fkey")
     )
-    private Profile profile;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "business_referring",
-            referencedColumnName = "serch_id",
-            foreignKey = @ForeignKey(name = "referring_business_id_fkey")
-    )
-    private BusinessProfile businessReferredBy;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "business_referred",
-            referencedColumnName = "serch_id",
-            foreignKey = @ForeignKey(name = "referred_business_id_fkey")
-    )
-    private BusinessProfile business;
+    private User referral;
 }

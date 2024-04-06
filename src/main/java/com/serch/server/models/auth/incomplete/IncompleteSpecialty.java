@@ -1,7 +1,7 @@
 package com.serch.server.models.auth.incomplete;
 
 import com.serch.server.bases.BaseModel;
-import com.serch.server.models.company.ServiceKeyword;
+import com.serch.server.models.company.SpecialtyService;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,7 +21,7 @@ public class IncompleteSpecialty extends BaseModel {
             foreignKey = @ForeignKey(name = "special_service_id_fkey")
     )
     @ToString.Exclude
-    private ServiceKeyword service;
+    private SpecialtyService service;
 
     @ManyToOne(cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     @JoinColumn(

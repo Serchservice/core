@@ -28,9 +28,6 @@ public class Subscription extends BaseModel {
     @Column(name = "serch_id")
     private UUID serchId;
 
-    @Column(name = "customer_code", columnDefinition = "TEXT", nullable = false)
-    private String customerCode;
-
     @Enumerated(value = EnumType.STRING)
     private PlanType plan;
 

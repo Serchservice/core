@@ -30,6 +30,15 @@ public class IncompleteProfile extends BaseModel {
     @NotBlank(message = "Gender cannot be empty or null")
     private String gender;
 
+    @Column(name = "business_name", columnDefinition = "TEXT")
+    private String businessName;
+
+    @Column(name = "business_description", columnDefinition = "TEXT")
+    private String businessDescription;
+
+    @Column(name = "business_address", columnDefinition = "TEXT")
+    private String businessAddress;
+
     @Column(name = "password", nullable = false, columnDefinition = "TEXT")
     private String password;
 
@@ -38,9 +47,6 @@ public class IncompleteProfile extends BaseModel {
 
     @Column(name = "referral", columnDefinition = "TEXT")
     private String referralCode = null;
-
-    @Column(name = "platform", nullable = false, columnDefinition = "TEXT")
-    private String platform;
 
     @Column(name = "role", nullable = false)
     @Enumerated(value = EnumType.STRING)

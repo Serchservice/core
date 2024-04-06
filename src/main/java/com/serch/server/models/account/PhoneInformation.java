@@ -1,6 +1,7 @@
 package com.serch.server.models.account;
 
 import com.serch.server.bases.BaseModel;
+import com.serch.server.models.auth.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -27,16 +28,9 @@ public class PhoneInformation extends BaseModel {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "user_id",
-            referencedColumnName = "serch_id",
+            referencedColumnName = "id",
+            nullable = false,
             foreignKey = @ForeignKey(name = "user_phone_fkey")
     )
-    private Profile profile;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "business_id",
-            referencedColumnName = "serch_id",
-            foreignKey = @ForeignKey(name = "business_phone_fkey")
-    )
-    private BusinessProfile business;
+    private User user;
 }

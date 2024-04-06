@@ -1,7 +1,10 @@
 package com.serch.server.mappers;
 
+import com.serch.server.models.account.BusinessProfile;
 import com.serch.server.models.account.PhoneInformation;
 import com.serch.server.models.account.Profile;
+import com.serch.server.models.auth.incomplete.IncompletePhoneInformation;
+import com.serch.server.models.auth.incomplete.IncompleteProfile;
 import com.serch.server.services.auth.requests.RequestPhoneInformation;
 import com.serch.server.services.auth.requests.RequestProfile;
 import org.mapstruct.Mapper;
@@ -14,5 +17,7 @@ public interface AccountMapper {
 
     @Mapping(source = "referral", target = "referralCode", ignore = true)
     Profile profile(RequestProfile profile);
+    BusinessProfile profile(IncompleteProfile profile);
     PhoneInformation phoneInformation(RequestPhoneInformation phoneInformation);
+    PhoneInformation phoneInformation(IncompletePhoneInformation phoneInformation);
 }

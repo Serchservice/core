@@ -1,7 +1,7 @@
 package com.serch.server.models.auth.incomplete;
 
 import com.serch.server.bases.BaseModel;
-import com.serch.server.models.account.Profile;
+import com.serch.server.models.auth.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,19 +17,19 @@ import lombok.Setter;
 public class IncompleteReferral extends BaseModel {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
-            name = "referring",
-            referencedColumnName = "serch_id",
+            name = "referred_by",
+            referencedColumnName = "id",
             nullable = false,
-            foreignKey = @ForeignKey(name = "referring_user_id_fkey")
+            foreignKey = @ForeignKey(name = "referred_by_user_id_fkey")
     )
-    private Profile referredBy;
+    private User referredBy;
 
     @OneToOne(cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     @JoinColumn(
             name = "incomplete_email",
             referencedColumnName = "email_address",
             nullable = false,
-            foreignKey = @ForeignKey(name = "profile_email_fkey")
+            foreignKey = @ForeignKey(name = "incomplete_email_fkey")
     )
     private Incomplete incomplete;
 }

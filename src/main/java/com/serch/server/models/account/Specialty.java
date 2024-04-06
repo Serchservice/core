@@ -1,7 +1,7 @@
 package com.serch.server.models.account;
 
 import com.serch.server.bases.BaseModel;
-import com.serch.server.models.company.ServiceKeyword;
+import com.serch.server.models.company.SpecialtyService;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,7 +22,7 @@ public class Specialty extends BaseModel {
             nullable = false,
             foreignKey = @ForeignKey(name = "special_service_id_fkey")
     )
-    private ServiceKeyword service;
+    private SpecialtyService service;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(

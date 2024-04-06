@@ -42,7 +42,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 		"### SERCH APPLICATION SETTINGS",
 		"### APPLICATION SETTINGS - JWT",
 		"application.security.jwt-secret-key=yuyuwerewre",
-		"application.security.jwt-expiration-time=$123567",
+		"application.security.jwt-expiration-time=123567876545533232",
 		"### APPLICATION SETTINGS - One-Time Password",
 		"application.security.otp-token-length=10",
 		"application.security.otp-expiration-time=15",

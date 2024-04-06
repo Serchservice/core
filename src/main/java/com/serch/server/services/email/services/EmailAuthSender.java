@@ -2,8 +2,8 @@ package com.serch.server.services.email.services;
 
 import com.resend.services.emails.model.SendEmailResponse;
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.services.email.models.Email;
-import com.serch.server.services.email.models.SendEmail;
+import com.serch.server.models.email.Email;
+import com.serch.server.models.email.SendEmail;
 import com.serch.server.services.email.template.EmailAuthTemplate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

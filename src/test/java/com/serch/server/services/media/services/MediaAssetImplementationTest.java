@@ -1,7 +1,7 @@
 package com.serch.server.services.media.services;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.services.media.repositories.MediaAssetRepository;
+import com.serch.server.repositories.media.MediaAssetRepository;
 import com.serch.server.services.media.responses.MediaAssetResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

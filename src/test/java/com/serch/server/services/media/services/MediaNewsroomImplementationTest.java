@@ -1,9 +1,9 @@
 package com.serch.server.services.media.services;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.exceptions.MediaNewsroomException;
-import com.serch.server.services.media.models.MediaNewsroom;
-import com.serch.server.services.media.repositories.MediaNewsroomRepository;
+import com.serch.server.exceptions.media.MediaNewsroomException;
+import com.serch.server.models.media.MediaNewsroom;
+import com.serch.server.repositories.media.MediaNewsroomRepository;
 import com.serch.server.services.media.responses.MediaNewsroomResponse;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;

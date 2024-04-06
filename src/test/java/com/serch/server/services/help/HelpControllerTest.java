@@ -2,11 +2,11 @@ package com.serch.server.services.help;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.services.help.models.Help;
-import com.serch.server.services.help.models.HelpCategory;
-import com.serch.server.services.help.models.HelpGroup;
-import com.serch.server.services.help.models.HelpSection;
-import com.serch.server.services.help.repositories.*;
+import com.serch.server.models.help.Help;
+import com.serch.server.models.help.HelpCategory;
+import com.serch.server.models.help.HelpGroup;
+import com.serch.server.models.help.HelpSection;
+import com.serch.server.repositories.help.*;
 import com.serch.server.services.help.requests.HelpAskRequest;
 import com.serch.server.services.help.response.HelpGroupResponse;
 import com.serch.server.services.help.response.HelpResponse;

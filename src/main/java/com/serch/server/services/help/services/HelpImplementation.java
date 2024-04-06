@@ -2,11 +2,11 @@ package com.serch.server.services.help.services;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.exceptions.HelpException;
+import com.serch.server.models.help.*;
+import com.serch.server.repositories.help.*;
 import com.serch.server.services.help.HelpMapper;
-import com.serch.server.services.help.models.*;
 import com.serch.server.services.help.requests.HelpAskRequest;
 import com.serch.server.services.help.response.*;
-import com.serch.server.services.help.repositories.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;

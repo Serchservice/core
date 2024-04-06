@@ -2,7 +2,7 @@ package com.serch.server.services.email.services;
 
 import com.resend.services.emails.model.SendEmailResponse;
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.services.email.models.SendEmail;
+import com.serch.server.models.email.SendEmail;
 
 public interface EmailAuthService {
     /**

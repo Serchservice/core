@@ -1,10 +1,10 @@
 package com.serch.server.services.media.services;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.exceptions.MediaBlogException;
+import com.serch.server.exceptions.media.MediaBlogException;
 import com.serch.server.services.media.mappers.MediaBlogMapper;
-import com.serch.server.services.media.models.MediaBlog;
-import com.serch.server.services.media.repositories.MediaBlogRepository;
+import com.serch.server.models.media.MediaBlog;
+import com.serch.server.repositories.media.MediaBlogRepository;
 import com.serch.server.services.media.responses.MediaBlogResponse;
 import com.serch.server.services.media.utils.MediaUtil;
 import lombok.RequiredArgsConstructor;

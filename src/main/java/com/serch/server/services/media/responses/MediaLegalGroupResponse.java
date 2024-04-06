@@ -1,6 +1,6 @@
 package com.serch.server.services.media.responses;
 
-import com.serch.server.services.media.LegalLOB;
+import com.serch.server.enums.media.LegalLOB;
 import lombok.Getter;
 import lombok.Setter;
 

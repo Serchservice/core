@@ -1,11 +1,11 @@
 package com.serch.server.services.media.services;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.exceptions.MediaLegalException;
-import com.serch.server.services.media.LegalLOB;
+import com.serch.server.exceptions.media.MediaLegalException;
+import com.serch.server.enums.media.LegalLOB;
 import com.serch.server.services.media.mappers.MediaLegalMapper;
-import com.serch.server.services.media.models.MediaLegal;
-import com.serch.server.services.media.repositories.MediaLegalRepository;
+import com.serch.server.models.media.MediaLegal;
+import com.serch.server.repositories.media.MediaLegalRepository;
 import com.serch.server.services.media.responses.MediaLegalGroupResponse;
 import com.serch.server.services.media.responses.MediaLegalResponse;
 import lombok.RequiredArgsConstructor;

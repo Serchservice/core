@@ -9,6 +9,7 @@ import com.serch.server.exceptions.auth.SessionException;
 import com.serch.server.exceptions.media.MediaBlogException;
 import com.serch.server.exceptions.media.MediaLegalException;
 import com.serch.server.exceptions.media.MediaNewsroomException;
+import com.serch.server.exceptions.transaction.WalletException;
 import dev.samstevens.totp.exceptions.QrGenerationException;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -99,6 +100,13 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(MediaNewsroomException.class)
     public ApiResponse<String> handleMediaNewsroomException(MediaNewsroomException exception) {
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        response.setData(exception.getLocalizedMessage());
+        return response;
+    }
+
+    @ExceptionHandler(WalletException.class)
+    public ApiResponse<String> handleWalletException(WalletException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
         return response;

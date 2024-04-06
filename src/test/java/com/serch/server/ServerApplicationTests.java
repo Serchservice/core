@@ -38,7 +38,22 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 		"management.endpoints.web.cors.allowed-methods=*",
 		"management.endpoints.web.cors.allowed-origin-patterns={http://localhost:3000, *}",
 		"management.endpoints.web.cors.allowed-origins=*",
-		"serch.mail-api-key=re_send"
+		"serch.mail-api-key=re_send",
+		"### SERCH APPLICATION SETTINGS",
+		"### APPLICATION SETTINGS - JWT",
+		"application.security.jwt-secret-key=yuyuwerewre",
+		"application.security.jwt-expiration-time=$123567",
+		"### APPLICATION SETTINGS - One-Time Password",
+		"application.security.otp-token-length=10",
+		"application.security.otp-expiration-time=15",
+		"application.security.otp-token-characters=0123456",
+		"### APPLICATION SETTINGS - Refresh Token",
+		"application.security.refresh-token-length=12",
+		"application.security.refresh-token-characters=aw232123",
+		"application.settings.specialty-limit=20",
+		"application.settings.account-duration=30",
+		"serch.wallet.fund-amount-limit=20",
+		"serch.wallet.withdraw-amount-limit=20"
 })
 class ServerApplicationTests {
 	@Test

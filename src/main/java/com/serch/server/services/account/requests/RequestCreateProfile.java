@@ -1,8 +1,6 @@
 package com.serch.server.services.account.requests;
 
 import com.serch.server.enums.account.SerchCategory;
-import com.serch.server.models.account.BusinessProfile;
-import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.User;
 import com.serch.server.services.auth.requests.RequestProfile;
 import lombok.Data;
@@ -16,6 +14,5 @@ public class RequestCreateProfile {
     private RequestProfile profile;
     private SerchCategory category;
     private User user;
-    private Profile profileReferral;
-    private BusinessProfile businessReferral;
+    private User referredBy;
 }

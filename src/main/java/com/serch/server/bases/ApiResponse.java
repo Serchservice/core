@@ -23,17 +23,24 @@ public class ApiResponse<T> {
         this.code = HttpStatus.BAD_REQUEST.value();
     }
 
-    public ApiResponse(String message, T data, HttpStatus status) {
-        this.data = data;
-        this.message = message;
-        this.status = status;
-        this.code = status.value();
-    }
-
     public ApiResponse(T data) {
         this.data = data;
         this.message = "Successful";
         this.status = HttpStatus.OK;
         this.code = HttpStatus.OK.value();
+    }
+
+    public ApiResponse(String message, HttpStatus status) {
+        this.data = null;
+        this.message = message;
+        this.status = status;
+        this.code = status.value();
+    }
+
+    public ApiResponse(String message, T data, HttpStatus status) {
+        this.data = data;
+        this.message = message;
+        this.status = status;
+        this.code = status.value();
     }
 }

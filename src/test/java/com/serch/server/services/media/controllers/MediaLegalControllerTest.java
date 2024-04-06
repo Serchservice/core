@@ -1,9 +1,9 @@
 package com.serch.server.services.media.controllers;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.services.media.LegalLOB;
-import com.serch.server.services.media.models.MediaLegal;
-import com.serch.server.services.media.repositories.MediaLegalRepository;
+import com.serch.server.enums.media.LegalLOB;
+import com.serch.server.models.media.MediaLegal;
+import com.serch.server.repositories.media.MediaLegalRepository;
 import com.serch.server.services.media.responses.MediaLegalResponse;
 import com.serch.server.services.media.services.MediaLegalImplementation;
 import com.serch.server.services.media.services.MediaLegalService;

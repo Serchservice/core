@@ -1,6 +1,6 @@
 package com.serch.server.services.help;
 
-import com.serch.server.services.help.models.*;
+import com.serch.server.models.help.*;
 import com.serch.server.services.help.requests.HelpAskRequest;
 import com.serch.server.services.help.response.*;
 import org.mapstruct.Mapper;

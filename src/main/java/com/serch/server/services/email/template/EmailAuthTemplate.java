@@ -1,6 +1,6 @@
 package com.serch.server.services.email.template;
 
-import com.serch.server.services.email.models.Email;
+import com.serch.server.models.email.Email;
 
 public class EmailAuthTemplate {
     static String image(String key) {

@@ -120,6 +120,13 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
         return response;
     }
 
+    @ExceptionHandler(PaymentException.class)
+    public ApiResponse<String> handlePaymentException(PaymentException exception) {
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        response.setData(exception.getLocalizedMessage());
+        return response;
+    }
+
     @ExceptionHandler(SerchException.class)
     public ApiResponse<String> handleSerchException(SerchException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());

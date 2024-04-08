@@ -2,7 +2,7 @@ package com.serch.server.services.shop.services;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.shop.ShopStatus;
-import com.serch.server.exceptions.ShopException;
+import com.serch.server.exceptions.others.ShopException;
 import com.serch.server.mappers.ShopMapper;
 import com.serch.server.models.auth.User;
 import com.serch.server.models.shop.Shop;

@@ -1,6 +1,6 @@
 package com.serch.server.services.payment.core;
 
-import com.serch.server.exceptions.PaymentException;
+import com.serch.server.exceptions.others.PaymentException;
 import com.serch.server.services.payment.requests.InitializePaymentRequest;
 import com.serch.server.services.payment.requests.PaymentChargeRequest;
 import com.serch.server.services.payment.responses.InitializePaymentResponse;

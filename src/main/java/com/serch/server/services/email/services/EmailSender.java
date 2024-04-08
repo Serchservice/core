@@ -5,7 +5,7 @@ import com.resend.core.exception.ResendException;
 import com.resend.services.emails.model.SendEmailRequest;
 import com.resend.services.emails.model.SendEmailResponse;
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.exceptions.EmailException;
+import com.serch.server.exceptions.others.EmailException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

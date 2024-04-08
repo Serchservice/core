@@ -214,6 +214,29 @@ public class ProviderAuthImplementation implements ProviderAuthService {
     }
 
     @Override
+    public ApiResponse<String> checkStatus(String emailAddress) {
+        var incomplete = incompleteRepository.findByEmailAddress(emailAddress)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        if(incomplete.isEmailConfirmed()) {
+            if(incomplete.hasProfile()) {
+                if(incomplete.hasCategory()) {
+                    if(incomplete.hasAdditional()) {
+                        return new ApiResponse<>("Success", HttpStatus.OK);
+                    } else {
+                        throw new AuthException("You don't have a additional profile", ExceptionCodes.ADDITIONAL_NOT_SET);
+                    }
+                } else {
+                    throw new AuthException("You don't have a Serch category", ExceptionCodes.CATEGORY_NOT_SET);
+                }
+            } else {
+                throw new AuthException("You don't have any profile", ExceptionCodes.PROFILE_NOT_SET);
+            }
+        } else {
+            throw new AuthException("You have not confirmed your email", ExceptionCodes.EMAIL_NOT_VERIFIED);
+        }
+    }
+
+    @Override
     public ApiResponse<AuthResponse> finishSignup(RequestAuth auth) {
         User user = userRepository.findByEmailAddress(auth.getEmailAddress())
                 .orElseThrow(() -> new AuthException("User not found"));

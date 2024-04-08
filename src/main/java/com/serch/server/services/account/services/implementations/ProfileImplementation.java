@@ -14,7 +14,6 @@ import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.services.account.requests.RequestCreateProfile;
 import com.serch.server.services.account.services.ProfileService;
 import com.serch.server.services.account.services.ReferralService;
-import com.serch.server.services.auth.requests.RequestAuth;
 import com.serch.server.services.auth.requests.RequestProfile;
 import com.serch.server.services.transaction.services.WalletService;
 import com.serch.server.utils.HelperUtil;
@@ -59,10 +58,10 @@ public class ProfileImplementation implements ProfileService {
     }
 
     @Override
-    public ApiResponse<Profile> createProviderProfile(Incomplete incomplete, RequestAuth auth, User user) {
+    public ApiResponse<Profile> createProviderProfile(Incomplete incomplete, User user) {
         RequestCreateProfile createProfile = new RequestCreateProfile();
         createProfile.setUser(user);
-        createProfile.setProfile(getRequestProfile(incomplete, auth));
+        createProfile.setProfile(getRequestProfile(incomplete));
         createProfile.setCategory(incomplete.getCategory().getCategory());
         createProfile.setReferredBy(incomplete.getReferredBy().getReferredBy());
         return createProfile(createProfile);
@@ -78,10 +77,8 @@ public class ProfileImplementation implements ProfileService {
         return createProfile(createProfile);
     }
 
-    private RequestProfile getRequestProfile(Incomplete incomplete, RequestAuth auth) {
+    private RequestProfile getRequestProfile(Incomplete incomplete) {
         RequestProfile profile = AuthMapper.INSTANCE.profile(incomplete.getProfile());
-        profile.setDevice(auth.getDevice());
-        profile.setPlatform(auth.getPlatform());
         profile.setPassword(incomplete.getProfile().getPassword());
         profile.setEmailAddress(incomplete.getEmailAddress());
         profile.setPhoneInformation(AuthMapper.INSTANCE.phoneInformation(incomplete.getPhoneInfo()));

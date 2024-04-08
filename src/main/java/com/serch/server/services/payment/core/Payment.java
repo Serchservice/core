@@ -3,9 +3,9 @@ package com.serch.server.services.payment.core;
 import com.serch.server.exceptions.PaymentException;
 import com.serch.server.services.payment.requests.InitializePaymentRequest;
 import com.serch.server.services.payment.responses.InitializePaymentResponse;
-import com.serch.server.services.payment.responses.InitializePaymentResponseData;
+import com.serch.server.services.payment.responses.InitializePaymentData;
 import com.serch.server.services.payment.responses.PaymentVerificationResponse;
-import com.serch.server.services.payment.responses.PaymentVerificationResponseData;
+import com.serch.server.services.payment.responses.PaymentVerificationData;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,7 +32,7 @@ public class Payment implements PaymentService {
     }
 
     @Override
-    public InitializePaymentResponseData initialize(InitializePaymentRequest request) {
+    public InitializePaymentData initialize(InitializePaymentRequest request) {
         InitializePaymentRequest payment = request.validate();
         HttpEntity<InitializePaymentRequest> entity = new HttpEntity<>(payment, headers());
         String endpoint = BASE_API_ENDPOINT + "/initialize";
@@ -51,7 +51,7 @@ public class Payment implements PaymentService {
     }
 
     @Override
-    public PaymentVerificationResponseData verify(String reference) {
+    public PaymentVerificationData verify(String reference) {
         HttpEntity<Object> entity = new HttpEntity<>(headers());
         String endpoint = BASE_API_ENDPOINT + "/verify/" + reference;
         ResponseEntity<PaymentVerificationResponse> response = rest.exchange(endpoint, HttpMethod.GET, entity, PaymentVerificationResponse.class);

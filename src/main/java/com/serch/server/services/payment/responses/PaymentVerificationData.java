@@ -8,7 +8,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class PaymentVerificationResponseData {
+public class PaymentVerificationData {
     private Long id;
     private String status;
     private String reference;

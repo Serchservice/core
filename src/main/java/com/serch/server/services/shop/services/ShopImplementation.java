@@ -21,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -57,6 +58,7 @@ public class ShopImplementation implements ShopServices {
                 "Success",
                 shopRepository.findByUser_Id(user.getId())
                         .stream()
+                        .sorted(Comparator.comparing(Shop::getCreatedAt))
                         .map(s -> {
                             ShopResponse response = ShopMapper.INSTANCE.shop(s);
                             response.setServices(s.getServices()

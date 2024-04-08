@@ -66,6 +66,9 @@ public class Subscription extends BaseDateTime {
    public boolean isExpired() {
       return planStatus == PlanStatus.INACTIVE;
    }
+   public boolean isNotSameAuth(String signature) {
+      return getAuth() != null && !getAuth().getSignature().equals(signature);
+   }
    public boolean canUseFreePlan() {
       return freePlanStatus == PlanStatus.NOT_USED;
    }

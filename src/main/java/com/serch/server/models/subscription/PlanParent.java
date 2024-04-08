@@ -1,10 +1,12 @@
 package com.serch.server.models.subscription;
 
-import com.serch.server.bases.BaseModel;
+import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.subscription.PlanType;
+import com.serch.server.generators.PlanParentID;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.GenericGenerator;
 
 import java.util.List;
 
@@ -12,7 +14,13 @@ import java.util.List;
 @Setter
 @Entity
 @Table(schema = "company", name = "plan_parents")
-public class MainSerchPlan extends BaseModel {
+public class PlanParent extends BaseDateTime {
+    @Id
+    @Column(name = "id", nullable = false, columnDefinition = "TEXT")
+    @GenericGenerator(name = "plan_id_gen", type = PlanParentID.class)
+    @GeneratedValue(generator = "plan_id_gen")
+    private String id;
+
     @Column(nullable = false)
     @Enumerated(value = EnumType.STRING)
     private PlanType type;
@@ -29,15 +37,12 @@ public class MainSerchPlan extends BaseModel {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String duration;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String amount;
 
-    @Column(name = "with_business", nullable = false)
-    private Boolean withBusiness = false;
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<PlanBenefit> benefits;
 
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<SerchPlanBenefit> benefits;
-
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<SubSerchPlan> subPlans;
+    private List<PlanChild> children;
 }

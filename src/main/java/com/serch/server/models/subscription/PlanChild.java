@@ -1,16 +1,24 @@
 package com.serch.server.models.subscription;
 
-import com.serch.server.bases.BaseModel;
+import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.subscription.SubPlanType;
+import com.serch.server.generators.PlanChildID;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.GenericGenerator;
 
 @Getter
 @Setter
 @Entity
 @Table(schema = "company", name = "plan_children")
-public class SubSerchPlan extends BaseModel {
+public class PlanChild extends BaseDateTime {
+    @Id
+    @Column(name = "id", nullable = false, columnDefinition = "TEXT")
+    @GenericGenerator(name = "plan_child_id_gen", type = PlanChildID.class)
+    @GeneratedValue(generator = "plan_child_id_gen")
+    private String id;
+
     @Column(nullable = false)
     @Enumerated(value = EnumType.STRING)
     private SubPlanType type;
@@ -27,9 +35,6 @@ public class SubSerchPlan extends BaseModel {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String tag;
 
-    @Column(name = "plan_code", columnDefinition = "TEXT", nullable = false)
-    private String planCode;
-
     @Column(name = "is_business", nullable = false)
     private Boolean isBusiness = false;
 
@@ -38,7 +43,7 @@ public class SubSerchPlan extends BaseModel {
             name = "parent_id",
             referencedColumnName = "id",
             nullable = false,
-            foreignKey = @ForeignKey(name = "active_serch_id_fkey")
+            foreignKey = @ForeignKey(name = "plan_parent_id_fkey")
     )
-    private MainSerchPlan parent;
+    private PlanParent parent;
 }

@@ -109,6 +109,10 @@ public class User extends BaseEntity implements UserDetails {
         return accountStatus == AccountStatus.ACTIVE;
     }
 
+    public boolean isBusinessLocked() {
+        return accountStatus == AccountStatus.BUSINESS_DEACTIVATED;
+    }
+
     public User check() {
         if(accountStatus == AccountStatus.BUSINESS_DEACTIVATED) {
             throw new DisabledException(

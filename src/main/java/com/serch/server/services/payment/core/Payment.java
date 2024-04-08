@@ -2,6 +2,7 @@ package com.serch.server.services.payment.core;
 
 import com.serch.server.exceptions.PaymentException;
 import com.serch.server.services.payment.requests.InitializePaymentRequest;
+import com.serch.server.services.payment.requests.PaymentChargeRequest;
 import com.serch.server.services.payment.responses.InitializePaymentResponse;
 import com.serch.server.services.payment.responses.InitializePaymentData;
 import com.serch.server.services.payment.responses.PaymentVerificationResponse;
@@ -38,7 +39,7 @@ public class Payment implements PaymentService {
         String endpoint = BASE_API_ENDPOINT + "/initialize";
         ResponseEntity<InitializePaymentResponse> response = rest.postForEntity(endpoint, entity, InitializePaymentResponse.class);
 
-        System.out.println(response.getBody());
+        System.out.println("Initialize Method in Payment - " + response.getBody());
         if(response.getStatusCode().is2xxSuccessful()) {
             InitializePaymentResponse body = response.getBody();
             if(Objects.requireNonNull(body).getStatus() && ObjectUtils.isEmpty(body.getData())) {
@@ -56,7 +57,22 @@ public class Payment implements PaymentService {
         String endpoint = BASE_API_ENDPOINT + "/verify/" + reference;
         ResponseEntity<PaymentVerificationResponse> response = rest.exchange(endpoint, HttpMethod.GET, entity, PaymentVerificationResponse.class);
 
-        System.out.println(response.getBody());
+        System.out.println("Verify Method in Payment - " + response.getBody());
+        return getPaymentVerificationData(response);
+    }
+
+    @Override
+    public PaymentVerificationData charge(PaymentChargeRequest request) {
+        PaymentChargeRequest charge = request.validate();
+        HttpEntity<Object> entity = new HttpEntity<>(charge, headers());
+        String endpoint = BASE_API_ENDPOINT + "/transaction/charge_authorization" ;
+        ResponseEntity<PaymentVerificationResponse> response = rest.postForEntity(endpoint, entity, PaymentVerificationResponse.class);
+
+        System.out.println("Charge Method in Payment - " + response.getBody());
+        return getPaymentVerificationData(response);
+    }
+
+    private static PaymentVerificationData getPaymentVerificationData(ResponseEntity<PaymentVerificationResponse> response) {
         if(response.getStatusCode().is2xxSuccessful()) {
             PaymentVerificationResponse body = response.getBody();
             if(Objects.requireNonNull(body).getStatus() && ObjectUtils.isEmpty(body.getData()) && body.getData().getStatus().equalsIgnoreCase("success")) {

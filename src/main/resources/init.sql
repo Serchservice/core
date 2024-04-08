@@ -14,7 +14,7 @@ CREATE SCHEMA IF NOT EXISTS account;
 CREATE SCHEMA IF NOT EXISTS providesharing;
 
 -- Create SUBSCRIPTION schema if not exists
-CREATE SCHEMA IF NOT EXISTS subscription;
+CREATE SCHEMA IF NOT EXISTS subscriptionRequest;
 
 -- Create VERIFIED schema if not exists
 CREATE SCHEMA IF NOT EXISTS verified;

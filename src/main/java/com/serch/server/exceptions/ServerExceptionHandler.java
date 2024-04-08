@@ -10,6 +10,8 @@ import com.serch.server.exceptions.auth.SessionException;
 import com.serch.server.exceptions.media.MediaBlogException;
 import com.serch.server.exceptions.media.MediaLegalException;
 import com.serch.server.exceptions.media.MediaNewsroomException;
+import com.serch.server.exceptions.subscription.PlanException;
+import com.serch.server.exceptions.subscription.SubscriptionException;
 import com.serch.server.exceptions.transaction.WalletException;
 import dev.samstevens.totp.exceptions.QrGenerationException;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -115,6 +117,20 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(WalletException.class)
     public ApiResponse<String> handleWalletException(WalletException exception) {
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        response.setData(exception.getLocalizedMessage());
+        return response;
+    }
+
+    @ExceptionHandler(SubscriptionException.class)
+    public ApiResponse<String> handleSubscriptionException(SubscriptionException exception) {
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        response.setData(exception.getLocalizedMessage());
+        return response;
+    }
+
+    @ExceptionHandler(PlanException.class)
+    public ApiResponse<String> handlePlanException(PlanException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
         return response;

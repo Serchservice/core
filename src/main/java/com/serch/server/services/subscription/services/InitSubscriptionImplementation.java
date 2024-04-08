@@ -19,7 +19,6 @@ import com.serch.server.repositories.subscription.PlanChildRepository;
 import com.serch.server.repositories.subscription.PlanParentRepository;
 import com.serch.server.repositories.subscription.SubscriptionRepository;
 import com.serch.server.repositories.subscription.SubscriptionRequestRepository;
-import com.serch.server.services.payment.core.PaymentService;
 import com.serch.server.services.payment.requests.InitializePaymentRequest;
 import com.serch.server.services.payment.responses.InitializePaymentData;
 import com.serch.server.services.subscription.requests.InitSubscriptionRequest;

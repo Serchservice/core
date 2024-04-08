@@ -1,10 +1,10 @@
 package com.serch.server.services.payment.core;
 
 import com.serch.server.services.payment.requests.InitializePaymentRequest;
-import com.serch.server.services.payment.responses.InitializePaymentResponseData;
-import com.serch.server.services.payment.responses.PaymentVerificationResponseData;
+import com.serch.server.services.payment.responses.InitializePaymentData;
+import com.serch.server.services.payment.responses.PaymentVerificationData;
 
 public interface PaymentService {
-    InitializePaymentResponseData initialize(InitializePaymentRequest request);
-    PaymentVerificationResponseData verify(String reference);
+    InitializePaymentData initialize(InitializePaymentRequest request);
+    PaymentVerificationData verify(String reference);
 }

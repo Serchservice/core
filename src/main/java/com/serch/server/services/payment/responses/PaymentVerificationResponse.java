@@ -8,6 +8,6 @@ import lombok.ToString;
 @Setter
 @ToString
 public class PaymentVerificationResponse extends PaymentResponse {
-    private PaymentVerificationResponseData data;
+    private PaymentVerificationData data;
 }
 

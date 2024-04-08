@@ -21,6 +21,7 @@ import com.serch.server.services.account.services.AdditionalService;
 import com.serch.server.services.account.services.ProfileService;
 import com.serch.server.services.account.services.SpecialtyService;
 import com.serch.server.services.auth.services.AuthService;
+import com.serch.server.services.auth.services.ProviderAuthService;
 import com.serch.server.services.payment.core.PaymentService;
 import com.serch.server.services.payment.responses.PaymentVerificationData;
 import com.serch.server.services.subscription.requests.VerifySubscriptionRequest;
@@ -39,6 +40,7 @@ public class VerifySubscription implements VerifySubscriptionService {
     private final SpecialtyService specialtyService;
     private final AdditionalService additionalService;
     private final AuthService authService;
+    private final ProviderAuthService providerAuthService;
     private final SubscriptionRepository subscriptionRepository;
     private final SubscriptionAuthRepository subscriptionAuthRepository;
     private final SubscriptionRequestRepository subscriptionRequestRepository;
@@ -66,10 +68,15 @@ public class VerifySubscription implements VerifySubscriptionService {
         Incomplete incomplete = incompleteRepository.findByEmailAddress(request.getEmailAddress())
                 .orElseThrow(() -> new AuthException("User not found on registration"));
 
-        if(subRequest.getParent().getType() == PlanType.FREE) {
-            return verifyFree(subRequest, null, incomplete);
+        ApiResponse<String> response = providerAuthService.checkStatus(request.getEmailAddress());
+        if(response.getStatus().is2xxSuccessful()) {
+            if(subRequest.getParent().getType() == PlanType.FREE) {
+                return verifyFree(subRequest, null, incomplete);
+            } else {
+                return verifyPaid(subRequest, null, incomplete);
+            }
         } else {
-            return verifyPaid(subRequest, null, incomplete);
+            return new ApiResponse<>(response.getMessage());
         }
     }
 

@@ -31,7 +31,7 @@ public class InitializePaymentRequest {
         int updatedAmount = Integer.parseInt(getAmount());
         setAmount(String.valueOf(updatedAmount * 100));
 
-        System.out.println(this);
+        System.out.println("InitializePaymentRequest - " + this);
         return this;
     }
 }

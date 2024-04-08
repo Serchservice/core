@@ -25,6 +25,6 @@ public class SubscriptionResponse {
     private String amount;
     private String duration;
     private Integer size;
-
     private List<String> benefits;
+    private SubscriptionCardResponse card;
 }

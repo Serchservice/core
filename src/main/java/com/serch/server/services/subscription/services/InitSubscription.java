@@ -19,6 +19,7 @@ import com.serch.server.repositories.subscription.PlanChildRepository;
 import com.serch.server.repositories.subscription.PlanParentRepository;
 import com.serch.server.repositories.subscription.SubscriptionRepository;
 import com.serch.server.repositories.subscription.SubscriptionRequestRepository;
+import com.serch.server.services.payment.core.PaymentService;
 import com.serch.server.services.payment.requests.InitializePaymentRequest;
 import com.serch.server.services.payment.responses.InitializePaymentData;
 import com.serch.server.services.subscription.requests.InitSubscriptionRequest;
@@ -32,7 +33,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class InitSubscriptionImplementation implements InitSubscriptionService {
+public class InitSubscription implements InitSubscriptionService {
     private final PaymentService paymentService;
     private final SubscriptionRepository subscriptionRepository;
     private final IncompleteRepository incompleteRepository;
@@ -136,7 +137,8 @@ public class InitSubscriptionImplementation implements InitSubscriptionService {
         }
     }
 
-    private int getBusinessSize(Subscription user) {
+    @Override
+    public int getBusinessSize(Subscription user) {
         BusinessProfile profile = businessProfileRepository.findByUser_Id(user.getUser().getId())
                 .orElseThrow(() -> new SubscriptionException("Business not found"));
 

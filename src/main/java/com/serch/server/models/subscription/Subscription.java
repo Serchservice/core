@@ -10,6 +10,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @Entity
@@ -48,6 +50,12 @@ public class Subscription extends BaseDateTime {
    @SerchEnum(message = "PlanType must be an enum")
    private PlanStatus freePlanStatus = PlanStatus.NOT_USED;
 
+   @Column(name = "subscribed_at", nullable = false)
+   private LocalDateTime subscribedAt = LocalDateTime.now();
+
+   @Column(name = "retries", nullable = false)
+   private Integer retries = 0;
+
    @OneToOne(mappedBy = "subscription")
    private SubscriptionAuth auth;
 
@@ -64,7 +72,7 @@ public class Subscription extends BaseDateTime {
       return planStatus == PlanStatus.ACTIVE;
    }
    public boolean isExpired() {
-      return planStatus == PlanStatus.INACTIVE;
+      return planStatus == PlanStatus.EXPIRED;
    }
    public boolean isNotSameAuth(String signature) {
       return getAuth() != null && !getAuth().getSignature().equals(signature);

@@ -1,7 +1,8 @@
-package com.serch.server.services.countries;
+package com.serch.server.services.company.controllers;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.services.countries.services.CountryService;
+import com.serch.server.services.company.requests.CountryRequest;
+import com.serch.server.services.company.services.CountryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

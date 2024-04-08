@@ -1,13 +1,15 @@
-package com.serch.server.services.countries.services;
+package com.serch.server.services.company.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.exceptions.others.CountryException;
+import com.serch.server.exceptions.others.CompanyException;
+import com.serch.server.models.company.*;
 import com.serch.server.models.countries.*;
-import com.serch.server.repositories.countries.LaunchedCountryRepository;
-import com.serch.server.repositories.countries.RequestCityRepository;
-import com.serch.server.repositories.countries.RequestCountryRepository;
-import com.serch.server.repositories.countries.RequestStateRepository;
-import com.serch.server.services.countries.CountryRequest;
+import com.serch.server.repositories.company.LaunchedCountryRepository;
+import com.serch.server.repositories.company.RequestCityRepository;
+import com.serch.server.repositories.company.RequestCountryRepository;
+import com.serch.server.repositories.company.RequestStateRepository;
+import com.serch.server.services.company.requests.CountryRequest;
+import com.serch.server.services.company.services.CountryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -23,10 +25,10 @@ public class CountryImplementation implements CountryService {
     @Override
     public ApiResponse<String> checkMyLocation(CountryRequest request) {
         LaunchedCountry country = launchedCountryRepository.findByNameIgnoreCase(request.getCountry())
-                .orElseThrow(() -> new CountryException("Serch is not launched in %s".formatted(request.getCountry())));
+                .orElseThrow(() -> new CompanyException("Serch is not launched in %s".formatted(request.getCountry())));
 
         if(request.getCity() != null && request.getState() == null) {
-            throw new CountryException("Cannot get your state");
+            throw new CompanyException("Cannot get your state");
         } else if (request.getCity() != null) {
             return checkLaunchedCity(request, country);
         } else if (request.getState() != null) {
@@ -77,7 +79,7 @@ public class CountryImplementation implements CountryService {
                     HttpStatus.OK
             );
         } else if (state.getLaunchedCities().stream().noneMatch(c -> c.getName().contains(request.getCity()))) {
-            throw new CountryException("Serch is not launched in %s".formatted(request.getCity()));
+            throw new CompanyException("Serch is not launched in %s".formatted(request.getCity()));
         } else {
             LaunchedCity city = state.getLaunchedCities().stream()
                     .filter(c -> c.getName().contains(request.getCity()))
@@ -98,14 +100,14 @@ public class CountryImplementation implements CountryService {
     @Override
     public ApiResponse<String> requestMyLocation(CountryRequest request) {
         if(request.getCity() != null && request.getState() == null) {
-            throw new CountryException("Cannot get your state");
+            throw new CompanyException("Cannot get your state");
         } else if (request.getCity() != null) {
             return requestCity(request);
         } else if (request.getState() != null) {
             return requestState(request);
         } else {
             if(requestCountryRepository.existsByNameIgnoreCase(request.getCountry())) {
-                throw new CountryException("Country has already been requested for.");
+                throw new CompanyException("Country has already been requested for.");
             } else {
                 RequestCountry newCountry = new RequestCountry();
                 newCountry.setName(request.getCountry());
@@ -124,7 +126,7 @@ public class CountryImplementation implements CountryService {
                     return newCountry;
                 });
         if (country.getRequestedStates().stream().anyMatch(c -> c.getName().contains(request.getState()))) {
-            throw new CountryException("State has already been requested for.");
+            throw new CompanyException("State has already been requested for.");
         }
         RequestState state = new RequestState();
         state.setRequestCountry(country);
@@ -152,7 +154,7 @@ public class CountryImplementation implements CountryService {
                 });
 
         if (state.getRequestedCities().stream().anyMatch(c -> c.getName().contains(request.getCity()))) {
-            throw new CountryException("City has already been requested for.");
+            throw new CompanyException("City has already been requested for.");
         }
 
         RequestCity requestCity = new RequestCity();

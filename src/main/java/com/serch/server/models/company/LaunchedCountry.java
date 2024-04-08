@@ -1,4 +1,4 @@
-package com.serch.server.models.countries;
+package com.serch.server.models.company;
 
 import com.serch.server.bases.BaseModel;
 import com.serch.server.enums.auth.AccountStatus;

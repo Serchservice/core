@@ -1,7 +1,9 @@
 package com.serch.server.models.company;
 
+import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.auth.AccountStatus;
+import com.serch.server.enums.company.ProductType;
 import com.serch.server.generators.ProductID;
 import com.serch.server.models.rating.Rating;
 import jakarta.persistence.*;
@@ -33,6 +35,11 @@ public class Product extends BaseDateTime {
     @Column(nullable = false)
     @Enumerated(value = EnumType.STRING)
     private AccountStatus status = AccountStatus.ACTIVE;
+
+    @Column(nullable = false)
+    @Enumerated(value = EnumType.STRING)
+    @SerchEnum(message = "Product must be of ProductType enum")
+    private ProductType type;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     @NotEmpty(message = "Name cannot be empty")

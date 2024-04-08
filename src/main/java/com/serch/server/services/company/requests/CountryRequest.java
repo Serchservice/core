@@ -1,4 +1,4 @@
-package com.serch.server.services.countries;
+package com.serch.server.services.company.requests;
 
 import lombok.Data;
 import lombok.Getter;

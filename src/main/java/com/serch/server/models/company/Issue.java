@@ -48,7 +48,6 @@ public class Issue extends BaseDateTime {
     @JoinColumn(
             name = "user_id",
             referencedColumnName = "id",
-            nullable = false,
             foreignKey = @ForeignKey(name = "user_id_fkey")
     )
     private User user;

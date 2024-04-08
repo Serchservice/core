@@ -44,9 +44,9 @@ public class ProviderAuthController {
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @GetMapping("/finish-signup")
+    @GetMapping("/signup")
     public ResponseEntity<ApiResponse<AuthResponse>> savePlan(@RequestBody RequestAuth auth) {
-        var response = authService.savePlan(auth);
+        var response = authService.finishSignup(auth);
         return new ResponseEntity<>(response, response.getStatus());
     }
 }

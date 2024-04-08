@@ -95,7 +95,7 @@ public class BusinessAuthImplementation implements BusinessAuthService {
                 .orElseThrow(() -> new AuthException("User not found"));
 
         User user = authService.getUserFromIncomplete(incomplete, Role.ASSOCIATE_PROVIDER);
-        ApiResponse<Profile> response = profileService.createProviderProfile(incomplete, auth, user);
+        ApiResponse<Profile> response = profileService.createProviderProfile(incomplete, user);
         if(response.getStatus().is2xxSuccessful()) {
             specialtyService.saveIncompleteSpecialties(incomplete, response);
 

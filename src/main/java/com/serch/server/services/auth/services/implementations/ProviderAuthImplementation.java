@@ -4,23 +4,15 @@ import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.auth.AuthMethod;
 import com.serch.server.enums.auth.Role;
-import com.serch.server.enums.subscription.PlanType;
 import com.serch.server.exceptions.ExceptionCodes;
 import com.serch.server.exceptions.auth.AuthException;
 import com.serch.server.mappers.AuthMapper;
-import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.User;
 import com.serch.server.models.auth.incomplete.*;
-import com.serch.server.models.subscription.SubscriptionRequest;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.auth.incomplete.*;
 import com.serch.server.repositories.company.SpecialtyServiceRepository;
-import com.serch.server.repositories.subscription.SubscriptionRepository;
-import com.serch.server.repositories.subscription.SubscriptionRequestRepository;
-import com.serch.server.services.account.services.AdditionalService;
-import com.serch.server.services.account.services.ProfileService;
 import com.serch.server.services.account.services.ReferralService;
-import com.serch.server.services.account.services.SpecialtyService;
 import com.serch.server.services.auth.requests.*;
 import com.serch.server.services.auth.responses.AuthResponse;
 import com.serch.server.services.auth.services.AuthService;
@@ -42,9 +34,6 @@ public class ProviderAuthImplementation implements ProviderAuthService {
     private final AuthService authService;
     private final ReferralService referralService;
     private final SessionService sessionService;
-    private final ProfileService profileService;
-    private final SpecialtyService specialtyService;
-    private final AdditionalService additionalService;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final IncompleteRepository incompleteRepository;
@@ -55,8 +44,6 @@ public class ProviderAuthImplementation implements ProviderAuthService {
     private final SpecialtyServiceRepository specialtyServiceRepository;
     private final IncompleteSpecialtyRepository incompleteSpecialtyRepository;
     private final IncompleteAdditionalRepository incompleteAdditionalRepository;
-    private final SubscriptionRequestRepository subscriptionRequestRepository;
-    private final SubscriptionRepository subscriptionRepository;
 
     @Value("${application.settings.specialty-limit}")
     private Integer SPECIALTY_LIMIT;
@@ -227,94 +214,23 @@ public class ProviderAuthImplementation implements ProviderAuthService {
     }
 
     @Override
-    public ApiResponse<AuthResponse> savePlan(RequestAuth auth) {
-        var incomplete = incompleteRepository.findByEmailAddress(auth.getEmailAddress())
+    public ApiResponse<AuthResponse> finishSignup(RequestAuth auth) {
+        User user = userRepository.findByEmailAddress(auth.getEmailAddress())
                 .orElseThrow(() -> new AuthException("User not found"));
+        RequestSession requestSession = new RequestSession();
+        requestSession.setPlatform(auth.getPlatform());
+        requestSession.setMethod(AuthMethod.PASSWORD);
+        requestSession.setUser(user);
+        requestSession.setDevice(auth.getDevice());
+        var session = sessionService.generateSession(requestSession);
 
-        var user = userRepository.findByEmailAddress(auth.getEmailAddress());
-        if(user.isPresent()) {
-            throw new AuthException("User already exists", ExceptionCodes.EXISTING_USER);
-        }
-
-        if(incomplete.isEmailConfirmed()) {
-            if(incomplete.hasProfile()) {
-                if(incomplete.hasCategory()) {
-                    if(incomplete.hasAdditional()) {
-                        var subscription = subscriptionRequestRepository.findByEmailAddress(auth.getEmailAddress())
-                                .orElseThrow(() -> new AuthException(
-                                        "You have not selected a plan yet. Unsuccessful transaction"
-                                ));
-
-                        if(subscription.getPlan() == PlanType.FREE) {
-                            return finishSignup(auth, incomplete, subscription);
-                        } else {
-                            return finishSignup(auth, incomplete, subscription);
-//                            var payResponse = paystackService.verifyTransaction(subscription.getReference());
-//                            if(payResponse.getStatus().equalsIgnoreCase("success")) {
-//                                return finishSignup(auth, incomplete, subscription);
-//                            } else {
-//                                throw new AuthException("Plan subscription not successful");
-//                            }
-                        }
-                    } else {
-                        throw new AuthException(
-                                "You don't have a additional profile", ExceptionCodes.CATEGORY_NOT_SET
-                        );
-                    }
-                } else {
-                    throw new AuthException(
-                            "You don't have a Serch category", ExceptionCodes.CATEGORY_NOT_SET
-                    );
-                }
-            } else {
-                throw new AuthException("You don't have any profile", ExceptionCodes.PROFILE_NOT_SET);
-            }
-        } else {
-            throw new AuthException("You have not confirmed your email", ExceptionCodes.EMAIL_NOT_VERIFIED);
-        }
-    }
-
-    private ApiResponse<AuthResponse> finishSignup(
-            RequestAuth auth, Incomplete incomplete, SubscriptionRequest subscriptionRequest
-    ) {
-        User user = authService.getUserFromIncomplete(incomplete, Role.PROVIDER);
-        ApiResponse<Profile> response = profileService.createProviderProfile(incomplete, auth, user);
-        if(response.getStatus().is2xxSuccessful()) {
-            additionalService.saveIncompleteAdditional(incomplete, response);
-            specialtyService.saveIncompleteSpecialties(incomplete, response);
-            savePlan(subscriptionRequest, response);
-            subscriptionRequestRepository.delete(subscriptionRequest);
-            incompleteRepository.delete(incomplete);
-
-            RequestSession requestSession = new RequestSession();
-            requestSession.setPlatform(auth.getPlatform());
-            requestSession.setMethod(AuthMethod.PASSWORD);
-            requestSession.setUser(user);
-            requestSession.setDevice(auth.getDevice());
-            var session = sessionService.generateSession(requestSession);
-
-            return new ApiResponse<>(AuthResponse.builder()
-                    .mfaEnabled(user.getMfaEnabled())
-                    .session(session.getData())
-                    .role(user.getRole().getType())
-                    .firstName(user.getFirstName())
-                    .recoveryCodesEnabled(user.getRecoveryCodeEnabled())
-                    .build()
-            );
-        } else {
-            return new ApiResponse<>(response.getMessage());
-        }
-    }
-
-    private void savePlan(SubscriptionRequest subscriptionRequest, ApiResponse<Profile> response) {
-//        Plan plan = new Plan();
-//        plan.setPlanStatus(PlanStatus.ACTIVE);
-//        plan.setPlan(subscriptionRequest.getPlan());
-//        plan.setSubPlan(subscriptionRequest.getSubPlan());
-//        plan.setProfile(response.getData());
-//        if(subscriptionRequest.getPlan() == PlanType.FREE) {
-//            plan.setFreePlanStatus(PlanStatus.USED);
-//        }
-//        subscriptionRepository.save(plan);
+        return new ApiResponse<>(AuthResponse.builder()
+                .mfaEnabled(user.getMfaEnabled())
+                .session(session.getData())
+                .role(user.getRole().getType())
+                .firstName(user.getFirstName())
+                .recoveryCodesEnabled(user.getRecoveryCodeEnabled())
+                .build()
+        );
     }
 }

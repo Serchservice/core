@@ -8,5 +8,5 @@ import lombok.ToString;
 @Setter
 @ToString
 public class InitializePaymentResponse extends PaymentResponse {
-    private InitializePaymentResponseData data;
+    private InitializePaymentData data;
 }

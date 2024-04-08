@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(schema = "company", name = "plan_benefits")
-public class SerchPlanBenefit extends BaseModel {
+public class PlanBenefit extends BaseModel {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String benefit;
 
@@ -18,7 +18,7 @@ public class SerchPlanBenefit extends BaseModel {
             name = "parent_id",
             referencedColumnName = "id",
             nullable = false,
-            foreignKey = @ForeignKey(name = "active_serch_id_fkey")
+            foreignKey = @ForeignKey(name = "plan_parent_benefit_id_fkey")
     )
-    private MainSerchPlan parent;
+    private PlanParent parent;
 }

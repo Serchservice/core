@@ -9,18 +9,15 @@ import java.security.SecureRandom;
 @Service
 public class TokenImplementation implements TokenService {
     @Value("${application.security.refresh-token-length}")
-    protected Integer REFRESH_TOKEN_LENGTH;
+    private Integer REFRESH_TOKEN_LENGTH;
 
     @Value("${application.security.refresh-token-characters}")
-    protected String REFRESH_TOKEN_CHARACTERS;
-
-    @Value("${application.security.otp-token-length}")
-    protected Integer OTP_TOKEN_LENGTH;
+    private String REFRESH_TOKEN_CHARACTERS;
 
     @Value("${application.security.otp-token-characters}")
-    protected String OTP_TOKEN_CHARACTERS;
+    private String OTP_TOKEN_CHARACTERS;
 
-    protected SecureRandom random = new SecureRandom();
+    private final SecureRandom random = new SecureRandom();
 
     @Override
     public String generateOtp() {

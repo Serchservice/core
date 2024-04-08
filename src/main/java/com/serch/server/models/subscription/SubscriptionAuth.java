@@ -51,10 +51,10 @@ public class SubscriptionAuth extends BaseEntity {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(
-            name = "plan_id",
+            name = "subscription_id",
             referencedColumnName = "id",
             nullable = false,
-            foreignKey = @ForeignKey(name = "plan_id_fkey")
+            foreignKey = @ForeignKey(name = "subscription_id_fkey")
     )
-    private Plan plan;
+    private Subscription subscription;
 }

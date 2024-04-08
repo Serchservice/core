@@ -4,7 +4,6 @@ import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.auth.AuthMethod;
 import com.serch.server.enums.auth.Role;
-import com.serch.server.enums.subscription.PlanStatus;
 import com.serch.server.enums.subscription.PlanType;
 import com.serch.server.exceptions.ExceptionCodes;
 import com.serch.server.exceptions.auth.AuthException;
@@ -12,13 +11,12 @@ import com.serch.server.mappers.AuthMapper;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.User;
 import com.serch.server.models.auth.incomplete.*;
-import com.serch.server.models.subscription.Plan;
-import com.serch.server.models.subscription.Subscription;
+import com.serch.server.models.subscription.SubscriptionRequest;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.auth.incomplete.*;
 import com.serch.server.repositories.company.SpecialtyServiceRepository;
-import com.serch.server.repositories.subscription.PlanRepository;
 import com.serch.server.repositories.subscription.SubscriptionRepository;
+import com.serch.server.repositories.subscription.SubscriptionRequestRepository;
 import com.serch.server.services.account.services.AdditionalService;
 import com.serch.server.services.account.services.ProfileService;
 import com.serch.server.services.account.services.ReferralService;
@@ -57,8 +55,8 @@ public class ProviderAuthImplementation implements ProviderAuthService {
     private final SpecialtyServiceRepository specialtyServiceRepository;
     private final IncompleteSpecialtyRepository incompleteSpecialtyRepository;
     private final IncompleteAdditionalRepository incompleteAdditionalRepository;
+    private final SubscriptionRequestRepository subscriptionRequestRepository;
     private final SubscriptionRepository subscriptionRepository;
-    private final PlanRepository planRepository;
 
     @Value("${application.settings.specialty-limit}")
     private Integer SPECIALTY_LIMIT;
@@ -242,7 +240,7 @@ public class ProviderAuthImplementation implements ProviderAuthService {
             if(incomplete.hasProfile()) {
                 if(incomplete.hasCategory()) {
                     if(incomplete.hasAdditional()) {
-                        var subscription = subscriptionRepository.findByEmailAddress(auth.getEmailAddress())
+                        var subscription = subscriptionRequestRepository.findByEmailAddress(auth.getEmailAddress())
                                 .orElseThrow(() -> new AuthException(
                                         "You have not selected a plan yet. Unsuccessful transaction"
                                 ));
@@ -277,15 +275,15 @@ public class ProviderAuthImplementation implements ProviderAuthService {
     }
 
     private ApiResponse<AuthResponse> finishSignup(
-            RequestAuth auth, Incomplete incomplete, Subscription subscription
+            RequestAuth auth, Incomplete incomplete, SubscriptionRequest subscriptionRequest
     ) {
         User user = authService.getUserFromIncomplete(incomplete, Role.PROVIDER);
         ApiResponse<Profile> response = profileService.createProviderProfile(incomplete, auth, user);
         if(response.getStatus().is2xxSuccessful()) {
             additionalService.saveIncompleteAdditional(incomplete, response);
             specialtyService.saveIncompleteSpecialties(incomplete, response);
-            savePlan(subscription, response);
-            subscriptionRepository.delete(subscription);
+            savePlan(subscriptionRequest, response);
+            subscriptionRequestRepository.delete(subscriptionRequest);
             incompleteRepository.delete(incomplete);
 
             RequestSession requestSession = new RequestSession();
@@ -308,15 +306,15 @@ public class ProviderAuthImplementation implements ProviderAuthService {
         }
     }
 
-    private void savePlan(Subscription subscription, ApiResponse<Profile> response) {
-        Plan plan = new Plan();
-        plan.setPlanStatus(PlanStatus.ACTIVE);
-        plan.setPlan(subscription.getPlan());
-        plan.setSubPlan(subscription.getSubPlan());
-        plan.setProfile(response.getData());
-        if(subscription.getPlan() == PlanType.FREE) {
-            plan.setFreePlanStatus(PlanStatus.USED);
-        }
-        planRepository.save(plan);
+    private void savePlan(SubscriptionRequest subscriptionRequest, ApiResponse<Profile> response) {
+//        Plan plan = new Plan();
+//        plan.setPlanStatus(PlanStatus.ACTIVE);
+//        plan.setPlan(subscriptionRequest.getPlan());
+//        plan.setSubPlan(subscriptionRequest.getSubPlan());
+//        plan.setProfile(response.getData());
+//        if(subscriptionRequest.getPlan() == PlanType.FREE) {
+//            plan.setFreePlanStatus(PlanStatus.USED);
+//        }
+//        subscriptionRepository.save(plan);
     }
 }

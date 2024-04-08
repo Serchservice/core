@@ -3,6 +3,7 @@ package com.serch.server.models.account;
 import com.serch.server.bases.BaseProfile;
 import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.models.shop.Shop;
+import com.serch.server.models.subscription.SubscriptionAssociate;
 import com.serch.server.models.verified.Verification;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -64,4 +65,7 @@ public class BusinessProfile extends BaseProfile {
 
     @OneToMany(mappedBy = "business", fetch = FetchType.LAZY)
     private List<Shop> shops;
+
+    @OneToMany(mappedBy = "business", fetch = FetchType.LAZY)
+    private List<SubscriptionAssociate> associateSubscriptions;
 }

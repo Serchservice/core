@@ -3,7 +3,7 @@ package com.serch.server.services.payment.core;
 import com.serch.server.exceptions.PaymentException;
 import com.serch.server.services.payment.requests.InitializePaymentRequest;
 import com.serch.server.services.payment.responses.InitializePaymentResponse;
-import com.serch.server.services.payment.responses.InitializePaymentResponseData;
+import com.serch.server.services.payment.responses.InitializePaymentData;
 import com.serch.server.services.payment.responses.PaymentVerificationResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
@@ -31,7 +31,7 @@ public class Payment implements PaymentService {
     }
 
     @Override
-    public InitializePaymentResponseData initialize(InitializePaymentRequest request) {
+    public InitializePaymentData initialize(InitializePaymentRequest request) {
         InitializePaymentRequest payment = request.validate();
         HttpEntity<InitializePaymentRequest> entity = new HttpEntity<>(payment, headers());
         String endpoint = BASE_API_ENDPOINT + "/initialize";

@@ -7,7 +7,7 @@ import lombok.*;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class InitializePaymentResponseData {
+public class InitializePaymentData {
     private String authorization_url;
     private String access_code;
     private String reference;

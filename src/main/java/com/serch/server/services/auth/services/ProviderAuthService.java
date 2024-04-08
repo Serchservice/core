@@ -14,7 +14,7 @@ public interface ProviderAuthService {
     ApiResponse<String> saveCategory(RequestSerchCategory category);
     ApiResponse<String> saveSpecialties(RequestAuthSpecialty specialty);
     ApiResponse<String> saveAdditional(RequestAdditionalInformation request);
-    ApiResponse<AuthResponse> savePlan(RequestAuth auth);
+    ApiResponse<AuthResponse> finishSignup(RequestAuth auth);
     void addSpecialtiesToIncompleteProfile(List<Long> specialties, Incomplete incomplete);
     void saveCategory(SerchCategory category, Incomplete incomplete);
     void saveProfile(RequestProviderProfile request, Incomplete incomplete);

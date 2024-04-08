@@ -1,6 +1,5 @@
 package com.serch.server.services.bookmark;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
@@ -18,7 +17,4 @@ public class BookmarkResponse {
 
     @JsonProperty("last_seen")
     private String lastSeen;
-
-    @JsonIgnore
-    private LocalDateTime createdAt;
 }

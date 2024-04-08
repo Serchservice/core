@@ -1,7 +1,7 @@
 package com.serch.server.services.help.services;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.exceptions.HelpException;
+import com.serch.server.exceptions.others.HelpException;
 import com.serch.server.models.help.*;
 import com.serch.server.repositories.help.*;
 import com.serch.server.services.help.HelpMapper;

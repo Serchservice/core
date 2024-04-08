@@ -10,6 +10,7 @@ import com.serch.server.exceptions.auth.SessionException;
 import com.serch.server.exceptions.media.MediaBlogException;
 import com.serch.server.exceptions.media.MediaLegalException;
 import com.serch.server.exceptions.media.MediaNewsroomException;
+import com.serch.server.exceptions.others.*;
 import com.serch.server.exceptions.subscription.PlanException;
 import com.serch.server.exceptions.subscription.SubscriptionException;
 import com.serch.server.exceptions.transaction.WalletException;
@@ -145,6 +146,13 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(SerchException.class)
     public ApiResponse<String> handleSerchException(SerchException exception) {
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        response.setData(exception.getLocalizedMessage());
+        return response;
+    }
+
+    @ExceptionHandler(BookmarkException.class)
+    public ApiResponse<String> handleBookmarkException(BookmarkException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
         return response;

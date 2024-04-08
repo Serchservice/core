@@ -19,6 +19,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -148,5 +149,9 @@ public class User extends BaseEntity implements UserDetails {
     public boolean isProfile() {
         return getRole() == Role.USER || getRole() == Role.PROVIDER ||
                 getRole() == Role.ASSOCIATE_PROVIDER;
+    }
+
+    public boolean isUser(UUID id) {
+        return getId() == id;
     }
 }

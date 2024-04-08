@@ -5,7 +5,7 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import com.serch.server.enums.account.SerchCategory;
-import com.serch.server.exceptions.SerchException;
+import com.serch.server.exceptions.others.SerchException;
 import lombok.SneakyThrows;
 import org.apache.commons.codec.binary.Base64;
 

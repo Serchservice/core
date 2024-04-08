@@ -88,6 +88,13 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
         return response;
     }
 
+    @ExceptionHandler(CountryException.class)
+    public ApiResponse<String> handleCountryException(CountryException exception) {
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        response.setData(exception.getLocalizedMessage());
+        return response;
+    }
+
     @ExceptionHandler(HelpException.class)
     public ApiResponse<String> handleHelpException(HelpException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());

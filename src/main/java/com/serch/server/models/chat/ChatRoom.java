@@ -3,7 +3,7 @@ package com.serch.server.models.chat;
 import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.chat.MessageState;
-import com.serch.server.generators.ChatRoomID;
+import com.serch.server.generators.chat.ChatRoomID;
 import com.serch.server.models.account.Profile;
 import jakarta.persistence.*;
 import lombok.Getter;

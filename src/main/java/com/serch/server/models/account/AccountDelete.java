@@ -2,7 +2,7 @@ package com.serch.server.models.account;
 
 import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.company.IssueStatus;
-import com.serch.server.generators.AccountDeleteID;
+import com.serch.server.generators.account.AccountDeleteID;
 import com.serch.server.models.auth.User;
 import jakarta.persistence.*;
 import lombok.Getter;

@@ -3,7 +3,7 @@ package com.serch.server.models.subscription;
 import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.subscription.PlanStatus;
-import com.serch.server.generators.PlanParentID;
+import com.serch.server.generators.subscription.PlanParentID;
 import com.serch.server.models.auth.User;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -40,12 +40,12 @@ public class Subscription extends BaseDateTime {
    )
    private PlanChild child;
 
-   @Column(name = "plan_status", nullable = false)
+   @Column(name = "status", nullable = false)
    @Enumerated(value = EnumType.STRING)
    @SerchEnum(message = "PlanType must be an enum")
    private PlanStatus planStatus = PlanStatus.ACTIVE;
 
-   @Column(name = "free_plan_status", nullable = false)
+   @Column(name = "free_status", nullable = false)
    @Enumerated(value = EnumType.STRING)
    @SerchEnum(message = "PlanType must be an enum")
    private PlanStatus freePlanStatus = PlanStatus.NOT_USED;

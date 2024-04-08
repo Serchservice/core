@@ -3,7 +3,7 @@ package com.serch.server.models.account;
 import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.shared.UseStatus;
-import com.serch.server.generators.ReferralID;
+import com.serch.server.generators.account.ReferralID;
 import com.serch.server.models.auth.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

@@ -20,7 +20,7 @@ public class ShopService extends BaseModel {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "shop_id",
-            referencedColumnName = "serch_id",
+            referencedColumnName = "id",
             nullable = false,
             foreignKey = @ForeignKey(name = "shop_id_fkey")
     )

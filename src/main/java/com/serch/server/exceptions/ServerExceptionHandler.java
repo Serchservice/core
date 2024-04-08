@@ -150,6 +150,13 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
         return response;
     }
 
+    @ExceptionHandler(ShopException.class)
+    public ApiResponse<String> handleShopException(ShopException exception) {
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        response.setData(exception.getLocalizedMessage());
+        return response;
+    }
+
     @ExceptionHandler(ConstraintViolationException.class)
     public ApiResponse<Map<String, Object>> handleConstraintViolationException(ConstraintViolationException exception) {
         ApiResponse<Map<String, Object>> response = new ApiResponse<>("Error in validating input");

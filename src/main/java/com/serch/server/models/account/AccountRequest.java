@@ -1,10 +1,9 @@
 package com.serch.server.models.account;
 
 import com.serch.server.bases.BaseDateTime;
-import com.serch.server.generators.AccountRequestID;
+import com.serch.server.generators.account.AccountRequestID;
 import com.serch.server.models.auth.User;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Future;
 import lombok.Getter;
 import lombok.Setter;

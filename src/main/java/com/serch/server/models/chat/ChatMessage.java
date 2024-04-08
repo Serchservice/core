@@ -5,7 +5,7 @@ import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.chat.MessageState;
 import com.serch.server.enums.chat.MessageStatus;
 import com.serch.server.enums.chat.MessageType;
-import com.serch.server.generators.MessageID;
+import com.serch.server.generators.chat.MessageID;
 import com.serch.server.models.account.Profile;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;

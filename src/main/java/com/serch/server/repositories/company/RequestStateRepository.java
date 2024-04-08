@@ -1,6 +1,6 @@
-package com.serch.server.repositories.countries;
+package com.serch.server.repositories.company;
 
-import com.serch.server.models.countries.RequestState;
+import com.serch.server.models.company.RequestState;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface RequestStateRepository extends JpaRepository<RequestState, Long> {

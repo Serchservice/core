@@ -1,6 +1,6 @@
-package com.serch.server.repositories.countries;
+package com.serch.server.repositories.company;
 
-import com.serch.server.models.countries.LaunchedCountry;
+import com.serch.server.models.company.LaunchedCountry;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.lang.NonNull;
 

@@ -1,7 +1,7 @@
-package com.serch.server.services.countries.services;
+package com.serch.server.services.company.services;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.services.countries.CountryRequest;
+import com.serch.server.services.company.requests.CountryRequest;
 
 public interface CountryService {
     ApiResponse<String> checkMyLocation(CountryRequest request);

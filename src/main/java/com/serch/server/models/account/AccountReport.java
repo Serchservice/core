@@ -3,7 +3,7 @@ package com.serch.server.models.account;
 import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.company.IssueStatus;
-import com.serch.server.generators.AccountReportID;
+import com.serch.server.generators.account.AccountReportID;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

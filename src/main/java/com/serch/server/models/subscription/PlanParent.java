@@ -2,7 +2,7 @@ package com.serch.server.models.subscription;
 
 import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.subscription.PlanType;
-import com.serch.server.generators.PlanParentID;
+import com.serch.server.generators.subscription.PlanParentID;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

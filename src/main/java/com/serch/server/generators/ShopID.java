@@ -7,10 +7,10 @@ import org.hibernate.id.IdentifierGenerator;
 import java.io.Serializable;
 import java.util.UUID;
 
-public class ReferralID implements IdentifierGenerator {
+public class ShopID implements IdentifierGenerator {
     @Override
     @SneakyThrows
     public Serializable generate(SharedSessionContractImplementor sharedSessionContractImplementor, Object o) {
-        return "SREF-"+ UUID.randomUUID();
+        return "SSHOP-"+ UUID.randomUUID();
     }
 }

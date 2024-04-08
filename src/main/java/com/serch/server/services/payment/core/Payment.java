@@ -5,6 +5,7 @@ import com.serch.server.services.payment.requests.InitializePaymentRequest;
 import com.serch.server.services.payment.responses.InitializePaymentResponse;
 import com.serch.server.services.payment.responses.InitializePaymentResponseData;
 import com.serch.server.services.payment.responses.PaymentVerificationResponse;
+import com.serch.server.services.payment.responses.PaymentVerificationResponseData;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,7 +41,7 @@ public class Payment implements PaymentService {
         System.out.println(response.getBody());
         if(response.getStatusCode().is2xxSuccessful()) {
             InitializePaymentResponse body = response.getBody();
-            if(Objects.requireNonNull(body).getStatus() & ObjectUtils.isEmpty(body.getData())) {
+            if(Objects.requireNonNull(body).getStatus() && ObjectUtils.isEmpty(body.getData())) {
                 return body.getData();
             } else {
                 throw new PaymentException(Objects.requireNonNull(body).getMessage());
@@ -50,7 +51,7 @@ public class Payment implements PaymentService {
     }
 
     @Override
-    public PaymentVerificationResponse verify(String reference) {
+    public PaymentVerificationResponseData verify(String reference) {
         HttpEntity<Object> entity = new HttpEntity<>(headers());
         String endpoint = BASE_API_ENDPOINT + "/verify/" + reference;
         ResponseEntity<PaymentVerificationResponse> response = rest.exchange(endpoint, HttpMethod.GET, entity, PaymentVerificationResponse.class);
@@ -58,8 +59,8 @@ public class Payment implements PaymentService {
         System.out.println(response.getBody());
         if(response.getStatusCode().is2xxSuccessful()) {
             PaymentVerificationResponse body = response.getBody();
-            if(Objects.requireNonNull(body).getStatus() & ObjectUtils.isEmpty(body)) {
-                return body;
+            if(Objects.requireNonNull(body).getStatus() && ObjectUtils.isEmpty(body.getData()) && body.getData().getStatus().equalsIgnoreCase("success")) {
+                return body.getData();
             } else {
                 throw new PaymentException(Objects.requireNonNull(body).getMessage());
             }

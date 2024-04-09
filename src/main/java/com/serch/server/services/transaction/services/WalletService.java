@@ -1,9 +1,7 @@
 package com.serch.server.services.transaction.services;
 
-import com.serch.server.models.account.BusinessProfile;
-import com.serch.server.models.account.Profile;
+import com.serch.server.models.auth.User;
 
 public interface WalletService {
-    void createWallet(Profile profile);
-    void createWallet(BusinessProfile profile);
+    void createWallet(User user);
 }

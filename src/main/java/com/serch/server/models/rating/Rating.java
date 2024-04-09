@@ -2,7 +2,7 @@ package com.serch.server.models.rating;
 
 import com.serch.server.bases.BaseModel;
 import com.serch.server.models.account.Profile;
-import com.serch.server.models.call.Call;
+import com.serch.server.models.conversation.call.Call;
 import com.serch.server.models.company.Product;
 import com.serch.server.models.shared.Guest;
 import com.serch.server.models.trip.Trip;

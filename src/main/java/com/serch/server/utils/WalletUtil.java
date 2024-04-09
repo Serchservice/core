@@ -1,11 +1,14 @@
 package com.serch.server.utils;
 
+import com.serch.server.enums.auth.Role;
+import com.serch.server.enums.transaction.TransactionType;
+import com.serch.server.models.transaction.Wallet;
 import com.serch.server.repositories.transaction.WalletRepository;
+import com.serch.server.services.transaction.requests.BalanceUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -13,25 +16,45 @@ public class WalletUtil {
     private final WalletRepository walletRepository;
     private final UserUtil userUtil;
 
-    public boolean isBalanceSufficient(BigDecimal amount, UUID user) {
-        return walletRepository.findByUser_Id(user)
-                .map(wallet -> wallet.getClearedBalance().compareTo(amount) > 0)
+    public boolean isBalanceSufficient(BalanceUpdateRequest request) {
+        return walletRepository.findByUser_Id(request.getUser())
+                .map(wallet -> {
+                    if(request.getType() == TransactionType.WITHDRAW) {
+                        return wallet.getBalance().compareTo(request.getAmount()) > 0;
+                    } else {
+                        BigDecimal amount = wallet.getDeposit().add(wallet.getBalance());
+                        return amount.compareTo(request.getAmount()) > 0;
+                    }
+                })
                 .orElse(false);
     }
 
-
-    /**
-     * @param amount Amount of money to be added or subtracted from the wallet's balance/withdrawable amount
-     * @param isDebit For debit transactions: PROVIDERS and USERS (Using the withdrawable amount)
-     */
-    public void updateBalance(BigDecimal amount, UUID user, boolean isDebit) {
-        walletRepository.findByUser_Id(user)
+    public void updateBalance(BalanceUpdateRequest request) {
+        walletRepository.findByUser_Id(request.getUser())
                 .ifPresent(wallet -> {
-                    if(isDebit) {
-                        wallet.setBalance(wallet.getBalance().subtract(amount));
+                    if(request.getType() == TransactionType.WITHDRAW) {
+                        wallet.setBalance(wallet.getBalance().subtract(request.getAmount()));
+                    } else if(request.getType() == TransactionType.T2F) {
+                        if(wallet.getUser().getRole() == Role.USER) {
+                            updateBalance(request, wallet);
+                        } else {
+                            wallet.setBalance(wallet.getBalance().add(request.getAmount()));
+                        }
+                    } else if (request.getType() == TransactionType.TRIP) {
+                        wallet.setBalance(wallet.getBalance().add(request.getAmount()));
                     } else {
-                        wallet.setBalance(wallet.getBalance().add(amount));
+                        updateBalance(request, wallet);
                     }
                 });
+    }
+
+    private void updateBalance(BalanceUpdateRequest request, Wallet wallet) {
+        if(wallet.getDeposit().compareTo(request.getAmount()) >= 0) {
+            wallet.setDeposit(wallet.getDeposit().subtract(request.getAmount()));
+        } else {
+            request.setAmount(request.getAmount().subtract(wallet.getDeposit()));
+            wallet.setBalance(wallet.getBalance().subtract(request.getAmount()));
+            wallet.setDeposit(BigDecimal.ZERO);
+        }
     }
 }

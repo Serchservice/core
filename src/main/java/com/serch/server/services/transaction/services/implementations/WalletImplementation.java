@@ -32,8 +32,8 @@ public class WalletImplementation implements WalletService {
         if(user.getRole() != Role.ASSOCIATE_PROVIDER) {
             Wallet wallet = new Wallet();
             wallet.setUser(user);
-            wallet.setClearedBalance(BigDecimal.valueOf(0.00));
             wallet.setBalance(BigDecimal.valueOf(0.00));
+            wallet.setDeposit(BigDecimal.valueOf(0.00));
             walletRepository.save(wallet);
         }
     }

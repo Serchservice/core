@@ -1,4 +1,4 @@
-package com.serch.server.enums.payment;
+package com.serch.server.enums.transaction;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +10,7 @@ public enum TransactionType {
     TRIP("Service Trip"),
     WITHDRAW("Withdrawal"),
     SUBSCRIPTION("Subscription"),
+    T2F("Tip2Fix"),
     FUNDING("Fund");
 
     private final String type;

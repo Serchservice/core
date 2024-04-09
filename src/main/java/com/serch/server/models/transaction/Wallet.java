@@ -31,11 +31,11 @@ public class Wallet extends BaseDateTime {
     @Column(name = "bank_name", columnDefinition = "TEXT")
     private String bankName = null;
 
+    @Column(name = "deposit", nullable = false)
+    private BigDecimal deposit = BigDecimal.ZERO;
+
     @Column(name = "balance", nullable = false)
     private BigDecimal balance = BigDecimal.ZERO;
-
-    @Column(name = "cleared_balance", nullable = false)
-    private BigDecimal clearedBalance = BigDecimal.ZERO;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(

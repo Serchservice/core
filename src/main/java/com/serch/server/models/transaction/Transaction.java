@@ -2,8 +2,8 @@ package com.serch.server.models.transaction;
 
 import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseDateTime;
-import com.serch.server.enums.payment.TransactionStatus;
-import com.serch.server.enums.payment.TransactionType;
+import com.serch.server.enums.transaction.TransactionStatus;
+import com.serch.server.enums.transaction.TransactionType;
 import com.serch.server.generators.transaction.TransactionID;
 import com.serch.server.models.trip.Trip;
 import jakarta.persistence.*;

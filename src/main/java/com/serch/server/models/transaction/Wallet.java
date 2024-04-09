@@ -1,11 +1,12 @@
 package com.serch.server.models.transaction;
 
-import com.serch.server.bases.BaseModel;
-import com.serch.server.models.account.BusinessProfile;
-import com.serch.server.models.account.Profile;
+import com.serch.server.bases.BaseDateTime;
+import com.serch.server.generators.transaction.WalletID;
+import com.serch.server.models.auth.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.GenericGenerator;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -14,7 +15,13 @@ import java.util.List;
 @Setter
 @Entity
 @Table(schema = "account", name = "wallets")
-public class Wallet extends BaseModel {
+public class Wallet extends BaseDateTime {
+    @Id
+    @Column(nullable = false, columnDefinition = "TEXT")
+    @GenericGenerator(name = "wallet_id_gen", type = WalletID.class)
+    @GeneratedValue(generator = "wallet_id_gen")
+    private String id;
+
     @Column(name = "account_number", columnDefinition = "TEXT")
     private String accountNumber = null;
 
@@ -27,24 +34,17 @@ public class Wallet extends BaseModel {
     @Column(name = "balance", nullable = false)
     private BigDecimal balance = BigDecimal.ZERO;
 
-    @Column(name = "withdrawable_amount", nullable = false)
-    private BigDecimal withdrawableAmount = BigDecimal.ZERO;
+    @Column(name = "cleared_balance", nullable = false)
+    private BigDecimal clearedBalance = BigDecimal.ZERO;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(
-            name = "serch_id",
-            referencedColumnName = "serch_id",
-            foreignKey = @ForeignKey(name = "wallet_serch_id_fkey")
+            name = "user_id",
+            referencedColumnName = "id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "wallet_user_id_fkey")
     )
-    private Profile profile = null;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "business_id",
-            referencedColumnName = "serch_id",
-            foreignKey = @ForeignKey(name = "wallet_business_id_fkey")
-    )
-    private BusinessProfile businessProfile = null;
+    private User user;
 
     @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Transaction> transactions;

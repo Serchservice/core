@@ -1,4 +1,4 @@
-package com.serch.server.models.call;
+package com.serch.server.models.conversation.call;
 
 import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseDateTime;
@@ -40,14 +40,6 @@ public class Call extends BaseDateTime {
     @Enumerated(value = EnumType.STRING)
     @SerchEnum(message = "CallStatus must be an enum")
     private CallStatus status = CallStatus.CALLING;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "ended_by_id",
-            referencedColumnName = "serch_id",
-            foreignKey = @ForeignKey(name = "ended_by_id_fkey")
-    )
-    private Profile endedBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(

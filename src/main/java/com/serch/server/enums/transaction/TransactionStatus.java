@@ -1,4 +1,4 @@
-package com.serch.server.enums.payment;
+package com.serch.server.enums.transaction;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

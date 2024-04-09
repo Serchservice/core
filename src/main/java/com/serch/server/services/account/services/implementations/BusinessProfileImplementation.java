@@ -34,7 +34,7 @@ public class BusinessProfileImplementation implements BusinessProfileService {
         if(incomplete.getReferredBy() != null) {
             referralService.create(user, incomplete.getReferredBy().getReferredBy());
         }
-        walletService.createWallet(businessProfile);
+        walletService.createWallet(businessProfile.getUser());
         return new ApiResponse<>("Success", HttpStatus.OK);
     }
 

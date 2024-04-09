@@ -14,7 +14,6 @@ import java.math.BigDecimal;
 @RequiredArgsConstructor
 public class WalletUtil {
     private final WalletRepository walletRepository;
-    private final UserUtil userUtil;
 
     public boolean isBalanceSufficient(BalanceUpdateRequest request) {
         return walletRepository.findByUser_Id(request.getUser())

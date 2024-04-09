@@ -1,6 +1,6 @@
 package com.serch.server.repositories.call;
 
-import com.serch.server.models.conversation.call.Call;
+import com.serch.server.models.conversation.Call;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

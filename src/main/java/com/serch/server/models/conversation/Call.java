@@ -1,4 +1,4 @@
-package com.serch.server.models.conversation.call;
+package com.serch.server.models.conversation;
 
 import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseDateTime;

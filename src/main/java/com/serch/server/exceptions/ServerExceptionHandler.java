@@ -7,6 +7,9 @@ import com.serch.server.exceptions.account.AccountException;
 import com.serch.server.exceptions.account.ReferralException;
 import com.serch.server.exceptions.auth.AuthException;
 import com.serch.server.exceptions.auth.SessionException;
+import com.serch.server.exceptions.conversation.CallException;
+import com.serch.server.exceptions.conversation.ChatException;
+import com.serch.server.exceptions.conversation.ChatRoomException;
 import com.serch.server.exceptions.media.MediaBlogException;
 import com.serch.server.exceptions.media.MediaLegalException;
 import com.serch.server.exceptions.media.MediaNewsroomException;
@@ -53,6 +56,27 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @RestControllerAdvice
 public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
+
+    @ExceptionHandler(ChatException.class)
+    public ApiResponse<String> handleChatException(ChatException exception) {
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        response.setData(exception.getLocalizedMessage());
+        return response;
+    }
+
+    @ExceptionHandler(ChatRoomException.class)
+    public ApiResponse<String> handleChatRoomException(ChatRoomException exception) {
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        response.setData(exception.getLocalizedMessage());
+        return response;
+    }
+
+    @ExceptionHandler(CallException.class)
+    public ApiResponse<String> handleCallException(CallException exception) {
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        response.setData(exception.getLocalizedMessage());
+        return response;
+    }
     @ExceptionHandler(AccountException.class)
     public ApiResponse<String> handleAccountException(AccountException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());

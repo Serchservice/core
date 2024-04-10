@@ -42,10 +42,10 @@ public class CallImplementation implements CallService {
     private final CallRepository callRepository;
     private final ProfileRepository profileRepository;
 
-    @Value("${serch.agora.app-id}")
+    @Value("${application.call.api-key}")
     private String AGORA_APP_ID;
-    @Value("${serch.tip2fix.call-amount}")
-    private Integer TIP2FIX_CALL_AMOUNT;
+    @Value("${application.call.tip2fix.amount}")
+    private Integer TIP2FIX_AMOUNT;
 
     private boolean userIsOnCall(UUID id) {
         return callRepository.findBySerchId(id).stream().anyMatch(call ->
@@ -72,13 +72,13 @@ public class CallImplementation implements CallService {
                 throw new CallException("Only Serch Users can start Tip2Fix calls");
             } else if(request.getType() == CallType.T2F && !walletUtil.isBalanceSufficient(
                     BalanceUpdateRequest.builder()
-                            .amount(BigDecimal.valueOf(TIP2FIX_CALL_AMOUNT))
+                            .amount(BigDecimal.valueOf(TIP2FIX_AMOUNT))
                             .user(caller.getSerchId())
                             .type(TransactionType.T2F)
                             .build()
             )) {
                 throw new CallException(
-                        "Insufficient balance to start tip2fix. Tip2Fix is charged at ₦%s".formatted(TIP2FIX_CALL_AMOUNT)
+                        "Insufficient balance to start tip2fix. Tip2Fix is charged at ₦%s".formatted(TIP2FIX_AMOUNT)
                 );
             } else {
                 Call call = new Call();
@@ -236,7 +236,7 @@ public class CallImplementation implements CallService {
 
         if(CallUtil.getHours(duration) == 1) {
             if(walletUtil.isBalanceSufficient(BalanceUpdateRequest.builder()
-                    .amount(BigDecimal.valueOf(TIP2FIX_CALL_AMOUNT))
+                    .amount(BigDecimal.valueOf(TIP2FIX_AMOUNT))
                     .user(call.getCaller().getSerchId())
                     .type(TransactionType.T2F)
                     .build()

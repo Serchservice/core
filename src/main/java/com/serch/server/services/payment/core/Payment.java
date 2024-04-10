@@ -21,7 +21,7 @@ import java.util.Objects;
 public class Payment implements PaymentService {
     private final RestTemplate rest;
 
-    @Value("${serch.paystack.test-secret-key}")
+    @Value("${application.payment.api-key}")
     private String TEST_SECRET_KEY;
     private final String BASE_API_ENDPOINT = "https://api.paystack.co";
 

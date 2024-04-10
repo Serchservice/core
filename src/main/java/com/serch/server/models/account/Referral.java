@@ -43,6 +43,7 @@ public class Referral extends BaseDateTime {
     @JoinColumn(
             name = "referral",
             referencedColumnName = "id",
+            nullable = false,
             foreignKey = @ForeignKey(name = "referral_user_id_fkey")
     )
     private User referral;

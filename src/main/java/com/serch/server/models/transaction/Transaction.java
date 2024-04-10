@@ -62,7 +62,7 @@ public class Transaction extends BaseDateTime {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "call_id",
-            referencedColumnName = "id",
+            referencedColumnName = "channel",
             foreignKey = @ForeignKey(name = "call_id_fkey")
     )
     private Call call;
@@ -70,7 +70,7 @@ public class Transaction extends BaseDateTime {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "associate_id",
-            referencedColumnName = "id",
+            referencedColumnName = "serch_id",
             foreignKey = @ForeignKey(name = "associate_id_fkey")
     )
     private Profile associate;

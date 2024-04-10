@@ -38,12 +38,12 @@ public class WalletImplementation implements WalletService {
     private final TransactionRepository transactionRepository;
     private final ProfileRepository profileRepository;
 
-    @Value("${serch.wallet.fund-amount-limit}")
-    private Integer FUND_AMOUNT_LIMIT;
-    @Value("${serch.tip2fix.call-amount}")
-    private Integer TIP2FIX_CALL_AMOUNT;
-    @Value("${serch.wallet.withdraw-amount-limit}")
-    private Integer WITHDRAW_AMOUNT_LIMIT;
+    @Value("${application.wallet.fund-limit}")
+    private Integer FUND_LIMIT;
+    @Value("${application.call.tip2fix.amount}")
+    private Integer TIP2FIX_AMOUNT;
+    @Value("${application.wallet.withdraw-limit}")
+    private Integer WITHDRAW_LIMIT;
 
     @Override
     public void createWallet(User user) {
@@ -79,12 +79,12 @@ public class WalletImplementation implements WalletService {
                     BalanceUpdateRequest senderRequest = BalanceUpdateRequest.builder()
                             .type(TransactionType.T2F)
                             .user(sender.get().getUser().getId())
-                            .amount(BigDecimal.valueOf(TIP2FIX_CALL_AMOUNT))
+                            .amount(BigDecimal.valueOf(TIP2FIX_AMOUNT))
                             .build();
                     BalanceUpdateRequest receiverRequest = BalanceUpdateRequest.builder()
                             .type(TransactionType.T2F)
                             .user(receiver.get().getId())
-                            .amount(BigDecimal.valueOf(TIP2FIX_CALL_AMOUNT))
+                            .amount(BigDecimal.valueOf(TIP2FIX_AMOUNT))
                             .build();
 
                     if(receiver.get().getRole() == Role.ASSOCIATE_PROVIDER) {
@@ -137,7 +137,7 @@ public class WalletImplementation implements WalletService {
         util.updateBalance(receiverRequest);
 
         Transaction transaction = new Transaction();
-        transaction.setAmount(BigDecimal.valueOf(TIP2FIX_CALL_AMOUNT));
+        transaction.setAmount(BigDecimal.valueOf(TIP2FIX_AMOUNT));
         transaction.setType(TransactionType.T2F);
         transaction.setVerified(true);
         transaction.setStatus(TransactionStatus.SUCCESSFUL);

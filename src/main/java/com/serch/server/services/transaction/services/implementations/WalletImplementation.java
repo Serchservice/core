@@ -26,6 +26,7 @@ import com.serch.server.services.payment.requests.InitializePaymentRequest;
 import com.serch.server.services.payment.responses.InitializePaymentData;
 import com.serch.server.services.payment.responses.PaymentVerificationData;
 import com.serch.server.services.subscription.services.InitSubscriptionService;
+import com.serch.server.services.subscription.services.VerifySubscriptionService;
 import com.serch.server.services.transaction.requests.*;
 import com.serch.server.services.transaction.responses.WalletResponse;
 import com.serch.server.services.transaction.services.WalletService;
@@ -46,7 +47,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class WalletImplementation implements WalletService {
     private final PaymentService paymentService;
-    private final InitSubscriptionService initService;
+    private final InitSubscriptionService initSubscriptionService;
+    private final VerifySubscriptionService verifySubscriptionService;
     private final WalletUtil util;
     private final UserUtil userUtil;
     private final WalletRepository walletRepository;
@@ -198,7 +200,7 @@ public class WalletImplementation implements WalletService {
             amount = BigDecimal.valueOf(Integer.parseInt(parent.get().getAmount()));
 
             if(!subscription.getUser().isProfile()) {
-                int businessAmount = Integer.parseInt(parent.get().getAmount()) * initService.getBusinessSize(subscription);
+                int businessAmount = Integer.parseInt(parent.get().getAmount()) * initSubscriptionService.getBusinessSize(subscription);
                 amount = BigDecimal.valueOf(businessAmount);
             }
 
@@ -220,6 +222,7 @@ public class WalletImplementation implements WalletService {
                 subscription.setPlanStatus(PlanStatus.ACTIVE);
                 subscription.setSubscribedAt(LocalDateTime.now());
                 subscription.setPlan(parent.get());
+
                 subscriptionRepository.save(subscription);
             } else {
                 throw new WalletException("Insufficient balance to finish transaction");
@@ -231,7 +234,7 @@ public class WalletImplementation implements WalletService {
             amount = BigDecimal.valueOf(Integer.parseInt(child.getAmount()));
 
             if(!subscription.getUser().isProfile()) {
-                int businessAmount = Integer.parseInt(child.getAmount()) * initService.getBusinessSize(subscription);
+                int businessAmount = Integer.parseInt(child.getAmount()) * initSubscriptionService.getBusinessSize(subscription);
                 amount = BigDecimal.valueOf(businessAmount);
             }
 
@@ -254,11 +257,15 @@ public class WalletImplementation implements WalletService {
                 subscription.setPlanStatus(PlanStatus.ACTIVE);
                 subscription.setPlan(child.getParent());
                 subscription.setChild(child);
+
                 subscriptionRepository.save(subscription);
             } else {
                 throw new WalletException("Insufficient balance to finish transaction");
             }
         }
+
+        String ref = generateReference();
+        verifySubscriptionService.createInvoice(subscription, String.valueOf(amount), "WALLET", ref);
 
         Transaction transaction = new Transaction();
         transaction.setAmount(amount);
@@ -267,7 +274,7 @@ public class WalletImplementation implements WalletService {
         transaction.setStatus(TransactionStatus.SUCCESSFUL);
         transaction.setAccount(wallet.getId());
         transaction.setSender(wallet);
-        transaction.setReference(generateReference());
+        transaction.setReference(ref);
         transactionRepository.save(transaction);
         return new ApiResponse<>("Success", HttpStatus.OK);
     }
@@ -330,6 +337,7 @@ public class WalletImplementation implements WalletService {
             } else {
                 transaction.setStatus(TransactionStatus.FAILED);
                 transaction.setVerified(false);
+                transaction.setReason(data.getMessage());
                 transaction.setUpdatedAt(LocalDateTime.now());
                 transactionRepository.save(transaction);
 

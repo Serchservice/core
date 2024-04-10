@@ -21,6 +21,11 @@ public class SubscriptionInvoice extends BaseModel {
     @Column(nullable = false)
     private String plan;
 
+    @Column(nullable = false)
+    private String mode;
+
+    private String reference;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "subscription_id",

@@ -52,7 +52,7 @@ public class ProfileImplementation implements ProfileService {
                 referralService.create(request.getUser(), request.getReferredBy());
             }
 
-            walletService.createWallet(profile);
+            walletService.createWallet(profile.getUser());
             return new ApiResponse<>("Profile successfully saved", profile, HttpStatus.CREATED);
         }
     }

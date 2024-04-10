@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class EmailSender implements EmailService {
-    @Value("${serch.mail-api-key}")
+    @Value("${spring.mail.password}")
     private String API_KEY;
 
     private SendEmailRequest htmlContent(String from, String to, String subject, String content) {

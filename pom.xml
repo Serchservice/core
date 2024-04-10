@@ -110,7 +110,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.cloudinary</groupId>
-			<artifactId>cloudinary-http45</artifactId>
+			<artifactId>cloudinary-taglib</artifactId>
 			<version>1.38.0</version>
 		</dependency>
 		<dependency>

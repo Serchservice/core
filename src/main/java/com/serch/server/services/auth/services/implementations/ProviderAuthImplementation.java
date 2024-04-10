@@ -45,7 +45,7 @@ public class ProviderAuthImplementation implements ProviderAuthService {
     private final IncompleteSpecialtyRepository incompleteSpecialtyRepository;
     private final IncompleteAdditionalRepository incompleteAdditionalRepository;
 
-    @Value("${application.settings.specialty-limit}")
+    @Value("${application.account.specialty-limit}")
     private Integer SPECIALTY_LIMIT;
 
     @Override

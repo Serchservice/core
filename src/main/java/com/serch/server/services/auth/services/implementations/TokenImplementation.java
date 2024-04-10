@@ -10,19 +10,19 @@ import java.security.SecureRandom;
 public class TokenImplementation implements TokenService {
     @Value("${application.security.refresh-token-length}")
     private Integer REFRESH_TOKEN_LENGTH;
-
     @Value("${application.security.refresh-token-characters}")
     private String REFRESH_TOKEN_CHARACTERS;
-
     @Value("${application.security.otp-token-characters}")
     private String OTP_TOKEN_CHARACTERS;
+    @Value("${application.security.otp-token-length}")
+    private String OTP_TOKEN_LENGTH;
 
     private final SecureRandom random = new SecureRandom();
 
     @Override
     public String generateOtp() {
-        StringBuilder otp = new StringBuilder(6);
-        for(int i = 0; i < 6; i++) {
+        StringBuilder otp = new StringBuilder(Integer.parseInt(OTP_TOKEN_LENGTH));
+        for(int i = 0; i < Integer.parseInt(OTP_TOKEN_LENGTH); i++) {
             int index = random.nextInt(OTP_TOKEN_CHARACTERS.length());
             otp.append(OTP_TOKEN_CHARACTERS.charAt(index));
         }

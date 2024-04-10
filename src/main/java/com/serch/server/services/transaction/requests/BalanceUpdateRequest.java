@@ -13,5 +13,4 @@ public class BalanceUpdateRequest {
     private TransactionType type;
     private UUID user;
     private BigDecimal amount;
-    private Boolean isDebit;
 }

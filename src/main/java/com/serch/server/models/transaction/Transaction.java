@@ -6,7 +6,7 @@ import com.serch.server.enums.transaction.TransactionStatus;
 import com.serch.server.enums.transaction.TransactionType;
 import com.serch.server.generators.transaction.TransactionID;
 import com.serch.server.models.account.Profile;
-import com.serch.server.models.conversation.call.Call;
+import com.serch.server.models.conversation.Call;
 import com.serch.server.models.trip.Trip;
 import jakarta.persistence.*;
 import lombok.Getter;

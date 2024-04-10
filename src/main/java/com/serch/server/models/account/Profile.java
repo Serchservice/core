@@ -73,4 +73,8 @@ public class Profile extends BaseProfile {
         return getBusiness() != null && getBusiness().getSerchId() == serchId
                 && getUser().getRole() == Role.ASSOCIATE_PROVIDER;
     }
+
+    public boolean isSameAs(UUID user) {
+        return getSerchId() == user;
+    }
 }

@@ -5,6 +5,8 @@ import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.transaction.TransactionStatus;
 import com.serch.server.enums.transaction.TransactionType;
 import com.serch.server.generators.transaction.TransactionID;
+import com.serch.server.models.account.Profile;
+import com.serch.server.models.conversation.call.Call;
 import com.serch.server.models.trip.Trip;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -59,17 +61,26 @@ public class Transaction extends BaseDateTime {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
-            name = "sender_id",
+            name = "call_id",
             referencedColumnName = "id",
-            foreignKey = @ForeignKey(name = "sender_id_fkey")
+            foreignKey = @ForeignKey(name = "call_id_fkey")
     )
-    private Wallet sender;
+    private Call call;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
-            name = "receiver_id",
+            name = "associate_id",
             referencedColumnName = "id",
-            foreignKey = @ForeignKey(name = "receiver_id_fkey")
+            foreignKey = @ForeignKey(name = "associate_id_fkey")
     )
-    private Wallet receiver;
+    private Profile associate;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "sender_id",
+            referencedColumnName = "id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "sender_id_fkey")
+    )
+    private Wallet sender;
 }

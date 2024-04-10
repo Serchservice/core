@@ -11,8 +11,9 @@ import com.serch.server.models.auth.User;
 import com.serch.server.models.conversation.Call;
 import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.call.CallRepository;
-import com.serch.server.services.conversation.requests.CheckTip2FixSessionRequest;
 import com.serch.server.services.conversation.requests.StartCallRequest;
+import com.serch.server.services.conversation.responses.CallInformation;
+import com.serch.server.services.conversation.responses.CallMemberData;
 import com.serch.server.services.conversation.responses.CallResponse;
 import com.serch.server.services.conversation.responses.StartCallResponse;
 import com.serch.server.services.conversation.services.CallService;
@@ -29,10 +30,8 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -111,21 +110,35 @@ public class CallImplementation implements CallService {
                 throw new CallException("You cannot pick a call when you are on another.");
             } else {
                 if(call.getType() == CallType.T2F) {
-                    PayRequest request = new PayRequest();
-                    request.setReceiver(call.getCalled().getSerchId());
-                    request.setSender(call.getCaller().getSerchId());
-                    request.setEvent(call.getChannel());
-                    walletService.payTip2Fix(request);
+                    ApiResponse<String> response = processPayment(call);
+                    if(response.getStatus().is2xxSuccessful()) {
+                        return getCallResponse(call, CallStatus.ON_CALL);
+                    } else {
+                        throw new CallException(response.getMessage());
+                    }
+                } else {
+                    return getCallResponse(call, CallStatus.ON_CALL);
                 }
-
-                call.setStatus(CallStatus.ON_CALL);
-                call.setUpdatedAt(LocalDateTime.now());
-                callRepository.save(call);
-                return new ApiResponse<>(StartCallResponse.builder().status(CallStatus.ON_CALL).build());
             }
         } else {
             throw new CallException("You cannot answer calls that is not made for you");
         }
+    }
+
+    private ApiResponse<String> processPayment(Call call) {
+        PayRequest payRequest = new PayRequest();
+        payRequest.setReceiver(call.getCalled().getSerchId());
+        payRequest.setSender(call.getCaller().getSerchId());
+        payRequest.setEvent(call.getChannel());
+        payRequest.setType(TransactionType.T2F);
+        return walletService.pay(payRequest);
+    }
+
+    private ApiResponse<StartCallResponse> getCallResponse(Call call, CallStatus status) {
+        call.setStatus(status);
+        call.setUpdatedAt(LocalDateTime.now());
+        callRepository.save(call);
+        return new ApiResponse<>(StartCallResponse.builder().status(status).build());
     }
 
     @Override
@@ -135,11 +148,7 @@ public class CallImplementation implements CallService {
 
         call.checkIfActive();
         if(call.getCaller().isSameAs(userUtil.getUser().getId())) {
-            call.setStatus(CallStatus.MISSED);
-            call.setUpdatedAt(LocalDateTime.now());
-            callRepository.save(call);
-
-            return new ApiResponse<>(StartCallResponse.builder().status(CallStatus.MISSED).build());
+            return getCallResponse(call, CallStatus.MISSED);
         } else {
             throw new CallException("You cannot cancel calls you didn't start");
         }
@@ -152,11 +161,7 @@ public class CallImplementation implements CallService {
 
         call.checkIfActive();
         if(call.getCalled().isSameAs(userUtil.getUser().getId())) {
-            call.setStatus(CallStatus.DECLINED);
-            call.setUpdatedAt(LocalDateTime.now());
-            callRepository.save(call);
-
-            return new ApiResponse<>(StartCallResponse.builder().status(CallStatus.DECLINED).build());
+            return getCallResponse(call, CallStatus.DECLINED);
         } else {
             throw new CallException("You cannot decline calls that is not made to you");
         }
@@ -181,115 +186,81 @@ public class CallImplementation implements CallService {
     }
 
     @Override
-    public ApiResponse<List<CallHistoryResponse>> calls() {
-        List<CallHistoryResponse> list = new ArrayList<>();
-
-        callRepository.findBySerchId(userUtil.loggedInUserId()).forEach(call ->
-                extractedCallHistoryResponse(call, list)
-        );
-        if(!list.isEmpty()) {
-            list.sort(Comparator.comparing(CallHistoryResponse::getCalledAt));
-        }
-        return new ApiResponse<>(list);
-    }
-
-    private void extractedCallHistoryResponse(Call call, List<CallHistoryResponse> list) {
-        UUID otherUserId;
-
-        if (isCurrentUserTheCaller(call)) {
-            otherUserId = call.getCalled().getSerchId();
-        } else {
-            otherUserId = call.getCaller().getSerchId();
-        }
-        Call recent = callRepository.findMostRecentCall(userUtil.loggedInUserId(), otherUserId);
-        if(recent != null) {
-            getCallHistoryResponse(recent, otherUserId, list);
-        }
-    }
-
-    private void getCallHistoryResponse(Call recent, UUID otherUserId, List<CallHistoryResponse> list) {
-        CallHistoryResponse response = new CallHistoryResponse();
-        response.setChannel(recent.getChannel());
-        response.setType(recent.getType());
-        response.setDuration(recent.getDuration());
-        response.setStatus(recent.getStatus());
-        response.setStartTime(TimeUtil.formatTime(recent.getCreatedAt()));
-        response.setEndTime(TimeUtil.formatTime(recent.getUpdatedAt()));
-        response.setIsOutgoing(isCurrentUserTheCaller(recent));
-        response.setCallMateId(otherUserId);
-        response.setCallMateName(
-                isCurrentUserTheCaller(recent)
-                        ? recent.getCalled().getFullName() : recent.getCaller().getFullName()
-        );
-        response.setCallMateAvatar(
-                isCurrentUserTheCaller(recent)
-                        ? recent.getCalled().getAvatar() : recent.getCaller().getAvatar()
-        );
-        response.setCallMateCategory(
-                isCurrentUserTheCaller(recent)
-                        ? recent.getCalled().getCategory() : recent.getCaller().getCategory()
-        );
-        response.setCalledAt(recent.getCreatedAt());
-        list.add(response);
-    }
-
-    private boolean isCurrentUserTheCaller(Call call) {
-        return call.getCaller().getSerchId() == userUtil.loggedInUserId();
-    }
-
-    @Override
-    public ApiResponse<List<CallResponse>> logs(UUID userId) {
+    public ApiResponse<List<CallResponse>> logs() {
         List<CallResponse> list = new ArrayList<>();
 
-        callRepository.findAllBySerchId(userUtil.loggedInUserId(), userId).forEach(call ->
-                prepareCallResponse(call, list)
-        );
-        if(!list.isEmpty()) {
-            list.sort(Comparator.comparing(CallResponse::getCalledAt));
-        }
+        callRepository.findBySerchId(userUtil.getUser().getId())
+                .stream()
+                .collect(Collectors.groupingBy(call -> call.getCalled().getSerchId()))
+                .forEach((user, calls) -> {
+                    CallResponse response = new CallResponse();
+
+                    Call recent = calls.get(0);
+                    response.setRecent(createCallInformation(recent));
+                    response.setMember(createCallMemberData(recent.getCalled()));
+                    response.setHistory(Collections.singletonList(response.getRecent()));
+
+                    List<CallInformation> previous = calls.stream()
+                            .skip(1) // Skip the most recent call
+                            .map(this::createCallInformation)
+                            .toList();
+                    response.getHistory().addAll(previous);
+                    list.add(response);
+                });
         return new ApiResponse<>(list);
     }
 
+    private CallInformation createCallInformation(Call call) {
+        CallInformation info = new CallInformation();
+        info.setLabel(call.getChannel());
+        info.setDuration(call.getDuration());
+        info.setOutgoing(call.getCaller().isSameAs(userUtil.getUser().getId())); // Check if the user is the caller
+        info.setType(call.getType());
+        info.setStatus(call.getStatus());
+        return info;
+    }
+
+    private CallMemberData createCallMemberData(Profile profile) {
+        CallMemberData memberData = new CallMemberData();
+        memberData.setMember(profile.getSerchId());
+        memberData.setName(profile.getFullName());
+        memberData.setAvatar(profile.getAvatar());
+        memberData.setCategory(profile.getCategory());
+        return memberData;
+    }
+
     @Override
-    public ApiResponse<String> checkSession(CheckTip2FixSessionRequest request) {
-        Call call = callRepository.findById(request.getChannel())
+    public ApiResponse<String> checkSession(Integer duration, String channel) {
+        Call call = callRepository.findById(channel)
                 .orElseThrow(() -> new CallException("Call not found"));
 
-        if(CallUtil.getHours(request.getDuration()) == 1) {
+        if(CallUtil.getHours(duration) == 1) {
             if(walletUtil.isBalanceSufficient(BalanceUpdateRequest.builder()
                     .amount(BigDecimal.valueOf(TIP2FIX_CALL_AMOUNT))
                     .user(call.getCaller().getSerchId())
                     .type(TransactionType.T2F)
                     .build()
             )) {
-                pay(call.getCaller().getSerchId(), call.getCalled().getSerchId());
-                call.setSessionCount(call.getSessionCount() + 1);
-                call.setUpdatedAt(LocalDateTime.now());
-                callRepository.save(call);
-
-                return new ApiResponse<>("Continue with Tip2Fix", HttpStatus.OK);
+                ApiResponse<String> response = processPayment(call);
+                if(response.getStatus().is2xxSuccessful()) {
+                    call.setSessionCount(call.getSessionCount() + 1);
+                    call.setUpdatedAt(LocalDateTime.now());
+                    callRepository.save(call);
+                    return new ApiResponse<>("Continue with Tip2Fix", HttpStatus.OK);
+                } else {
+                    call.setStatus(CallStatus.CLOSED);
+                    call.setUpdatedAt(LocalDateTime.now());
+                    callRepository.save(call);
+                    throw new CallException(response.getMessage());
+                }
             } else {
                 call.setStatus(CallStatus.CLOSED);
                 call.setUpdatedAt(LocalDateTime.now());
                 callRepository.save(call);
-
                 throw new CallException("Your balance is too low to continue with call");
             }
         } else {
             return new ApiResponse<>("Continue with Tip2Fix", HttpStatus.OK);
         }
-    }
-
-    private void prepareCallResponse(Call call, List<CallResponse> list) {
-        CallResponse response = new CallResponse();
-        response.setCalledAt(call.getCreatedAt());
-        response.setLabel(TimeUtil.formatDay(call.getCreatedAt()));
-        response.setTime(call.getDuration());
-        response.setType(call.getType());
-        response.setDuration(call.getDuration());
-        response.setStatus(call.getStatus());
-        response.setIsOutgoing(isCurrentUserTheCaller(call));
-        response.setCalledAt(call.getCreatedAt());
-        list.add(response);
     }
 }

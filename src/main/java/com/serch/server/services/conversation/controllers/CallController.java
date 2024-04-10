@@ -1,66 +1,61 @@
 package com.serch.server.services.conversation.controllers;
 
-import com.serch.backend.bases.ApiResponse;
-import com.serch.backend.enums.call.CallStatus;
-import com.serch.backend.enums.call.CallType;
-import com.serch.backend.platform.call.responses.CallHistoryResponse;
-import com.serch.backend.platform.call.responses.CallResponse;
-import com.serch.backend.platform.call.responses.StartCallResponse;
-import com.serch.backend.platform.call.services.CallService;
+import com.serch.server.bases.ApiResponse;
+import com.serch.server.services.conversation.requests.StartCallRequest;
+import com.serch.server.services.conversation.responses.CallResponse;
+import com.serch.server.services.conversation.responses.StartCallResponse;
+import com.serch.server.services.conversation.services.CallService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/call")
 public class CallController {
-    private final CallService callService;
+    private final CallService service;
 
-    @PostMapping("/start")
-    public ResponseEntity<ApiResponse<StartCallResponse>> start(
-            @RequestParam UUID invited, @RequestParam CallType type
-    ) {
-        var response = callService.start(invited, type);
+    @GetMapping
+    public ResponseEntity<ApiResponse<String>> checkSession(@RequestParam Integer duration, @RequestParam String channel) {
+        var response = service.checkSession(duration, channel);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @PatchMapping("/join")
-    public ResponseEntity<ApiResponse<StartCallResponse>> join(@RequestParam String channel) {
-        var response = callService.join(channel);
+    @GetMapping("/logs")
+    public ResponseEntity<ApiResponse<List<CallResponse>>> logs() {
+        var response = service.logs();
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @PostMapping("/start")
+    public ResponseEntity<ApiResponse<StartCallResponse>> start(@RequestBody StartCallRequest request) {
+        var response = service.start(request);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @PatchMapping("/answer")
+    public ResponseEntity<ApiResponse<StartCallResponse>> answer(@RequestParam String channel) {
+        var response = service.answer(channel);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @PatchMapping("/end")
-    public ResponseEntity<ApiResponse<String>> end(@RequestParam String channel) {
-        var response = callService.end(channel);
+    public ResponseEntity<ApiResponse<StartCallResponse>> end(@RequestParam String channel) {
+        var response = service.end(channel);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @PatchMapping("/decline")
-    public ResponseEntity<ApiResponse<CallStatus>> decline(@RequestParam String channel) {
-        var response = callService.decline(channel);
+    public ResponseEntity<ApiResponse<StartCallResponse>> decline(@RequestParam String channel) {
+        var response = service.decline(channel);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @PatchMapping("/leave")
-    public ResponseEntity<ApiResponse<CallStatus>> leave(@RequestParam String channel) {
-        var response = callService.leave(channel);
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<CallHistoryResponse>>> viewAll() {
-        var response = callService.calls();
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
-    @GetMapping("/{userId}")
-    public ResponseEntity<ApiResponse<List<CallResponse>>> view(@PathVariable UUID userId) {
-        var response = callService.view(userId);
+    @PatchMapping("/cancel")
+    public ResponseEntity<ApiResponse<StartCallResponse>> cancel(@RequestParam String channel) {
+        var response = service.cancel(channel);
         return new ResponseEntity<>(response, response.getStatus());
     }
 }

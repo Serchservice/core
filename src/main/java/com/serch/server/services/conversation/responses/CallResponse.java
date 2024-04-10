@@ -1,7 +1,5 @@
 package com.serch.server.services.conversation.responses;
 
-import com.serch.server.enums.call.CallStatus;
-import com.serch.server.enums.call.CallType;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,7 +10,7 @@ import java.util.List;
 @Getter
 @Setter
 public class CallResponse {
-    private CallInformation recent;
     private CallMemberData member;
+    private CallInformation recent;
     private List<CallInformation> history;
 }

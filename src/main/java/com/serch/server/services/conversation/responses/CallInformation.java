@@ -15,5 +15,4 @@ public class CallInformation {
     private Boolean outgoing;
     private CallType type;
     private CallStatus status;
-    private CallTimeInformation time;
 }

@@ -11,5 +11,5 @@ public interface VerifySubscriptionService {
     ApiResponse<String> verify(User user, String reference);
     ApiResponse<String> verify(VerifySubscriptionRequest request);
     SubscriptionAuth createAuth(String emailAddress, PaymentVerificationData response);
-    void createInvoice(Subscription subscription, String amount);
+    void createInvoice(Subscription subscription, String amount, String mode, String reference);
 }

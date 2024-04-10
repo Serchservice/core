@@ -154,4 +154,8 @@ public class User extends BaseEntity implements UserDetails {
     public boolean isUser(UUID id) {
         return getId() == id;
     }
+
+    public String getFullName() {
+        return getFirstName() + " " + getLastName();
+    }
 }

@@ -1,0 +1,130 @@
+package com.serch.server.services.transaction.services.implementations;
+
+import com.serch.server.bases.ApiResponse;
+import com.serch.server.enums.transaction.TransactionStatus;
+import com.serch.server.enums.transaction.TransactionType;
+import com.serch.server.exceptions.transaction.WalletException;
+import com.serch.server.models.subscription.SubscriptionInvoice;
+import com.serch.server.models.transaction.Transaction;
+import com.serch.server.models.transaction.Wallet;
+import com.serch.server.repositories.subscription.SubscriptionInvoiceRepository;
+import com.serch.server.repositories.transaction.TransactionRepository;
+import com.serch.server.repositories.transaction.WalletRepository;
+import com.serch.server.services.transaction.responses.AssociateTransactionData;
+import com.serch.server.services.transaction.responses.TransactionResponse;
+import com.serch.server.services.transaction.services.TransactionService;
+import com.serch.server.utils.MoneyUtil;
+import com.serch.server.utils.TimeUtil;
+import com.serch.server.utils.UserUtil;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class TransactionImplementation implements TransactionService {
+    private final UserUtil userUtil;
+    private final TransactionRepository transactionRepository;
+    private final WalletRepository walletRepository;
+    private final SubscriptionInvoiceRepository subscriptionInvoiceRepository;
+
+    @Override
+    public ApiResponse<List<TransactionResponse>> transactions() {
+        Wallet wallet = walletRepository.findByUser_Id(userUtil.getUser().getId())
+                .orElseThrow(() -> new WalletException("User not found"));
+
+        List<TransactionResponse> transactions = new ArrayList<>();
+
+        transactions.addAll(
+                transactionRepository.findBySender_User_Id(wallet.getUser().getId())
+                        .stream()
+                        .map(transaction -> createResponse(transaction, wallet))
+                        .toList()
+        );
+
+        transactions.addAll(
+                transactionRepository.findByAccount(wallet.getId())
+                        .stream()
+                        .map(transaction -> createResponse(transaction, wallet))
+                        .toList()
+        );
+
+        transactions.addAll(
+                subscriptionInvoiceRepository.findBySubscription_User_Id(wallet.getUser().getId())
+                        .stream()
+                        .map(this::createResponse)
+                        .toList()
+        );
+
+        return new ApiResponse<>(transactions);
+    }
+
+    private static TransactionResponse createResponse(Transaction transaction, Wallet wallet) {
+        TransactionResponse response = new TransactionResponse();
+        response.setId(transaction.getId());
+        response.setAmount(MoneyUtil.formatAmountToNaira(transaction.getAmount()));
+        response.setReason(transaction.getReason());
+        response.setCompletedAt(TimeUtil.formatDay(transaction.getUpdatedAt()));
+        response.setStatus(transaction.getStatus());
+        response.setType(transaction.getType());
+        response.setIsIncoming(
+                transaction.getType() == TransactionType.FUNDING || (
+                        transaction.getType() != TransactionType.SUBSCRIPTION &&
+                                transaction.getAccount().equals(wallet.getId())
+                )
+        );
+        response.setTime(TimeUtil.formatTime(transaction.getCreatedAt()));
+        response.setRequestedAt(TimeUtil.formatDay(transaction.getCreatedAt()));
+        response.setCreatedAt(transaction.getCreatedAt());
+        response.setName(transaction.getSender().getUser().getFullName());
+        response.setReference(transaction.getReference());
+
+        if(transaction.getAssociate() != null) {
+            response.setAssociates(List.of(
+                    AssociateTransactionData.builder()
+                            .name(transaction.getAssociate().getFullName())
+                            .category(transaction.getAssociate().getCategory().getType())
+                            .rating(transaction.getAssociate().getRating())
+                            .avatar(transaction.getAssociate().getAvatar())
+                            .build()
+            ));
+        }
+        response.setMode("WALLET");
+        return response;
+    }
+
+    private TransactionResponse createResponse(SubscriptionInvoice invoice) {
+        TransactionResponse response = new TransactionResponse();
+        response.setId("%s - %s".formatted(invoice.getSubscription().getId(), invoice.getId()));
+        response.setAmount(MoneyUtil.formatAmountToNaira(BigDecimal.valueOf(Integer.parseInt(invoice.getAmount()))));
+        response.setCompletedAt(TimeUtil.formatDay(invoice.getUpdatedAt()));
+        response.setStatus(TransactionStatus.SUCCESSFUL);
+        response.setType(TransactionType.SUBSCRIPTION);
+        response.setIsIncoming(false);
+        response.setTime(TimeUtil.formatTime(invoice.getCreatedAt()));
+        response.setRequestedAt(TimeUtil.formatDay(invoice.getCreatedAt()));
+        response.setCreatedAt(invoice.getCreatedAt());
+        response.setName(invoice.getSubscription().getUser().getFullName());
+        response.setReference(invoice.getReference());
+
+        if(!invoice.getAssociates().isEmpty()) {
+            response.setAssociates(
+                    invoice.getAssociates()
+                            .stream()
+                            .map(associate -> AssociateTransactionData.builder()
+                                    .name(associate.getProfile().getFullName())
+                                    .category(associate.getProfile().getCategory().getType())
+                                    .rating(associate.getProfile().getRating())
+                                    .avatar(associate.getProfile().getAvatar())
+                                    .build()
+                            )
+                            .toList()
+            );
+        }
+        response.setMode(invoice.getMode());
+        return response;
+    }
+}

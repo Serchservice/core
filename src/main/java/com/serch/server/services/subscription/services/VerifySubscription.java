@@ -102,7 +102,7 @@ public class VerifySubscription implements VerifySubscriptionService {
                 existing.get().setSubscribedAt(LocalDateTime.now());
                 Subscription saved = subscriptionRepository.save(existing.get());
 
-                createInvoice(saved, String.valueOf(data.getAmount()));
+                createInvoice(saved, String.valueOf(data.getAmount()), "CARD", data.getReference());
                 subscriptionRequestRepository.delete(request);
             } else {
                 createSubscription(request, user, data);
@@ -139,13 +139,13 @@ public class VerifySubscription implements VerifySubscriptionService {
         auth.setSubscription(subscribed);
         subscriptionAuthRepository.save(auth);
 
-        createInvoice(subscribed, String.valueOf(data.getAmount()));
+        createInvoice(subscribed, String.valueOf(data.getAmount()), "CARD", data.getReference());
 
         subscriptionRequestRepository.delete(request);
     }
 
     @Override
-    public void createInvoice(Subscription subscription, String amount) {
+    public void createInvoice(Subscription subscription, String amount, String mode, String reference) {
         SubscriptionInvoice invoice = new SubscriptionInvoice();
 
         if(subscription.getUser().isProfile()) {
@@ -162,6 +162,8 @@ public class VerifySubscription implements VerifySubscriptionService {
         }
         invoice.setSubscription(subscription);
         invoice.setAmount(amount);
+        invoice.setReference(reference);
+        invoice.setMode(mode);
         invoice.setPlan(
                 subscription.getChild() != null
                         ? subscription.getChild().getName()
@@ -206,7 +208,7 @@ public class VerifySubscription implements VerifySubscriptionService {
                     existing.get().setRetries(0);
                     Subscription saved = subscriptionRepository.save(existing.get());
 
-                    createInvoice(saved, "");
+                    createInvoice(saved, "", "WALLET", "");
                     subscriptionRequestRepository.delete(request);
                     return new ApiResponse<>("Success", HttpStatus.OK);
                 } else {
@@ -245,6 +247,6 @@ public class VerifySubscription implements VerifySubscriptionService {
         Subscription subscribed = subscriptionRepository.save(subscription);
         subscriptionRequestRepository.delete(request);
 
-        createInvoice(subscribed, "");
+        createInvoice(subscribed, "", "WALLET", "");
     }
 }

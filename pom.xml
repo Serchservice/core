@@ -8,14 +8,56 @@
 		<version>3.2.4</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
+
 	<groupId>com.serch</groupId>
 	<artifactId>server</artifactId>
-	<version>0.0.1</version>
+	<version>${serch.version}</version>
 	<name>server</name>
 	<description>Backend server for Serch platform</description>
+	<url>https://www.serchservice.com</url>
+
 	<properties>
+		<serch.version>0.0.1</serch.version>
 		<java.version>17</java.version>
+		<firebase.version>9.2.0</firebase.version>
+		<springdoc.version>2.3.0</springdoc.version>
 	</properties>
+
+	<developers>
+		<developer>
+			<id>iamEvaristus</id>
+			<name>Evaristus Adimonyemma</name>
+			<email>evaristusadimonyemma@gmail.com</email>
+			<url>https://www.linkedin.com/in/iamevaristus</url>
+			<roles>
+				<role>FullStack Developer</role>
+				<role>Backend Developer</role>
+				<role>Frontend Developer</role>
+				<role>CEO/Founder</role>
+			</roles>
+			<timezone>UTC +01:00</timezone>
+			<organization>Serchservice</organization>
+			<organizationUrl>https://www.serchservice.com</organizationUrl>
+		</developer>
+	</developers>
+
+	<contributors>
+		<contributor>
+			<name>Evaristus Adimonyemma</name>
+			<email>evaristusadimonyemma@gmail.com</email>
+			<url>https://www.linkedin.com/in/iamevaristus</url>
+			<roles>
+				<role>FullStack Developer</role>
+				<role>Backend Developer</role>
+				<role>Frontend Developer</role>
+				<role>CEO/Founder</role>
+			</roles>
+			<timezone>UTC +01:00</timezone>
+			<organization>Serchservice</organization>
+			<organizationUrl>https://www.serchservice.com</organizationUrl>
+		</contributor>
+	</contributors>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -91,7 +133,7 @@
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-			<version>2.2.0</version>
+			<version>${springdoc.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.mapstruct</groupId>
@@ -116,7 +158,7 @@
 		<dependency>
 			<groupId>com.google.firebase</groupId>
 			<artifactId>firebase-admin</artifactId>
-			<version>9.2.0</version>
+			<version>${firebase.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>dev.samstevens.totp</groupId>

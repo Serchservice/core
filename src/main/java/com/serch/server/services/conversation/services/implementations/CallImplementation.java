@@ -11,17 +11,20 @@ import com.serch.server.models.auth.User;
 import com.serch.server.models.conversation.Call;
 import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.call.CallRepository;
+import com.serch.server.services.conversation.requests.CheckTip2FixSessionRequest;
 import com.serch.server.services.conversation.requests.StartCallRequest;
 import com.serch.server.services.conversation.responses.CallResponse;
 import com.serch.server.services.conversation.responses.StartCallResponse;
 import com.serch.server.services.conversation.services.CallService;
-import com.serch.server.services.conversation.services.Tip2FixService;
 import com.serch.server.services.transaction.requests.BalanceUpdateRequest;
+import com.serch.server.services.transaction.requests.PayRequest;
+import com.serch.server.services.transaction.services.WalletService;
 import com.serch.server.utils.CallUtil;
 import com.serch.server.utils.UserUtil;
 import com.serch.server.utils.WalletUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -36,14 +39,14 @@ import java.util.UUID;
 public class CallImplementation implements CallService {
     private final UserUtil userUtil;
     private final WalletUtil walletUtil;
-    private final Tip2FixService tip2FixService;
+    private final WalletService walletService;
     private final CallRepository callRepository;
     private final ProfileRepository profileRepository;
 
     @Value("${serch.agora.app-id}")
     private String AGORA_APP_ID;
-    @Value("${serch.tip2fix.call-limit}")
-    private Integer CALL_LIMIT;
+    @Value("${serch.tip2fix.call-amount}")
+    private Integer TIP2FIX_CALL_AMOUNT;
 
     private boolean userIsOnCall(UUID id) {
         return callRepository.findBySerchId(id).stream().anyMatch(call ->
@@ -70,13 +73,13 @@ public class CallImplementation implements CallService {
                 throw new CallException("Only Serch Users can start Tip2Fix calls");
             } else if(request.getType() == CallType.T2F && !walletUtil.isBalanceSufficient(
                     BalanceUpdateRequest.builder()
-                            .amount(BigDecimal.valueOf(CALL_LIMIT))
+                            .amount(BigDecimal.valueOf(TIP2FIX_CALL_AMOUNT))
                             .user(caller.getSerchId())
                             .type(TransactionType.T2F)
                             .build()
             )) {
                 throw new CallException(
-                        "Insufficient balance to start tip2fix. Tip2Fix is charged at ₦%s".formatted(CALL_LIMIT)
+                        "Insufficient balance to start tip2fix. Tip2Fix is charged at ₦%s".formatted(TIP2FIX_CALL_AMOUNT)
                 );
             } else {
                 Call call = new Call();
@@ -108,7 +111,11 @@ public class CallImplementation implements CallService {
                 throw new CallException("You cannot pick a call when you are on another.");
             } else {
                 if(call.getType() == CallType.T2F) {
-                    tip2FixService.pay(call.getCaller().getSerchId(), call.getCalled().getSerchId());
+                    PayRequest request = new PayRequest();
+                    request.setReceiver(call.getCalled().getSerchId());
+                    request.setSender(call.getCaller().getSerchId());
+                    request.setEvent(call.getChannel());
+                    walletService.payTip2Fix(request);
                 }
 
                 call.setStatus(CallStatus.ON_CALL);
@@ -241,6 +248,36 @@ public class CallImplementation implements CallService {
             list.sort(Comparator.comparing(CallResponse::getCalledAt));
         }
         return new ApiResponse<>(list);
+    }
+
+    @Override
+    public ApiResponse<String> checkSession(CheckTip2FixSessionRequest request) {
+        Call call = callRepository.findById(request.getChannel())
+                .orElseThrow(() -> new CallException("Call not found"));
+
+        if(CallUtil.getHours(request.getDuration()) == 1) {
+            if(walletUtil.isBalanceSufficient(BalanceUpdateRequest.builder()
+                    .amount(BigDecimal.valueOf(TIP2FIX_CALL_AMOUNT))
+                    .user(call.getCaller().getSerchId())
+                    .type(TransactionType.T2F)
+                    .build()
+            )) {
+                pay(call.getCaller().getSerchId(), call.getCalled().getSerchId());
+                call.setSessionCount(call.getSessionCount() + 1);
+                call.setUpdatedAt(LocalDateTime.now());
+                callRepository.save(call);
+
+                return new ApiResponse<>("Continue with Tip2Fix", HttpStatus.OK);
+            } else {
+                call.setStatus(CallStatus.CLOSED);
+                call.setUpdatedAt(LocalDateTime.now());
+                callRepository.save(call);
+
+                throw new CallException("Your balance is too low to continue with call");
+            }
+        } else {
+            return new ApiResponse<>("Continue with Tip2Fix", HttpStatus.OK);
+        }
     }
 
     private void prepareCallResponse(Call call, List<CallResponse> list) {

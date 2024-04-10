@@ -1,5 +1,6 @@
 package com.serch.server.services.transaction.services.implementations;
 
+import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.auth.Role;
 import com.serch.server.enums.transaction.TransactionStatus;
 import com.serch.server.enums.transaction.TransactionType;
@@ -20,9 +21,11 @@ import com.serch.server.services.transaction.services.WalletService;
 import com.serch.server.utils.WalletUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -58,42 +61,72 @@ public class WalletImplementation implements WalletService {
     }
 
     @Override
-    public void payTip2Fix(PayRequest request) {
-        Wallet sender = walletRepository.findByUser_Id(request.getSender())
-                .orElseThrow(() -> new WalletException("User not found"));
-        User receiver = userRepository.findById(request.getReceiver())
-                .orElseThrow(() -> new WalletException("Recipient not found"));
-        Call call = callRepository.findById(request.getEvent())
-                .orElseThrow(() -> new WalletException("Call not found"));
-
-        BalanceUpdateRequest senderRequest = BalanceUpdateRequest.builder()
-                .type(TransactionType.T2F)
-                .user(sender.getUser().getId())
-                .amount(BigDecimal.valueOf(TIP2FIX_CALL_AMOUNT))
-                .build();
-        BalanceUpdateRequest receiverRequest = BalanceUpdateRequest.builder()
-                .type(TransactionType.T2F)
-                .user(receiver.getId())
-                .amount(BigDecimal.valueOf(TIP2FIX_CALL_AMOUNT))
-                .build();
-
-        if(receiver.getRole() == Role.ASSOCIATE_PROVIDER) {
-            Profile profile =  profileRepository.findById(receiver.getId())
-                    .orElseThrow(() -> new WalletException("Recipient not found"));
-            Wallet wallet = walletRepository.findByUser_Id(profile.getBusiness().getSerchId())
-                    .orElseThrow(() -> new WalletException("Recipient not found"));
-
-            receiverRequest.setUser(profile.getBusiness().getSerchId());
-            Transaction transaction = processTip2Fix(sender, call, senderRequest, receiverRequest, wallet);
-            transaction.setAssociate(profile);
-            transactionRepository.save(transaction);
+    public ApiResponse<String> pay(PayRequest request) {
+        if(request.getType() == TransactionType.T2F) {
+            return payTip2Fix(request);
         } else {
-            Wallet wallet = walletRepository.findByUser_Id(request.getReceiver())
-                    .orElseThrow(() -> new WalletException("Recipient not found"));
-
-            Transaction transaction = processTip2Fix(sender, call, senderRequest, receiverRequest, wallet);
-            transactionRepository.save(transaction);
+            return new ApiResponse<>("Error");
         }
+    }
+
+    private ApiResponse<String> payTip2Fix(PayRequest request) {
+        Optional<Wallet> sender = walletRepository.findByUser_Id(request.getSender());
+        if(sender.isPresent()) {
+            Optional<User> receiver = userRepository.findById(request.getReceiver());
+            if(receiver.isPresent()) {
+                Optional<Call> call = callRepository.findById(request.getEvent());
+                if(call.isPresent()) {
+                    BalanceUpdateRequest senderRequest = BalanceUpdateRequest.builder()
+                            .type(TransactionType.T2F)
+                            .user(sender.get().getUser().getId())
+                            .amount(BigDecimal.valueOf(TIP2FIX_CALL_AMOUNT))
+                            .build();
+                    BalanceUpdateRequest receiverRequest = BalanceUpdateRequest.builder()
+                            .type(TransactionType.T2F)
+                            .user(receiver.get().getId())
+                            .amount(BigDecimal.valueOf(TIP2FIX_CALL_AMOUNT))
+                            .build();
+
+                    if(receiver.get().getRole() == Role.ASSOCIATE_PROVIDER) {
+                        Optional<Profile> profile =  profileRepository.findById(receiver.get().getId());
+                        if(profile.isPresent()) {
+                            Optional<Wallet> wallet = walletRepository.findByUser_Id(profile.get().getBusiness().getSerchId());
+                            if(wallet.isPresent()) {
+                                receiverRequest.setUser(profile.get().getBusiness().getSerchId());
+                                Transaction transaction = processTip2Fix(
+                                        sender.get(), call.get(), senderRequest,
+                                        receiverRequest, wallet.get()
+                                );
+                                transaction.setAssociate(profile.get());
+                                transactionRepository.save(transaction);
+                            } else {
+                                return new ApiResponse<>("Recipient not found");
+                            }
+                        } else {
+                            return new ApiResponse<>("Recipient not found");
+                        }
+                    } else {
+                        Optional<Wallet> wallet = walletRepository.findByUser_Id(request.getReceiver());
+                        if(wallet.isPresent()) {
+                            Transaction transaction = processTip2Fix(
+                                    sender.get(), call.get(), senderRequest,
+                                    receiverRequest, wallet.get()
+                            );
+                            transactionRepository.save(transaction);
+                        } else {
+                            return new ApiResponse<>("Recipient not found");
+                        }
+                    }
+                } else {
+                    return new ApiResponse<>("Call not found");
+                }
+            } else {
+                return new ApiResponse<>("Recipient not found");
+            }
+        } else {
+            return new ApiResponse<>("User not found");
+        }
+        return new ApiResponse<>("Payment successful", HttpStatus.OK);
     }
 
     private Transaction processTip2Fix(

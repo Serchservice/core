@@ -1,17 +1,15 @@
 package com.serch.server.services.conversation.services.implementations;
 
-import com.serch.backend.bases.ApiResponse;
-import com.serch.backend.enums.call.CallStatus;
-import com.serch.backend.enums.transaction.TransactionStatus;
-import com.serch.backend.enums.transaction.TransactionType;
-import com.serch.backend.exceptions.SerchException;
-import com.serch.backend.platform.call.repositories.CallRepository;
-import com.serch.backend.platform.wallet.models.Transaction;
-import com.serch.backend.platform.wallet.repositories.TransactionRepository;
-import com.serch.backend.platform.wallet.repositories.WalletRepository;
-import com.serch.backend.utils.CallUtil;
-import com.serch.backend.utils.WalletUtil;
+import com.serch.server.bases.ApiResponse;
+import com.serch.server.enums.call.CallStatus;
+import com.serch.server.exceptions.conversation.CallException;
+import com.serch.server.models.conversation.Call;
+import com.serch.server.repositories.call.CallRepository;
+import com.serch.server.repositories.transaction.WalletRepository;
+import com.serch.server.services.conversation.requests.CheckTip2FixSessionRequest;
 import com.serch.server.services.conversation.services.Tip2FixService;
+import com.serch.server.utils.CallUtil;
+import com.serch.server.utils.WalletUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -29,19 +27,17 @@ public class Tip2FixImplementation implements Tip2FixService {
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
 
-    @Value("${serch.tip2fix.call-limit}")
+    @Value("${serch.tip2fix.call-amount}")
     private Integer CALL_LIMIT;
 
     @Override
-    public ApiResponse<String> checkSession(Integer duration, String channel) {
-        var call = callRepository.findById(channel)
-                .orElseThrow(() -> new SerchException(
-                        "An error occurred while locating call. Contact support if this continues."
-                ));
+    public ApiResponse<String> checkSession(CheckTip2FixSessionRequest request) {
+        Call call = callRepository.findById(request.getChannel())
+                .orElseThrow(() -> new CallException("Call not found"));
 
-        if(CallUtil.getHours(duration) == 1) {
+        if(CallUtil.getHours(request.getDuration()) == 1) {
             if(walletUtil.isBalanceSufficient(BigDecimal.valueOf(CALL_LIMIT))) {
-                pay(call.getCalled().getSerchId(), call.getCaller().getSerchId());
+                pay(call.getCaller().getSerchId(), call.getCalled().getSerchId());
                 call.setSessionCount(call.getSessionCount() + 1);
                 call.setUpdatedAt(LocalDateTime.now());
                 callRepository.save(call);
@@ -52,10 +48,7 @@ public class Tip2FixImplementation implements Tip2FixService {
                 call.setUpdatedAt(LocalDateTime.now());
                 callRepository.save(call);
 
-                throw new SerchException(
-                        "Insufficient balance to start tip2fix. Tip2Fix is charged at ₦%s"
-                                .formatted(CALL_LIMIT)
-                );
+                throw new CallException("Your balance is too low to continue with call");
             }
         } else {
             return new ApiResponse<>("Continue with Tip2Fix", HttpStatus.OK);
@@ -63,21 +56,21 @@ public class Tip2FixImplementation implements Tip2FixService {
     }
 
     @Override
-    public void pay(UUID provider, UUID user) {
-        var userWallet = walletRepository.findByProfile_SerchId(user)
-                .orElseThrow(() -> new SerchException("User not found"));
-        var providerWallet = walletRepository.findByProfile_SerchId(provider)
-                .orElseThrow(() -> new SerchException("User not found"));
+    public void pay(UUID senderId, UUID receiverId) {
+        var sender = walletRepository.findByUser_Id(senderId)
+                .orElseThrow(() -> new CallException("User not found"));
+        var receiver = walletRepository.findByProfile_SerchId(senderId)
+                .orElseThrow(() -> new CallException("User not found"));
 
-        userWallet.setBalance(userWallet.getBalance().subtract(BigDecimal.valueOf(CALL_LIMIT)));
-        walletRepository.save(userWallet);
+        sender.setBalance(sender.getBalance().subtract(BigDecimal.valueOf(CALL_LIMIT)));
+        walletRepository.save(sender);
 
-        providerWallet.setBalance(providerWallet.getBalance().add(BigDecimal.valueOf(CALL_LIMIT)));
-        walletRepository.save(providerWallet);
+        receiver.setBalance(receiver.getBalance().add(BigDecimal.valueOf(CALL_LIMIT)));
+        walletRepository.save(receiver);
 
         Transaction transaction = new Transaction();
-        transaction.setReceiver(providerWallet);
-        transaction.setSender(userWallet);
+        transaction.setReceiver(receiver);
+        transaction.setSender(sender);
         transaction.setStatus(TransactionStatus.SUCCESSFUL);
         transaction.setType(TransactionType.TIP2FIX);
         transaction.setAmount(BigDecimal.valueOf(CALL_LIMIT));

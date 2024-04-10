@@ -6,13 +6,14 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
-
 @Data
 @Getter
 @Setter
-public class CallResponse {
-    private CallInformation recent;
-    private CallMemberData member;
-    private List<CallInformation> history;
+public class CallInformation {
+    private String label;
+    private String duration;
+    private Boolean outgoing;
+    private CallType type;
+    private CallStatus status;
+    private CallTimeInformation time;
 }

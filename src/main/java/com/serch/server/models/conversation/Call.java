@@ -4,6 +4,7 @@ import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.call.CallStatus;
 import com.serch.server.enums.call.CallType;
+import com.serch.server.exceptions.conversation.CallException;
 import com.serch.server.generators.CallID;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.rating.Rating;
@@ -61,4 +62,10 @@ public class Call extends BaseDateTime {
 
     @OneToMany(mappedBy = "call", fetch = FetchType.LAZY)
     private List<Rating> ratings;
+
+    public void checkIfActive() {
+        if(getStatus() == CallStatus.CLOSED || getStatus() == CallStatus.DECLINED || getStatus() == CallStatus.MISSED) {
+            throw new CallException("Call is %s".formatted(getStatus().getType()));
+        }
+    }
 }

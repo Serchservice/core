@@ -4,20 +4,24 @@ import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.call.CallStatus;
 import com.serch.server.enums.call.CallType;
+import com.serch.server.enums.transaction.TransactionType;
 import com.serch.server.exceptions.conversation.CallException;
 import com.serch.server.models.account.Profile;
+import com.serch.server.models.auth.User;
 import com.serch.server.models.conversation.Call;
 import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.call.CallRepository;
 import com.serch.server.services.conversation.requests.StartCallRequest;
+import com.serch.server.services.conversation.responses.CallResponse;
 import com.serch.server.services.conversation.responses.StartCallResponse;
 import com.serch.server.services.conversation.services.CallService;
 import com.serch.server.services.conversation.services.Tip2FixService;
+import com.serch.server.services.transaction.requests.BalanceUpdateRequest;
+import com.serch.server.utils.CallUtil;
 import com.serch.server.utils.UserUtil;
 import com.serch.server.utils.WalletUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -34,12 +38,12 @@ public class CallImplementation implements CallService {
     private final WalletUtil walletUtil;
     private final Tip2FixService tip2FixService;
     private final CallRepository callRepository;
+    private final ProfileRepository profileRepository;
 
     @Value("${serch.agora.app-id}")
     private String AGORA_APP_ID;
     @Value("${serch.tip2fix.call-limit}")
     private Integer CALL_LIMIT;
-    private final ProfileRepository profileRepository;
 
     private boolean userIsOnCall(UUID id) {
         return callRepository.findBySerchId(id).stream().anyMatch(call ->
@@ -64,9 +68,13 @@ public class CallImplementation implements CallService {
         } else {
             if(request.getType() == CallType.T2F && caller.getCategory() != SerchCategory.USER) {
                 throw new CallException("Only Serch Users can start Tip2Fix calls");
-            } else if(request.getType() == CallType.T2F &&
-                    !walletUtil.isBalanceSufficient(BigDecimal.valueOf(CALL_LIMIT), caller.getSerchId())
-            ) {
+            } else if(request.getType() == CallType.T2F && !walletUtil.isBalanceSufficient(
+                    BalanceUpdateRequest.builder()
+                            .amount(BigDecimal.valueOf(CALL_LIMIT))
+                            .user(caller.getSerchId())
+                            .type(TransactionType.T2F)
+                            .build()
+            )) {
                 throw new CallException(
                         "Insufficient balance to start tip2fix. Tip2Fix is charged at ₦%s".formatted(CALL_LIMIT)
                 );
@@ -89,85 +97,79 @@ public class CallImplementation implements CallService {
     }
 
     @Override
-    public ApiResponse<StartCallResponse> accept(String channel) {
-        Profile called = profileRepository.findById(userUtil.getUser().getId())
-                .orElseThrow(() -> new CallException("User not found"));
+    public ApiResponse<StartCallResponse> answer(String channel) {
+        User user = userUtil.getUser();
         Call call = callRepository.findById(channel)
                 .orElseThrow(() -> new CallException("Call not found"));
 
-        if(userIsOnCall(called.getSerchId())) {
-            throw new CallException("You cannot pick a call when you are on another.");
-        } else {
-            if(call.getType() == CallType.T2F) {
-                tip2FixService.pay(call.getCaller().getSerchId(), call.getCalled().getSerchId());
-            }
+        call.checkIfActive();
+        if(call.getCalled().isSameAs(user.getId())) {
+            if(userIsOnCall(user.getId())) {
+                throw new CallException("You cannot pick a call when you are on another.");
+            } else {
+                if(call.getType() == CallType.T2F) {
+                    tip2FixService.pay(call.getCaller().getSerchId(), call.getCalled().getSerchId());
+                }
 
-            call.setStatus(CallStatus.ON_CALL);
-            call.setUpdatedAt(LocalDateTime.now());
-            callRepository.save(call);
-            return new ApiResponse<>(StartCallResponse.builder().status(CallStatus.ON_CALL).build());
+                call.setStatus(CallStatus.ON_CALL);
+                call.setUpdatedAt(LocalDateTime.now());
+                callRepository.save(call);
+                return new ApiResponse<>(StartCallResponse.builder().status(CallStatus.ON_CALL).build());
+            }
+        } else {
+            throw new CallException("You cannot answer calls that is not made for you");
         }
     }
 
     @Override
-    public ApiResponse<StartCallResponse> leave(String channel) {
-        var call = callRepository.findById(channel)
-                .orElseThrow(() -> new CallException(
-                        "An error occurred while locating call. Contact support if this continues."
-                ));
-        if(isCurrentUserTheCaller(call)) {
+    public ApiResponse<StartCallResponse> cancel(String channel) {
+        Call call = callRepository.findById(channel)
+                .orElseThrow(() -> new CallException("Call not found"));
+
+        call.checkIfActive();
+        if(call.getCaller().isSameAs(userUtil.getUser().getId())) {
             call.setStatus(CallStatus.MISSED);
             call.setUpdatedAt(LocalDateTime.now());
             callRepository.save(call);
 
-            return new ApiResponse<>(CallStatus.MISSED);
+            return new ApiResponse<>(StartCallResponse.builder().status(CallStatus.MISSED).build());
         } else {
-            throw new CallException("You cannot leave a call you didn't start");
+            throw new CallException("You cannot cancel calls you didn't start");
         }
     }
 
     @Override
     public ApiResponse<StartCallResponse> decline(String channel) {
-        var call = callRepository.findById(channel)
-                .orElseThrow(() -> new CallException(
-                        "An error occurred while locating call. Contact support if this continues."
-                ));
-        if(call.getCalled().getSerchId() == userUtil.loggedInUserId()) {
+        Call call = callRepository.findById(channel)
+                .orElseThrow(() -> new CallException("Call not found"));
+
+        call.checkIfActive();
+        if(call.getCalled().isSameAs(userUtil.getUser().getId())) {
             call.setStatus(CallStatus.DECLINED);
             call.setUpdatedAt(LocalDateTime.now());
-            call.setEndedBy(call.getCalled());
             callRepository.save(call);
 
-            return new ApiResponse<>(CallStatus.DECLINED);
+            return new ApiResponse<>(StartCallResponse.builder().status(CallStatus.DECLINED).build());
         } else {
-            throw new CallException("You cannot decline a call you were not invited for");
+            throw new CallException("You cannot decline calls that is not made to you");
         }
     }
 
     @Override
-    public ApiResponse<String> end(String channel) {
-        var call = callRepository.findById(channel)
-                .orElseThrow(() -> new CallException(
-                        "An error occurred while locating call. Contact support if this continues."
-                ));
-        if(call.getCalled().getSerchId() == userUtil.loggedInUserId()) {
+    public ApiResponse<StartCallResponse> end(String channel) {
+        Call call = callRepository.findById(channel)
+                .orElseThrow(() -> new CallException("Call not found"));
+
+        call.checkIfActive();
+        if(call.getCaller().isSameAs(userUtil.getUser().getId()) || call.getCalled().isSameAs(userUtil.getUser().getId())) {
             call.setStatus(CallStatus.CLOSED);
-            call.setEndedBy(call.getCalled());
             call.setDuration(CallUtil.formatCallTimeFromDate(call.getUpdatedAt()));
             call.setUpdatedAt(LocalDateTime.now());
             callRepository.save(call);
 
-            return new ApiResponse<>("Call ended", HttpStatus.OK);
-        } else if(isCurrentUserTheCaller(call)) {
-            call.setStatus(CallStatus.CLOSED);
-            call.setDuration(CallUtil.formatCallTimeFromDate(call.getUpdatedAt()));
-            call.setUpdatedAt(LocalDateTime.now());
-            call.setEndedBy(call.getCaller());
-            callRepository.save(call);
-
-            return new ApiResponse<>("Call ended", HttpStatus.OK);
+            return new ApiResponse<>(StartCallResponse.builder().status(CallStatus.CLOSED).build());
         } else {
-            throw new CallException("You cannot end a call you were not invited for");
+            throw new CallException("You cannot cancel calls you didn't start");
         }
     }
 
@@ -229,7 +231,7 @@ public class CallImplementation implements CallService {
     }
 
     @Override
-    public ApiResponse<List<CallResponse>> view(UUID userId) {
+    public ApiResponse<List<CallResponse>> logs(UUID userId) {
         List<CallResponse> list = new ArrayList<>();
 
         callRepository.findAllBySerchId(userUtil.loggedInUserId(), userId).forEach(call ->

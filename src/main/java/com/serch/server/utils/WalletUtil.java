@@ -13,10 +13,10 @@ import java.math.BigDecimal;
 @Service
 @RequiredArgsConstructor
 public class WalletUtil {
-    private final WalletRepository walletRepository;
+    private final WalletRepository repository;
 
     public boolean isBalanceSufficient(BalanceUpdateRequest request) {
-        return walletRepository.findByUser_Id(request.getUser())
+        return repository.findByUser_Id(request.getUser())
                 .map(wallet -> {
                     if(request.getType() == TransactionType.WITHDRAW) {
                         return wallet.getBalance().compareTo(request.getAmount()) > 0;
@@ -29,7 +29,7 @@ public class WalletUtil {
     }
 
     public void updateBalance(BalanceUpdateRequest request) {
-        walletRepository.findByUser_Id(request.getUser())
+        repository.findByUser_Id(request.getUser())
                 .ifPresent(wallet -> {
                     if(request.getType() == TransactionType.WITHDRAW) {
                         wallet.setBalance(wallet.getBalance().subtract(request.getAmount()));
@@ -44,6 +44,7 @@ public class WalletUtil {
                     } else {
                         updateBalance(request, wallet);
                     }
+                    repository.save(wallet);
                 });
     }
 

@@ -7,7 +7,7 @@ import lombok.Setter;
 @Data
 @Getter
 @Setter
-public class CallTimeInfo {
+public class CallTimeInformation {
     private String start;
     private String end;
 }

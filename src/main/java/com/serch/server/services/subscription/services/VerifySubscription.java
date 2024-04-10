@@ -7,16 +7,14 @@ import com.serch.server.enums.subscription.PlanType;
 import com.serch.server.exceptions.auth.AuthException;
 import com.serch.server.exceptions.subscription.SubscriptionException;
 import com.serch.server.mappers.SubscriptionMapper;
+import com.serch.server.models.account.BusinessProfile;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.User;
 import com.serch.server.models.auth.incomplete.Incomplete;
-import com.serch.server.models.subscription.Subscription;
-import com.serch.server.models.subscription.SubscriptionAuth;
-import com.serch.server.models.subscription.SubscriptionRequest;
+import com.serch.server.models.subscription.*;
+import com.serch.server.repositories.account.BusinessProfileRepository;
 import com.serch.server.repositories.auth.incomplete.IncompleteRepository;
-import com.serch.server.repositories.subscription.SubscriptionAuthRepository;
-import com.serch.server.repositories.subscription.SubscriptionRepository;
-import com.serch.server.repositories.subscription.SubscriptionRequestRepository;
+import com.serch.server.repositories.subscription.*;
 import com.serch.server.services.account.services.AdditionalService;
 import com.serch.server.services.account.services.ProfileService;
 import com.serch.server.services.account.services.SpecialtyService;
@@ -45,6 +43,9 @@ public class VerifySubscription implements VerifySubscriptionService {
     private final SubscriptionAuthRepository subscriptionAuthRepository;
     private final SubscriptionRequestRepository subscriptionRequestRepository;
     private final IncompleteRepository incompleteRepository;
+    private final SubscriptionInvoiceRepository subscriptionInvoiceRepository;
+    private final BusinessProfileRepository businessProfileRepository;
+    private final SubscriptionAssociateRepository subscriptionAssociateRepository;
 
     @Override
     public ApiResponse<String> verify(User user, String reference) {
@@ -99,7 +100,9 @@ public class VerifySubscription implements VerifySubscriptionService {
                 existing.get().setUpdatedAt(LocalDateTime.now());
                 existing.get().setRetries(0);
                 existing.get().setSubscribedAt(LocalDateTime.now());
-                existing.ifPresent(subscriptionRepository::save);
+                Subscription saved = subscriptionRepository.save(existing.get());
+
+                createInvoice(saved, String.valueOf(data.getAmount()));
                 subscriptionRequestRepository.delete(request);
             } else {
                 createSubscription(request, user, data);
@@ -136,7 +139,50 @@ public class VerifySubscription implements VerifySubscriptionService {
         auth.setSubscription(subscribed);
         subscriptionAuthRepository.save(auth);
 
+        createInvoice(subscribed, String.valueOf(data.getAmount()));
+
         subscriptionRequestRepository.delete(request);
+    }
+
+    @Override
+    public void createInvoice(Subscription subscription, String amount) {
+        SubscriptionInvoice invoice = new SubscriptionInvoice();
+
+        if(subscription.getUser().isProfile()) {
+            invoice.setSize(1);
+        } else {
+            BusinessProfile profile = businessProfileRepository.findByUser_Id(subscription.getUser().getId())
+                    .orElseThrow(() -> new SubscriptionException("Business not found"));
+            invoice.setSize(
+                    profile.getAssociates().stream()
+                            .filter(sub -> !sub.getUser().isBusinessLocked())
+                            .toList()
+                            .size()
+            );
+        }
+        invoice.setSubscription(subscription);
+        invoice.setAmount(amount);
+        invoice.setPlan(
+                subscription.getChild() != null
+                        ? subscription.getChild().getName()
+                        : subscription.getPlan().getType().getType()
+        );
+        SubscriptionInvoice savedInvoice = subscriptionInvoiceRepository.save(invoice);
+
+        if(!subscription.getUser().isProfile()) {
+            BusinessProfile business = businessProfileRepository.findByUser_Id(subscription.getUser().getId())
+                    .orElseThrow(() -> new SubscriptionException("Business not found"));
+            business.getAssociates()
+                    .stream()
+                    .filter(sub -> !sub.getUser().isBusinessLocked())
+                    .forEach(profile -> {
+                        SubscriptionAssociate associate = new SubscriptionAssociate();
+                        associate.setInvoice(savedInvoice);
+                        associate.setBusiness(business);
+                        associate.setProfile(profile);
+                        subscriptionAssociateRepository.save(associate);
+                    });
+        }
     }
 
     @Override
@@ -158,7 +204,9 @@ public class VerifySubscription implements VerifySubscriptionService {
                     existing.get().setUpdatedAt(LocalDateTime.now());
                     existing.get().setSubscribedAt(LocalDateTime.now());
                     existing.get().setRetries(0);
-                    existing.ifPresent(subscriptionRepository::save);
+                    Subscription saved = subscriptionRepository.save(existing.get());
+
+                    createInvoice(saved, "");
                     subscriptionRequestRepository.delete(request);
                     return new ApiResponse<>("Success", HttpStatus.OK);
                 } else {
@@ -194,7 +242,9 @@ public class VerifySubscription implements VerifySubscriptionService {
         subscription.setUpdatedAt(LocalDateTime.now());
         subscription.setUser(user);
         subscription.setSubscribedAt(LocalDateTime.now());
-        subscriptionRepository.save(subscription);
+        Subscription subscribed = subscriptionRepository.save(subscription);
         subscriptionRequestRepository.delete(request);
+
+        createInvoice(subscribed, "");
     }
 }

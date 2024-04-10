@@ -1,17 +1,20 @@
 package com.serch.server.services.transaction.requests;
 
 import com.serch.server.enums.transaction.TransactionType;
-import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
 @Data
-@Builder
-public class BalanceUpdateRequest {
+@Getter
+@Setter
+public class PayRequest {
+    private UUID sender;
+    private UUID receiver;
     private TransactionType type;
-    private UUID user;
     private BigDecimal amount;
-    private Boolean isDebit;
+    private String event;
 }

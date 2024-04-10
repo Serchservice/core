@@ -142,10 +142,15 @@ public class InitSubscription implements InitSubscriptionService {
         BusinessProfile profile = businessProfileRepository.findByUser_Id(user.getUser().getId())
                 .orElseThrow(() -> new SubscriptionException("Business not found"));
 
-        return profile.getAssociates().stream()
+        int size = profile.getAssociates().stream()
                 .filter(sub -> !sub.getUser().isBusinessLocked())
                 .toList()
                 .size();
+
+        if(size == 0) {
+            throw new SubscriptionException("Business has no providers");
+        }
+        return size;
     }
 
     private ApiResponse<InitializePaymentData> subscribeToPaid(

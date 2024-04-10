@@ -11,6 +11,7 @@ import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -67,6 +68,9 @@ public class Subscription extends BaseDateTime {
            foreignKey = @ForeignKey(name = "plan_user_id_fkey")
    )
    private User user;
+
+   @OneToMany(fetch = FetchType.LAZY, mappedBy = "subscription")
+   private List<SubscriptionInvoice> invoices;
 
    public boolean isActive() {
       return planStatus == PlanStatus.ACTIVE;

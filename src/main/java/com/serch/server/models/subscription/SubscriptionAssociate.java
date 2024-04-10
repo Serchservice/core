@@ -12,12 +12,12 @@ import lombok.Setter;
 @Entity
 @Table(schema = "subscription", name = "associate_subscriptions")
 public class SubscriptionAssociate extends BaseModel {
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "associate_id",
             referencedColumnName = "serch_id",
             nullable = false,
-            foreignKey = @ForeignKey(name = "shop_profile_id_fkey")
+            foreignKey = @ForeignKey(name = "sub_profile_id_fkey")
     )
     private Profile profile;
 
@@ -26,7 +26,16 @@ public class SubscriptionAssociate extends BaseModel {
             name = "business_id",
             referencedColumnName = "serch_id",
             nullable = false,
-            foreignKey = @ForeignKey(name = "shop_business_id_fkey")
+            foreignKey = @ForeignKey(name = "sub_business_id_fkey")
     )
     private BusinessProfile business;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "invoice_id",
+            referencedColumnName = "id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "sub_invoice_id_fkey")
+    )
+    private SubscriptionInvoice invoice;
 }

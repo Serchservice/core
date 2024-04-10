@@ -63,6 +63,8 @@ public class UpdateSubscription implements UpdateSubscriptionService {
             subscription.setRetries(0);
             subscription.setSubscribedAt(LocalDateTime.now());
             subscriptionRepository.save(subscription);
+
+            verifyService.createInvoice(subscription, String.valueOf(data.getAmount()));
         } catch (Exception e) {
             subscription.setRetries(subscription.getRetries() + 1);
             if(subscription.getRetries() == 3) {

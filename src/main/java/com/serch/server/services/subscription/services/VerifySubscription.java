@@ -151,7 +151,7 @@ public class VerifySubscription implements VerifySubscriptionService {
         if(subscription.getUser().isProfile()) {
             invoice.setSize(1);
         } else {
-            BusinessProfile profile = businessProfileRepository.findByUser_Id(subscription.getUser().getId())
+            BusinessProfile profile = businessProfileRepository.findById(subscription.getUser().getId())
                     .orElseThrow(() -> new SubscriptionException("Business not found"));
             invoice.setSize(
                     profile.getAssociates().stream()
@@ -172,7 +172,7 @@ public class VerifySubscription implements VerifySubscriptionService {
         SubscriptionInvoice savedInvoice = subscriptionInvoiceRepository.save(invoice);
 
         if(!subscription.getUser().isProfile()) {
-            BusinessProfile business = businessProfileRepository.findByUser_Id(subscription.getUser().getId())
+            BusinessProfile business = businessProfileRepository.findById(subscription.getUser().getId())
                     .orElseThrow(() -> new SubscriptionException("Business not found"));
             business.getAssociates()
                     .stream()

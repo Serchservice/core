@@ -104,7 +104,7 @@ public class ProviderAuthImplementation implements ProviderAuthService {
 
     @Override
     public void saveReferral(String code, Incomplete incomplete) {
-        User referredBy = referralService.verifyReferralCode(code);
+        User referredBy = referralService.verifyCode(code);
         IncompleteReferral referral = new IncompleteReferral();
         referral.setIncomplete(incomplete);
         referral.setReferredBy(referredBy);

@@ -139,7 +139,7 @@ public class InitSubscription implements InitSubscriptionService {
 
     @Override
     public int getBusinessSize(Subscription user) {
-        BusinessProfile profile = businessProfileRepository.findByUser_Id(user.getUser().getId())
+        BusinessProfile profile = businessProfileRepository.findById(user.getUser().getId())
                 .orElseThrow(() -> new SubscriptionException("Business not found"));
 
         int size = profile.getAssociates().stream()

@@ -75,7 +75,7 @@ public class UserAuthImplementation implements UserAuthService {
     private ApiResponse<AuthResponse> getSignupAuthResponse(RequestProfile request, Incomplete incomplete) {
         User referral = null;
         if(request.getReferral() != null && !request.getReferral().isEmpty()) {
-            referral = referralService.verifyReferralCode(request.getReferral());
+            referral = referralService.verifyCode(request.getReferral());
         }
 
         if(HelperUtil.validatePassword(request.getPassword())) {

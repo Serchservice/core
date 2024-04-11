@@ -2,7 +2,7 @@ package com.serch.server.models.company;
 
 import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseDateTime;
-import com.serch.server.enums.auth.AccountStatus;
+import com.serch.server.enums.account.AccountStatus;
 import com.serch.server.enums.company.ProductType;
 import com.serch.server.generators.ProductID;
 import com.serch.server.models.rating.Rating;

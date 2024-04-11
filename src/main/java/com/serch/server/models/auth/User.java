@@ -2,7 +2,7 @@ package com.serch.server.models.auth;
 
 import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseEntity;
-import com.serch.server.enums.auth.AccountStatus;
+import com.serch.server.enums.account.AccountStatus;
 import com.serch.server.enums.auth.Role;
 import com.serch.server.models.auth.mfa.MFAFactor;
 import jakarta.persistence.*;
@@ -115,7 +115,15 @@ public class User extends BaseEntity implements UserDetails {
     }
 
     public User check() {
-        if(accountStatus == AccountStatus.BUSINESS_DEACTIVATED) {
+        if(accountStatus == AccountStatus.DELETED) {
+            throw new LockedException(
+                    "Access is denied. Contact support if this is your account."
+            );
+        } else if(accountStatus == AccountStatus.BUSINESS_DELETED) {
+            throw new LockedException(
+                    "This account has been deleted. Let your business admin contact support for more."
+            );
+        } else if(accountStatus == AccountStatus.BUSINESS_DEACTIVATED) {
             throw new DisabledException(
                     "This account is locked by your business administrator. Contact your business admin"
             );

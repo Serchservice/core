@@ -1,7 +1,7 @@
 package com.serch.server.models.company;
 
 import com.serch.server.bases.BaseModel;
-import com.serch.server.enums.auth.AccountStatus;
+import com.serch.server.enums.account.AccountStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

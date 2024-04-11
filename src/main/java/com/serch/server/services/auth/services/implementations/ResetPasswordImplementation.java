@@ -7,7 +7,6 @@ import com.serch.server.exceptions.ExceptionCodes;
 import com.serch.server.exceptions.auth.AuthException;
 import com.serch.server.models.email.SendEmail;
 import com.serch.server.repositories.account.AccountDeleteRepository;
-import com.serch.server.repositories.account.AccountRequestRepository;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.services.auth.requests.RequestPasswordChange;
 import com.serch.server.services.auth.requests.RequestResetPassword;
@@ -34,7 +33,6 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class ResetPasswordImplementation implements ResetPasswordService {
     private final UserRepository userRepository;
-    private final AccountRequestRepository accountRequestRepository;
     private final AccountDeleteRepository accountDeleteRepository;
     private final TokenService tokenService;
     private final EmailAuthService emailService;
@@ -131,9 +129,6 @@ public class ResetPasswordImplementation implements ResetPasswordService {
                     user.setPasswordRecoveryConfirmedAt(null);
                     user.setUpdatedAt(LocalDateTime.now());
                     userRepository.save(user);
-
-                    accountRequestRepository.findByUser_EmailAddress(resetPassword.getEmailAddress())
-                            .ifPresent(accountRequestRepository::delete);
                     return new ApiResponse<>("Password successfully changed", HttpStatus.OK);
                 }
             }
@@ -151,8 +146,6 @@ public class ResetPasswordImplementation implements ResetPasswordService {
                 user.setPassword(passwordEncoder.encode(request.getNewPassword()));
                 user.setUpdatedAt(LocalDateTime.now());
 
-                accountRequestRepository.findByUser_EmailAddress(UserUtil.getLoginUser())
-                        .ifPresent(accountRequestRepository::delete);
                 accountDeleteRepository.findByUser_EmailAddress(UserUtil.getLoginUser())
                         .ifPresent(accountDeleteRepository::delete);
 

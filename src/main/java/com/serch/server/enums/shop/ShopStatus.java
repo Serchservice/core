@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum ShopStatus {
     OPEN("Open - Online"),
+    SUSPENDED("Suspended - Offline"),
     CLOSED("Closed - Offline");
 
     private final String type;

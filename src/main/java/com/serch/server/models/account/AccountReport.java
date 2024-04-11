@@ -4,6 +4,8 @@ import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.company.IssueStatus;
 import com.serch.server.generators.account.AccountReportID;
+import com.serch.server.models.auth.User;
+import com.serch.server.models.shop.Shop;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,18 +32,26 @@ public class AccountReport extends BaseDateTime {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "reporter_id",
-            referencedColumnName = "serch_id",
+            referencedColumnName = "id",
             nullable = false,
             foreignKey = @ForeignKey(name = "reporter_id_fkey")
     )
-    private Profile reporter;
+    private User reporter;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "reported_id",
             nullable = false,
-            referencedColumnName = "serch_id",
+            referencedColumnName = "id",
             foreignKey = @ForeignKey(name = "reported_id_fkey")
     )
-    private Profile reported;
+    private User reported;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "reported_shop_id",
+            referencedColumnName = "id",
+            foreignKey = @ForeignKey(name = "reported_shop_id_fkey")
+    )
+    private Shop shop;
 }

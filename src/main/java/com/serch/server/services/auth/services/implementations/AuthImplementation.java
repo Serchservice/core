@@ -94,7 +94,7 @@ public class AuthImplementation implements AuthService {
 
     @Override
     public ApiResponse<String> checkEmail(String email) {
-        var user = userRepository.findByEmailAddress(email);
+        var user = userRepository.findByEmailAddressIgnoreCase(email);
         if(user.isPresent()) {
             return new ApiResponse<>("Login with email and password", HttpStatus.OK);
         } else {

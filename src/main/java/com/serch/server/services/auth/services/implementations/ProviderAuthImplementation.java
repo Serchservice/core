@@ -50,7 +50,7 @@ public class ProviderAuthImplementation implements ProviderAuthService {
 
     @Override
     public ApiResponse<AuthResponse> login(RequestLogin request) {
-        var user = userRepository.findByEmailAddress(request.getEmailAddress())
+        var user = userRepository.findByEmailAddressIgnoreCase(request.getEmailAddress())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if(user.getRole() == Role.PROVIDER || user.getRole() == Role.ASSOCIATE_PROVIDER) {
             return authService.authenticate(request, user);
@@ -238,7 +238,7 @@ public class ProviderAuthImplementation implements ProviderAuthService {
 
     @Override
     public ApiResponse<AuthResponse> finishSignup(RequestAuth auth) {
-        User user = userRepository.findByEmailAddress(auth.getEmailAddress())
+        User user = userRepository.findByEmailAddressIgnoreCase(auth.getEmailAddress())
                 .orElseThrow(() -> new AuthException("User not found"));
         RequestSession requestSession = new RequestSession();
         requestSession.setPlatform(auth.getPlatform());

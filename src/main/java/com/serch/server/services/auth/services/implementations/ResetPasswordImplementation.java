@@ -46,7 +46,7 @@ public class ResetPasswordImplementation implements ResetPasswordService {
 
     @Override
     public ApiResponse<String> checkEmail(String emailAddress) {
-        var user = userRepository.findByEmailAddress(emailAddress)
+        var user = userRepository.findByEmailAddressIgnoreCase(emailAddress)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if(TimeUtil.isOtpExpired(user.getPasswordRecoveryExpiresAt(), OTP_EXPIRATION_TIME)) {
             String otp = tokenService.generateOtp();
@@ -75,7 +75,7 @@ public class ResetPasswordImplementation implements ResetPasswordService {
 
     @Override
     public ApiResponse<String> verifyToken(RequestResetPasswordVerify verify) {
-        var user = userRepository.findByEmailAddress(verify.getEmailAddress())
+        var user = userRepository.findByEmailAddressIgnoreCase(verify.getEmailAddress())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if(user.getPasswordRecoveryToken() == null) {
             throw new AuthException(
@@ -100,7 +100,7 @@ public class ResetPasswordImplementation implements ResetPasswordService {
 
     @Override
     public ApiResponse<String> resetPassword(RequestResetPassword resetPassword) {
-        var user = userRepository.findByEmailAddress(resetPassword.getEmailAddress())
+        var user = userRepository.findByEmailAddressIgnoreCase(resetPassword.getEmailAddress())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if(user.getPasswordRecoveryToken() == null) {
             throw new AuthException(
@@ -142,7 +142,7 @@ public class ResetPasswordImplementation implements ResetPasswordService {
 
     @Override
     public ApiResponse<AuthResponse> changePassword(RequestPasswordChange request) {
-        var user = userRepository.findByEmailAddress(UserUtil.getLoginUser())
+        var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if(passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
             if(passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {

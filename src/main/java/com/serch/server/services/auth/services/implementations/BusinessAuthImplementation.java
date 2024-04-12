@@ -36,7 +36,7 @@ public class BusinessAuthImplementation implements BusinessAuthService {
 
     @Override
     public ApiResponse<AuthResponse> login(RequestLogin request) {
-        var user = userRepository.findByEmailAddress(request.getEmailAddress())
+        var user = userRepository.findByEmailAddressIgnoreCase(request.getEmailAddress())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if(user.getRole() == Role.BUSINESS) {
             return authService.authenticate(request, user);

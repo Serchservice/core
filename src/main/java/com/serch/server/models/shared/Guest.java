@@ -1,22 +1,29 @@
 package com.serch.server.models.shared;
 
-import com.serch.server.bases.BaseEntity;
-import com.serch.server.models.account.Profile;
+import com.serch.server.bases.BaseDateTime;
+import com.serch.server.generators.shared.GuestID;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.GenericGenerator;
 
-import java.time.LocalDateTime;
+import java.util.Set;
 
 @Getter
 @Setter
 @Entity
-@Table(schema = "providesharing", name = "guest_profiles")
-public class Guest extends BaseEntity {
-    @Column(name = "email_address", nullable = false, columnDefinition = "TEXT")
+@Table(schema = "providesharing", name = "profiles")
+public class Guest extends BaseDateTime {
+    @Id
+    @GenericGenerator(name = "guest_id_seq", type = GuestID.class)
+    @GeneratedValue(generator = "guest_id_seq")
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String id;
+
+    @Column(name = "email_address", unique = true, nullable = false, columnDefinition = "TEXT")
     @Email(
             message = "Email address must be properly formatted",
             regexp = "^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$"
@@ -45,40 +52,13 @@ public class Guest extends BaseEntity {
     @Column(name = "messaging_token", columnDefinition = "TEXT")
     private String fcmToken = null;
 
-    @Column(name = "auth_token", columnDefinition = "TEXT")
-    private String token;
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String platform;
 
-    @Column(name = "auth_token_expires_at")
-    private LocalDateTime tokenExpiresAt = null;
-
-    @Column(name = "auth_token_confirmed_at")
-    private LocalDateTime tokenConfirmedAt = null;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "invited_by_id",
-            referencedColumnName = "serch_id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "invited_by_id_fkey")
-    )
-    private Profile invitedBy;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "shared_link",
-            referencedColumnName = "link",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "sharing_link_fkey")
-    )
-    private SharedLink sharedLink;
+    @ManyToMany(mappedBy = "guests")
+    private Set<SharedLink> sharedLinks;
 
     public String getFullName() {
         return getFirstName() + " " + getLastName();
-    }
-    public boolean isTokenExpired() {
-        return tokenExpiresAt != null && tokenExpiresAt.isBefore(LocalDateTime.now());
-    }
-    public boolean isEmailConfirmed() {
-        return tokenConfirmedAt != null;
     }
 }

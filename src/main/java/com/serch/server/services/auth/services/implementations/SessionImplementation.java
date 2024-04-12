@@ -172,7 +172,7 @@ public class SessionImplementation implements SessionService {
                 var sessionId = UUID.fromString(jwtService.getItemFromToken(token, "session_id"));
                 var refreshId = UUID.fromString(jwtService.getItemFromToken(token, "refresh_id"));
 
-                var user = userRepository.findByEmailAddress(email)
+                var user = userRepository.findByEmailAddressIgnoreCase(email)
                         .orElseThrow(() -> new SessionException("Invalid token"))
                         .check();
                 var session = sessionRepository.findById(sessionId)
@@ -206,7 +206,7 @@ public class SessionImplementation implements SessionService {
 
     @Override
     public void signOut() {
-        var user = userRepository.findByEmailAddress(UserUtil.getLoginUser())
+        var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AuthException("User not found", ExceptionCodes.USER_NOT_FOUND));
         revokeAllSessions(user.getId());
         revokeAllRefreshTokens(user.getId());
@@ -214,7 +214,7 @@ public class SessionImplementation implements SessionService {
 
     @Override
     public void updateLastSeen() {
-        userRepository.findByEmailAddress(UserUtil.getLoginUser()).ifPresent(user -> {
+        userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser()).ifPresent(user -> {
             user.setLastSeen(LocalDateTime.now());
             userRepository.save(user);
         });

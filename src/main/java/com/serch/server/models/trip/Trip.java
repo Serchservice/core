@@ -9,8 +9,7 @@ import com.serch.server.enums.trip.TripConnectionStatus;
 import com.serch.server.generators.TripID;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.rating.Rating;
-import com.serch.server.models.shared.Guest;
-import com.serch.server.models.shared.SharedLink;
+import com.serch.server.models.shared.SharedPricing;
 import com.serch.server.models.transaction.Transaction;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.AssertTrue;
@@ -33,7 +32,7 @@ public class Trip extends BaseDateTime {
     @Column(name = "trip_id", nullable = false)
     @GenericGenerator(name = "trip_id_gen", type = TripID.class)
     @GeneratedValue(generator = "trip_id_gen")
-    private String tripId;
+    private String id;
 
     @CreatedDate
     @CreationTimestamp
@@ -58,7 +57,7 @@ public class Trip extends BaseDateTime {
     @Column(name = "status", nullable = false)
     @Enumerated(value = EnumType.STRING)
     @SerchEnum(message = "TripConnectionStatus must be an enum")
-    private TripConnectionStatus connectionStatus = TripConnectionStatus.PENDING;
+    private TripConnectionStatus status = TripConnectionStatus.PENDING;
 
     @Column(name = "invite_status", nullable = false)
     @Enumerated(value = EnumType.STRING)
@@ -120,32 +119,20 @@ public class Trip extends BaseDateTime {
     )
     private Profile invitedProvider = null;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "guest_id",
-            referencedColumnName = "id",
-            foreignKey = @ForeignKey(name = "guest_id_fkey")
-    )
-    private Guest guest;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "shared_link_id",
-            referencedColumnName = "id",
-            foreignKey = @ForeignKey(name = "shared_link_id_fkey")
-    )
-    private SharedLink sharedLink;
+    @OneToOne(mappedBy = "trip")
+    private SharedPricing pricing;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "user_id",
             referencedColumnName = "serch_id",
+            nullable = false,
             foreignKey = @ForeignKey(name = "user_id_fkey")
     )
     private Profile user;
 
-    @AssertTrue(message = "Either user or guest must be provided")
+    @AssertTrue(message = "Either user or pricing must be provided")
     private boolean isGuestOrUserNotNull() {
-        return user != null || guest != null;
+        return user != null || pricing != null;
     }
 }

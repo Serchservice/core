@@ -1,6 +1,5 @@
 package com.serch.server.utils;
 
-import com.serch.server.enums.auth.Role;
 import com.serch.server.exceptions.ExceptionCodes;
 import com.serch.server.exceptions.auth.AuthException;
 import com.serch.server.models.auth.User;
@@ -26,7 +25,7 @@ public class UserUtil {
     }
 
     public User getUser() {
-        return userRepository.findByEmailAddress(getLoginUser())
+        return userRepository.findByEmailAddressIgnoreCase(getLoginUser())
                 .orElseThrow(() -> new AuthException("User not found", ExceptionCodes.USER_NOT_FOUND));
     }
 }

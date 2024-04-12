@@ -27,7 +27,7 @@ public class IssueImplementation implements IssueService {
 
     @Override
     public ApiResponse<String> lodgeIssue(IssueRequest request) {
-        Optional<User> user = userRepository.findByEmailAddress(UserUtil.getLoginUser());
+        Optional<User> user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser());
         Product product = productRepository.findById(request.getId())
                 .orElseThrow(() -> new CompanyException("Product does not exist anymore"));
 

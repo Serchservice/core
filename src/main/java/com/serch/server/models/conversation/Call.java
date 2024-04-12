@@ -13,6 +13,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Getter
@@ -41,6 +42,9 @@ public class Call extends BaseDateTime {
     @Enumerated(value = EnumType.STRING)
     @SerchEnum(message = "CallStatus must be an enum")
     private CallStatus status = CallStatus.CALLING;
+
+    @Column(name = "amount_spent")
+    private BigDecimal amount;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(

@@ -56,7 +56,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @RestControllerAdvice
 public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
-
     @ExceptionHandler(ChatException.class)
     public ApiResponse<String> handleChatException(ChatException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
@@ -200,6 +199,13 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     public ApiResponse<String> handleStorageException(StorageException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
+        return response;
+    }
+
+    @ExceptionHandler(SharedException.class)
+    public ApiResponse<String> handleSharedException(SharedException exception) {
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        response.setData(exception.getCode());
         return response;
     }
 

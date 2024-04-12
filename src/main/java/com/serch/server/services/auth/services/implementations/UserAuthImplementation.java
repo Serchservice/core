@@ -42,7 +42,7 @@ public class UserAuthImplementation implements UserAuthService {
 
     @Override
     public ApiResponse<AuthResponse> login(RequestLogin request) {
-        var user = userRepository.findByEmailAddress(request.getEmailAddress())
+        var user = userRepository.findByEmailAddressIgnoreCase(request.getEmailAddress())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if(user.getRole() == Role.USER) {
             return authService.authenticate(request, user);
@@ -53,7 +53,7 @@ public class UserAuthImplementation implements UserAuthService {
 
     @Override
     public ApiResponse<AuthResponse> signup(RequestProfile request) {
-        var user = userRepository.findByEmailAddress(request.getEmailAddress());
+        var user = userRepository.findByEmailAddressIgnoreCase(request.getEmailAddress());
         if(user.isPresent()) {
             throw new AuthException("User already exists", ExceptionCodes.EXISTING_USER);
         } else {
@@ -84,20 +84,7 @@ public class UserAuthImplementation implements UserAuthService {
             User newUser = getNewUser(request, incomplete.getTokenConfirmedAt());
             ApiResponse<Profile> response = profileService.createUserProfile(request, newUser, referral);
             if(response.getStatus().is2xxSuccessful()) {
-                RequestSession requestSession = new RequestSession();
-                requestSession.setPlatform(request.getPlatform());
-                requestSession.setMethod(AuthMethod.PASSWORD);
-                requestSession.setUser(newUser);
-                requestSession.setDevice(request.getDevice());
-                var session = sessionService.generateSession(requestSession);
-
-                return new ApiResponse<>(AuthResponse.builder()
-                        .mfaEnabled(newUser.getMfaEnabled())
-                        .session(session.getData())
-                        .firstName(newUser.getFirstName())
-                        .recoveryCodesEnabled(newUser.getRecoveryCodeEnabled())
-                        .build()
-                );
+                return getAuthResponse(request, newUser);
             } else {
                 return new ApiResponse<>(response.getMessage());
             }
@@ -109,7 +96,26 @@ public class UserAuthImplementation implements UserAuthService {
         }
     }
 
-    private User getNewUser(RequestProfile profile, LocalDateTime confirmedAt) {
+    @Override
+    public ApiResponse<AuthResponse> getAuthResponse(RequestProfile request, User newUser) {
+        RequestSession requestSession = new RequestSession();
+        requestSession.setPlatform(request.getPlatform());
+        requestSession.setMethod(AuthMethod.PASSWORD);
+        requestSession.setUser(newUser);
+        requestSession.setDevice(request.getDevice());
+        var session = sessionService.generateSession(requestSession);
+
+        return new ApiResponse<>(AuthResponse.builder()
+                .mfaEnabled(newUser.getMfaEnabled())
+                .session(session.getData())
+                .firstName(newUser.getFirstName())
+                .recoveryCodesEnabled(newUser.getRecoveryCodeEnabled())
+                .build()
+        );
+    }
+
+    @Override
+    public User getNewUser(RequestProfile profile, LocalDateTime confirmedAt) {
         User user = new User();
         user.setEmailAddress(profile.getEmailAddress());
         user.setPassword(passwordEncoder.encode(profile.getPassword()));

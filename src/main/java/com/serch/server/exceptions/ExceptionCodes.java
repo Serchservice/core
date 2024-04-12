@@ -17,4 +17,6 @@ public class ExceptionCodes {
     public static final String CATEGORY_NOT_SET = "S96";
     public static final String EXISTING_USER = "S100";
     public static final String UNKNOWN = "S400";
+    public static final String EXISTING_LINK = "S120";
+    public static final String GUEST_AND_LINK_EXIST_TOGETHER = "S122";
 }

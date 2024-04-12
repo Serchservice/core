@@ -1,16 +1,19 @@
 package com.serch.server.services.account.responses;
 
-import com.serch.backend.platform.sharing.responses.GuestProfileResponse;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.serch.server.services.shared.responses.SharedAccountResponse;
+import lombok.Data;
 
+import java.util.List;
 
-@Getter
-@Setter
-@Builder
+@Data
 public class AccountResponse {
+    private String id;
+    private String mode;
+    private String name;
+    private String avatar;
+
+    @JsonProperty("email_address")
     private String emailAddress;
-    private ProfileResponse profile;
-    private GuestProfileResponse guest;
+    List<SharedAccountResponse> guests;
 }

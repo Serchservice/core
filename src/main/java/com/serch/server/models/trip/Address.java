@@ -31,7 +31,7 @@ public class Address extends BaseModel {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "trip_id",
-            referencedColumnName = "trip_id",
+            referencedColumnName = "id",
             nullable = false,
             foreignKey = @ForeignKey(name = "trip_id_fkey")
     )

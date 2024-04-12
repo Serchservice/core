@@ -38,7 +38,7 @@ public class SubscriptionImplementation implements SubscriptionService {
 
     @Override
     public ApiResponse<InitializePaymentData> initSubscription(InitSubscriptionRequest request) {
-        Optional<User> loggedInUser = userRepository.findByEmailAddress(UserUtil.getLoginUser());
+        Optional<User> loggedInUser = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser());
 
         if(loggedInUser.isPresent()) {
             return initService.subscribe(loggedInUser.get(), request);
@@ -49,7 +49,7 @@ public class SubscriptionImplementation implements SubscriptionService {
 
     @Override
     public ApiResponse<String> verifySubscription(VerifySubscriptionRequest request) {
-        Optional<User> loggedInUser = userRepository.findByEmailAddress(UserUtil.getLoginUser());
+        Optional<User> loggedInUser = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser());
 
         if(loggedInUser.isPresent()) {
             return verifyService.verify(loggedInUser.get(), request.getReference());

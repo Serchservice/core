@@ -31,4 +31,25 @@ public class MoneyUtil {
         }
         return options;
     }
+
+    public static Integer percentageSpent(BigDecimal total, BigDecimal spent) {
+        return spent.divide(total, 2, RoundingMode.HALF_UP)
+                .multiply(new BigDecimal("100")).intValue();
+    }
+
+    public static String getSharedInfo(
+            String provider, String user, String id, BigDecimal total,
+            BigDecimal userAmount, BigDecimal providerAmount
+    ) {
+        int userPercent = percentageSpent(total, userAmount);
+        int providerPercent = percentageSpent(total, providerAmount);
+        int serchPercent = 100 - (userPercent + providerPercent);
+
+        BigDecimal serch = total.subtract(userAmount.add(providerAmount));
+
+        return "Money from the shared link " + id + " was spent as follows:\n\n" +
+                user + " (Serch User) received " + formatAmountToNaira(userAmount) + " - " + userPercent + "%\n" +
+                provider + " (Serch Provider) received " + formatAmountToNaira(providerAmount) + " - " + providerPercent + "%\n" +
+                "Serchservice Inc. received " + formatAmountToNaira(serch) + " - " + serchPercent + "% for taxes.";
+    }
 }

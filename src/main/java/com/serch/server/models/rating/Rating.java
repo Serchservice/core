@@ -24,7 +24,7 @@ public class Rating extends BaseModel {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "trip_id",
-            referencedColumnName = "trip_id",
+            referencedColumnName = "id",
             foreignKey = @ForeignKey(name = "trip_id_fkey")
     )
     private Trip trip;

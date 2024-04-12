@@ -82,7 +82,7 @@ public class MFAImplementation implements MFAService {
 
     @Override
     public ApiResponse<MFADataResponse> getMFAData() {
-        var user = userRepository.findByEmailAddress(UserUtil.getLoginUser())
+        var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         if(user.getMfaEnabled()) {
@@ -102,7 +102,7 @@ public class MFAImplementation implements MFAService {
 
     @Override
     public ApiResponse<AuthResponse> validateCode(RequestMFAChallenge request) {
-        var user = userRepository.findByEmailAddress(UserUtil.getLoginUser())
+        var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         var factor = user.getMfaFactor();
         if(factor == null) {
@@ -151,7 +151,7 @@ public class MFAImplementation implements MFAService {
 
     @Override
     public ApiResponse<AuthResponse> validateRecoveryCode(RequestMFAChallenge request) {
-        var user = userRepository.findByEmailAddress(UserUtil.getLoginUser())
+        var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if(user.getMfaEnabled()) {
             var factor = user.getMfaFactor();
@@ -177,7 +177,7 @@ public class MFAImplementation implements MFAService {
 
     @Override
     public ApiResponse<List<String>> getRecoveryCodes() {
-        var user = userRepository.findByEmailAddress(UserUtil.getLoginUser())
+        var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if(user.getMfaEnabled()) {
             if(user.getMfaFactor().getRecoveryCodes().isEmpty()) {
@@ -195,7 +195,7 @@ public class MFAImplementation implements MFAService {
 
     @Override
     public ApiResponse<String> disable() {
-        var user = userRepository.findByEmailAddress(UserUtil.getLoginUser())
+        var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if(user.getMfaEnabled()) {
             user.setMfaEnabled(false);
@@ -211,7 +211,7 @@ public class MFAImplementation implements MFAService {
 
     @Override
     public ApiResponse<String> disableRecoveryCode() {
-        var user = userRepository.findByEmailAddress(UserUtil.getLoginUser())
+        var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if(user.getMfaEnabled() && user.getRecoveryCodeEnabled()) {
             user.setRecoveryCodeEnabled(false);
@@ -225,7 +225,7 @@ public class MFAImplementation implements MFAService {
 
     @Override
     public ApiResponse<MFAUsageResponse> usage() {
-        var user = userRepository.findByEmailAddress(UserUtil.getLoginUser())
+        var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if(user.getMfaEnabled()) {
             return new ApiResponse<>(MFAUsageResponse.builder()

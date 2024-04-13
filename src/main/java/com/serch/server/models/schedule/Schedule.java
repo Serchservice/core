@@ -3,12 +3,14 @@ package com.serch.server.models.schedule;
 import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.schedule.ScheduleStatus;
-import com.serch.server.generators.ScheduleID;
+import com.serch.server.generators.schedule.ScheduleID;
 import com.serch.server.models.account.Profile;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
+
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -24,13 +26,22 @@ public class Schedule extends BaseDateTime {
     @Column(name = "status", nullable = false)
     @Enumerated(value = EnumType.STRING)
     @SerchEnum(message = "ScheduleStatus must be an enum")
-    private ScheduleStatus scheduleStatus;
+    private ScheduleStatus status = ScheduleStatus.PENDING;
 
     @Column(name = "time", nullable = false, columnDefinition = "TEXT")
-    private String scheduleTime;
+    private String time;
 
     @Column(name = "decline_reason", columnDefinition = "TEXT")
     private String reason = null;
+
+    @Column(name = "closed_by")
+    private UUID closedBy = null;
+
+    @Column(name = "closed_at")
+    private String closedAt = null;
+
+    @Column(name = "closed_on_time", columnDefinition = "TEXT", nullable = false)
+    private Boolean closedOnTime = true;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(

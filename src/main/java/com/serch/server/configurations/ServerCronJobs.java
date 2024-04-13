@@ -1,6 +1,7 @@
 package com.serch.server.configurations;
 
 import com.serch.server.services.subscription.services.UpdateSubscriptionService;
+import com.serch.server.services.transaction.services.SchedulePayService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -15,9 +16,14 @@ import org.springframework.scheduling.annotation.Scheduled;
 @RequiredArgsConstructor
 public class ServerCronJobs {
     private final UpdateSubscriptionService updateSubscriptionService;
+    private final SchedulePayService schedulePayService;
 
     @Scheduled(cron = "* * * */1 * *")
     public void updateSubscriptions() {
         updateSubscriptionService.checkSubscriptions();
+    }
+    @Scheduled(cron = "* * */1 * * ?")
+    public void payScheduleUnclearedDebts() {
+        schedulePayService.pay();
     }
 }

@@ -28,6 +28,36 @@ public class TimeUtil {
         };
     }
 
+    public static String formatTimeDifference(long diff) {
+        long absDiff = Math.abs(diff);
+        if (diff < 0) {
+            if (absDiff < 60) {
+                return absDiff + " minutes before";
+            } else {
+                long hours = absDiff / 60;
+                long minutes = absDiff % 60;
+                if (minutes == 0) {
+                    return hours + " hour(s) before";
+                } else {
+                    return hours + " hour(s) and " + minutes + " minutes before";
+                }
+            }
+        } else {
+            if (absDiff < 60) {
+                return absDiff + " minutes after";
+            } else {
+                long hours = absDiff / 60;
+                long minutes = absDiff % 60;
+                if (minutes == 0) {
+                    return hours + " hour(s) after";
+                } else {
+                    return hours + " hour(s) and " + minutes + " minutes after";
+                }
+            }
+        }
+    }
+
+
     public static boolean isExpired(LocalDateTime time) {
         return LocalDateTime.now().isAfter(time);
     }

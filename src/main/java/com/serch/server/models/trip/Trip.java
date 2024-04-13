@@ -8,7 +8,6 @@ import com.serch.server.enums.trip.TripAuthStatus;
 import com.serch.server.enums.trip.TripConnectionStatus;
 import com.serch.server.generators.TripID;
 import com.serch.server.models.account.Profile;
-import com.serch.server.models.rating.Rating;
 import com.serch.server.models.shared.SharedPricing;
 import com.serch.server.models.transaction.Transaction;
 import jakarta.persistence.*;
@@ -20,7 +19,6 @@ import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -98,9 +96,6 @@ public class Trip extends BaseDateTime {
 
     @OneToOne(mappedBy = "trip", cascade = CascadeType.ALL)
     private Address address;
-
-    @OneToMany(mappedBy = "trip", fetch = FetchType.LAZY)
-    private List<Rating> ratings;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(

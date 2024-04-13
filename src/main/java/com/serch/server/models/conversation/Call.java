@@ -7,14 +7,12 @@ import com.serch.server.enums.call.CallType;
 import com.serch.server.exceptions.conversation.CallException;
 import com.serch.server.generators.CallID;
 import com.serch.server.models.account.Profile;
-import com.serch.server.models.rating.Rating;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 @Getter
 @Setter
@@ -63,9 +61,6 @@ public class Call extends BaseDateTime {
             foreignKey = @ForeignKey(name = "caller_id_fkey")
     )
     private Profile caller;
-
-    @OneToMany(mappedBy = "call", fetch = FetchType.LAZY)
-    private List<Rating> ratings;
 
     public void checkIfActive() {
         if(getStatus() == CallStatus.CLOSED || getStatus() == CallStatus.DECLINED || getStatus() == CallStatus.MISSED) {

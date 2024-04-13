@@ -4,19 +4,11 @@ import lombok.Getter;
 
 @Getter
 public enum ScheduleStatus {
-    /// Represents a pending schedule.
     PENDING("Pending"),
-    /// Represents a noAction schedule.
-    NO_ACTION("No Action"),
-    /// Represents an accepted schedule.
     ACCEPTED("Accepted"),
-    /// Represents a not accepted schedule.
-    NOT_ACCEPTED("Not Accepted"),
-    /// Represents an ended schedule
-    ENDED("Ended"),
-    /// Represents a closed schedule
+    DECLINED("Declined"),
     CLOSED("Closed"),
-    /// Represents a cancelled schedule.
+    ATTENDED("Attended"),
     CANCELLED("Cancelled");
     private final String type;
 

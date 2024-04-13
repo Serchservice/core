@@ -37,6 +37,9 @@ public class Wallet extends BaseDateTime {
     @Column(name = "balance", nullable = false)
     private BigDecimal balance = BigDecimal.ZERO;
 
+    @Column(name = "uncleared", nullable = false)
+    private BigDecimal uncleared = BigDecimal.ZERO;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "user_id",

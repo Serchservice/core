@@ -84,6 +84,13 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
         return response;
     }
 
+    @ExceptionHandler(ScheduleException.class)
+    public ApiResponse<String> handleScheduleException(ScheduleException exception) {
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        response.setData(exception.getLocalizedMessage());
+        return response;
+    }
+
     @ExceptionHandler(AccountException.class)
     public ApiResponse<String> handleAccountException(AccountException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());

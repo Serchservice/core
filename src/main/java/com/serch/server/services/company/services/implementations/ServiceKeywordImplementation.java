@@ -44,8 +44,8 @@ public class ServiceKeywordImplementation implements KeywordService {
         response.setCategory(keywordService.getCategory());
         if(keywordService.getMinimumAmount() != null && keywordService.getMaximumAmount() != null) {
             response.setPriceRange("%s - %s".formatted(
-                    MoneyUtil.formatAmountToNaira(BigDecimal.valueOf(keywordService.getMinimumAmount())),
-                    MoneyUtil.formatAmountToNaira(BigDecimal.valueOf(keywordService.getMaximumAmount()))
+                    MoneyUtil.formatToNaira(BigDecimal.valueOf(keywordService.getMinimumAmount())),
+                    MoneyUtil.formatToNaira(BigDecimal.valueOf(keywordService.getMaximumAmount()))
             ));
         }
         return response;

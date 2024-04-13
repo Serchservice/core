@@ -7,8 +7,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum ProductType {
     ACCOUNT("Account"),
-    TRIP("Trip"),
-    TIP2FIX("Tip2Fix"),
+    CALL("Call"),
     CORE("Core"),
     GENERAL("General");
 

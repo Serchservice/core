@@ -40,9 +40,8 @@ public class AccountReportImplementation implements AccountReportService {
                         .orElseThrow(() -> new AccountException("Shop not found"));
 
                 AccountReport report = new AccountReport();
-                report.setShop(reported);
-                report.setReported(reported.getUser());
-                report.setReporter(userUtil.getUser());
+                report.setAccount(String.valueOf(reported.getId()));
+                report.setUser(userUtil.getUser());
                 report.setComment(request.getContent());
                 report.setStatus(IssueStatus.OPENED);
                 accountReportRepository.save(report);
@@ -57,8 +56,8 @@ public class AccountReportImplementation implements AccountReportService {
                         .orElseThrow(() -> new AccountException("User not found"));
 
                 AccountReport report = new AccountReport();
-                report.setReported(reported);
-                report.setReporter(userUtil.getUser());
+                report.setAccount(String.valueOf(reported.getId()));
+                report.setUser(userUtil.getUser());
                 report.setComment(request.getContent());
                 report.setStatus(IssueStatus.OPENED);
                 accountReportRepository.save(report);

@@ -4,9 +4,11 @@ import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.transaction.TransactionStatus;
 import com.serch.server.enums.transaction.TransactionType;
 import com.serch.server.exceptions.transaction.WalletException;
+import com.serch.server.models.schedule.SchedulePayment;
 import com.serch.server.models.subscription.SubscriptionInvoice;
 import com.serch.server.models.transaction.Transaction;
 import com.serch.server.models.transaction.Wallet;
+import com.serch.server.repositories.schedule.SchedulePaymentRepository;
 import com.serch.server.repositories.subscription.SubscriptionInvoiceRepository;
 import com.serch.server.repositories.transaction.TransactionRepository;
 import com.serch.server.repositories.transaction.WalletRepository;
@@ -30,6 +32,7 @@ public class TransactionImplementation implements TransactionService {
     private final TransactionRepository transactionRepository;
     private final WalletRepository walletRepository;
     private final SubscriptionInvoiceRepository subscriptionInvoiceRepository;
+    private final SchedulePaymentRepository schedulePaymentRepository;
 
     @Override
     public ApiResponse<List<TransactionResponse>> transactions() {
@@ -55,17 +58,60 @@ public class TransactionImplementation implements TransactionService {
         transactions.addAll(
                 subscriptionInvoiceRepository.findBySubscription_User_Id(wallet.getUser().getId())
                         .stream()
-                        .map(this::createResponse)
+                        .map(this::subscription)
+                        .toList()
+        );
+
+        transactions.addAll(
+                schedulePaymentRepository.findByPayment(wallet.getUser().getId())
+                        .stream()
+                        .map(pay -> schedule(pay, wallet))
                         .toList()
         );
 
         return new ApiResponse<>(transactions);
     }
 
+    private static TransactionResponse schedule(SchedulePayment pay, Wallet wallet) {
+        TransactionResponse response = new TransactionResponse();
+        response.setMode("SCHEDULE");
+        response.setId(pay.getId());
+        response.setAmount(MoneyUtil.formatToNaira(pay.getAmount()));
+        response.setReason(
+                "This payment was made because %s closed schedule %s"
+                        .formatted(
+                                pay.getSchedule().getUser().isSameAs(pay.getSchedule().getClosedBy())
+                                        ? pay.getSchedule().getProvider().getFirstName()
+                                        : pay.getSchedule().getUser().getFirstName(),
+                                pay.getSchedule().getClosedAt()
+                        ) +
+                        " the scheduled time %s"
+                        .formatted(pay.getSchedule().getTime())
+        );
+        response.setCompletedAt(TimeUtil.formatDay(pay.getUpdatedAt()));
+        response.setStatus(pay.getStatus());
+        response.setType(
+                wallet.getUser().getId() == pay.getSchedule().getClosedBy()
+                        ? TransactionType.WITHDRAW
+                        : TransactionType.FUNDING
+        );
+        response.setIsIncoming(wallet.getUser().getId() != pay.getSchedule().getClosedBy());
+        response.setTime(TimeUtil.formatTime(pay.getCreatedAt()));
+        response.setRequestedAt(TimeUtil.formatDay(pay.getCreatedAt()));
+        response.setCreatedAt(pay.getCreatedAt());
+        response.setName(
+                pay.getSchedule().getUser().isSameAs(pay.getSchedule().getClosedBy())
+                        ? pay.getSchedule().getProvider().getFullName()
+                        : pay.getSchedule().getUser().getFullName()
+        );
+        response.setReference(pay.getSchedule().getId());
+        return response;
+    }
+
     private static TransactionResponse createResponse(Transaction transaction, Wallet wallet) {
         TransactionResponse response = new TransactionResponse();
         response.setId(transaction.getId());
-        response.setAmount(MoneyUtil.formatAmountToNaira(transaction.getAmount()));
+        response.setAmount(MoneyUtil.formatToNaira(transaction.getAmount()));
         response.setReason(transaction.getReason());
         response.setCompletedAt(TimeUtil.formatDay(transaction.getUpdatedAt()));
         response.setStatus(transaction.getStatus());
@@ -96,10 +142,10 @@ public class TransactionImplementation implements TransactionService {
         return response;
     }
 
-    private TransactionResponse createResponse(SubscriptionInvoice invoice) {
+    private TransactionResponse subscription(SubscriptionInvoice invoice) {
         TransactionResponse response = new TransactionResponse();
         response.setId("%s - %s".formatted(invoice.getSubscription().getId(), invoice.getId()));
-        response.setAmount(MoneyUtil.formatAmountToNaira(BigDecimal.valueOf(Integer.parseInt(invoice.getAmount()))));
+        response.setAmount(MoneyUtil.formatToNaira(BigDecimal.valueOf(Integer.parseInt(invoice.getAmount()))));
         response.setCompletedAt(TimeUtil.formatDay(invoice.getUpdatedAt()));
         response.setStatus(TransactionStatus.SUCCESSFUL);
         response.setType(TransactionType.SUBSCRIPTION);

@@ -5,7 +5,6 @@ import com.serch.server.bases.BaseProfile;
 import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.auth.Role;
 import com.serch.server.models.certificate.Certificate;
-import com.serch.server.models.rating.Rating;
 import com.serch.server.models.verified.Verification;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -54,9 +53,6 @@ public class Profile extends BaseProfile {
     @OneToMany(mappedBy = "profile", fetch = FetchType.LAZY)
     private List<Specialty> specializations;
 
-    @OneToMany(mappedBy = "rated", fetch = FetchType.LAZY)
-    private List<Rating> ratings;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "business_id",
@@ -75,6 +71,6 @@ public class Profile extends BaseProfile {
     }
 
     public boolean isSameAs(UUID user) {
-        return getSerchId() == user;
+        return getSerchId() != null && getSerchId() == user;
     }
 }

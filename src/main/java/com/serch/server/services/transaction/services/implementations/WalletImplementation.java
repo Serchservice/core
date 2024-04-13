@@ -385,8 +385,8 @@ public class WalletImplementation implements WalletService {
                 .orElseThrow(() -> new WalletException("User wallet not found"));
 
         WalletResponse response = TransactionMapper.INSTANCE.wallet(wallet);
-        response.setBalance(MoneyUtil.formatAmountToNaira(wallet.getBalance()));
-        response.setDeposit(MoneyUtil.formatAmountToNaira(wallet.getDeposit()));
+        response.setBalance(MoneyUtil.formatToNaira(wallet.getBalance()));
+        response.setDeposit(MoneyUtil.formatToNaira(wallet.getDeposit()));
         return new ApiResponse<>(response);
     }
 

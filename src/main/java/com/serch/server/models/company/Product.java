@@ -5,7 +5,6 @@ import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.account.AccountStatus;
 import com.serch.server.enums.company.ProductType;
 import com.serch.server.generators.ProductID;
-import com.serch.server.models.rating.Rating;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
@@ -47,7 +46,4 @@ public class Product extends BaseDateTime {
 
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
     private List<Issue> issues;
-
-    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
-    private List<Rating> ratings;
 }

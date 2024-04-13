@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Locale;
 
 public class MoneyUtil {
-    public static String formatAmountToNaira(BigDecimal amount) {
+    public static String formatToNaira(BigDecimal amount) {
         // Format the BigDecimal as a currency string
         String result = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-NG")).format(amount);
         // Remove any non-breaking space characters from the formatted string
@@ -27,7 +27,7 @@ public class MoneyUtil {
         BigDecimal dynamicInterval = amount.divide(BigDecimal.valueOf(24), 0, RoundingMode.DOWN);
 
         for (BigDecimal i = minAmount; i.compareTo(maxAmount) <= 0; i = i.add(dynamicInterval)) {
-            options.add(formatAmountToNaira(i));
+            options.add(formatToNaira(i));
         }
         return options;
     }
@@ -48,8 +48,8 @@ public class MoneyUtil {
         BigDecimal serch = total.subtract(userAmount.add(providerAmount));
 
         return "Money from the shared link " + id + " was spent as follows:\n\n" +
-                user + " (Serch User) received " + formatAmountToNaira(userAmount) + " - " + userPercent + "%\n" +
-                provider + " (Serch Provider) received " + formatAmountToNaira(providerAmount) + " - " + providerPercent + "%\n" +
-                "Serchservice Inc. received " + formatAmountToNaira(serch) + " - " + serchPercent + "% for taxes.";
+                user + " (Serch User) received " + formatToNaira(userAmount) + " - " + userPercent + "%\n" +
+                provider + " (Serch Provider) received " + formatToNaira(providerAmount) + " - " + providerPercent + "%\n" +
+                "Serchservice Inc. received " + formatToNaira(serch) + " - " + serchPercent + "% for taxes.";
     }
 }

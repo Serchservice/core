@@ -5,6 +5,23 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * The SubscriptionRequest class represents a subscription request in the subscription schema.
+ * It stores information such as reference, email address, size, and associated plan parent and child.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Getter}</li>
+ *     <li>{@link Setter}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Relationships:
+ * <ul>
+ *     <li>Many-to-one with {@link PlanParent} as the parent plan.</li>
+ *     <li>Many-to-one with {@link PlanChild} as the child plan.</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

@@ -10,6 +10,23 @@ import org.hibernate.annotations.GenericGenerator;
 
 import java.util.List;
 
+/**
+ * The PlanParent class represents a parent plan in the company schema. It stores information such as
+ * the plan type, description, image, color, duration, and associated benefits and children plans.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Getter}</li>
+ *     <li>{@link Setter}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Relationships:
+ * <ul>
+ *     <li>One-to-many with {@link PlanBenefit} as the benefits.</li>
+ *     <li>One-to-many with {@link PlanChild} as the children.</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

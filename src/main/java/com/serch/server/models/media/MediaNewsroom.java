@@ -8,6 +8,20 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * The MediaNewsroom class represents news articles stored in the system.
+ * It stores information about the article ID, image, content, title, and region.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Getter}</li>
+ *     <li>{@link Setter}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Relationships: None
+ * Enums: None
+ */
 @Getter
 @Setter
 @Entity

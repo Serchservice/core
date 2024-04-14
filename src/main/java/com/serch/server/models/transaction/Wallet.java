@@ -11,6 +11,23 @@ import org.hibernate.annotations.GenericGenerator;
 import java.math.BigDecimal;
 import java.util.List;
 
+/**
+ * The Wallet class represents a user's wallet in the account schema.
+ * It stores information such as account number, account name, bank name, deposit, balance, and uncleared amount.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Getter}</li>
+ *     <li>{@link Setter}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Relationships:
+ * <ul>
+ *     <li>One-to-one with {@link User} representing the user who owns the wallet.</li>
+ *     <li>One-to-many with {@link Transaction} as transactions made from this wallet.</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

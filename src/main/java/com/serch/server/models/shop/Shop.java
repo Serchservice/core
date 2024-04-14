@@ -17,6 +17,25 @@ import org.hibernate.annotations.GenericGenerator;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * The Shop class represents a shop in the platform.
+ * It stores information such as the name, address, location coordinates, phone number, category, status, and associated user.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Getter}</li>
+ *     <li>{@link Setter}</li>
+ *     <li>{@link AllArgsConstructor}</li>
+ *     <li>{@link NoArgsConstructor}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Relationships:
+ * <ul>
+ *     <li>One-to-one with {@link User} as the user.</li>
+ *     <li>One-to-many with {@link ShopService} as the services.</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @AllArgsConstructor

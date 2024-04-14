@@ -30,6 +30,14 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+/**
+ * The VerifySubscription class implements the VerifySubscriptionService interface
+ * and provides methods to verify subscription requests.
+ * <p></p>
+ * It interacts with payment services and repositories to verify subscription payments.
+ *
+ * @see VerifySubscriptionService
+ */
 @Service
 @RequiredArgsConstructor
 public class VerifySubscription implements VerifySubscriptionService {
@@ -81,6 +89,14 @@ public class VerifySubscription implements VerifySubscriptionService {
         }
     }
 
+    /**
+     * Verifies a paid subscription request. If the user is already registered,
+     * updates the subscription details; otherwise, creates a new subscription.
+     * @param request The subscription request to be verified.
+     * @param user The user associated with the subscription request.
+     * @param incomplete The incomplete profile information, if available.
+     * @return An ApiResponse indicating the status of the verification process.
+     */
     private ApiResponse<String> verifyPaid(SubscriptionRequest request, User user, Incomplete incomplete) {
         PaymentVerificationData data = paymentService.verify(request.getReference());
 
@@ -125,6 +141,12 @@ public class VerifySubscription implements VerifySubscriptionService {
         }
     }
 
+    /**
+     * Creates a new subscription for a given user based on a subscription request.
+     * @param request The subscription request.
+     * @param user The user for whom the subscription is created.
+     * @param data The payment verification data.
+     */
     private void createSubscription(SubscriptionRequest request, User user, PaymentVerificationData data) {
         Subscription subscription = new Subscription();
         subscription.setPlan(request.getParent());
@@ -194,6 +216,14 @@ public class VerifySubscription implements VerifySubscriptionService {
         return auth;
     }
 
+    /**
+     * Verifies a free subscription request. If the user is already registered,
+     * updates the subscription details; otherwise, creates a new subscription.
+     * @param request The subscription request to be verified.
+     * @param user The user associated with the subscription request.
+     * @param incomplete The incomplete profile information, if available.
+     * @return An ApiResponse indicating the status of the verification process.
+     */
     private ApiResponse<String> verifyFree(SubscriptionRequest request, User user, Incomplete incomplete) {
         if(user != null && incomplete == null) {
             Optional<Subscription> existing = subscriptionRepository.findByUser_Id(user.getId());

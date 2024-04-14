@@ -43,6 +43,14 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * The WalletImplementation class provides implementation for managing user wallets and transactions.
+ * <p></p>
+ * This class handles various operations related to user wallets, such as creating wallets, funding wallets,
+ * making payments, and viewing wallet details.
+ *
+ * @see WalletService
+ */
 @Service
 @RequiredArgsConstructor
 public class WalletImplementation implements WalletService {

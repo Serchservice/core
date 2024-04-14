@@ -5,6 +5,22 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * The SocialMediaLink class represents social media links associated with verified stage four entities.
+ * It stores the link to a social media profile and its association with a stage three entity.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Getter}</li>
+ *     <li>{@link Setter}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Relationships:
+ * <ul>
+ *     <li>Many-to-one with {@link StageThree} representing the associated stage three entity.</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

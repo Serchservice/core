@@ -44,6 +44,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Service implementation for managing Multi-Factor Authentication (MFA) operations.
+ * It implements its wrapper class {@link MFAService}
+ *
+ * @see PasswordEncoder
+ * @see UserRepository
+ * @see MFAFactorRepository
+ * @see MFAChallengeRepository
+ * @see MFARecoveryCodeRepository
+ * @see SessionService
+ */
 @Service
 @RequiredArgsConstructor
 public class MFAImplementation implements MFAService {
@@ -54,11 +65,23 @@ public class MFAImplementation implements MFAService {
     private final MFARecoveryCodeRepository mFARecoveryCodeRepository;
     private final SessionService sessionService;
 
+    /**
+     * Generates a random secret for MFA.
+     *
+     * @return The generated secret.
+     */
     protected String generateSecret() {
         SecretGenerator secretGenerator = new DefaultSecretGenerator(64);
         return secretGenerator.generate();
     }
 
+    /**
+     * Generates a QR code for the provided secret.
+     *
+     * @param secret The secret for generating the QR code.
+     * @param role   The role of the user.
+     * @return The data URI for the generated QR code.
+     */
     @SneakyThrows
     protected String generateQrCode(String secret, Role role) {
         QrData data = new QrData.Builder()
@@ -73,6 +96,13 @@ public class MFAImplementation implements MFAService {
         return Utils.getDataUriForImage(imageData, generator.getImageMimeType());
     }
 
+    /**
+     * Checks if the provided MFA code is valid.
+     *
+     * @param secret The secret associated with the MFA code.
+     * @param code   The MFA code to be validated.
+     * @return {@code true} if the code is valid, otherwise {@code false}.
+     */
     protected boolean isCodeValid(String secret, String code) {
         return new DefaultCodeVerifier(
                 new DefaultCodeGenerator(HashingAlgorithm.SHA512, 6),
@@ -250,22 +280,38 @@ public class MFAImplementation implements MFAService {
         }
     }
 
+    /**
+     * Generates recovery codes for MFA.
+     *
+     * @return An array of generated recovery codes.
+     */
     protected String[] generateRecoveryCodes() {
         RecoveryCodeGenerator recoveryCodes = new RecoveryCodeGenerator();
         return recoveryCodes.generateCodes(8);
     }
 
+    /**
+     * Saves MFA recovery codes for the user.
+     *
+     * @param user The user for whom the recovery codes are generated.
+     * @return An API response containing the saved recovery codes.
+     */
     private ApiResponse<List<String>> saveRecoveryCodes(User user) {
         List<String> codes = new ArrayList<>();
-        Arrays.stream(generateRecoveryCodes()).forEach(code -> {
-            saveRecoveryCode(user, code, codes);
-        });
+        Arrays.stream(generateRecoveryCodes()).forEach(code -> saveRecoveryCode(user, code, codes));
         user.setRecoveryCodeEnabled(true);
         user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
         return new ApiResponse<>("Successful request", codes, HttpStatus.OK);
     }
 
+    /**
+     * Saves a single MFA recovery code for the user.
+     *
+     * @param user  The user for whom the recovery code is saved.
+     * @param code  The recovery code to be saved.
+     * @param codes The list to which the code will be added.
+     */
     private void saveRecoveryCode(User user, String code, List<String> codes) {
         MFARecoveryCode recoveryCode = new MFARecoveryCode();
         recoveryCode.setCode(passwordEncoder.encode(code.toUpperCase()));

@@ -16,7 +16,19 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * The HelperUtil class provides utility methods for various operations such as generating referral links,
+ * extracting referral codes from links, generating sharing links, validating passwords, calculating distance
+ * between two geographic points, generating QR codes, and formatting file sizes.
+ */
 public class HelperUtil {
+    /**
+     * Generates a referral code based on the user's first name, last name, and category.
+     * @param firstName The first name of the user.
+     * @param lastName The last name of the user.
+     * @param category The category of the user (USER, BUSINESS, PROVIDER).
+     * @return The generated referral code.
+     */
     static String code(String firstName, String lastName, SerchCategory category) {
         if(category == SerchCategory.BUSINESS) {
             return "%sBusiness%s".formatted(firstName, UUID.randomUUID().toString().substring(0, 4)
@@ -30,6 +42,13 @@ public class HelperUtil {
         }
     };
 
+    /**
+     * Generates a referral link based on the user's first name, last name, and category.
+     * @param firstName The first name of the user.
+     * @param lastName The last name of the user.
+     * @param category The category of the user (USER, BUSINESS, PROVIDER).
+     * @return The generated referral link.
+     */
     public static String generateReferralLink(String firstName, String lastName, SerchCategory category) {
         if(category == SerchCategory.USER) {
             return "https://serchservice.com/join_the_serch_user_app?ref=%s".formatted(
@@ -46,6 +65,11 @@ public class HelperUtil {
         }
     }
 
+    /**
+     * Extracts the referral code from a referral link.
+     * @param referralLink The referral link.
+     * @return The extracted referral code.
+     */
     public static String extractReferralCode(String referralLink) {
         Pattern pattern = Pattern.compile("ref=([a-zA-Z0-9_]+)");
         Matcher matcher = pattern.matcher(referralLink);
@@ -57,6 +81,11 @@ public class HelperUtil {
         }
     }
 
+    /**
+     * Generates a sharing link based on the user's first name.
+     * @param firstName The first name of the user.
+     * @return The generated sharing link.
+     */
     public static String generateSharingLink(String firstName) {
         String code = (firstName + UUID.randomUUID().toString().substring(0, 10))
                 .toLowerCase()
@@ -65,6 +94,11 @@ public class HelperUtil {
         return "https://serchservice.com/request_serch_services?shared_by=%s".formatted(code);
     }
 
+    /**
+     * Validates a password based on a regular expression pattern.
+     * @param password The password to validate.
+     * @return True if the password is valid, otherwise false.
+     */
     public static boolean validatePassword(String password) {
         Pattern pattern = Pattern.compile(
                 "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{8,}$"
@@ -73,6 +107,14 @@ public class HelperUtil {
         return matcher.matches();
     }
 
+    /**
+     * Calculates the distance between two geographic points using the Haversine formula.
+     * @param lat1 Latitude of the first point.
+     * @param lon1 Longitude of the first point.
+     * @param lat2 Latitude of the second point.
+     * @param lon2 Longitude of the second point.
+     * @return The distance between the two points in kilometers.
+     */
     public static double getDistance(double lat1, double lon1, double lat2, double lon2) {
         final int R = 6371; // Earth radius in kilometers
 
@@ -87,6 +129,13 @@ public class HelperUtil {
         return Math.round(R * c * 100.0) / 100.0; // Distance in kilometers rounded to two decimal places
     }
 
+    /**
+     * Generates a Base64-encoded QR code image from the given content, width, and height.
+     * @param content The content to encode in the QR code.
+     * @param width The width of the QR code image.
+     * @param height The height of the QR code image.
+     * @return The Base64-encoded string representing the QR code image.
+     */
     @SneakyThrows
     public static String generateQrCode(String content, Integer width, Integer height) {
         QRCodeWriter qrCodeWriter = new QRCodeWriter();
@@ -105,6 +154,11 @@ public class HelperUtil {
         return Base64.encodeBase64String(imageBytes);
     }
 
+    /**
+     * Formats a file size in bytes to a human-readable format (e.g., KB, MB, GB).
+     * @param fileSizeInBytes The size of the file in bytes.
+     * @return The formatted file size string.
+     */
     public static String formatFileSize(long fileSizeInBytes) {
         if (fileSizeInBytes < 1024) {
             return fileSizeInBytes + " B";

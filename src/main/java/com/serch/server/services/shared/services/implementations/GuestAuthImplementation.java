@@ -37,6 +37,18 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.Optional;
 
+/**
+ * This is the class that contains the logic and implementation of its wrapper class {@link GuestAuthService}
+ *
+ * @see TokenService
+ * @see StorageService
+ * @see PasswordEncoder
+ * @see SharedLinkRepository
+ * @see GuestAuthRepository
+ * @see GuestRepository
+ * @see UserRepository
+ * @see ProfileRepository
+ */
 @Service
 @RequiredArgsConstructor
 public class GuestAuthImplementation implements GuestAuthService {

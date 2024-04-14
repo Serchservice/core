@@ -36,6 +36,23 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Service implementation for managing ratings, including rating providers,
+ * sharing ratings, rating the application, viewing ratings, and retrieving
+ * statistical data about ratings.
+ * <p></p>
+ * It implements the {@link RatingService} interface
+ * <p></p>
+ * @see UserUtil
+ * @see AppRatingRepository
+ * @see UserRepository
+ * @see GuestRepository
+ * @see CallRepository
+ * @see ScheduleRepository
+ * @see TripRepository
+ * @see RatingRepository
+ * @see ProfileRepository
+ */
 @Service
 @RequiredArgsConstructor
 public class RatingImplementation implements RatingService {

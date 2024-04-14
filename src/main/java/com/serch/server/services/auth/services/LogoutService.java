@@ -20,12 +20,30 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Service responsible for handling user logout.
+ * It implements its wrapper class {@link LogoutHandler}
+ *
+ * @see SessionService
+ * @see UserDetailsService
+ */
 @Service
 @RequiredArgsConstructor
 public class LogoutService implements LogoutHandler {
     private final SessionService sessionService;
     private final UserDetailsService userDetailsService;
 
+    /**
+     * Handles user logout by invalidating the session and signing out.
+     *
+     * @param request        The HTTP request.
+     * @param response       The HTTP response.
+     * @param authentication The authentication object.
+     *
+     * @see HttpServletResponse
+     * @see HttpServletRequest
+     * @see Authentication
+     */
     @SneakyThrows
     @Override
     public void logout(
@@ -35,12 +53,12 @@ public class LogoutService implements LogoutHandler {
     ) {
         String header = request.getHeader("Authorization");
 
-        if(header == null || !header.startsWith("Bearer")){
+        if (header == null || !header.startsWith("Bearer")) {
             return;
         }
 
         var res = sessionService.validateSession(header.substring(7));
-        if(res.getCode() == 200) {
+        if (res.getCode() == 200) {
             authenticate(request, res);
             sessionService.signOut();
 
@@ -61,6 +79,15 @@ public class LogoutService implements LogoutHandler {
         }
     }
 
+    /**
+     * Authenticates the user after logout.
+     *
+     * @param request The HTTP request.
+     * @param res     The API response.
+     *
+     * @see HttpServletRequest
+     * @see ApiResponse
+     */
     private void authenticate(HttpServletRequest request, ApiResponse<String> res) {
         UserDetails userDetails = this.userDetailsService.loadUserByUsername(res.getData());
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(

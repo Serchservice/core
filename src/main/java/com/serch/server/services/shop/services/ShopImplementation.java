@@ -24,6 +24,9 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Implementation of {@link ShopServices} interface, providing methods for shop management operations.
+ */
 @Service
 @RequiredArgsConstructor
 public class ShopImplementation implements ShopServices {

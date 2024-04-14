@@ -8,6 +8,18 @@ import org.hibernate.annotations.UuidGenerator;
 
 import java.util.UUID;
 
+/**
+ * The HelpAsk class represents user inquiries or questions submitted to the help system.
+ * It stores information about the user's full name, email address, and their inquiry or comment.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Getter}</li>
+ *     <li>{@link Setter}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

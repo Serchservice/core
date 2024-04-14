@@ -31,6 +31,18 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+/**
+ * This is the class that contains the logic and implementation of its wrapper class {@link GuestService}
+ *
+ * @see TokenService
+ * @see ProfileService
+ * @see UserAuthService
+ * @see PasswordEncoder
+ * @see GuestRepository
+ * @see GuestAuthRepository
+ * @see UserRepository
+ * @see SharedLinkRepository
+ */
 @Service
 @RequiredArgsConstructor
 public class GuestImplementation implements GuestService {

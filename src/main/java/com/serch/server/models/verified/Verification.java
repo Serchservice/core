@@ -13,6 +13,31 @@ import lombok.Setter;
 
 import java.util.UUID;
 
+/**
+ * The Verification class represents the verification process for entities in a verified system.
+ * It includes information about the verification status, consent, and stages of verification.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Getter}</li>
+ *     <li>{@link Setter}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Relationships:
+ * <ul>
+ *     <li>One-to-one with {@link Profile} using serchId.</li>
+ *     <li>One-to-one with {@link BusinessProfile} using serchId.</li>
+ * </ul>
+ * Utility Methods:
+ * <ul>
+ *     <li>{@link #hasStageOne()}</li>
+ *     <li>{@link #hasStageTwo()}</li>
+ *     <li>{@link #hasStageThree()}</li>
+ *     <li>{@link #areAllYes()}</li>
+ *     <li>{@link #isVerified()}</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity
@@ -82,15 +107,34 @@ public class Verification extends BaseDateTime {
     @OneToOne(mappedBy = "verification", cascade = CascadeType.ALL)
     private StageThree stageThree;
 
+    /**
+     * Checks if StageOne information exists.
+     * @return true if StageOne exists, false otherwise.
+     */
     public boolean hasStageOne() {
         return getStageOne() != null;
     }
+
+    /**
+     * Checks if StageTwo information exists.
+     * @return true if StageTwo exists, false otherwise.
+     */
     public boolean hasStageTwo() {
         return getStageTwo() != null;
     }
+
+    /**
+     * Checks if StageThree information exists.
+     * @return true if StageThree exists, false otherwise.
+     */
     public boolean hasStageThree() {
         return getStageThree() != null;
     }
+
+    /**
+     * Checks if all consent types are set to YES.
+     * @return true if all consent types are YES, false otherwise.
+     */
     public boolean areAllYes() {
         return getLiabilityConsent() == ConsentType.YES
                 || getMannerConsent() == ConsentType.YES
@@ -98,6 +142,11 @@ public class Verification extends BaseDateTime {
                 || getTripConsent() == ConsentType.YES
                 || getUseOfDataConsent() == ConsentType.YES;
     }
+
+    /**
+     * Checks if the verification status is set to VERIFIED.
+     * @return true if the verification status is VERIFIED, false otherwise.
+     */
     public boolean isVerified() {
         return getStatus() == VerificationStatus.VERIFIED;
     }

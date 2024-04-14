@@ -3,20 +3,21 @@ package com.serch.server.enums.account;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * The SerchCategory enum represents different categories in the Serch application.
+ * Each enum constant corresponds to a specific category and provides a descriptive type.
+ * <p></p>
+ * This enum is annotated with {@link lombok.Lombok}, {@link Getter} and {@link RequiredArgsConstructor} to generate
+ * getter methods and a constructor with required arguments automatically.
+ */
 @Getter
 @RequiredArgsConstructor
 public enum SerchCategory {
-    /// Represents the `MECHANIC` category in Serch.
     MECHANIC("Mechanic"),
-    /// Represents the `PLUMBER` category in Serch.
     PLUMBER("Plumber"),
-    /// Represents the `ELECTRICIAN` category in Serch.
     ELECTRICIAN("Electrician"),
-    /// Represents the `BUSINESS` category in Serch.
     BUSINESS("Business"),
-    /// Represents the `CARPENTER` category in Serch.
     CARPENTER("Carpenter"),
-    /// Represents the `USER` category in Serch.
     USER("User");
 
     private final String type;

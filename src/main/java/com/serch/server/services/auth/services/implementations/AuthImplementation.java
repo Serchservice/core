@@ -34,6 +34,19 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+/**
+ * Service implementation for managing authentication-related operations.
+ * It implements its wrapper class {@link AuthService}
+ *
+ * @see IncompleteRepository
+ * @see PasswordEncoder
+ * @see UserRepository
+ * @see SessionService
+ * @see TokenService
+ * @see AuthenticationManager
+ * @see EmailAuthService
+ * @see AccountDeleteRepository
+ */
 @Service
 @RequiredArgsConstructor
 public class AuthImplementation implements AuthService {

@@ -14,6 +14,31 @@ import org.hibernate.annotations.GenericGenerator;
 
 import java.math.BigDecimal;
 
+/**
+ * The Call class represents a call entity in the system.
+ * It stores information about calls, including the channel, duration, session count, type, status, amount spent, and associated profiles.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Column}</li>
+ *     <li>{@link Enumerated}</li>
+ *     <li>{@link OneToMany}</li>
+ *     <li>{@link JoinColumn}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Relationships:
+ * <ul>
+ *     <li>{@link Profile} - The profiles associated with the call.</li>
+ * </ul>
+ * Methods:
+ * <ul>
+ *     <li>{@link Call#checkIfActive()} - Checks if the call is active.</li>
+ * </ul>
+ * @see BaseDateTime
+ * @see SerchEnum
+ * @see Profile
+ */
 @Getter
 @Setter
 @Entity(name = "calls")
@@ -62,6 +87,10 @@ public class Call extends BaseDateTime {
     )
     private Profile caller;
 
+    /**
+     * Checks if the call is active.
+     * @throws CallException if the call status is CLOSED, DECLINED, or MISSED.
+     */
     public void checkIfActive() {
         if(getStatus() == CallStatus.CLOSED || getStatus() == CallStatus.DECLINED || getStatus() == CallStatus.MISSED) {
             throw new CallException("Call is %s".formatted(getStatus().getType()));

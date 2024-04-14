@@ -11,6 +11,22 @@ import lombok.Setter;
 
 import java.util.UUID;
 
+/**
+ * The StageTwo class represents the second stage of verification for entities in a verified system.
+ * It includes information about skills, associations, work history, and operational details.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Getter}</li>
+ *     <li>{@link Setter}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Relationships:
+ * <ul>
+ *     <li>One-to-one with {@link Verification} using verificationId.</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

@@ -8,6 +8,24 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
+/**
+ * The Bookmark class represents a bookmark entity in the system.
+ * It stores information about bookmarks, including the bookmark ID, user, and provider.
+ * <p></p>
+ * Relationships:
+ * <ul>
+ *     <li>{@link Profile} - The user associated with the bookmark.</li>
+ *     <li>{@link Profile} - The provider associated with the bookmark.</li>
+ * </ul>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Id}</li>
+ *     <li>{@link Column}</li>
+ *     <li>{@link ManyToOne}</li>
+ *     <li>{@link JoinColumn}</li>
+ * </ul>
+ * @see BaseDateTime
+ */
 @Getter
 @Setter
 @Entity

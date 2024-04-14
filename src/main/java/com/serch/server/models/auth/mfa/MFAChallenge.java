@@ -10,6 +10,21 @@ import org.springframework.data.annotation.CreatedDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * The MFAChallenge class represents a multifactor authentication challenge in the system.
+ * It stores information about challenges used during multifactor authentication.
+ * <p></p>
+ * Relationships:
+ * <ul>
+ *     <li>{@link MFAFactor} - The multi-factor authentication factor associated with this challenge.</li>
+ * </ul>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Column}</li>
+ *     <li>{@link ManyToOne}</li>
+ *     <li>{@link JoinColumn}</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

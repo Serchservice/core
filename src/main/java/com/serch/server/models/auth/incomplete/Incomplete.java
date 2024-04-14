@@ -11,6 +11,34 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * The Incomplete class represents incomplete registration information in the system.
+ * It stores information about incomplete user registrations, including email, referral code, and token details.
+ * <p></p>
+ * Relationships:
+ * <ul>
+ *     <li>{@link IncompleteProfile} - The profile associated with the incomplete registration.</li>
+ *     <li>{@link IncompleteReferral} - The referral information associated with the incomplete registration.</li>
+ *     <li>{@link IncompletePhoneInformation} - The phone information associated with the incomplete registration.</li>
+ *     <li>{@link IncompleteCategory} - The category information associated with the incomplete registration.</li>
+ *     <li>{@link IncompleteSpecialty} - The specialty information associated with the incomplete registration.</li>
+ *     <li>{@link IncompleteAdditional} - The additional information associated with the incomplete registration.</li>
+ *     <li>{@link BusinessProfile} - The business profile associated with the incomplete registration.</li>
+ * </ul>
+ * Constraints:
+ * <ul>
+ *     <li>{@link Email} - The field {@code emailAddress} must be properly formatted.</li>
+ * </ul>
+ * Methods:
+ * <ul>
+ *     <li>{@link Incomplete#isEmailConfirmed()} - Checks if the email is confirmed.</li>
+ *     <li>{@link Incomplete#hasProfile()} - Checks if the registration has a profile associated with it.</li>
+ *     <li>{@link Incomplete#hasCategory()} - Checks if the registration has a category associated with it.</li>
+ *     <li>{@link Incomplete#hasSpecialty()} - Checks if the registration has specialties associated with it.</li>
+ *     <li>{@link Incomplete#hasAdditional()} - Checks if the registration has additional information associated with it.</li>
+ * </ul>
+ * @see BaseModel
+ */
 @Getter
 @Setter
 @Entity

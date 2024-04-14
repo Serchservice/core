@@ -8,6 +8,22 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
+/**
+ * The PlanChild class represents a child plan associated with a parent plan in the company schema.
+ * It stores information such as the child plan type, name, amount, discount, tag, and whether it's a business plan.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Getter}</li>
+ *     <li>{@link Setter}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Relationships:
+ * <ul>
+ *     <li>Many-to-one with {@link PlanParent} as the parent.</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

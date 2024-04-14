@@ -15,6 +15,32 @@ import org.hibernate.annotations.GenericGenerator;
 
 import java.util.List;
 
+/**
+ * The Product class represents a product entity in the system.
+ * It stores information about products, including the ID, rating, status, type, name, and associated issues.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Column}</li>
+ *     <li>{@link Enumerated}</li>
+ *     <li>{@link OneToMany}</li>
+ *     <li>{@link JoinColumn}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Enums:
+ * <ul>
+ *     <li>{@link AccountStatus}</li>
+ *     <li>{@link ProductType}</li>
+ * </ul>
+ * Relationships:
+ * <ul>
+ *     <li>{@link Issue} - The issues associated with the product.</li>
+ * </ul>
+ * Methods: None
+ * @see BaseDateTime
+ * @see SerchEnum
+ */
 @Getter
 @Setter
 @AllArgsConstructor

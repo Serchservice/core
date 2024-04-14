@@ -7,6 +7,23 @@ import lombok.Setter;
 
 import java.util.List;
 
+/**
+ * The SubscriptionInvoice class represents the invoice details of a subscription in the subscription schema.
+ * It stores information such as invoice size, amount, plan, mode of payment, and reference.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Getter}</li>
+ *     <li>{@link Setter}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Relationships:
+ * <ul>
+ *     <li>Many-to-one with {@link Subscription} as the subscription.</li>
+ *     <li>One-to-many with {@link SubscriptionAssociate} as associates.</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

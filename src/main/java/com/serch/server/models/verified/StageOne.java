@@ -9,6 +9,22 @@ import lombok.Setter;
 
 import java.util.UUID;
 
+/**
+ * The StageOne class represents the first stage of verification for entities in a verified system.
+ * It stores basic information such as legal name, contact details, and addresses.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Getter}</li>
+ *     <li>{@link Setter}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Relationships:
+ * <ul>
+ *     <li>One-to-one with {@link Verification} using verificationId.</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

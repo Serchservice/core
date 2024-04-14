@@ -12,6 +12,27 @@ import org.hibernate.annotations.GenericGenerator;
 
 import java.util.UUID;
 
+/**
+ * The Schedule class represents scheduled events between providers and users.
+ * It stores information about the status, time, decline reason, closing details, and associated users.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Getter}</li>
+ *     <li>{@link Setter}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Relationships:
+ * <ul>
+ *     <li>{@link Profile} - The user associated with the schedule.</li>
+ *     <li>{@link Profile} - The provider associated with the schedule.</li>
+ * </ul>
+ * Enums:
+ * <ul>
+ *     <li>{@link ScheduleStatus} - Represents the status of the schedule.</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

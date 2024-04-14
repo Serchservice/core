@@ -8,6 +8,22 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * The Active class represents active providers in the platform schema.
+ * It stores information such as status, country, state, city, place, latitude, and longitude.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Getter}</li>
+ *     <li>{@link Setter}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Relationships:
+ * <ul>
+ *     <li>One-to-one with {@link Profile} representing the profile of the active provider.</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

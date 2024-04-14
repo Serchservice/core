@@ -31,6 +31,22 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Service responsible for initializing subscriptions.
+ * It handles the logic for initiating new subscriptions,
+ * including payment processing and validation.
+ * <p>
+ * This service interacts with various repositories and services to manage subscription requests, payment
+ * initialization, and user profiles.
+ *
+ * @see PaymentService
+ * @see SubscriptionRepository
+ * @see IncompleteRepository
+ * @see SubscriptionRequestRepository
+ * @see PlanParentRepository
+ * @see PlanChildRepository
+ * @see BusinessProfileRepository
+ */
 @Service
 @RequiredArgsConstructor
 public class InitSubscription implements InitSubscriptionService {

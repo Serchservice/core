@@ -4,7 +4,7 @@ import com.serch.server.bases.ApiResponse;
 import com.serch.server.exceptions.others.HelpException;
 import com.serch.server.models.help.*;
 import com.serch.server.repositories.help.*;
-import com.serch.server.services.help.HelpMapper;
+import com.serch.server.mappers.HelpMapper;
 import com.serch.server.services.help.requests.HelpAskRequest;
 import com.serch.server.services.help.response.*;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +14,17 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Service implementation for managing help resources and queries.
+ * It implements its wrapper interface {@link HelpService}.
+ *
+ * @see HelpService
+ * @see HelpCategoryRepository
+ * @see HelpSectionRepository
+ * @see HelpRepository
+ * @see HelpGroupRepository
+ * @see HelpAskRepository
+ */
 @Service
 @RequiredArgsConstructor
 public class HelpImplementation implements HelpService {

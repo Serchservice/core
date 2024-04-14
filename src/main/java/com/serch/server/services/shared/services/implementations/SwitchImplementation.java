@@ -29,6 +29,17 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * This is the class that contains the logic and implementation of its wrapper class.
+ *
+ * @see GuestAuthService
+ * @see UserAuthService
+ * @see PasswordEncoder
+ * @see GuestRepository
+ * @see UserRepository
+ * @see TripRepository
+ * @see CallRepository
+ */
 @Service
 @RequiredArgsConstructor
 public class SwitchImplementation implements SwitchService {

@@ -21,11 +21,40 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * The User class represents a user entity in the system.
+ * It extends the BaseEntity class and implements the UserDetails interface provided by Spring Security.
+ * <p></p>
+ * Relationships:
+ * <ul>
+ *     <li>{@link MFAFactor} - The multi-factor authentication factor associated with the user.</li>
+ *     <li>{@link Session} - The sessions associated with the user.</li>
+ * </ul>
+ * Enums:
+ * <ul>
+ *     <li>{@link AccountStatus}</li>
+ * </ul>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Column}</li>
+ *     <li>{@link Email}</li>
+ *     <li>{@link NotEmpty}</li>
+ *     <li>{@link Enumerated}</li>
+ *     <li>{@link SerchEnum}</li>
+ *     <li>{@link OneToMany}</li>
+ *     <li>{@link OneToOne}</li>
+ *     <li>{@link JoinColumn}</li>
+ * </ul>
+ * @see BaseEntity
+ * @see UserDetails
+ * @see SerchEnum
+ */
 @Getter
 @Setter
 @Entity(name = "users")
 @Table(schema = "identity", name = "users")
 public class User extends BaseEntity implements UserDetails {
+
     @Column(name = "email_address", unique = true, nullable = false, columnDefinition = "TEXT")
     @Email(
             message = "Email address must be properly formatted",
@@ -85,35 +114,121 @@ public class User extends BaseEntity implements UserDetails {
     @OneToOne(mappedBy = "user")
     private MFAFactor mfaFactor;
 
+    /**
+     * Retrieves the authorities granted to the user.
+     *
+     * @return A collection of authorities
+     */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return role.getAuthorities();
     }
 
+    /**
+     * Retrieves the user's password.
+     *
+     * @return The user's password
+     */
     @Override
     public String getPassword() {
         return password;
     }
 
+    /**
+     * Retrieves the user's username (email address).
+     *
+     * @return The user's email address
+     */
     @Override
     public String getUsername() {
         return emailAddress;
     }
 
+    /**
+     * Checks if the user's account is not expired.
+     *
+     * @return true if the account is not expired, otherwise false
+     */
     @Override
     public boolean isAccountNonExpired() {
         return accountStatus == AccountStatus.ACTIVE;
     }
 
+    /**
+     * Checks if the user's account is not locked.
+     *
+     * @return true if the account is not locked, otherwise false
+     */
     @Override
     public boolean isAccountNonLocked() {
         return accountStatus == AccountStatus.ACTIVE;
     }
 
+    /**
+     * Checks if the user's credentials are not expired.
+     *
+     * @return true if the credentials are not expired, otherwise false
+     */
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    /**
+     * Checks if the user's account is enabled.
+     *
+     * @return true if the account is enabled, otherwise false
+     */
+    @Override
+    public boolean isEnabled() {
+        return accountStatus == AccountStatus.ACTIVE;
+    }
+
+    /**
+     * Checks if the user's profile is set.
+     *
+     * @return true if the profile is set, otherwise false
+     */
+    public boolean isProfile() {
+        return getRole() == Role.USER || getRole() == Role.PROVIDER ||
+                getRole() == Role.ASSOCIATE_PROVIDER;
+    }
+
+    /**
+     * Checks if the user matches the provided ID.
+     *
+     * @param id The ID to check against
+     * @return true if the user matches the ID, otherwise false
+     */
+    public boolean isUser(UUID id) {
+        return getId() == id;
+    }
+
+    /**
+     * Retrieves the user's full name.
+     *
+     * @return The user's full name
+     */
+    public String getFullName() {
+        return getFirstName() + " " + getLastName();
+    }
+
+    /**
+     * Checks if the account is deactivated by a business
+     * @return True or False
+     */
     public boolean isBusinessLocked() {
         return accountStatus == AccountStatus.BUSINESS_DEACTIVATED;
     }
 
+    /**
+     * Checks for the logged-in user's account status and validates its presence.
+     *
+     * @return User - Logged In User
+     *
+     * @throws DisabledException
+     * @throws  LockedException
+     */
     public User check() {
         if(accountStatus == AccountStatus.BUSINESS_DEACTIVATED) {
             throw new DisabledException(
@@ -134,28 +249,5 @@ public class User extends BaseEntity implements UserDetails {
         } else {
             return this;
         }
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return accountStatus == AccountStatus.ACTIVE;
-    }
-
-    public boolean isProfile() {
-        return getRole() == Role.USER || getRole() == Role.PROVIDER ||
-                getRole() == Role.ASSOCIATE_PROVIDER;
-    }
-
-    public boolean isUser(UUID id) {
-        return getId() == id;
-    }
-
-    public String getFullName() {
-        return getFirstName() + " " + getLastName();
     }
 }

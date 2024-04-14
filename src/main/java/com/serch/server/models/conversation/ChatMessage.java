@@ -13,6 +13,32 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
+/**
+ * The ChatMessage class represents a chat message entity in the system.
+ * It stores information about chat messages, including the message content, status, type, state, duration, file size, file caption,
+ * navigate, whether it's a search message, and the associated chat room, sender, receiver, and replied message.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Column}</li>
+ *     <li>{@link Enumerated}</li>
+ *     <li>{@link OneToOne}</li>
+ *     <li>{@link JoinColumn}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Relationships:
+ * <ul>
+ *     <li>{@link ChatRoom} - The chat room associated with the chat message.</li>
+ *     <li>{@link Profile} - The profiles of the sender and receiver associated with the chat message.</li>
+ *     <li>{@link ChatMessage} - The replied message associated with the chat message.</li>
+ * </ul>
+ * @see BaseDateTime
+ * @see SerchEnum
+ * @see MessageType
+ * @see MessageStatus
+ * @see MessageState
+ */
 @Getter
 @Setter
 @Entity(name = "chat_messages")

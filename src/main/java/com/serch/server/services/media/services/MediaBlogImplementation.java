@@ -2,11 +2,11 @@ package com.serch.server.services.media.services;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.exceptions.media.MediaBlogException;
-import com.serch.server.services.media.mappers.MediaBlogMapper;
+import com.serch.server.mappers.MediaMapper;
 import com.serch.server.models.media.MediaBlog;
 import com.serch.server.repositories.media.MediaBlogRepository;
 import com.serch.server.services.media.responses.MediaBlogResponse;
-import com.serch.server.services.media.utils.MediaUtil;
+import com.serch.server.utils.MediaUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,6 +16,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * Implementation of the MediaBlogService interface for managing media blog posts.
+ * It implements its wrapper class {@link MediaBlogService}
+ *
+ * @see MediaBlogRepository
+ */
 @Service
 @RequiredArgsConstructor
 public class MediaBlogImplementation implements MediaBlogService {
@@ -29,7 +35,7 @@ public class MediaBlogImplementation implements MediaBlogService {
     }
 
     private MediaBlogResponse getBlogResponse(MediaBlog blog) {
-        MediaBlogResponse response = MediaBlogMapper.INSTANCE.response(blog);
+        MediaBlogResponse response = MediaMapper.INSTANCE.response(blog);
         response.setRegion(MediaUtil.formatRegionAndDate(blog.getCreatedAt(), blog.getRegion()));
         return response;
     }

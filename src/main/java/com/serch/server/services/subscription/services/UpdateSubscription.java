@@ -15,6 +15,12 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+/**
+ * This is the class that implements and works on the logic for its main wrapper class.
+ * It works to update and check on subscriptions to update payments where necessary.
+ * <p></p>
+ * @see  UpdateSubscriptionService
+ */
 @Service
 @RequiredArgsConstructor
 public class UpdateSubscription implements UpdateSubscriptionService {
@@ -47,6 +53,12 @@ public class UpdateSubscription implements UpdateSubscriptionService {
                 });
     }
 
+    /**
+     * Attempts to charge and verify the payment for a subscription.
+     * If successful, updates the subscription status and creates an invoice.
+     * If unsuccessful, increments the retry count and handles retries.
+     * @param subscription The subscription to be charged and verified.
+     */
     private void trySubscription(Subscription subscription) {
         try {
             PaymentVerificationData data = chargeAndVerify(subscription);
@@ -74,6 +86,11 @@ public class UpdateSubscription implements UpdateSubscriptionService {
         }
     }
 
+    /**
+     * Charges and verifies the payment for a subscription.
+     * @param subscription The subscription for which the payment is charged and verified.
+     * @return The payment verification data.
+     */
     private PaymentVerificationData chargeAndVerify(Subscription subscription) {
         PaymentChargeRequest request = new PaymentChargeRequest();
 

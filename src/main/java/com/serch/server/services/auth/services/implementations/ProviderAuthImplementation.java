@@ -28,6 +28,26 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * Service responsible for implementing provider authentication.
+ * It implements its wrapper class {@link ProviderAuthService}
+ * <p></p>
+ * It interacts with {@link AuthService}, {@link ReferralService}, {@link SessionService}, and others.
+ *
+ * @see AuthService
+ * @see ReferralService
+ * @see SessionService
+ * @see PasswordEncoder
+ * @see UserRepository
+ * @see IncompleteRepository
+ * @see IncompleteReferralRepository
+ * @see IncompleteProfileRepository
+ * @see IncompletePhoneInformationRepository
+ * @see IncompleteCategoryRepository
+ * @see SpecialtyServiceRepository
+ * @see IncompleteSpecialtyRepository
+ * @see IncompleteAdditionalRepository
+ */
 @Service
 @RequiredArgsConstructor
 public class ProviderAuthImplementation implements ProviderAuthService {
@@ -52,7 +72,9 @@ public class ProviderAuthImplementation implements ProviderAuthService {
     public ApiResponse<AuthResponse> login(RequestLogin request) {
         var user = userRepository.findByEmailAddressIgnoreCase(request.getEmailAddress())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        if(user.getRole() == Role.PROVIDER || user.getRole() == Role.ASSOCIATE_PROVIDER) {
+        if(user.isBusinessLocked()) {
+            throw new AuthException("Account is deactivated by your business administrator. Access denied");
+        } else if(user.getRole() == Role.PROVIDER || user.getRole() == Role.ASSOCIATE_PROVIDER) {
             return authService.authenticate(request, user);
         } else {
             throw new AuthException(

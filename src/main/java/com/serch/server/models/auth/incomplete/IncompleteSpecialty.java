@@ -7,6 +7,22 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+/**
+ * The IncompleteSpecialty class represents incomplete specialties in the system.
+ * It stores information about incomplete specialties related to specialty services and incomplete objects.
+ * <p></p>
+ * Relationships:
+ * <ul>
+ *     <li>{@link SpecialtyService} - The specialty service associated with the incomplete specialty.</li>
+ *     <li>{@link Incomplete} - The incomplete object associated with the incomplete specialty.</li>
+ * </ul>
+ * Annotations:
+ * <ul>
+ *     <li>{@link ManyToOne}</li>
+ *     <li>{@link JoinColumn}</li>
+ * </ul>
+ * @see BaseModel
+ */
 @ToString
 @Getter
 @Setter

@@ -13,18 +13,41 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
+/**
+ * The BaseDateTime class serves as a base entity for entities that require timestamp tracking,
+ * such as creation and last modification dates.
+ * It includes fields for createdAt and updatedAt timestamps.
+ * <p></p>
+ * This class is annotated with @MappedSuperclass to indicate that it should be mapped to the database
+ * but not as its own entity.
+ * <p></p>
+ * It also utilizes JPA auditing annotations to automatically populate createdAt and updatedAt fields
+ * when entities are persisted or updated.
+ *
+ * @see MappedSuperclass
+ * @see org.springframework.data.jpa.domain.support.AuditingEntityListener
+ */
 @Getter
 @Setter
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
 public class BaseDateTime {
+    /**
+     * The timestamp indicating when the entity was created.
+     * Automatically populated upon entity creation.
+     */
     @CreatedDate
     @CreationTimestamp
     @Column(name = "created_at", updatable = false, nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    /**
+     * The timestamp indicating when the entity was last updated.
+     * Automatically updated upon entity modification.
+     */
     @UpdateTimestamp
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt = LocalDateTime.now();
 }
+

@@ -30,6 +30,18 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+/**
+ * Service responsible for implementing password reset functionality.
+ * It implements its wrapper class {@link ResetPasswordService}
+ *
+ * @see UserRepository
+ * @see AccountRequestRepository
+ * @see AccountDeleteRepository
+ * @see TokenService
+ * @see EmailAuthService
+ * @see PasswordEncoder
+ * @see SessionService
+ */
 @Service
 @RequiredArgsConstructor
 public class ResetPasswordImplementation implements ResetPasswordService {

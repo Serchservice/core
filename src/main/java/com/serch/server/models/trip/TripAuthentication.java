@@ -8,6 +8,22 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * The TripAuthentication class represents authentication details associated with service trips.
+ * It stores authentication code, authenticator ID, verification status, and related timestamps.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Getter}</li>
+ *     <li>{@link Setter}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Relationships:
+ * <ul>
+ *     <li>One-to-one with {@link Trip} representing the associated trip.</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

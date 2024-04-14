@@ -12,6 +12,30 @@ import lombok.Setter;
 
 import java.util.List;
 
+/**
+ * The SpecialtyService class represents a specialty service entity in the system.
+ * It stores information about specialty services, including keywords, timeline, difficulty, minimum and maximum amounts, estimated amount, category, and associated specialties and incomplete specialties.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Column}</li>
+ *     <li>{@link Enumerated}</li>
+ *     <li>{@link OneToMany}</li>
+ *     <li>{@link JoinColumn}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Relationships:
+ * <ul>
+ *     <li>{@link Specialty} - The specialties associated with the service.</li>
+ *     <li>{@link IncompleteSpecialty} - The incomplete specialties associated with the service.</li>
+ * </ul>
+ * Methods: None
+ * @see BaseModel
+ * @see SerchEnum
+ * @see Specialty
+ * @see IncompleteSpecialty
+ */
 @Getter
 @Setter
 @Entity

@@ -16,6 +16,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+/**
+ * Implementation of the JwtService interface for managing JWT operations.
+ * It implements its wrapper class {@link JwtService}
+ */
 @Service
 @RequiredArgsConstructor
 public class JwtImplementation implements JwtService {
@@ -25,10 +29,21 @@ public class JwtImplementation implements JwtService {
     @Value("${application.security.jwt-expiration-time}")
     protected Long JWT_EXPIRATION_TIME;
 
+    /**
+     * Retrieves the signing key for JWT.
+     *
+     * @return The signing key.
+     */
     protected Key getSigningKey() {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(JWT_SECRET_KEY));
     }
 
+    /**
+     * Parses and retrieves the claims from the given access token.
+     *
+     * @param accessToken The JWT access token.
+     * @return The claims extracted from the token.
+     */
     protected Claims fetchClaims(String accessToken) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
@@ -37,6 +52,14 @@ public class JwtImplementation implements JwtService {
                 .getBody();
     }
 
+    /**
+     * Extracts specific claims from the JWT token.
+     *
+     * @param accessToken The JWT access token.
+     * @param fetch       The function to fetch the claims.
+     * @param <T>         The type of the claim.
+     * @return The extracted claim.
+     */
     protected <T> T extractClaims(String accessToken, Function<Claims, T> fetch) {
         return fetch.apply(fetchClaims(accessToken));
     }

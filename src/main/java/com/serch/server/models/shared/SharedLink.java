@@ -15,6 +15,29 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * The SharedLink class represents a shared link in a sharing platform.
+ * It stores information such as the link status, URL, amount, and related profiles and guests.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Getter}</li>
+ *     <li>{@link Setter}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Constraints:
+ * <ul>
+ *     <li>{@link URL} - Validates the link format.</li>
+ * </ul>
+ * Relationships:
+ * <ul>
+ *     <li>Many-to-one with {@link Profile} as the user.</li>
+ *     <li>Many-to-one with {@link Profile} as the provider.</li>
+ *     <li>Many-to-many with {@link Guest} as the guests.</li>
+ *     <li>One-to-many with {@link SharedPricing} as the pricing.</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

@@ -23,6 +23,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service implementation for managing authentication-related operations specific to businesses.
+ * It implements its wrapper class {@link BusinessAuthService}
+ *
+ * @see AuthService
+ * @see SessionService
+ * @see BusinessProfileService
+ * @see ProfileService
+ * @see SpecialtyService
+ * @see UserRepository
+ * @see IncompleteRepository
+ */
 @Service
 @RequiredArgsConstructor
 public class BusinessAuthImplementation implements BusinessAuthService {

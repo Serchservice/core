@@ -11,12 +11,23 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+/**
+ * The TransactionController class handles HTTP requests related to transaction operations.
+ * It provides endpoints for retrieving all transactions.
+ *
+ * @see TransactionService
+ */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/transaction")
 public class TransactionController {
     private final TransactionService service;
 
+    /**
+     * Retrieves all transactions associated with the current user.
+     *
+     * @return A ResponseEntity containing an ApiResponse with the list of transaction responses.
+     */
     @GetMapping("/all")
     public ResponseEntity<ApiResponse<List<TransactionResponse>>> transactions() {
         var response = service.transactions();

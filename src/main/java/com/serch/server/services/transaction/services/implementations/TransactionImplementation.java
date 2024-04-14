@@ -25,6 +25,11 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The TransactionImplementation class provides implementation for handling user transactions.
+ *
+ * @see TransactionService
+ */
 @Service
 @RequiredArgsConstructor
 public class TransactionImplementation implements TransactionService {

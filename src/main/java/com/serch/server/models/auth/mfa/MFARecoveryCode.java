@@ -5,6 +5,22 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * The MFARecoveryCode class represents a multi-factor authentication recovery code in the system.
+ * It stores information about recovery codes used for multi-factor authentication.
+ * <p></p>
+ * Relationships:
+ * <ul>
+ *     <li>{@link MFAFactor} - The multi-factor authentication factor associated with the recovery code.</li>
+ * </ul>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Column}</li>
+ *     <li>{@link ManyToOne}</li>
+ *     <li>{@link JoinColumn}</li>
+ * </ul>
+ * @see BaseModel
+ */
 @Getter
 @Setter
 @Entity

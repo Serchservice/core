@@ -10,6 +10,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * Service implementation for managing products.
+ * It implements its wrapper class {@link ProductService}
+ *
+ * @see ProductRepository
+ */
 @Service
 @RequiredArgsConstructor
 public class ProductImplementation implements ProductService {

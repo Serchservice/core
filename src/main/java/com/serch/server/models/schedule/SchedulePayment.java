@@ -11,6 +11,26 @@ import org.hibernate.annotations.GenericGenerator;
 
 import java.math.BigDecimal;
 
+/**
+ * The SchedulePayment class represents payments associated with closed schedules.
+ * It stores information about the payment amount, status, and the associated schedule.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Getter}</li>
+ *     <li>{@link Setter}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Relationships:
+ * <ul>
+ *     <li>{@link Schedule} - The schedule associated with the payment.</li>
+ * </ul>
+ * Enums:
+ * <ul>
+ *     <li>{@link TransactionStatus} - Represents the status of the transaction.</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

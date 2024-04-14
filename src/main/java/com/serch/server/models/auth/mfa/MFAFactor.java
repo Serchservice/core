@@ -9,6 +9,24 @@ import lombok.Setter;
 
 import java.util.List;
 
+/**
+ * The MFAFactor class represents a multifactor authentication factor associated with a user.
+ * It stores information about the multifactor authentication factor, including its secret and associated user.
+ * <p></p>
+ * Relationships:
+ * <ul>
+ *     <li>{@link User} - The user associated with this multi-factor authentication factor.</li>
+ *     <li>{@link MFARecoveryCode} - The recovery codes associated with this multi-factor authentication factor.</li>
+ *     <li>{@link MFAChallenge} - The challenges associated with this multi-factor authentication factor.</li>
+ * </ul>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Column}</li>
+ *     <li>{@link OneToOne}</li>
+ *     <li>{@link OneToMany}</li>
+ *     <li>{@link JoinColumn}</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

@@ -8,6 +8,23 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * The IncompleteReferral class represents incomplete referrals in the system.
+ * It stores information about incomplete referrals related to referring users and incomplete objects.
+ * <p></p>
+ * Relationships:
+ * <ul>
+ *     <li>{@link User} - The user who referred the incomplete referral.</li>
+ *     <li>{@link Incomplete} - The incomplete object associated with the incomplete referral.</li>
+ * </ul>
+ * Annotations:
+ * <ul>
+ *     <li>{@link ManyToOne}</li>
+ *     <li>{@link OneToOne}</li>
+ *     <li>{@link JoinColumn}</li>
+ * </ul>
+ * @see BaseModel
+ */
 @Getter
 @Setter
 @AllArgsConstructor

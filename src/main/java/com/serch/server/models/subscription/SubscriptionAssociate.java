@@ -7,6 +7,24 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * The SubscriptionAssociate class represents an association between a profile, a business profile, and a subscription invoice
+ * in the subscription schema. It stores information about the associated profile, business profile, and subscription invoice.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Getter}</li>
+ *     <li>{@link Setter}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Relationships:
+ * <ul>
+ *     <li>Many-to-one with {@link Profile} as the profile.</li>
+ *     <li>Many-to-one with {@link BusinessProfile} as the business.</li>
+ *     <li>Many-to-one with {@link SubscriptionInvoice} as the invoice.</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

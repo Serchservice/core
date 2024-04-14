@@ -8,6 +8,22 @@ import org.hibernate.annotations.UuidGenerator;
 
 import java.util.UUID;
 
+/**
+ * The Help class represents Frequently Asked Questions (FAQs) in the system.
+ * It stores information about the question, answer, and the group to which the FAQ belongs.
+ * <p></p>
+ * Relationships:
+ * <ul>
+ *     <li>{@link HelpGroup} - The group to which the FAQ belongs.</li>
+ * </ul>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Getter}</li>
+ *     <li>{@link Setter}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

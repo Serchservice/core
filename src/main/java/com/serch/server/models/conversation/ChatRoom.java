@@ -12,6 +12,28 @@ import org.hibernate.annotations.GenericGenerator;
 
 import java.util.List;
 
+/**
+ * The ChatRoom class represents a chat room entity in the system.
+ * It stores information about chat rooms, including the state and the associated messages, creator, and roommate.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Column}</li>
+ *     <li>{@link Enumerated}</li>
+ *     <li>{@link OneToMany}</li>
+ *     <li>{@link ManyToOne}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Relationships:
+ * <ul>
+ *     <li>{@link ChatMessage} - The chat messages associated with the chat room.</li>
+ *     <li>{@link Profile} - The profiles of the creator and roommate associated with the chat room.</li>
+ * </ul>
+ * @see BaseDateTime
+ * @see SerchEnum
+ * @see MessageState
+ */
 @Getter
 @Setter
 @Entity(name = "chat_rooms")

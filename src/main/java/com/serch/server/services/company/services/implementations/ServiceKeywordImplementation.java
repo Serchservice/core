@@ -15,6 +15,12 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Service implementation for managing keywords related to specialties.
+ * It implements the {@link KeywordService} interface.
+ *
+ * @see SpecialtyServiceRepository
+ */
 @Service
 @RequiredArgsConstructor
 public class ServiceKeywordImplementation implements KeywordService {

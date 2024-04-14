@@ -3,7 +3,7 @@ package com.serch.server.services.media.services;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.exceptions.media.MediaLegalException;
 import com.serch.server.enums.media.LegalLOB;
-import com.serch.server.services.media.mappers.MediaLegalMapper;
+import com.serch.server.mappers.MediaMapper;
 import com.serch.server.models.media.MediaLegal;
 import com.serch.server.repositories.media.MediaLegalRepository;
 import com.serch.server.services.media.responses.MediaLegalGroupResponse;
@@ -17,6 +17,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Service implementation for managing media legal documents.
+ * It implements its wrapper class {@link MediaLegalService}
+ *
+ * @see MediaLegalRepository
+ */
 @Service
 @RequiredArgsConstructor
 public class MediaLegalImplementation implements MediaLegalService {
@@ -50,7 +56,7 @@ public class MediaLegalImplementation implements MediaLegalService {
     }
 
     private MediaLegalResponse getLegalResponse(MediaLegal legal) {
-        MediaLegalResponse response = MediaLegalMapper.INSTANCE.response(legal);
+        MediaLegalResponse response = MediaMapper.INSTANCE.response(legal);
         response.setLineOfBusiness(legal.getLob().getType());
         return response;
     }

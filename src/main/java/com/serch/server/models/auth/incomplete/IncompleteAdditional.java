@@ -9,6 +9,32 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+/**
+ * The IncompleteAdditional class represents additional incomplete information in the system.
+ * It stores information about additional incomplete details, including surety information and address details.
+ * <p></p>
+ * Relationships:
+ * <ul>
+ *     <li>{@link Incomplete} - The incomplete object associated with the incomplete additional information.</li>
+ * </ul>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Column}</li>
+ *     <li>{@link OneToOne}</li>
+ *     <li>{@link JoinColumn}</li>
+ * </ul>
+ * Constraints:
+ * <ul>
+ *     <li> {@link NotNull} - The fields {@code suretyStatus}, {@code suretyFirstName}, {@code suretyLastName},
+ *     {@code suretyEmail}, {@code suretyPhone}, {@code suretyAddress}, {@code streetAddress}, {@code city},
+ *     {@code state}, {@code country} cannot be null.</li>
+ *     <li> {@link NotEmpty} - The fields {@code suretyStatus}, {@code suretyFirstName}, {@code suretyLastName},
+ *     {@code suretyEmail}, {@code suretyAddress}, {@code streetAddress}, {@code city}, {@code state}, {@code country}
+ *     cannot be empty.</li>
+ *     <li> {@link Email} - The field {@code suretyEmail} must be properly formatted.</li>
+ * </ul>
+ * @see BaseModel
+ */
 @ToString
 @Getter
 @Setter

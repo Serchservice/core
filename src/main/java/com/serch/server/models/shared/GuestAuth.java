@@ -8,6 +8,27 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+/**
+ * The GuestAuth class represents authentication information for guest profiles in a sharing platform.
+ * It stores the email address, authentication token, expiration time, and confirmation time.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Getter}</li>
+ *     <li>{@link Setter}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Constraints:
+ * <ul>
+ *     <li>{@link Email} - Email address validation.</li>
+ * </ul>
+ * Methods:
+ * <ul>
+ *     <li>{@link GuestAuth#isTokenExpired()} - Checks if the authentication token is expired.</li>
+ *     <li>{@link GuestAuth#isEmailConfirmed()} - Checks if the email address is confirmed.</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

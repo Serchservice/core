@@ -8,6 +8,19 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * The MediaBlog class represents blogs stored in the system.
+ * It stores information about the blog ID, image, content, region, and title.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Getter}</li>
+ *     <li>{@link Setter}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Relationships: None
+ */
 @Getter
 @Setter
 @Entity

@@ -16,6 +16,14 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+/**
+ * Service implementation for managing bookmarks.
+ * It implements its wrapper interface {@link BookmarkService}.
+ *
+ * @see UserUtil
+ * @see ProfileRepository
+ * @see BookmarkRepository
+ */
 @Service
 @RequiredArgsConstructor
 public class BookmarkImplementation implements BookmarkService {

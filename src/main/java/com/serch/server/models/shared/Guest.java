@@ -12,6 +12,33 @@ import org.hibernate.annotations.GenericGenerator;
 
 import java.util.Set;
 
+/**
+ * The Guest class represents guest profiles in a sharing platform.
+ * It stores information such as email address, first name, last name, gender, avatar,
+ * messaging token, platform, and shared links.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Getter}</li>
+ *     <li>{@link Setter}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Relationships:
+ * <ul>
+ *     <li>{@link SharedLink} - The shared links associated with the guest.</li>
+ * </ul>
+ * Constraints:
+ * <ul>
+ *     <li>{@link Email} - Email address validation.</li>
+ *     <li>{@link Size} - Minimum size constraints for first name, last name, and gender.</li>
+ *     <li>{@link NotBlank} - Not blank constraints for first name, last name, gender, and avatar.</li>
+ * </ul>
+ * Methods:
+ * <ul>
+ *     <li>{@link Guest#getFullName()} - Retrieves the full name of the guest by concatenating the first name and last name.</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

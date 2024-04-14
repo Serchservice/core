@@ -7,6 +7,22 @@ import lombok.Setter;
 
 import java.util.List;
 
+/**
+ * The HelpCategory class represents categories for organizing help or support sections.
+ * It stores information about the category ID, image, category name, and associated help sections.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Getter}</li>
+ *     <li>{@link Setter}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Relationships:
+ * <ul>
+ *     <li>{@link HelpSection} - The list of help sections associated with the category.</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

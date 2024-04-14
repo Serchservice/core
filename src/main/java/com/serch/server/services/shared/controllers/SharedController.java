@@ -1,8 +1,8 @@
 package com.serch.server.services.shared.controllers;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.services.account.responses.AccountResponse;
 import com.serch.server.services.shared.responses.GuestResponse;
-import com.serch.server.services.shared.responses.SharedAccountResponse;
 import com.serch.server.services.shared.services.SharedService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,8 +20,8 @@ public class SharedController {
     private final SharedService service;
 
     @GetMapping("/accounts")
-    public ResponseEntity<ApiResponse<List<SharedAccountResponse>>> accounts(@RequestParam String id) {
-        ApiResponse<List<SharedAccountResponse>> response = service.accounts(id);
+    public ResponseEntity<ApiResponse<AccountResponse>> accounts(@RequestParam String id) {
+        ApiResponse<AccountResponse> response = service.accounts(id);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

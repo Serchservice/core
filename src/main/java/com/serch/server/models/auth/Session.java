@@ -11,6 +11,29 @@ import lombok.ToString;
 
 import java.util.List;
 
+/**
+ * The Session class represents a user session in the system.
+ * It stores information about the user's session, such as authentication level, method, and device details.
+ * <p></p>
+ * Relationships:
+ * <ul>
+ *     <li>{@link User} - The user associated with this session.</li>
+ *     <li>{@link RefreshToken} - The refresh tokens associated with this session.</li>
+ * </ul>
+ * Enums:
+ * <ul>
+ *     <li>{@link AuthMethod}</li>
+ *     <li>{@link AuthLevel}</li>
+ * </ul>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Column}</li>
+ *     <li>{@link Enumerated}</li>
+ *     <li>{@link JoinColumn}</li>
+ * </ul>
+ * @see BaseEntity
+ * @see SerchEnum
+ */
 @Getter
 @Setter
 @Entity

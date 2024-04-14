@@ -2,7 +2,6 @@ package com.serch.server.services.subscription.services;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.models.auth.User;
-import com.serch.server.models.subscription.Subscription;
 import com.serch.server.models.subscription.SubscriptionAuth;
 import com.serch.server.services.payment.responses.PaymentVerificationData;
 import com.serch.server.services.subscription.requests.VerifySubscriptionRequest;
@@ -35,12 +34,4 @@ public interface VerifySubscriptionService {
      * @return The created SubscriptionAuth entity.
      */
     SubscriptionAuth createAuth(String emailAddress, PaymentVerificationData response);
-    /**
-     * Creates a subscription invoice based on the subscription details.
-     * @param subscription The subscription for which the invoice is created.
-     * @param amount The amount associated with the subscription.
-     * @param mode The payment mode for the subscription.
-     * @param reference The reference number for the subscription.
-     */
-    void createInvoice(Subscription subscription, String amount, String mode, String reference);
 }

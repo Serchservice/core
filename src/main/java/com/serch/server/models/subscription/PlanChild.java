@@ -30,7 +30,7 @@ import org.hibernate.annotations.GenericGenerator;
 @Table(schema = "company", name = "plan_children")
 public class PlanChild extends BaseDateTime {
     @Id
-    @Column(name = "id", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "id", nullable = false, columnDefinition = "TEXT", unique = true)
     @GenericGenerator(name = "plan_child_id_gen", type = PlanChildID.class)
     @GeneratedValue(generator = "plan_child_id_gen")
     private String id;

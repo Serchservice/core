@@ -9,6 +9,7 @@ import com.serch.server.repositories.subscription.SubscriptionRepository;
 import com.serch.server.services.payment.core.PaymentService;
 import com.serch.server.services.payment.requests.PaymentChargeRequest;
 import com.serch.server.services.payment.responses.PaymentVerificationData;
+import com.serch.server.services.transaction.services.InvoiceService;
 import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ public class UpdateSubscription implements UpdateSubscriptionService {
     private final PaymentService paymentService;
     private final InitSubscriptionService initService;
     private final VerifySubscriptionService verifyService;
+    private final InvoiceService invoiceService;
     private final SubscriptionService subscriptionService;
     private final SubscriptionRepository subscriptionRepository;
     private final SubscriptionAuthRepository subscriptionAuthRepository;
@@ -76,7 +78,7 @@ public class UpdateSubscription implements UpdateSubscriptionService {
             subscription.setSubscribedAt(LocalDateTime.now());
             subscriptionRepository.save(subscription);
 
-            verifyService.createInvoice(subscription, String.valueOf(data.getAmount()), "CARD", data.getReference());
+            invoiceService.createInvoice(subscription, String.valueOf(data.getAmount()), "CARD", data.getReference());
         } catch (Exception e) {
             subscription.setRetries(subscription.getRetries() + 1);
             if(subscription.getRetries() == 3) {

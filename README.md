@@ -52,6 +52,15 @@ To install and run the Serch Backend Server locally, follow these steps:
 1. Clone the repository to your local machine.
 2. Navigate to the project directory.
 3. Set up a PostgreSQL database and configure the database connection in the application properties.
+> List of Schemas:
+> - company
+> - platform
+> - conversation
+> - account
+> - identity
+> - providesharing
+> - subscription
+> - verified
 4. Build the project using Maven: `mvn clean install`.
 5. Run the application: `java -jar target/serch-backend-server.jar`.
 

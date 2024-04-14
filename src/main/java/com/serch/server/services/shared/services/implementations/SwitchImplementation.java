@@ -65,7 +65,7 @@ public class SwitchImplementation implements SwitchService {
                                     .stream()
                                     .filter(link -> link.getId().equals(request.getLinkId()))
                                     .toList()
-                                    .getFirst(),
+                                    .get(0),
                             guest
                     ),
                     HttpStatus.OK

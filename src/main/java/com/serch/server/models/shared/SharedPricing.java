@@ -36,10 +36,10 @@ public class SharedPricing extends BaseModel {
     @Column(name = "amount", nullable = false)
     private BigDecimal amount;
 
-    @Column(name = "user", nullable = false)
+    @Column(name = "user_share", nullable = false)
     private BigDecimal user;
 
-    @Column(name = "provider", nullable = false)
+    @Column(name = "provider_share", nullable = false)
     private BigDecimal provider;
 
     @Column(name = "status", nullable = false)

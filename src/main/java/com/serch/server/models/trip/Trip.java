@@ -54,7 +54,7 @@ import java.util.UUID;
 @Table(schema = "platform", name = "service_trips")
 public class Trip extends BaseDateTime {
     @Id
-    @Column(name = "trip_id", nullable = false)
+    @Column(name = "id", nullable = false)
     @GenericGenerator(name = "trip_id_gen", type = TripID.class)
     @GeneratedValue(generator = "trip_id_gen")
     private String id;

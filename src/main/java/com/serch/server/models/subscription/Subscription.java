@@ -38,7 +38,7 @@ import java.util.List;
 @Table(schema = "subscription", name = "subscriptions")
 public class Subscription extends BaseDateTime {
    @Id
-   @Column(name = "id", nullable = false, columnDefinition = "TEXT")
+   @Column(name = "id", nullable = false, columnDefinition = "TEXT", unique = true)
    @GenericGenerator(name = "plan_id_gen", type = PlanParentID.class)
    @GeneratedValue(generator = "plan_id_gen")
    private String id;
@@ -46,17 +46,17 @@ public class Subscription extends BaseDateTime {
    @ManyToOne(fetch = FetchType.LAZY)
    @JoinColumn(
            name = "plan",
-           referencedColumnName = "type",
+           referencedColumnName = "id",
            nullable = false,
-           foreignKey = @ForeignKey(name = "plan_type_fkey")
+           foreignKey = @ForeignKey(name = "plan_id_fkey")
    )
    private PlanParent plan;
 
    @ManyToOne(fetch = FetchType.LAZY)
    @JoinColumn(
            name = "sub_plan",
-           referencedColumnName = "type",
-           foreignKey = @ForeignKey(name = "sub_plan_type_fkey")
+           referencedColumnName = "id",
+           foreignKey = @ForeignKey(name = "sub_plan_id_fkey")
    )
    private PlanChild child;
 

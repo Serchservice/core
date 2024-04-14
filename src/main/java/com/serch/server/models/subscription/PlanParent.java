@@ -33,7 +33,7 @@ import java.util.List;
 @Table(schema = "company", name = "plan_parents")
 public class PlanParent extends BaseDateTime {
     @Id
-    @Column(name = "id", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "id", nullable = false, columnDefinition = "TEXT", unique = true)
     @GenericGenerator(name = "plan_id_gen", type = PlanParentID.class)
     @GeneratedValue(generator = "plan_id_gen")
     private String id;

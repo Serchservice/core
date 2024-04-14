@@ -127,8 +127,6 @@ public class CallImplementation implements CallService {
 
     private ApiResponse<String> processPayment(Call call) {
         PayRequest payRequest = new PayRequest();
-        payRequest.setReceiver(call.getCalled().getSerchId());
-        payRequest.setSender(call.getCaller().getSerchId());
         payRequest.setEvent(call.getChannel());
         payRequest.setType(TransactionType.T2F);
         return walletService.pay(payRequest);

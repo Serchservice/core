@@ -95,8 +95,7 @@ public class GuestImplementation implements GuestService {
                 .orElseThrow(() -> new SharedException("Guest not found"));
         GuestAuth auth = guestAuthRepository.findByEmailAddressIgnoreCase(guest.getEmailAddress())
                 .orElseThrow(() -> new SharedException("Email confirmation not found"));
-        SharedLink link = sharedLinkRepository.findByGuests_Id(guest.getId())
-                .getFirst();
+        SharedLink link = sharedLinkRepository.findByGuests_Id(guest.getId()).get(0);
 
         if(auth.isEmailConfirmed()) {
             Optional<User> existingUser = userRepository.findByEmailAddressIgnoreCase(guest.getEmailAddress());

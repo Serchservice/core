@@ -16,12 +16,18 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/company/keyword")
-public class ServiceKeywordController {
+public class SpecialtyKeywordController {
     private final SpecialtyKeywordService specialtyKeywordService;
 
     @GetMapping("/specialties")
     public ResponseEntity<ApiResponse<List<SpecialtyKeywordResponse>>> getAllSpecialties(@RequestParam SerchCategory type) {
         var response = specialtyKeywordService.getAllSpecialties(type);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<List<SpecialtyKeywordResponse>>> searchService(@RequestParam String query) {
+        var response = specialtyKeywordService.searchService(query);
         return new ResponseEntity<>(response, response.getStatus());
     }
 }

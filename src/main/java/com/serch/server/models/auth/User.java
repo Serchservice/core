@@ -261,4 +261,14 @@ public class User extends BaseEntity implements UserDetails {
             return this;
         }
     }
+
+    /**
+     * Checks if the user is a provider or associate provider.
+     * Uses the {@link Role#PROVIDER} and {@link Role#ASSOCIATE_PROVIDER} to perform check
+     *
+     * @return boolean - True or false
+     */
+    public boolean isProvider() {
+        return getRole() == Role.PROVIDER || getRole() == Role.ASSOCIATE_PROVIDER;
+    }
 }

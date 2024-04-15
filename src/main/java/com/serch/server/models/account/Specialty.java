@@ -8,6 +8,17 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Represents a specialty entity, storing information about specialties associated with profiles.
+ * <p></p>
+ * Relationships:
+ * <ol>
+ *     <li>{@link SpecialtyKeyword} - Many to one</li>
+ *     <li>{@link Profile} - Many to one</li>
+ * </ol>
+ *
+ * @see BaseModel
+ */
 @Getter
 @Setter
 @AllArgsConstructor
@@ -15,6 +26,9 @@ import lombok.Setter;
 @Entity
 @Table(schema = "account", name = "specializations")
 public class Specialty extends BaseModel {
+    /**
+     * The specialty keyword associated with the profile.
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "service_id",
@@ -24,6 +38,9 @@ public class Specialty extends BaseModel {
     )
     private SpecialtyKeyword service;
 
+    /**
+     * The profile associated with the specialty.
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "serch_id",

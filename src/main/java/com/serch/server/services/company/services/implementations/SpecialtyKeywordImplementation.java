@@ -56,4 +56,13 @@ public class SpecialtyKeywordImplementation implements SpecialtyKeywordService {
         }
         return response;
     }
+
+    @Override
+    public ApiResponse<List<SpecialtyKeywordResponse>> searchService(String query) {
+        List<SpecialtyKeywordResponse> keywords = repository.fullTextSearch(query)
+                .stream()
+                .map(this::getSpecialtyResponse)
+                .toList();
+        return new ApiResponse<>(keywords);
+    }
 }

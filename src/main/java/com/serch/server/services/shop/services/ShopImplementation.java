@@ -2,6 +2,7 @@ package com.serch.server.services.shop.services;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.shop.ShopStatus;
+import com.serch.server.enums.subscription.PlanStatus;
 import com.serch.server.exceptions.others.ShopException;
 import com.serch.server.mappers.ShopMapper;
 import com.serch.server.models.auth.User;
@@ -13,8 +14,9 @@ import com.serch.server.services.shop.requests.AddShopServiceRequest;
 import com.serch.server.services.shop.requests.CreateShopRequest;
 import com.serch.server.services.shop.requests.RemoveShopServiceRequest;
 import com.serch.server.services.shop.requests.UpdateShopRequest;
-//import com.serch.server.services.shop.responses.SearchShopResponse;
+import com.serch.server.services.shop.responses.SearchShopResponse;
 import com.serch.server.services.shop.responses.ShopResponse;
+import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,6 +28,10 @@ import java.util.List;
 
 /**
  * Implementation of {@link ShopServices} interface, providing methods for shop management operations.
+ *
+ * @see UserUtil
+ * @see ShopRepository
+ * @see ShopServiceRepository
  */
 @Service
 @RequiredArgsConstructor
@@ -218,23 +224,29 @@ public class ShopImplementation implements ShopServices {
         }
     }
 
-//    @Override
-//    public ApiResponse<List<SearchShopResponse>> search(String query, String category, Double longitude, Double latitude, Double radius) {
-//        List<Shop> shops;
-//        if(query != null && !query.isEmpty()) {
-//            shops = shopRepository.findByServiceAndLocation(
-//                    lat, lng, query, radius, PlanStatus.ACTIVE
-//            );
-//        } else {
-//            shops = shopRepository.findByCategoryAndLocation(
-//                    lat, lng, category, radius, PlanStatus.ACTIVE
-//            );
-//        }
-//        return new ApiResponse<>(shops.stream()
-//                .map(shop ->
-//                        response(shop, HelperUtil.getDistance(lat, lng, shop.getLatitude(), shop.getLongitude()))
-//                )
-//                .toList()
-//        );
-//    }
+    @Override
+    public ApiResponse<List<SearchShopResponse>> drive(String query, String category, Double longitude, Double latitude, Double radius) {
+        List<Shop> listOfShops;
+        if(query != null && !query.isEmpty()) {
+            listOfShops = shopRepository.findByServiceAndLocation(
+                    latitude, longitude, query, radius, PlanStatus.ACTIVE.name()
+            );
+        } else {
+            listOfShops = shopRepository.findByCategoryAndLocation(
+                    latitude, longitude, category, radius, PlanStatus.ACTIVE.name()
+            );
+        }
+        return new ApiResponse<>(
+                listOfShops
+                        .stream()
+                        .map(shop -> {
+                            SearchShopResponse response = ShopMapper.INSTANCE.search(shop);
+
+                            double distance = HelperUtil.getDistance(latitude, longitude, shop.getLatitude(), shop.getLongitude());
+                            response.setDistance(distance + " km");
+                            return response;
+                        })
+                        .toList()
+        );
+    }
 }

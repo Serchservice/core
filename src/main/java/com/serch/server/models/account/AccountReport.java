@@ -10,27 +10,56 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
+/**
+ * Represents an account report entity, storing information about reported accounts.
+ * Relationships:
+ * <ol>
+ *     <li>{@link User} - One to one</li>
+ * </ol>
+ * Enums:
+ * <ol>
+ *     <li>{@link IssueStatus} - Status of the report request</li>
+ * </ol>
+ *
+ * @see BaseDateTime
+ * @see SerchEnum
+ */
 @Getter
 @Setter
 @Entity
 @Table(schema = "account", name = "reported_accounts")
 public class AccountReport extends BaseDateTime {
+    /**
+     * The unique ticket identifier for the report.
+     */
     @Id
     @GenericGenerator(name = "report_ticket", type = AccountReportID.class)
     @GeneratedValue(generator = "report_ticket")
     @Column(name = "ticket", nullable = false, columnDefinition = "TEXT")
     private String ticket;
 
+    /**
+     * The comment associated with the report.
+     */
     @Column(name = "comment", nullable = false, columnDefinition = "TEXT")
     private String comment;
 
+    /**
+     * The status of the report.
+     */
     @Column(name = "status", nullable = false)
     @SerchEnum(message = "ReportStatus must be an enum")
     private IssueStatus status = IssueStatus.OPENED;
 
+    /**
+     * The account being reported.
+     */
     @Column(nullable = false)
     private String account;
 
+    /**
+     * The user who reported the account.
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "user_id",

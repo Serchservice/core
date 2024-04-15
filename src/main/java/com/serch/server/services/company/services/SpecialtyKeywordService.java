@@ -36,4 +36,13 @@ public interface SpecialtyKeywordService {
      * @see SpecialtyKeywordResponse
      */
     SpecialtyKeywordResponse getSpecialtyResponse(SpecialtyKeyword keywordService);
+
+    /**
+     * Searches for specialty keywords based on a query.
+     *
+     * @param query The search query to find specialty keywords.
+     * @return An {@link ApiResponse} containing a list of {@link SpecialtyKeywordResponse} objects
+     *         filtered by the query.
+     */
+    ApiResponse<List<SpecialtyKeywordResponse>> searchService(String query);
 }

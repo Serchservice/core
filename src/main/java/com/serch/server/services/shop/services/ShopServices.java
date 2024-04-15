@@ -5,7 +5,7 @@ import com.serch.server.services.shop.requests.AddShopServiceRequest;
 import com.serch.server.services.shop.requests.CreateShopRequest;
 import com.serch.server.services.shop.requests.RemoveShopServiceRequest;
 import com.serch.server.services.shop.requests.UpdateShopRequest;
-//import com.serch.server.services.shop.responses.SearchShopResponse;
+import com.serch.server.services.shop.responses.SearchShopResponse;
 import com.serch.server.services.shop.responses.ShopResponse;
 
 import java.util.List;
@@ -76,4 +76,17 @@ public interface ShopServices {
      * @return A response indicating the success or failure of the operation.
      */
     ApiResponse<String> markAllClosed();
+
+    /**
+     * Searches for shops based on a query or category within a specified radius.
+     *
+     * @param query The search query, which can be a service name or null.
+     * @param category The category of the shop.
+     * @param longitude The longitude of the user's location.
+     * @param latitude The latitude of the user's location.
+     * @param radius The search radius in kilometers.
+     * @return An {@link ApiResponse} containing a list of {@link SearchShopResponse} objects
+     *         filtered by the query or category.
+     */
+    ApiResponse<List<SearchShopResponse>> drive(String query, String category, Double longitude, Double latitude, Double radius);
 }

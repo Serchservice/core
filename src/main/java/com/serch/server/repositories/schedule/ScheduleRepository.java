@@ -1,5 +1,6 @@
 package com.serch.server.repositories.schedule;
 
+import com.serch.server.enums.schedule.ScheduleStatus;
 import com.serch.server.models.schedule.Schedule;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -26,4 +27,6 @@ public interface ScheduleRepository extends JpaRepository<Schedule, String> {
             " order by s.updatedAt desc"
     )
     List<Schedule> schedules(UUID user);
+    List<Schedule> findByCreatedAtBetween(LocalDateTime createdAt, LocalDateTime createdAt2);
+    List<Schedule> findByStatusAndCreatedAtBefore(@NonNull ScheduleStatus status, @NonNull LocalDateTime createdAt);
 }

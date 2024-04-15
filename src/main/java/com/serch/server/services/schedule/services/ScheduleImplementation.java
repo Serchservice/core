@@ -205,6 +205,7 @@ public class ScheduleImplementation implements ScheduleService {
         if(schedule.getProvider().isSameAs(userUtil.getUser().getId()) || schedule.getUser().isSameAs(userUtil.getUser().getId())) {
             long diff = getDiff(schedule);
             schedule.setClosedAt(TimeUtil.formatTimeDifference(diff));
+            schedule.setStatus(ScheduleStatus.ATTENDED);
         }
         return null;
     }
@@ -318,5 +319,30 @@ public class ScheduleImplementation implements ScheduleService {
             }
             return scheduled.equals(currentTime);
         });
+    }
+
+    @Override
+    public void notifySchedules() {
+        LocalDate today = LocalDate.now();
+        scheduleRepository.findByCreatedAtBetween(today.atStartOfDay(), today.atTime(23, 59, 59))
+                .forEach(schedule -> {
+                    LocalTime currentTime = LocalTime.now();
+                    LocalTime time = LocalTime.parse(schedule.getTime(), DateTimeFormatter.ofPattern("h:mma"));
+                    if(time.equals(currentTime)) {
+                        /// TODO:: Send notification to both scheduler and scheduled
+                    }
+                });
+    }
+
+    @Override
+    public void closePastUnaccepted() {
+        LocalDateTime current = LocalDateTime.now();
+        scheduleRepository.findByStatusAndCreatedAtBefore(ScheduleStatus.PENDING, current)
+                .forEach(schedule -> {
+                    schedule.setStatus(ScheduleStatus.UNATTENDED);
+                    schedule.setUpdatedAt(current);
+                    schedule.setClosedAt(TimeUtil.formatTimeDifference(getDiff(schedule)));
+                    scheduleRepository.save(schedule);
+                });
     }
 }

@@ -14,6 +14,7 @@ import lombok.Getter;
  *     <li>{@link ScheduleStatus#CLOSED} - Represents a closed schedule</li>
  *     <li>{@link ScheduleStatus#ATTENDED} - Represents an attended schedule</li>
  *     <li>{@link ScheduleStatus#CANCELLED} - Represents a cancelled schedule</li>
+ *     <li>{@link ScheduleStatus#UNATTENDED} - Represents an unattended schedule closed by Serch</li>
  * </ul>
  */
 @Getter
@@ -23,7 +24,8 @@ public enum ScheduleStatus {
     DECLINED("Declined"),
     CLOSED("Closed"),
     ATTENDED("Attended"),
-    CANCELLED("Cancelled");
+    CANCELLED("Cancelled"),
+    UNATTENDED("Unattended");
     private final String type;
 
     ScheduleStatus(String type) {

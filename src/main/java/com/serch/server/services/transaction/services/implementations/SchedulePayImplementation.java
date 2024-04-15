@@ -74,8 +74,8 @@ public class SchedulePayImplementation implements SchedulePayService {
 
                         request.setUser(
                                 pay.getSchedule().getUser().isSameAs(pay.getSchedule().getClosedBy())
-                                        ? pay.getSchedule().getProvider().getSerchId()
-                                        : pay.getSchedule().getUser().getSerchId()
+                                        ? pay.getSchedule().getProvider().getId()
+                                        : pay.getSchedule().getUser().getId()
                         );
                         request.setType(TransactionType.FUNDING);
                         walletUtil.updateBalance(request);

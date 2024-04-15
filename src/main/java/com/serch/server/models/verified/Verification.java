@@ -45,7 +45,7 @@ import java.util.UUID;
 public class Verification extends BaseDateTime {
     @Id
     @Column(name = "serch_id", nullable = false)
-    private UUID serchId;
+    private UUID id;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(

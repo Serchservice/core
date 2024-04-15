@@ -15,9 +15,7 @@ public class SearchShopResponse {
     private SerchCategory category;
     private ShopStatus status;
     private Double rating;
-
-    @JsonProperty("shop_id")
-    private UUID serchId;
+    private UUID id;
 
     @JsonProperty("place_id")
     private String placeId;

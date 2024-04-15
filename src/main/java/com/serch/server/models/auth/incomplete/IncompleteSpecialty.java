@@ -1,7 +1,7 @@
 package com.serch.server.models.auth.incomplete;
 
 import com.serch.server.bases.BaseModel;
-import com.serch.server.models.company.SpecialtyService;
+import com.serch.server.models.company.SpecialtyKeyword;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,7 +13,7 @@ import lombok.ToString;
  * <p></p>
  * Relationships:
  * <ul>
- *     <li>{@link SpecialtyService} - The specialty service associated with the incomplete specialty.</li>
+ *     <li>{@link SpecialtyKeyword} - The specialty service associated with the incomplete specialty.</li>
  *     <li>{@link Incomplete} - The incomplete object associated with the incomplete specialty.</li>
  * </ul>
  * Annotations:
@@ -37,7 +37,7 @@ public class IncompleteSpecialty extends BaseModel {
             foreignKey = @ForeignKey(name = "special_service_id_fkey")
     )
     @ToString.Exclude
-    private SpecialtyService service;
+    private SpecialtyKeyword service;
 
     @ManyToOne(cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     @JoinColumn(

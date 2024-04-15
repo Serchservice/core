@@ -10,11 +10,11 @@ import java.util.List;
 import java.util.UUID;
 
 public interface CallRepository extends JpaRepository<Call, String> {
-    @Query("SELECT c from calls c where (c.called.serchId = :userId OR c.caller.serchId = :userId)" +
+    @Query("SELECT c from calls c where (c.called.id = :userId OR c.caller.id = :userId)" +
             "order by c.createdAt desc"
     )
-    List<Call> findBySerchId(@Param("userId") UUID userId);
-    @Query("SELECT c from calls c where (c.called.serchId = :userId OR c.caller.serchId = :userId) and " +
+    List<Call> findByUserId(@Param("userId") UUID userId);
+    @Query("SELECT c from calls c where (c.called.id = :userId OR c.caller.id = :userId) and " +
             "(c.status = :status or c.status = :stats or c.status = :stat)")
     Call findActiveCall(UUID userId, CallStatus status, CallStatus stats, CallStatus stat);
 }

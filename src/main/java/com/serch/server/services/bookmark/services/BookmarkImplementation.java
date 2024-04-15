@@ -37,8 +37,8 @@ public class BookmarkImplementation implements BookmarkService {
                 .orElseThrow(() -> new BookmarkException("User profile not found"));
         Profile provider = profileRepository.findById(request.getUser())
                 .orElseThrow(() -> new BookmarkException("Provider profile not found"));
-        Optional<Bookmark> existing = bookmarkRepository.findByUser_SerchIdAndProvider_SerchId(
-                userUtil.getUser().getId(), provider.getSerchId()
+        Optional<Bookmark> existing = bookmarkRepository.findByUser_IdAndProvider_Id(
+                userUtil.getUser().getId(), provider.getId()
         );
 
         if(existing.isPresent()) {
@@ -54,7 +54,7 @@ public class BookmarkImplementation implements BookmarkService {
 
     @Override
     public ApiResponse<String> remove(String bookmarkId) {
-        bookmarkRepository.findByBookmarkIdAndUser_SerchId(bookmarkId, userUtil.getUser().getId())
+        bookmarkRepository.findByBookmarkIdAndUser_Id(bookmarkId, userUtil.getUser().getId())
                 .ifPresentOrElse(
                         bookmarkRepository::delete,
                         () -> {
@@ -65,36 +65,36 @@ public class BookmarkImplementation implements BookmarkService {
 
     @Override
     public ApiResponse<List<BookmarkResponse>> bookmarks() {
-        List<BookmarkResponse> list = bookmarkRepository.findBySerchId(userUtil.getUser().getId())
+        List<BookmarkResponse> list = bookmarkRepository.findByUserId(userUtil.getUser().getId())
                 .stream()
                 .sorted(Comparator.comparing(Bookmark::getCreatedAt))
                 .map(bookmark -> {
                     BookmarkResponse response = new BookmarkResponse();
                     response.setId(bookmark.getBookmarkId());
                     response.setCategory(
-                            userUtil.getUser().isUser(bookmark.getUser().getSerchId())
+                            userUtil.getUser().isUser(bookmark.getUser().getId())
                                     ? bookmark.getProvider().getCategory().getType()
                                     : bookmark.getUser().getCategory().getType()
                     );
                     response.setName(
-                            userUtil.getUser().isUser(bookmark.getUser().getSerchId())
+                            userUtil.getUser().isUser(bookmark.getUser().getId())
                                     ? bookmark.getProvider().getFullName()
                                     : bookmark.getUser().getFullName()
                     );
                     response.setAvatar(
-                            userUtil.getUser().isUser(bookmark.getUser().getSerchId())
+                            userUtil.getUser().isUser(bookmark.getUser().getId())
                                     ? bookmark.getProvider().getAvatar()
                                     : bookmark.getUser().getAvatar()
                     );
                     response.setRating(
-                            userUtil.getUser().isUser(bookmark.getUser().getSerchId())
+                            userUtil.getUser().isUser(bookmark.getUser().getId())
                                     ? bookmark.getProvider().getRating()
                                     : bookmark.getUser().getRating()
                     );
-                    response.setLastSeen(
-                            userUtil.getUser().isUser(bookmark.getUser().getSerchId())
-                                    ? TimeUtil.formatLastSeen(bookmark.getProvider().getUser().getLastSeen())
-                                    : TimeUtil.formatLastSeen(bookmark.getUser().getUser().getLastSeen())
+                    response.setLastSignedIn(
+                            userUtil.getUser().isUser(bookmark.getUser().getId())
+                                    ? TimeUtil.formatLastSignedIn(bookmark.getProvider().getUser().getLastSignedIn())
+                                    : TimeUtil.formatLastSignedIn(bookmark.getUser().getUser().getLastSignedIn())
                     );
                     return response;
                 })

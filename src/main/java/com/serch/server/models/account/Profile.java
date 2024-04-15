@@ -7,8 +7,6 @@ import com.serch.server.enums.auth.Role;
 import com.serch.server.models.certificate.Certificate;
 import com.serch.server.models.verified.Verification;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,21 +26,6 @@ public class Profile extends BaseProfile {
     @SerchEnum(message = "SerchCategory must be an enum")
     @Enumerated(value = EnumType.STRING)
     private SerchCategory category;
-
-    @Column(name = "first_name", nullable = false, columnDefinition = "TEXT")
-    @Size(min = 3, message = "First name must be above 3 characters")
-    @NotBlank(message = "First name cannot be empty or null")
-    private String firstName;
-
-    @Column(name = "last_name", nullable = false, columnDefinition = "TEXT")
-    @Size(min = 3, message = "Last name must be above 3 characters")
-    @NotBlank(message = "Last name cannot be empty or null")
-    private String lastName;
-
-    @Column(name = "gender", nullable = false, columnDefinition = "TEXT")
-    @Size(min = 3, message = "Gender must be above 3 characters")
-    @NotBlank(message = "Gender cannot be empty or null")
-    private String gender;
 
     @OneToOne(mappedBy = "profile")
     private Certificate certificate;
@@ -66,11 +49,15 @@ public class Profile extends BaseProfile {
     }
 
     public boolean belongsToBusiness(UUID serchId) {
-        return getBusiness() != null && getBusiness().getSerchId() == serchId
+        return getBusiness() != null && getBusiness().getId() == serchId
                 && getUser().getRole() == Role.ASSOCIATE_PROVIDER;
     }
 
+    public boolean isAssociate() {
+        return getBusiness() != null && getUser().getRole() == Role.ASSOCIATE_PROVIDER;
+    }
+
     public boolean isSameAs(UUID user) {
-        return getSerchId() != null && getSerchId() == user;
+        return getId() != null && getId() == user;
     }
 }

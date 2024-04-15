@@ -59,6 +59,7 @@ public class UserAuthImplementation implements UserAuthService {
     public ApiResponse<AuthResponse> login(RequestLogin request) {
         var user = userRepository.findByEmailAddressIgnoreCase(request.getEmailAddress())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        user.check();
         if(user.getRole() == Role.USER) {
             return authService.authenticate(request, user);
         } else {
@@ -90,7 +91,7 @@ public class UserAuthImplementation implements UserAuthService {
     private ApiResponse<AuthResponse> getSignupAuthResponse(RequestProfile request, Incomplete incomplete) {
         User referral = null;
         if(request.getReferral() != null && !request.getReferral().isEmpty()) {
-            referral = referralService.verifyReferralCode(request.getReferral());
+            referral = referralService.verifyCode(request.getReferral());
         }
 
         if(HelperUtil.validatePassword(request.getPassword())) {

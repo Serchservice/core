@@ -125,8 +125,8 @@ public class VerifySubscription implements VerifySubscriptionService {
             User newUser = authService.getUserFromIncomplete(incomplete, Role.PROVIDER);
             ApiResponse<Profile> response = profileService.createProviderProfile(incomplete, newUser);
             if(response.getStatus().is2xxSuccessful()) {
-                additionalService.saveIncompleteAdditional(incomplete, response);
-                specialtyService.saveIncompleteSpecialties(incomplete, response);
+                additionalService.saveIncompleteAdditional(incomplete, response.getData());
+                specialtyService.saveIncompleteSpecialties(incomplete, response.getData());
                 createSubscription(request, newUser, data);
                 incompleteRepository.delete(incomplete);
                 return new ApiResponse<>("Success", HttpStatus.OK);
@@ -206,8 +206,8 @@ public class VerifySubscription implements VerifySubscriptionService {
             User newUser = authService.getUserFromIncomplete(incomplete, Role.PROVIDER);
             ApiResponse<Profile> response = profileService.createProviderProfile(incomplete, newUser);
             if(response.getStatus().is2xxSuccessful()) {
-                additionalService.saveIncompleteAdditional(incomplete, response);
-                specialtyService.saveIncompleteSpecialties(incomplete, response);
+                additionalService.saveIncompleteAdditional(incomplete, response.getData());
+                specialtyService.saveIncompleteSpecialties(incomplete, response.getData());
                 createSubscription(request, newUser);
                 incompleteRepository.delete(incomplete);
                 return new ApiResponse<>("Success", HttpStatus.OK);

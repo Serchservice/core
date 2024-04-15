@@ -11,19 +11,19 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ScheduleRepository extends JpaRepository<Schedule, String> {
-    List<Schedule> findByProvider_SerchIdAndCreatedAtBetween(
+    List<Schedule> findByProvider_IdAndCreatedAtBetween(
             UUID serchId,
             LocalDateTime localDateTime,
             LocalDateTime localDateTime1
     );
     List<Schedule> findByClosedByAndClosedOnTime(UUID closedBy, Boolean closedOnTime);
-    @Query("SELECT s from Schedule s where (s.user.serchId = :userId OR s.provider.serchId = :userId" +
-            " or s.provider.business.serchId = :userId)" +
+    @Query("SELECT s from Schedule s where (s.user.id = :userId OR s.provider.id = :userId" +
+            " or s.provider.business.id = :userId)" +
             "and s.createdAt >= CURRENT_DATE order by s.updatedAt desc"
     )
     List<Schedule> today(UUID user);
-    @Query("SELECT s from Schedule s where (s.user.serchId = :userId OR s.provider.serchId = :userId" +
-            " or s.provider.business.serchId = :userId)" +
+    @Query("SELECT s from Schedule s where (s.user.id = :userId OR s.provider.id = :userId" +
+            " or s.provider.business.id = :userId)" +
             " order by s.updatedAt desc"
     )
     List<Schedule> schedules(UUID user);

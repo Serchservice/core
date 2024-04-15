@@ -18,7 +18,7 @@ import java.util.List;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/account/subscription")
+@RequestMapping("/subscription")
 public class SubscriptionController {
     private final SubscriptionService service;
 

@@ -9,6 +9,5 @@ import java.util.UUID;
 
 public interface BusinessProfileRepository extends JpaRepository<BusinessProfile, UUID> {
     Optional<BusinessProfile> findByReferralCodeIgnoreCase(@NonNull String referralCode);
-
-    Optional<BusinessProfile> findByUser_Id(@NonNull UUID id);
+    Optional<BusinessProfile> findByReferLink(String referLink);
 }

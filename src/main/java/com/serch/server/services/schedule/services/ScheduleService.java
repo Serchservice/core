@@ -104,4 +104,15 @@ public interface ScheduleService {
      * @see ScheduleTimeResponse
      */
     ApiResponse<List<ScheduleTimeResponse>> times(UUID id);
+
+    /**
+     * Checks for schedules that have reached its scheduled time and send notification
+     * to the device.
+     */
+    void notifySchedules();
+    /**
+     * Checks for schedules that have passed the day it was created and closes it if it was not
+     * accepted or attended to.
+     */
+    void closePastUnaccepted();
 }

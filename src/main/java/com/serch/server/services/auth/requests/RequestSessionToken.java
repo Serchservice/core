@@ -12,12 +12,10 @@ import java.util.UUID;
 @Setter
 public class RequestSessionToken {
     private String role;
+    private UUID id;
 
     @JsonProperty("email_address")
     private String emailAddress;
-
-    @JsonProperty("serch_id")
-    private UUID serchId;
 
     @JsonProperty("session_id")
     private UUID sessionId;

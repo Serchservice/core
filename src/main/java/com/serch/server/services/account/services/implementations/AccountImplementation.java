@@ -75,13 +75,13 @@ public class AccountImplementation implements AccountService {
             User user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                             .orElseThrow(() -> new AccountException("User not found"));
 
-            List<Trip> trips = tripRepository.findBySerchId(user.getId());
+            List<Trip> trips = tripRepository.findByUserId(user.getId());
             if(trips.stream().anyMatch(trip ->
                     trip.getStatus() == TripConnectionStatus.ACCEPTED || trip.getStatus() == TripConnectionStatus.ON_TRIP
             )) {
                 throw new SharedException("Can't switch account when you are on a trip");
             } else {
-                List<Call> calls = callRepository.findBySerchId(user.getId());
+                List<Call> calls = callRepository.findByUserId(user.getId());
                 if(calls.stream().anyMatch(call ->
                         call.getStatus() == CallStatus.ON_CALL || call.getStatus() == CallStatus.RINGING
                                 || call.getStatus() == CallStatus.CALLING

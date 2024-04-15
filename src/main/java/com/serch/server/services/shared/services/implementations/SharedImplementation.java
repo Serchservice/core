@@ -53,7 +53,7 @@ public class SharedImplementation implements SharedService {
 
     @Override
     public ApiResponse<List<GuestResponse>> links() {
-        List<GuestResponse> list = sharedLinkRepository.findByUser_SerchIdOrProvider_SerchId(util.getUser().getId())
+        List<GuestResponse> list = sharedLinkRepository.findByUserId(util.getUser().getId())
                 .stream()
                 .sorted(Comparator.comparing(SharedLink::getUpdatedAt))
                 .map(link -> {

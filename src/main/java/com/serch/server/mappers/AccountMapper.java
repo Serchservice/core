@@ -8,6 +8,7 @@ import com.serch.server.models.auth.incomplete.IncompletePhoneInformation;
 import com.serch.server.models.auth.incomplete.IncompleteProfile;
 import com.serch.server.services.account.requests.AddAssociateRequest;
 import com.serch.server.services.account.responses.AdditionalInformationResponse;
+import com.serch.server.services.account.responses.BusinessInformationData;
 import com.serch.server.services.account.responses.BusinessProfileResponse;
 import com.serch.server.services.account.responses.ProfileResponse;
 import com.serch.server.services.auth.requests.RequestPhoneInformation;
@@ -26,19 +27,28 @@ public interface AccountMapper {
     Profile profile(RequestProfile profile);
     BusinessProfile profile(IncompleteProfile profile);
     PhoneInformation phoneInformation(RequestPhoneInformation phoneInformation);
+    RequestPhoneInformation phoneInformation(PhoneInformation phoneInformation);
     PhoneInformation phoneInformation(IncompletePhoneInformation phoneInformation);
     RequestProviderProfile profile(AddAssociateRequest request);
     AdditionalInformationResponse additional(AdditionalInformation additionalInformation);
     @Mappings({
             @Mapping(target = "certificate", source = "certificate", ignore = true),
-            @Mapping(target = "id", source = "serchId")
+            @Mapping(target = "id", source = "id")
     })
     ProfileResponse profile(Profile profile);
     @Mappings({
-            @Mapping(target = "id", source = "serchId"),
+            @Mapping(target = "id", source = "id"),
             @Mapping(target = "name", source = "businessName"),
             @Mapping(target = "description", source = "businessDescription"),
-            @Mapping(target = "address", source = "businessAddress")
+            @Mapping(target = "address", source = "businessAddress"),
+            @Mapping(target = "logo", source = "avatar")
     })
     BusinessProfileResponse profile(BusinessProfile profile);
+    @Mappings({
+            @Mapping(target = "name", source = "businessName"),
+            @Mapping(target = "description", source = "businessDescription"),
+            @Mapping(target = "address", source = "businessAddress"),
+            @Mapping(target = "logo", source = "avatar")
+    })
+    BusinessInformationData business(BusinessProfile profile);
 }

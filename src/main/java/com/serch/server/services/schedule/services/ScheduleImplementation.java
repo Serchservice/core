@@ -61,8 +61,8 @@ public class ScheduleImplementation implements ScheduleService {
                 .orElseThrow(() -> new ScheduleException("User not found"));
 
         LocalDate today = LocalDate.now();
-        List<Schedule> schedules = scheduleRepository.findByProvider_SerchIdAndCreatedAtBetween(
-                provider.getSerchId(), today.atStartOfDay(),
+        List<Schedule> schedules = scheduleRepository.findByProvider_IdAndCreatedAtBetween(
+                provider.getId(), today.atStartOfDay(),
                 today.atTime(23, 59, 59)
         );
         if(schedules.stream().anyMatch(schedule -> schedule.getTime().equalsIgnoreCase(request.getTime()))) {
@@ -273,7 +273,7 @@ public class ScheduleImplementation implements ScheduleService {
     public ApiResponse<List<ScheduleTimeResponse>> times(UUID id) {
         LocalDate today = LocalDate.now();
         LocalDateTime currentTime = LocalDateTime.now();
-        List<Schedule> schedules = scheduleRepository.findByProvider_SerchIdAndCreatedAtBetween(
+        List<Schedule> schedules = scheduleRepository.findByProvider_IdAndCreatedAtBetween(
                 id, today.atStartOfDay(),
                 today.atTime(23, 59, 59)
         );

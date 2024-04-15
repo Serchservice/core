@@ -34,7 +34,7 @@ public class BaseUser extends BaseDateTime {
      */
     @Id
     @Column(name = "serch_id", nullable = false)
-    private UUID serchId;
+    private UUID id;
 
     /**
      * The reference to the User entity.

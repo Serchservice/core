@@ -6,6 +6,7 @@ import com.serch.server.models.auth.User;
 import com.serch.server.models.auth.incomplete.Incomplete;
 import com.serch.server.services.account.requests.RequestCreateProfile;
 import com.serch.server.services.account.requests.UpdateProfileRequest;
+import com.serch.server.services.account.responses.MoreProfileData;
 import com.serch.server.services.account.responses.ProfileResponse;
 import com.serch.server.services.auth.requests.RequestProfile;
 
@@ -65,6 +66,17 @@ public interface ProfileService {
     ApiResponse<ProfileResponse> profile();
 
     /**
+     * Retrieves the user's profile with the provided ID.
+     *
+     * @param profile The profile of the user/provider
+     * @return An ApiResponse containing the user's profile.
+     *
+     * @see Profile
+     * @see ProfileResponse
+     */
+    ProfileResponse profile(Profile profile);
+
+    /**
      * Updates the user's profile based on the provided request.
      *
      * @param request The request containing updated profile information.
@@ -74,4 +86,23 @@ public interface ProfileService {
      * @see UpdateProfileRequest
      */
     ApiResponse<String> update(UpdateProfileRequest request);
+
+    /**
+     * Update the phone information of the logged-in user.
+     *
+     * @param request The {@link UpdateProfileRequest} for the update
+     * @param user The {@link User} making the update
+     */
+    void updatePhoneInformation(UpdateProfileRequest request, User user);
+
+    /**
+     * This prepares more profile information of the logged-in user
+     *
+     * @param user The {@link User} whose information is being prepared
+     *
+     * @return MoreInformation about the logged-in user
+     *
+     * @see MoreProfileData
+     */
+    MoreProfileData moreInformation(User user);
 }

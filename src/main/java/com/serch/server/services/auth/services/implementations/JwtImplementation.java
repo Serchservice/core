@@ -68,7 +68,7 @@ public class JwtImplementation implements JwtService {
     public String generateToken(RequestSessionToken request) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", request.getRole());
-        claims.put("serch_id", request.getSerchId());
+        claims.put("serch_id", request.getId());
         claims.put("session_id", request.getSessionId());
         claims.put("refresh_id", request.getRefreshId());
 

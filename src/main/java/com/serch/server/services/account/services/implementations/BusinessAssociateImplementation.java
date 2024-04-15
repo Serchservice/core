@@ -100,8 +100,8 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
         Profile provider = profileRepository.findById(id)
                 .orElseThrow(() -> new AccountException("Provider not found"));
 
-        if(provider.belongsToBusiness(business.getSerchId())) {
-            ApiResponse<String> response = deleteService.delete(provider.getSerchId());
+        if(provider.belongsToBusiness(business.getId())) {
+            ApiResponse<String> response = deleteService.delete(provider.getId());
             if(response.getStatus().is2xxSuccessful()) {
                 provider.getUser().setAccountStatus(AccountStatus.BUSINESS_DELETED);
                 provider.getUser().setUpdatedAt(LocalDateTime.now());
@@ -120,7 +120,7 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
         Profile provider = profileRepository.findById(id)
                 .orElseThrow(() -> new AccountException("Provider not found"));
 
-        if(provider.belongsToBusiness(business.getSerchId())) {
+        if(provider.belongsToBusiness(business.getId())) {
             provider.getUser().setAccountStatus(AccountStatus.BUSINESS_DEACTIVATED);
             provider.getUser().setUpdatedAt(LocalDateTime.now());
             userRepository.save(provider.getUser());
@@ -141,7 +141,7 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
         Profile provider = profileRepository.findById(id)
                 .orElseThrow(() -> new AccountException("Provider not found"));
 
-        if(provider.belongsToBusiness(business.getSerchId())) {
+        if(provider.belongsToBusiness(business.getId())) {
             if(provider.getUser().getAccountStatus() == AccountStatus.BUSINESS_DEACTIVATED) {
                 provider.getUser().setAccountStatus(AccountStatus.ACTIVE);
                 provider.getUser().setUpdatedAt(LocalDateTime.now());

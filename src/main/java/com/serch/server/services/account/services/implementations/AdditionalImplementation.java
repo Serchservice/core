@@ -40,7 +40,7 @@ public class AdditionalImplementation implements AdditionalService {
 
     @Override
     public ApiResponse<AdditionalInformationResponse> view() {
-        AdditionalInformation information = additionalInformationRepository.findByProfile_SerchId(userUtil.getUser().getId())
+        AdditionalInformation information = additionalInformationRepository.findByProfile_Id(userUtil.getUser().getId())
                 .orElseThrow(() -> new AccountException("User has no additional profile"));
 
         return new ApiResponse<>(

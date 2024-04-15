@@ -24,6 +24,7 @@ public interface BusinessService {
      *
      * @see Incomplete
      * @see User
+     * @see ApiResponse
      */
     ApiResponse<String> createProfile(Incomplete incomplete, User user);
 
@@ -33,8 +34,19 @@ public interface BusinessService {
      * @return An ApiResponse containing a list of associate profiles.
      *
      * @see ProfileResponse
+     * @see ApiResponse
      */
     ApiResponse<List<ProfileResponse>> associates();
+
+    /**
+     * Retrieves profiles of subscribed associates with the business.
+     *
+     * @return An ApiResponse containing a list of associate profiles.
+     *
+     * @see ProfileResponse
+     * @see ApiResponse
+     */
+    ApiResponse<List<ProfileResponse>> subscribedAssociates();
 
     /**
      * Retrieves the business profile of the logged-in user.

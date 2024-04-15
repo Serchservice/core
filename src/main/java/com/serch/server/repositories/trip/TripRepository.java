@@ -15,8 +15,8 @@ public interface TripRepository extends JpaRepository<Trip, String> {
     )
     List<Trip> findByEmailAddressIgnoreCase(@NonNull String emailAddress);
     @Query("select t from Trip t where " +
-            "t.provider.serchId = ?1 or t.invitedProvider.serchId = ?1 " +
-            "or t.user.serchId = ?1"
+            "t.provider.id = ?1 or t.invitedProvider.id = ?1 " +
+            "or t.user.id = ?1"
     )
-    List<Trip> findBySerchId(@NonNull UUID id);
+    List<Trip> findByUserId(@NonNull UUID id);
 }

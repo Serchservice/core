@@ -59,7 +59,7 @@ public class SpecialtyImplementation implements SpecialtyService {
         SpecialtyKeyword keyword = specialtyKeywordRepository.findById(id)
                 .orElseThrow(() -> new AccountException("Specialty not found"));
 
-        int size = specialtyRepository.findByProfile_SerchId(profile.getSerchId()).size();
+        int size = specialtyRepository.findByProfile_Id(profile.getId()).size();
         if(size < SPECIALTY_LIMIT) {
             Specialty special = new Specialty();
             special.setService(keyword);
@@ -78,7 +78,7 @@ public class SpecialtyImplementation implements SpecialtyService {
 
     @Override
     public ApiResponse<String> delete(Long id) {
-        specialtyRepository.findByIdAndProfile_SerchId(id, userUtil.getUser().getId())
+        specialtyRepository.findByIdAndProfile_Id(id, userUtil.getUser().getId())
                 .ifPresentOrElse(specialtyRepository::delete, () -> {
                     throw new AccountException("An error occurred while performing action");
                 });

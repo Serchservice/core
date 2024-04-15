@@ -7,5 +7,5 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface AdditionalInformationRepository extends JpaRepository<AdditionalInformation, Long> {
-    Optional<AdditionalInformation> findByProfile_SerchId(UUID serchId);
+    Optional<AdditionalInformation> findByProfile_Id(UUID serchId);
 }

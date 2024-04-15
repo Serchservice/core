@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface SpecialtyRepository extends JpaRepository<Specialty, Long> {
-    List<Specialty> findByProfile_SerchId(@NonNull UUID serchId);
-    Optional<Specialty> findByIdAndProfile_SerchId(@NonNull Long id, @NonNull UUID serchId);
+    List<Specialty> findByProfile_Id(@NonNull UUID serchId);
+    Optional<Specialty> findByIdAndProfile_Id(@NonNull Long id, @NonNull UUID serchId);
+    List<Specialty> findByProfile_Business_Id(@NonNull UUID id);
 }

@@ -84,7 +84,7 @@ public class RatingImplementation implements RatingService {
             Call call = callRepository.findById(request.getId())
                     .orElseThrow(() -> new RatingException("Call not found"));
             rating.setT2f(call.getChannel());
-            rated = String.valueOf(call.getCalled().getSerchId());
+            rated = String.valueOf(call.getCalled().getId());
         } else {
             rated = callRepository.findById(request.getId())
                     .map(Call::getChannel)
@@ -143,28 +143,28 @@ public class RatingImplementation implements RatingService {
         if(request.getGuest() == null || request.getGuest().isEmpty()) {
             if(trip.getUser().isSameAs(userUtil.getUser().getId())) {
                 if(trip.getInvitedProvider() != null && request.getIsInvited()) {
-                    return String.valueOf(trip.getInvitedProvider().getSerchId());
+                    return String.valueOf(trip.getInvitedProvider().getId());
                 } else {
-                    return String.valueOf(trip.getProvider().getSerchId());
+                    return String.valueOf(trip.getProvider().getId());
                 }
             } else if(trip.getProvider().isSameAs(userUtil.getUser().getId())) {
                 if(trip.getInvitedProvider() != null && request.getIsInvited()) {
-                    return String.valueOf(trip.getInvitedProvider().getSerchId());
+                    return String.valueOf(trip.getInvitedProvider().getId());
                 } else {
-                    return String.valueOf(trip.getUser().getSerchId());
+                    return String.valueOf(trip.getUser().getId());
                 }
             } else {
                 if(trip.getInvitedProvider() != null && request.getIsInvited()) {
-                    return String.valueOf(trip.getProvider().getSerchId());
+                    return String.valueOf(trip.getProvider().getId());
                 } else {
-                    return String.valueOf(trip.getUser().getSerchId());
+                    return String.valueOf(trip.getUser().getId());
                 }
             }
         } else {
             if(trip.getInvitedProvider() != null && request.getIsInvited()) {
-                return String.valueOf(trip.getInvitedProvider().getSerchId());
+                return String.valueOf(trip.getInvitedProvider().getId());
             } else {
-                return String.valueOf(trip.getProvider().getSerchId());
+                return String.valueOf(trip.getProvider().getId());
             }
         }
     }

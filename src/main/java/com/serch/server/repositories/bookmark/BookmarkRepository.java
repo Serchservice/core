@@ -10,8 +10,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface BookmarkRepository extends JpaRepository<Bookmark, String> {
-    Optional<Bookmark> findByUser_SerchIdAndProvider_SerchId(@NonNull UUID serchId, @NonNull UUID serchId1);
-    Optional<Bookmark> findByBookmarkIdAndUser_SerchId(@NonNull String bookmarkId, @NonNull UUID serchId);
-    @Query("select b from Bookmark b where b.user.serchId = ?1 or b.provider.serchId = ?1")
-    List<Bookmark> findBySerchId(@NonNull UUID serchId);
+    Optional<Bookmark> findByUser_IdAndProvider_Id(@NonNull UUID serchId, @NonNull UUID serchId1);
+    Optional<Bookmark> findByBookmarkIdAndUser_Id(@NonNull String bookmarkId, @NonNull UUID serchId);
+    @Query("select b from Bookmark b where b.user.id = ?1 or b.provider.id = ?1")
+    List<Bookmark> findByUserId(@NonNull UUID serchId);
 }

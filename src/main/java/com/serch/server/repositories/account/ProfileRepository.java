@@ -9,4 +9,5 @@ import java.util.UUID;
 
 public interface ProfileRepository extends JpaRepository<Profile, UUID> {
     Optional<Profile> findByReferralCodeIgnoreCase(@NonNull String referralCode);
+    Optional<Profile> findByReferLink(@NonNull String referLink);
 }

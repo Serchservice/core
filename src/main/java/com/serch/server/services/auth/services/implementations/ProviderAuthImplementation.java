@@ -11,7 +11,6 @@ import com.serch.server.models.auth.User;
 import com.serch.server.models.auth.incomplete.*;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.auth.incomplete.*;
-import com.serch.server.repositories.company.SpecialtyServiceRepository;
 import com.serch.server.services.account.services.ReferralService;
 import com.serch.server.services.auth.requests.*;
 import com.serch.server.services.auth.responses.AuthResponse;
@@ -72,9 +71,8 @@ public class ProviderAuthImplementation implements ProviderAuthService {
     public ApiResponse<AuthResponse> login(RequestLogin request) {
         var user = userRepository.findByEmailAddressIgnoreCase(request.getEmailAddress())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        if(user.isBusinessLocked()) {
-            throw new AuthException("Account is deactivated by your business administrator. Access denied");
-        } else if(user.getRole() == Role.PROVIDER || user.getRole() == Role.ASSOCIATE_PROVIDER) {
+        user.check();
+        if(user.getRole() == Role.PROVIDER || user.getRole() == Role.ASSOCIATE_PROVIDER) {
             return authService.authenticate(request, user);
         } else {
             throw new AuthException(
@@ -126,7 +124,7 @@ public class ProviderAuthImplementation implements ProviderAuthService {
 
     @Override
     public void saveReferral(String code, Incomplete incomplete) {
-        User referredBy = referralService.verifyReferralCode(code);
+        User referredBy = referralService.verifyCode(code);
         IncompleteReferral referral = new IncompleteReferral();
         referral.setIncomplete(incomplete);
         referral.setReferredBy(referredBy);

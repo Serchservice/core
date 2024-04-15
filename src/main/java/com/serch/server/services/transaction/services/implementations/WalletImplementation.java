@@ -108,23 +108,23 @@ public class WalletImplementation implements WalletService {
     private ApiResponse<String> payTip2Fix(PayRequest request) {
         Optional<Call> call = callRepository.findById(request.getEvent());
         if(call.isPresent()) {
-            Optional<Wallet> sender = walletRepository.findByUser_Id(call.get().getCaller().getSerchId());
+            Optional<Wallet> sender = walletRepository.findByUser_Id(call.get().getCaller().getId());
             if(sender.isPresent()) {
                 BalanceUpdateRequest senderUpdate = BalanceUpdateRequest.builder()
                         .type(TransactionType.T2F)
-                        .user(call.get().getCaller().getSerchId())
+                        .user(call.get().getCaller().getId())
                         .amount(BigDecimal.valueOf(TIP2FIX_AMOUNT))
                         .build();
                 BalanceUpdateRequest receiverUpdate = BalanceUpdateRequest.builder()
                         .type(TransactionType.T2F)
-                        .user(call.get().getCalled().getSerchId())
+                        .user(call.get().getCalled().getId())
                         .amount(BigDecimal.valueOf(TIP2FIX_AMOUNT))
                         .build();
 
                 if(call.get().getCalled().getUser().getRole() == Role.ASSOCIATE_PROVIDER) {
-                    Optional<Wallet> wallet = walletRepository.findByUser_Id(call.get().getCalled().getBusiness().getSerchId());
+                    Optional<Wallet> wallet = walletRepository.findByUser_Id(call.get().getCalled().getBusiness().getId());
                     if(wallet.isPresent()) {
-                        receiverUpdate.setUser(call.get().getCalled().getBusiness().getSerchId());
+                        receiverUpdate.setUser(call.get().getCalled().getBusiness().getId());
                         Transaction transaction = processTip2Fix(
                                 sender.get(), call.get(), senderUpdate,
                                 receiverUpdate, wallet.get()
@@ -135,7 +135,7 @@ public class WalletImplementation implements WalletService {
                         return new ApiResponse<>("Recipient not found");
                     }
                 } else {
-                    Optional<Wallet> wallet = walletRepository.findByUser_Id(call.get().getCalled().getSerchId());
+                    Optional<Wallet> wallet = walletRepository.findByUser_Id(call.get().getCalled().getId());
                     if(wallet.isPresent()) {
                         Transaction transaction = processTip2Fix(
                                 sender.get(), call.get(), senderUpdate,

@@ -6,7 +6,6 @@ import com.serch.server.models.subscription.SubscriptionAssociate;
 import com.serch.server.models.verified.Verification;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,21 +20,6 @@ import java.util.List;
 @Entity
 @Table(schema = "account", name = "business_profiles")
 public class BusinessProfile extends BaseProfile {
-    @Column(name = "first_name", nullable = false, columnDefinition = "TEXT")
-    @Size(min = 3, message = "First name must be above 3 characters")
-    @NotBlank(message = "First name cannot be empty or null")
-    private String firstName;
-
-    @Column(name = "last_name", nullable = false, columnDefinition = "TEXT")
-    @Size(min = 3, message = "Last name must be above 3 characters")
-    @NotBlank(message = "Last name cannot be empty or null")
-    private String lastName;
-
-    @Column(name = "gender", nullable = false, columnDefinition = "TEXT")
-    @Size(min = 3, message = "Gender must be above 3 characters")
-    @NotBlank(message = "Gender cannot be empty or null")
-    private String gender;
-
     @Column(name = "business_name", nullable = false, columnDefinition = "TEXT")
     @NotBlank(message = "Business name cannot be empty or null")
     private String businessName;

@@ -48,7 +48,7 @@ public class CallImplementation implements CallService {
     private Integer TIP2FIX_AMOUNT;
 
     private boolean userIsOnCall(UUID id) {
-        return callRepository.findBySerchId(id).stream().anyMatch(call ->
+        return callRepository.findByUserId(id).stream().anyMatch(call ->
                 call.getStatus() == CallStatus.CALLING || call.getStatus() == CallStatus.ON_CALL
                 || call.getStatus() == CallStatus.RINGING
         );
@@ -61,7 +61,7 @@ public class CallImplementation implements CallService {
         Profile called = profileRepository.findById(request.getUser())
                 .orElseThrow(() -> new CallException("User not found"));
 
-        if(userIsOnCall(caller.getSerchId())) {
+        if(userIsOnCall(caller.getId())) {
             throw new CallException("Call cannot be placed when you are on another");
         } else if(userIsOnCall(request.getUser())) {
             throw new CallException(
@@ -73,7 +73,7 @@ public class CallImplementation implements CallService {
             } else if(request.getType() == CallType.T2F && !walletUtil.isBalanceSufficient(
                     BalanceUpdateRequest.builder()
                             .amount(BigDecimal.valueOf(TIP2FIX_AMOUNT))
-                            .user(caller.getSerchId())
+                            .user(caller.getId())
                             .type(TransactionType.T2F)
                             .build()
             )) {
@@ -187,9 +187,9 @@ public class CallImplementation implements CallService {
     public ApiResponse<List<CallResponse>> logs() {
         List<CallResponse> list = new ArrayList<>();
 
-        callRepository.findBySerchId(userUtil.getUser().getId())
+        callRepository.findByUserId(userUtil.getUser().getId())
                 .stream()
-                .collect(Collectors.groupingBy(call -> call.getCalled().getSerchId()))
+                .collect(Collectors.groupingBy(call -> call.getCalled().getId()))
                 .forEach((user, calls) -> {
                     CallResponse response = new CallResponse();
 
@@ -220,7 +220,7 @@ public class CallImplementation implements CallService {
 
     private CallMemberData createCallMemberData(Profile profile) {
         CallMemberData memberData = new CallMemberData();
-        memberData.setMember(profile.getSerchId());
+        memberData.setMember(profile.getId());
         memberData.setName(profile.getFullName());
         memberData.setAvatar(profile.getAvatar());
         memberData.setCategory(profile.getCategory());
@@ -235,7 +235,7 @@ public class CallImplementation implements CallService {
         if(CallUtil.getHours(duration) == 1) {
             if(walletUtil.isBalanceSufficient(BalanceUpdateRequest.builder()
                     .amount(BigDecimal.valueOf(TIP2FIX_AMOUNT))
-                    .user(call.getCaller().getSerchId())
+                    .user(call.getCaller().getId())
                     .type(TransactionType.T2F)
                     .build()
             )) {

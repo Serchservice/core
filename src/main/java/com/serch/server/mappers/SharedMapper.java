@@ -21,7 +21,7 @@ public interface SharedMapper {
     SharedMapper INSTANCE = Mappers.getMapper(SharedMapper.class);
 
     SharedLinkData response(SharedLink link);
-    @Mapping(target = "id", source = "serchId")
+    @Mapping(target = "id", source = "id")
     SharedProfileData response(Profile profile);
     @Mapping(target = "avatar", source = "avatar", ignore = true)
     Guest guest(CreateGuestRequest request);

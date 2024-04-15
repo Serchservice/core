@@ -4,6 +4,7 @@ import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.company.IssueStatus;
 import com.serch.server.generators.account.AccountReportID;
+import com.serch.server.models.auth.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -27,21 +28,15 @@ public class AccountReport extends BaseDateTime {
     @SerchEnum(message = "ReportStatus must be an enum")
     private IssueStatus status = IssueStatus.OPENED;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "reporter_id",
-            referencedColumnName = "serch_id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "reporter_id_fkey")
-    )
-    private Profile reporter;
+    @Column(nullable = false)
+    private String account;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
-            name = "reported_id",
+            name = "user_id",
             nullable = false,
-            referencedColumnName = "serch_id",
-            foreignKey = @ForeignKey(name = "reported_id_fkey")
+            referencedColumnName = "id",
+            foreignKey = @ForeignKey(name = "user_id_fkey")
     )
-    private Profile reported;
+    private User user;
 }

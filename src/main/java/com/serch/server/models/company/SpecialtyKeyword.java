@@ -40,7 +40,7 @@ import java.util.List;
 @Setter
 @Entity
 @Table(schema = "company", name = "service_keywords")
-public class SpecialtyService extends BaseModel {
+public class SpecialtyKeyword extends BaseModel {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String keyword;
 

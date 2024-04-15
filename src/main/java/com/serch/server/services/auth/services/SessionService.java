@@ -61,9 +61,9 @@ public interface SessionService {
     ApiResponse<String> validateSession(String token);
 
     /**
-     * Updates the last seen timestamp of the user.
+     * Updates the last signed in timestamp of the user.
      */
-    void updateLastSeen();
+    void updateLastSignedIn();
 
     /**
      * Signs out the user by revoking all sessions and refresh tokens.

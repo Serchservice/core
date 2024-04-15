@@ -127,29 +127,29 @@ public class TimeUtil {
 
     /**
      * Formats the last seen time based on the provided last seen date and time.
-     * @param lastSeenDateTime The date and time when the user was last seen.
-     * @return The formatted last seen time.
+     * @param lastSignedIn The date and time when the user was last seen.
+     * @return The formatted last signed in time.
      */
-    public static String formatLastSeen(LocalDateTime lastSeenDateTime) {
-        Duration duration = Duration.between(lastSeenDateTime, LocalDateTime.now());
+    public static String formatLastSignedIn(LocalDateTime lastSignedIn) {
+        Duration duration = Duration.between(lastSignedIn, LocalDateTime.now());
 
         if (duration.toDays() > 0) {
             if (duration.toDays() == 1) {
-                return "Last Seen: 1 day ago";
+                return "Last Signed In: 1 day ago";
             } else {
-                return "Last Seen: " + duration.toDays() + " days ago";
+                return "Last Signed In: " + duration.toDays() + " days ago";
             }
         } else if (duration.toHours() > 0) {
             if (duration.toHours() == 1) {
-                return "Last Seen: 1 hour ago";
+                return "Last Signed In: 1 hour ago";
             } else {
-                return "Last Seen: " + duration.toHours() + " hours ago";
+                return "Last Signed In: " + duration.toHours() + " hours ago";
             }
         } else if (duration.toMinutes() > 0) {
             if (duration.toMinutes() == 1) {
-                return "Last Seen: 1 minute ago";
+                return "Last Signed In: 1 minute ago";
             } else {
-                return "Last Seen: " + duration.toMinutes() + " minutes ago";
+                return "Last Signed In: " + duration.toMinutes() + " minutes ago";
             }
         } else {
             return "Online";

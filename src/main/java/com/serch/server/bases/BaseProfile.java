@@ -5,14 +5,13 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.validator.constraints.URL;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.LocalDateTime;
 
 /**
  * The BaseProfile class serves as a base entity for user profiles in the system,
@@ -35,6 +34,30 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 public class BaseProfile extends BaseUser {
+    /**
+     * The first name associated with the profile.
+     */
+    @Column(name = "first_name", nullable = false, columnDefinition = "TEXT")
+    @Size(min = 3, message = "First name must be above 3 characters")
+    @NotBlank(message = "First name cannot be empty or null")
+    private String firstName;
+
+    /**
+     * The last name associated with the profile.
+     */
+    @Column(name = "last_name", nullable = false, columnDefinition = "TEXT")
+    @Size(min = 3, message = "Last name must be above 3 characters")
+    @NotBlank(message = "Last name cannot be empty or null")
+    private String lastName;
+
+    /**
+     * The gender associated with the profile.
+     */
+    @Column(name = "gender", nullable = false, columnDefinition = "TEXT")
+    @Size(min = 3, message = "Gender must be above 3 characters")
+    @NotBlank(message = "Gender cannot be empty or null")
+    private String gender;
+
     /**
      * The email address associated with the profile.
      */
@@ -67,24 +90,6 @@ public class BaseProfile extends BaseUser {
      */
     @Column(name = "rating", nullable = false)
     private Double rating = 5.0;
-
-    /**
-     * The total number of ratings received by the profile, default is 0.
-     */
-    @Column(name = "number_of_ratings", nullable = false)
-    private Integer numberOfRating = 0;
-
-    /**
-     * The total number of service trips associated with the profile, default is 0.
-     */
-    @Column(name = "all_service_trips", nullable = false)
-    private Integer totalServiceTrips = 0;
-
-    /**
-     * The total number of shared trips associated with the profile, default is 0.
-     */
-    @Column(name = "all_shared_trips", nullable = false)
-    private Integer totalShared = 0;
 
     /**
      * The FCM (Firebase Cloud Messaging) token associated with the profile.

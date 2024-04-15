@@ -112,7 +112,7 @@ public class SessionImplementation implements SessionService {
         sessionToken.setSessionId(session.getId());
         sessionToken.setRole(request.getUser().getRole().name());
         sessionToken.setEmailAddress(request.getUser().getEmailAddress());
-        sessionToken.setSerchId(request.getUser().getId());
+        sessionToken.setId(request.getUser().getId());
         sessionToken.setRefreshId(refreshToken.getId());
 
         String accessToken = jwtService.generateToken(sessionToken);
@@ -153,7 +153,7 @@ public class SessionImplementation implements SessionService {
                 sessionToken.setSessionId(session.getId());
                 sessionToken.setRole(user.getRole().name());
                 sessionToken.setEmailAddress(user.getEmailAddress());
-                sessionToken.setSerchId(user.getId());
+                sessionToken.setId(user.getId());
                 sessionToken.setRefreshId(newRefreshToken.getId());
 
                 String newAccessToken = jwtService.generateToken(sessionToken);
@@ -223,9 +223,9 @@ public class SessionImplementation implements SessionService {
     }
 
     @Override
-    public void updateLastSeen() {
+    public void updateLastSignedIn() {
         userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser()).ifPresent(user -> {
-            user.setLastSeen(LocalDateTime.now());
+            user.setLastSignedIn(LocalDateTime.now());
             userRepository.save(user);
         });
     }

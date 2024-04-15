@@ -6,8 +6,8 @@ import lombok.Data;
 
 @Data
 public class SwitchRequest {
+    private String to;
     private String active;
-    private String id;
 
     @JsonProperty("link_id")
     private String linkId;

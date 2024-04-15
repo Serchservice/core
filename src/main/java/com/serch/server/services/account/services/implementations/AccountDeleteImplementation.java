@@ -19,6 +19,15 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Service implementation for deleting user accounts.
+ * It implements the wrapper class {@link AccountDeleteService}
+ *
+ * @see UserUtil
+ * @see AccountDeleteRepository
+ * @see ProfileRepository
+ * @see UserRepository
+ */
 @Service
 @RequiredArgsConstructor
 public class AccountDeleteImplementation implements AccountDeleteService {

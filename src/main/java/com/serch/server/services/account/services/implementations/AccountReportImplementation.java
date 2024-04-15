@@ -21,6 +21,14 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+/**
+ * Service implementation for reporting user accounts or shops.
+ * It implements its wrapper class {@link AccountReportService}
+ *
+ * @see UserUtil
+ * @see UserRepository
+ * @see AccountReportRepository
+ */
 @Service
 @RequiredArgsConstructor
 public class AccountReportImplementation implements AccountReportService {

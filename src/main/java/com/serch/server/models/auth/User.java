@@ -238,7 +238,7 @@ public class User extends BaseEntity implements UserDetails {
             throw new LockedException(
                     "This account has been deleted. Let your business admin contact support for more."
             );
-        } else if(accountStatus == AccountStatus.BUSINESS_DEACTIVATED) {
+        } else if(isBusinessLocked()) {
             throw new DisabledException(
                     "This account is locked by your business administrator. Contact your business admin"
             );

@@ -72,9 +72,8 @@ public class ProviderAuthImplementation implements ProviderAuthService {
     public ApiResponse<AuthResponse> login(RequestLogin request) {
         var user = userRepository.findByEmailAddressIgnoreCase(request.getEmailAddress())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        if(user.isBusinessLocked()) {
-            throw new AuthException("Account is deactivated by your business administrator. Access denied");
-        } else if(user.getRole() == Role.PROVIDER || user.getRole() == Role.ASSOCIATE_PROVIDER) {
+        user.check();
+        if(user.getRole() == Role.PROVIDER || user.getRole() == Role.ASSOCIATE_PROVIDER) {
             return authService.authenticate(request, user);
         } else {
             throw new AuthException(

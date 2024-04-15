@@ -13,9 +13,10 @@ import com.serch.server.services.account.requests.AccountReportRequest;
  */
 public interface AccountReportService {
     /**
-     * @param request
+     * Reports a user account or a shop based on the provided request.
      *
-     * @return
+     * @param request The AccountReportRequest containing the report details.
+     * @return ApiResponse indicating the status of the report.
      */
     ApiResponse<String> report(AccountReportRequest request);
 }

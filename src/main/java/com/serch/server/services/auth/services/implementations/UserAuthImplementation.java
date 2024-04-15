@@ -59,6 +59,7 @@ public class UserAuthImplementation implements UserAuthService {
     public ApiResponse<AuthResponse> login(RequestLogin request) {
         var user = userRepository.findByEmailAddressIgnoreCase(request.getEmailAddress())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        user.check();
         if(user.getRole() == Role.USER) {
             return authService.authenticate(request, user);
         } else {

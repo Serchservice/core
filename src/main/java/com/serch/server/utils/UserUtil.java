@@ -9,11 +9,18 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+/**
+ * The UserUtil class provides utility methods related to user authentication and retrieval.
+ */
 @Service
 @RequiredArgsConstructor
 public class UserUtil {
     private final UserRepository userRepository;
 
+    /**
+     * Retrieves the username of the currently logged-in user.
+     * @return The username of the logged-in user.
+     */
     public static String getLoginUser (){
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
@@ -24,6 +31,11 @@ public class UserUtil {
         }
     }
 
+    /**
+     * Retrieves the user entity corresponding to the currently logged-in user.
+     * @return The user entity.
+     * @throws AuthException If the user is not found.
+     */
     public User getUser() {
         return userRepository.findByEmailAddressIgnoreCase(getLoginUser())
                 .orElseThrow(() -> new AuthException("User not found", ExceptionCodes.USER_NOT_FOUND));

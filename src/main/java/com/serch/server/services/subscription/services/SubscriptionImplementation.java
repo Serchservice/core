@@ -26,6 +26,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * This is the class that holds the logic and implementation for its wrapper class.
+ *
+ * @see SubscriptionService
+ */
 @Service
 @RequiredArgsConstructor
 public class SubscriptionImplementation implements SubscriptionService {
@@ -94,12 +99,22 @@ public class SubscriptionImplementation implements SubscriptionService {
         return subscription.getPlan().getAmount();
     }
 
+    /**
+     * Retrieves the duration of the subscription.
+     * @param subscription The subscription for which to retrieve the duration.
+     * @return The duration of the subscription.
+     */
     private static String getDuration(Subscription subscription) {
         return subscription.getChild() != null
                 ? subscription.getChild().getName()
                 : subscription.getPlan().getDuration();
     }
 
+    /**
+     * Retrieves the child type of the subscription.
+     * @param subscription The subscription for which to retrieve the child type.
+     * @return The child type of the subscription.
+     */
     private static String getChild(Subscription subscription) {
         return subscription.getChild() != null
                 ? subscription.getChild().getType().getType()

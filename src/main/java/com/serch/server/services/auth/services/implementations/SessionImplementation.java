@@ -27,6 +27,16 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * Service responsible for managing user sessions.
+ * It implements its wrapper class {@link SessionService}
+ *
+ * @see SessionRepository
+ * @see JwtService
+ * @see RefreshTokenRepository
+ * @see TokenService
+ * @see UserRepository
+ */
 @Service
 @RequiredArgsConstructor
 public class SessionImplementation implements SessionService {

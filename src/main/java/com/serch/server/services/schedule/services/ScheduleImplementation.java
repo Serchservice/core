@@ -29,6 +29,15 @@ import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
+/**
+ * Implementation of the ScheduleService interface responsible for managing schedules.
+ *
+ * @see ScheduleService
+ * @see SchedulePayService
+ * @see UserUtil
+ * @see ProfileRepository
+ * @see ScheduleRepository
+ */
 @Service
 @RequiredArgsConstructor
 public class ScheduleImplementation implements ScheduleService {

@@ -22,16 +22,39 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * The ServerConfiguration class configured various beans and settings related to server operations.
+ * It is annotated with @Configuration to indicate that it defines application beans.
+ * <p></p>
+ * Additionally, it uses constructor injection for dependency management.
+ *
+ * @see org.springframework.context.annotation.Configuration
+ */
 @Configuration
 @RequiredArgsConstructor
 public class ServerConfiguration {
+    /**
+     * Repository for accessing user data.
+     */
     private final UserRepository userRepository;
 
+    /**
+     * Configures a RestTemplate bean for making RESTful HTTP requests.
+     *
+     * @return A RestTemplate instance.
+     */
     @Bean
     public RestTemplate restTemplate() {
         return new RestTemplate();
     }
 
+    /**
+     * Configures an AuthenticationManager bean for managing authentication.
+     *
+     * @param authenticationConfiguration The authentication configuration.
+     * @return An AuthenticationManager instance.
+     * @throws Exception If an error occurs while retrieving the authentication manager.
+     */
     @Bean
     public AuthenticationManager authManager(
             AuthenticationConfiguration authenticationConfiguration
@@ -39,12 +62,22 @@ public class ServerConfiguration {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
+    /**
+     * Configures a UserDetailsService bean for retrieving user details during authentication.
+     *
+     * @return A UserDetailsService instance.
+     */
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> userRepository.findByEmailAddressIgnoreCase(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
+    /**
+     * Configures an AuthenticationProvider bean for authentication.
+     *
+     * @return An AuthenticationProvider instance.
+     */
     @Bean
     public AuthenticationProvider authProvider() {
         var daoProvider = new DaoAuthenticationProvider();
@@ -53,11 +86,21 @@ public class ServerConfiguration {
         return daoProvider;
     }
 
+    /**
+     * Configures a PasswordEncoder bean for encoding passwords.
+     *
+     * @return A PasswordEncoder instance.
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * Configures a CorsConfigurationSource bean for configuring CORS settings.
+     *
+     * @return A CorsConfigurationSource instance.
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

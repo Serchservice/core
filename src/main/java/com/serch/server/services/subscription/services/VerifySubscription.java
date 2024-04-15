@@ -7,12 +7,10 @@ import com.serch.server.enums.subscription.PlanType;
 import com.serch.server.exceptions.auth.AuthException;
 import com.serch.server.exceptions.subscription.SubscriptionException;
 import com.serch.server.mappers.SubscriptionMapper;
-import com.serch.server.models.account.BusinessProfile;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.User;
 import com.serch.server.models.auth.incomplete.Incomplete;
 import com.serch.server.models.subscription.*;
-import com.serch.server.repositories.account.BusinessProfileRepository;
 import com.serch.server.repositories.auth.incomplete.IncompleteRepository;
 import com.serch.server.repositories.subscription.*;
 import com.serch.server.services.account.services.AdditionalService;
@@ -23,6 +21,7 @@ import com.serch.server.services.auth.services.ProviderAuthService;
 import com.serch.server.services.payment.core.PaymentService;
 import com.serch.server.services.payment.responses.PaymentVerificationData;
 import com.serch.server.services.subscription.requests.VerifySubscriptionRequest;
+import com.serch.server.services.transaction.services.InvoiceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -30,6 +29,14 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+/**
+ * The VerifySubscription class implements the VerifySubscriptionService interface
+ * and provides methods to verify subscription requests.
+ * <p></p>
+ * It interacts with payment services and repositories to verify subscription payments.
+ *
+ * @see VerifySubscriptionService
+ */
 @Service
 @RequiredArgsConstructor
 public class VerifySubscription implements VerifySubscriptionService {
@@ -38,14 +45,12 @@ public class VerifySubscription implements VerifySubscriptionService {
     private final SpecialtyService specialtyService;
     private final AdditionalService additionalService;
     private final AuthService authService;
+    private final InvoiceService invoiceService;
     private final ProviderAuthService providerAuthService;
     private final SubscriptionRepository subscriptionRepository;
     private final SubscriptionAuthRepository subscriptionAuthRepository;
     private final SubscriptionRequestRepository subscriptionRequestRepository;
     private final IncompleteRepository incompleteRepository;
-    private final SubscriptionInvoiceRepository subscriptionInvoiceRepository;
-    private final BusinessProfileRepository businessProfileRepository;
-    private final SubscriptionAssociateRepository subscriptionAssociateRepository;
 
     @Override
     public ApiResponse<String> verify(User user, String reference) {
@@ -81,6 +86,14 @@ public class VerifySubscription implements VerifySubscriptionService {
         }
     }
 
+    /**
+     * Verifies a paid subscription request. If the user is already registered,
+     * updates the subscription details; otherwise, creates a new subscription.
+     * @param request The subscription request to be verified.
+     * @param user The user associated with the subscription request.
+     * @param incomplete The incomplete profile information, if available.
+     * @return An ApiResponse indicating the status of the verification process.
+     */
     private ApiResponse<String> verifyPaid(SubscriptionRequest request, User user, Incomplete incomplete) {
         PaymentVerificationData data = paymentService.verify(request.getReference());
 
@@ -102,7 +115,7 @@ public class VerifySubscription implements VerifySubscriptionService {
                 existing.get().setSubscribedAt(LocalDateTime.now());
                 Subscription saved = subscriptionRepository.save(existing.get());
 
-                createInvoice(saved, String.valueOf(data.getAmount()), "CARD", data.getReference());
+                invoiceService.createInvoice(saved, String.valueOf(data.getAmount()), "CARD", data.getReference());
                 subscriptionRequestRepository.delete(request);
             } else {
                 createSubscription(request, user, data);
@@ -125,6 +138,12 @@ public class VerifySubscription implements VerifySubscriptionService {
         }
     }
 
+    /**
+     * Creates a new subscription for a given user based on a subscription request.
+     * @param request The subscription request.
+     * @param user The user for whom the subscription is created.
+     * @param data The payment verification data.
+     */
     private void createSubscription(SubscriptionRequest request, User user, PaymentVerificationData data) {
         Subscription subscription = new Subscription();
         subscription.setPlan(request.getParent());
@@ -139,52 +158,9 @@ public class VerifySubscription implements VerifySubscriptionService {
         auth.setSubscription(subscribed);
         subscriptionAuthRepository.save(auth);
 
-        createInvoice(subscribed, String.valueOf(data.getAmount()), "CARD", data.getReference());
+        invoiceService.createInvoice(subscribed, String.valueOf(data.getAmount()), "CARD", data.getReference());
 
         subscriptionRequestRepository.delete(request);
-    }
-
-    @Override
-    public void createInvoice(Subscription subscription, String amount, String mode, String reference) {
-        SubscriptionInvoice invoice = new SubscriptionInvoice();
-
-        if(subscription.getUser().isProfile()) {
-            invoice.setSize(1);
-        } else {
-            BusinessProfile profile = businessProfileRepository.findById(subscription.getUser().getId())
-                    .orElseThrow(() -> new SubscriptionException("Business not found"));
-            invoice.setSize(
-                    profile.getAssociates().stream()
-                            .filter(sub -> !sub.getUser().isBusinessLocked())
-                            .toList()
-                            .size()
-            );
-        }
-        invoice.setSubscription(subscription);
-        invoice.setAmount(amount);
-        invoice.setReference(reference);
-        invoice.setMode(mode);
-        invoice.setPlan(
-                subscription.getChild() != null
-                        ? subscription.getChild().getName()
-                        : subscription.getPlan().getType().getType()
-        );
-        SubscriptionInvoice savedInvoice = subscriptionInvoiceRepository.save(invoice);
-
-        if(!subscription.getUser().isProfile()) {
-            BusinessProfile business = businessProfileRepository.findById(subscription.getUser().getId())
-                    .orElseThrow(() -> new SubscriptionException("Business not found"));
-            business.getAssociates()
-                    .stream()
-                    .filter(sub -> !sub.getUser().isBusinessLocked())
-                    .forEach(profile -> {
-                        SubscriptionAssociate associate = new SubscriptionAssociate();
-                        associate.setInvoice(savedInvoice);
-                        associate.setBusiness(business);
-                        associate.setProfile(profile);
-                        subscriptionAssociateRepository.save(associate);
-                    });
-        }
     }
 
     @Override
@@ -194,6 +170,14 @@ public class VerifySubscription implements VerifySubscriptionService {
         return auth;
     }
 
+    /**
+     * Verifies a free subscription request. If the user is already registered,
+     * updates the subscription details; otherwise, creates a new subscription.
+     * @param request The subscription request to be verified.
+     * @param user The user associated with the subscription request.
+     * @param incomplete The incomplete profile information, if available.
+     * @return An ApiResponse indicating the status of the verification process.
+     */
     private ApiResponse<String> verifyFree(SubscriptionRequest request, User user, Incomplete incomplete) {
         if(user != null && incomplete == null) {
             Optional<Subscription> existing = subscriptionRepository.findByUser_Id(user.getId());
@@ -208,7 +192,7 @@ public class VerifySubscription implements VerifySubscriptionService {
                     existing.get().setRetries(0);
                     Subscription saved = subscriptionRepository.save(existing.get());
 
-                    createInvoice(saved, "", "WALLET", "");
+                    invoiceService.createInvoice(saved, "", "WALLET", "");
                     subscriptionRequestRepository.delete(request);
                     return new ApiResponse<>("Success", HttpStatus.OK);
                 } else {
@@ -247,6 +231,6 @@ public class VerifySubscription implements VerifySubscriptionService {
         Subscription subscribed = subscriptionRepository.save(subscription);
         subscriptionRequestRepository.delete(request);
 
-        createInvoice(subscribed, "", "WALLET", "");
+        invoiceService.createInvoice(subscribed, "", "WALLET", "");
     }
 }

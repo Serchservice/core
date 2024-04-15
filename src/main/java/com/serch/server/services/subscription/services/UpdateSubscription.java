@@ -9,18 +9,26 @@ import com.serch.server.repositories.subscription.SubscriptionRepository;
 import com.serch.server.services.payment.core.PaymentService;
 import com.serch.server.services.payment.requests.PaymentChargeRequest;
 import com.serch.server.services.payment.responses.PaymentVerificationData;
+import com.serch.server.services.transaction.services.InvoiceService;
 import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+/**
+ * This is the class that implements and works on the logic for its main wrapper class.
+ * It works to update and check on subscriptions to update payments where necessary.
+ * <p></p>
+ * @see  UpdateSubscriptionService
+ */
 @Service
 @RequiredArgsConstructor
 public class UpdateSubscription implements UpdateSubscriptionService {
     private final PaymentService paymentService;
     private final InitSubscriptionService initService;
     private final VerifySubscriptionService verifyService;
+    private final InvoiceService invoiceService;
     private final SubscriptionService subscriptionService;
     private final SubscriptionRepository subscriptionRepository;
     private final SubscriptionAuthRepository subscriptionAuthRepository;
@@ -47,6 +55,12 @@ public class UpdateSubscription implements UpdateSubscriptionService {
                 });
     }
 
+    /**
+     * Attempts to charge and verify the payment for a subscription.
+     * If successful, updates the subscription status and creates an invoice.
+     * If unsuccessful, increments the retry count and handles retries.
+     * @param subscription The subscription to be charged and verified.
+     */
     private void trySubscription(Subscription subscription) {
         try {
             PaymentVerificationData data = chargeAndVerify(subscription);
@@ -64,7 +78,7 @@ public class UpdateSubscription implements UpdateSubscriptionService {
             subscription.setSubscribedAt(LocalDateTime.now());
             subscriptionRepository.save(subscription);
 
-            verifyService.createInvoice(subscription, String.valueOf(data.getAmount()), "CARD", data.getReference());
+            invoiceService.createInvoice(subscription, String.valueOf(data.getAmount()), "CARD", data.getReference());
         } catch (Exception e) {
             subscription.setRetries(subscription.getRetries() + 1);
             if(subscription.getRetries() == 3) {
@@ -74,6 +88,11 @@ public class UpdateSubscription implements UpdateSubscriptionService {
         }
     }
 
+    /**
+     * Charges and verifies the payment for a subscription.
+     * @param subscription The subscription for which the payment is charged and verified.
+     * @return The payment verification data.
+     */
     private PaymentVerificationData chargeAndVerify(Subscription subscription) {
         PaymentChargeRequest request = new PaymentChargeRequest();
 

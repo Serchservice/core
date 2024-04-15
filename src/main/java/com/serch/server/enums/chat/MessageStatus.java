@@ -2,17 +2,26 @@ package com.serch.server.enums.chat;
 
 import lombok.Getter;
 
+/**
+ * The MessageStatus enum represents different statuses of a message in the application.
+ * Each enum constant corresponds to a specific message status and provides a descriptive type.
+ * <p></p>
+ * The message statuses are:
+ * <ul>
+ *     <li>{@link MessageStatus#SENDING} - Represents a sending message</li>
+ *     <li>{@link MessageStatus#SENT} - Represents a sent message</li>
+ *     <li>{@link MessageStatus#DELIVERED} - Represents a delivered message</li>
+ *     <li>{@link MessageStatus#NOT_SENT} - Represents an error in sending a message</li>
+ *     <li>{@link MessageStatus#READ} - Represents a read message</li>
+ * </ul>
+ * This enum is annotated with Lombok's {@link Getter} to generate getter methods automatically.
+ */
 @Getter
 public enum MessageStatus {
-    /// Represents a sending message.
     SENDING("Sending"),
-    /// Represents a sent message.
     SENT("Sent"),
-    /// Represents a delivered message.
     DELIVERED("Delivered"),
-    /// Error in sending a message
     NOT_SENT("Not Sent"),
-    /// Represents a read message.
     READ("Read");
 
     private final String type;

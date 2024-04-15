@@ -7,6 +7,23 @@ import lombok.Setter;
 
 import java.util.List;
 
+/**
+ * The HelpSection class represents sections within help categories.
+ * It stores information about the section ID, section name, associated help category, and the list of associated help groups.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Getter}</li>
+ *     <li>{@link Setter}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Relationships:
+ * <ul>
+ *     <li>{@link HelpCategory} - The help category associated with the section.</li>
+ *     <li>{@link HelpGroup} - The list of help groups associated with the section.</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

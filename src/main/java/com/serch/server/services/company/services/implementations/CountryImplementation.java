@@ -13,6 +13,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service implementation for managing country-related operations.
+ * It implements its wrapper class {@link CountryService}
+ *
+ * @see LaunchedCountryRepository
+ * @see RequestCityRepository
+ * @see RequestCountryRepository
+ * @see RequestStateRepository
+ */
 @Service
 @RequiredArgsConstructor
 public class CountryImplementation implements CountryService {

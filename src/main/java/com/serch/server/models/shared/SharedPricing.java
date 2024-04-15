@@ -10,6 +10,24 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 
+/**
+ * The SharedPricing class represents the pricing details for a shared link in a sharing platform.
+ * It stores information such as the pricing amount for the user and provider, status, and related guest and shared link.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Getter}</li>
+ *     <li>{@link Setter}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Relationships:
+ * <ul>
+ *     <li>Many-to-one with {@link Guest} as the guest.</li>
+ *     <li>Many-to-one with {@link SharedLink} as the shared link.</li>
+ *     <li>One-to-one with {@link Trip} as the trip.</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity
@@ -18,10 +36,10 @@ public class SharedPricing extends BaseModel {
     @Column(name = "amount", nullable = false)
     private BigDecimal amount;
 
-    @Column(name = "user", nullable = false)
+    @Column(name = "user_share", nullable = false)
     private BigDecimal user;
 
-    @Column(name = "provider", nullable = false)
+    @Column(name = "provider_share", nullable = false)
     private BigDecimal provider;
 
     @Column(name = "status", nullable = false)

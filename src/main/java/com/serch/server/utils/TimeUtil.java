@@ -8,7 +8,16 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
+/**
+ * The TimeUtil class provides utility methods for working with dates and times.
+ */
 public class TimeUtil {
+    /**
+     * Calculates the time for a subscription plan based on the given duration.
+     * @param dateTime The base date and time.
+     * @param duration The duration of the subscription plan.
+     * @return The calculated date and time.
+     */
     private static LocalDateTime calculateSubPlanTime(LocalDateTime dateTime, SubPlanType duration) {
         return switch (duration) {
             case DAILY -> dateTime.plusDays(1);
@@ -18,6 +27,13 @@ public class TimeUtil {
         };
     }
 
+    /**
+     * Calculates the time for a plan based on the given plan type and duration.
+     * @param dateTime The base date and time.
+     * @param plan The type of plan.
+     * @param duration The duration of the plan.
+     * @return The calculated date and time.
+     */
     private static LocalDateTime calculatePlanTime(
             LocalDateTime dateTime, PlanType plan, SubPlanType duration
     ) {
@@ -28,6 +44,11 @@ public class TimeUtil {
         };
     }
 
+    /**
+     * Formats the time difference in minutes, hours, or days before or after the current time.
+     * @param diff The time difference in minutes.
+     * @return The formatted time difference string.
+     */
     public static String formatTimeDifference(long diff) {
         long absDiff = Math.abs(diff);
         if (diff < 0) {
@@ -57,11 +78,22 @@ public class TimeUtil {
         }
     }
 
-
+    /**
+     * Checks if the provided time is expired compared to the current time.
+     * @param time The time to check for expiration.
+     * @return True if the provided time is expired; otherwise, false.
+     */
     public static boolean isExpired(LocalDateTime time) {
         return LocalDateTime.now().isAfter(time);
     }
 
+    /**
+     * Formats the remaining time of a subscription plan based on the provided creation time, plan type, and sub-plan type.
+     * @param createdAt The date and time of plan creation.
+     * @param plan The subscription plan type.
+     * @param sub The sub-plan type.
+     * @return The formatted remaining time of the subscription plan.
+     */
     public static String formatPlanTime(LocalDateTime createdAt, PlanType plan, SubPlanType sub) {
         LocalDateTime endTime = calculatePlanTime(createdAt, plan, sub);
         if (isExpired(endTime)) {
@@ -93,6 +125,11 @@ public class TimeUtil {
         return !result.isEmpty() ? result.toString() : "Just expired";
     }
 
+    /**
+     * Formats the last seen time based on the provided last seen date and time.
+     * @param lastSeenDateTime The date and time when the user was last seen.
+     * @return The formatted last seen time.
+     */
     public static String formatLastSeen(LocalDateTime lastSeenDateTime) {
         Duration duration = Duration.between(lastSeenDateTime, LocalDateTime.now());
 
@@ -119,6 +156,11 @@ public class TimeUtil {
         }
     }
 
+    /**
+     * Formats the future time based on the provided date and time.
+     * @param dateTime The future date and time.
+     * @return The formatted future time.
+     */
     public static String formatFutureTime(LocalDateTime dateTime) {
         Duration duration = Duration.between(LocalDateTime.now(), dateTime);
         long seconds = duration.toSeconds() % 60;
@@ -138,10 +180,20 @@ public class TimeUtil {
         return result.toString();
     }
 
+    /**
+     * Formats the time based on the provided date and time.
+     * @param dateTime The date and time to format.
+     * @return The formatted time.
+     */
     public static String formatTime(LocalDateTime dateTime) {
         return dateTime.format(DateTimeFormatter.ofPattern("h:mma"));
     }
 
+    /**
+     * Formats the day based on the provided date and time.
+     * @param dateTime The date and time to format.
+     * @return The formatted day.
+     */
     public static String formatDay(LocalDateTime dateTime) {
         LocalDateTime currentDateTime = LocalDateTime.now();
 
@@ -155,6 +207,12 @@ public class TimeUtil {
         }
     }
 
+    /**
+     * Checks if the OTP (One-Time Password) has expired based on the provided time and expiration time.
+     * @param time The time the OTP was generated.
+     * @param expirationTime The expiration time for the OTP in minutes.
+     * @return True if the OTP has expired; otherwise, false.
+     */
     public static boolean isOtpExpired(LocalDateTime time, int expirationTime) {
         if(time != null) {
             long minutesSinceLastOtp = ChronoUnit.MINUTES.between(time, LocalDateTime.now());

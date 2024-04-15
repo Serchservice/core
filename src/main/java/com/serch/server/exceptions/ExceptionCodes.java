@@ -1,5 +1,31 @@
 package com.serch.server.exceptions;
 
+/**
+ * The ExceptionCodes class defines static constants for various exception codes used in the application.
+ * These codes are used to identify specific types of exceptions or errors.
+ * <p></p>
+ * The codes include:
+ * <ul>
+ *     <li>{@link ExceptionCodes#EXPIRED_SESSION} - Code for expired session error.</li>
+ *     <li>{@link ExceptionCodes#ACCOUNT_LOCKED} - Code for locked account error.</li>
+ *     <li>{@link ExceptionCodes#ACCOUNT_DISABLED} - Code for disabled account error.</li>
+ *     <li>{@link ExceptionCodes#INCORRECT_TOKEN} - Code for incorrect token error.</li>
+ *     <li>{@link ExceptionCodes#IMPROPER_USER_ID_FORMAT} - Code for improper user ID format error.</li>
+ *     <li>{@link ExceptionCodes#USER_NOT_FOUND} - Code for user not found error.</li>
+ *     <li>{@link ExceptionCodes#ACCESS_DENIED} - Code for access denied error.</li>
+ *     <li>{@link ExceptionCodes#INCORRECT_LOGIN} - Code for incorrect login error.</li>
+ *     <li>{@link ExceptionCodes#ASSOCIATE_PROVIDER_EMAIL} - Code for associate provider email error.</li>
+ *     <li>{@link ExceptionCodes#EMAIL_NOT_VERIFIED} - Code for email not verified error.</li>
+ *     <li>{@link ExceptionCodes#PROFILE_NOT_SET} - Code for profile not set error.</li>
+ *     <li>{@link ExceptionCodes#ADDITIONAL_NOT_SET} - Code for additional details not set error.</li>
+ *     <li>{@link ExceptionCodes#PLAN_NOT_SET} - Code for plan not set error.</li>
+ *     <li>{@link ExceptionCodes#CATEGORY_NOT_SET} - Code for category not set error.</li>
+ *     <li>{@link ExceptionCodes#EXISTING_USER} - Code for existing user error.</li>
+ *     <li>{@link ExceptionCodes#UNKNOWN} - Code for unknown error.</li>
+ *     <li>{@link ExceptionCodes#EXISTING_LINK} - Code for existing link error.</li>
+ *     <li>{@link ExceptionCodes#GUEST_AND_LINK_EXIST_TOGETHER} - Code for guest and link existing together error.</li>
+ * </ul>
+ */
 public class ExceptionCodes {
     public static final String EXPIRED_SESSION = "S10";
     public static final String ACCOUNT_LOCKED = "S11";

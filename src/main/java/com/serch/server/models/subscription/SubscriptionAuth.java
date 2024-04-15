@@ -5,6 +5,22 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * The SubscriptionAuth class represents the authorization details of a subscription in the subscription schema.
+ * It stores information such as card details, email address, bank details, and authorization signature.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Getter}</li>
+ *     <li>{@link Setter}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Relationships:
+ * <ul>
+ *     <li>One-to-one with {@link Subscription} as the subscription.</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

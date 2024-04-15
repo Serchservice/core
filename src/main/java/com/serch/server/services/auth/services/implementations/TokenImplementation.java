@@ -6,6 +6,10 @@ import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 
+/**
+ * Service responsible for generating tokens such as OTPs and refresh tokens.
+ * It implements its wrapper class {@link TokenService}
+ */
 @Service
 public class TokenImplementation implements TokenService {
     @Value("${application.security.refresh-token-length}")

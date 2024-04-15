@@ -24,6 +24,16 @@ import org.springframework.stereotype.Service;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * This is the class that contains the logic and implementation for its wrapper class {@link SharedService}
+ *
+ * @see GuestAuthService
+ * @see UserUtil
+ * @see SharedLinkRepository
+ * @see GuestRepository
+ * @see UserRepository
+ * @see ProfileRepository
+ */
 @Service
 @RequiredArgsConstructor
 public class SharedImplementation implements SharedService {

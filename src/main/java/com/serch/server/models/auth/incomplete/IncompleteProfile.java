@@ -2,6 +2,7 @@ package com.serch.server.models.auth.incomplete;
 
 import com.serch.server.bases.BaseModel;
 import com.serch.server.enums.auth.Role;
+import com.serch.server.models.auth.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -9,6 +10,26 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+/**
+ * The IncompleteProfile class represents incomplete user profiles in the system.
+ * It stores information about incomplete user profiles,
+ * including first name, last name, gender, business details, and more.
+ * <p></p>
+ * Relationships:
+ * <ul>
+ *     <li>{@link Incomplete} - The incomplete object associated with the incomplete referral.</li>
+ * </ul>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Column}</li>
+ *     <li>{@link Size}</li>
+ *     <li>{@link NotBlank}</li>
+ *     <li>{@link Enumerated}</li>
+ *     <li>{@link OneToOne}</li>
+ *     <li>{@link JoinColumn}</li>
+ * </ul>
+ * @see BaseModel
+ */
 @ToString
 @Getter
 @Setter

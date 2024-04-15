@@ -31,6 +31,18 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+/**
+ * This is the class that contains the logic and implementation of its wrapper class {@link GuestService}
+ *
+ * @see TokenService
+ * @see ProfileService
+ * @see UserAuthService
+ * @see PasswordEncoder
+ * @see GuestRepository
+ * @see GuestAuthRepository
+ * @see UserRepository
+ * @see SharedLinkRepository
+ */
 @Service
 @RequiredArgsConstructor
 public class GuestImplementation implements GuestService {
@@ -83,8 +95,7 @@ public class GuestImplementation implements GuestService {
                 .orElseThrow(() -> new SharedException("Guest not found"));
         GuestAuth auth = guestAuthRepository.findByEmailAddressIgnoreCase(guest.getEmailAddress())
                 .orElseThrow(() -> new SharedException("Email confirmation not found"));
-        SharedLink link = sharedLinkRepository.findByGuests_Id(guest.getId())
-                .getFirst();
+        SharedLink link = sharedLinkRepository.findByGuests_Id(guest.getId()).get(0);
 
         if(auth.isEmailConfirmed()) {
             Optional<User> existingUser = userRepository.findByEmailAddressIgnoreCase(guest.getEmailAddress());

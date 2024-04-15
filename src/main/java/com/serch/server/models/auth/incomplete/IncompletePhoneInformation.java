@@ -5,6 +5,19 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * The IncompletePhoneInformation class represents incomplete phone information in the system.
+ * It stores information about incomplete phone numbers,
+ * including the phone number, country code, ISO code, and country.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Column}</li>
+ *     <li>{@link OneToOne}</li>
+ *     <li>{@link JoinColumn}</li>
+ * </ul>
+ * @see BaseModel
+ */
 @Getter
 @Setter
 @Entity

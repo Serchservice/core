@@ -16,10 +16,30 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * The JwtAuthEntryPoint class serves as an entry point for handling authentication failures in the application.
+ * It implements the AuthenticationEntryPoint interface,
+ * allowing customization of how authentication errors are handled.
+ * <p></p>
+ * This component is responsible for returning a meaningful response when an unauthenticated user attempts to access
+ * protected resources, typically due to an invalid or missing JWT token.
+ *
+ * @see org.springframework.security.web.AuthenticationEntryPoint
+ */
 @Component("delegatedAuthEntryPoint")
 public class JwtAuthEntryPoint implements AuthenticationEntryPoint {
+    /**
+     * Logger for logging unauthorized errors.
+     */
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthEntryPoint.class);
 
+    /**
+     * Handles authentication failures by returning an unauthorized response with appropriate error details.
+     *
+     * @param request        The HTTP request.
+     * @param response       The HTTP response.
+     * @param authException  The authentication exception that occurred.
+     */
     @Override
     @SneakyThrows
     public void commence(
@@ -27,8 +47,10 @@ public class JwtAuthEntryPoint implements AuthenticationEntryPoint {
             HttpServletResponse response,
             AuthenticationException authException
     ) {
+        // Log the unauthorized error
         logger.error("Unauthorized error: {}", authException.getMessage());
 
+        // Set response content type and status
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
@@ -38,11 +60,13 @@ public class JwtAuthEntryPoint implements AuthenticationEntryPoint {
         data.put("message", authException.getMessage());
         data.put("path", request.getServletPath());
 
+        // Create ApiResponse object with error details
         ApiResponse<Map<String, Object>> apiResponse = new ApiResponse<>(
                 "Invalid token. Please login",
                 data, HttpStatus.FORBIDDEN
         );
 
+        // Serialize ApiResponse object to JSON and write to response output stream
         final ObjectMapper mapper = new ObjectMapper();
         mapper.writeValue(response.getOutputStream(), apiResponse);
     }

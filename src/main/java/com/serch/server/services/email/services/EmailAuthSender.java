@@ -8,6 +8,12 @@ import com.serch.server.services.email.template.EmailAuthTemplate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service implementation for sending authentication-related emails.
+ * It implements the {@link EmailAuthService} interface.
+ *
+ * @see EmailAuthService
+ */
 @Service
 @RequiredArgsConstructor
 public class EmailAuthSender implements EmailAuthService {

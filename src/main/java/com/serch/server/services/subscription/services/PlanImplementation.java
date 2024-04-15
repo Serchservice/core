@@ -15,6 +15,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * This is the class that holds the implementation and logic of its wrapper class.
+ *
+ * @see PlanService
+ */
 @Service
 @RequiredArgsConstructor
 public class PlanImplementation implements PlanService {

@@ -19,6 +19,10 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+/**
+ * The SchedulePayImplementation class provides implementation for scheduled payments.
+ * @see SchedulePayService
+ */
 @Service
 @RequiredArgsConstructor
 public class SchedulePayImplementation implements SchedulePayService {

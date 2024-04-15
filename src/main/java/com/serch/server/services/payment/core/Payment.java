@@ -16,6 +16,14 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Objects;
 
+/**
+ * Service class implementing PaymentService interface, providing functionality
+ * for initializing payments, verifying payments, and charging authorization for payments.
+ * This class interacts with the Paystack API to perform payment-related operations.
+ * <p></p>
+ * This wraps it interface class {@link PaymentService}
+ * @see RestTemplate
+ */
 @Service
 @RequiredArgsConstructor
 public class Payment implements PaymentService {
@@ -25,6 +33,11 @@ public class Payment implements PaymentService {
     private String TEST_SECRET_KEY;
     private final String BASE_API_ENDPOINT = "https://api.paystack.co";
 
+    /**
+     * Constructs and returns HTTP headers for making API requests.
+     *
+     * @return HttpHeaders containing necessary headers for API requests.
+     */
     private HttpHeaders headers() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

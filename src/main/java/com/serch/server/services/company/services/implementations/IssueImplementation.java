@@ -17,10 +17,17 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+/**
+ * Service implementation for handling issue-related operations.
+ * It implements its wrapper class {@link IssueService}
+ *
+ * @see ProductRepository
+ * @see IssueRepository
+ * @see UserRepository
+ */
 @Service
 @RequiredArgsConstructor
 public class IssueImplementation implements IssueService {
-    private final UserUtil userUtil;
     private final ProductRepository productRepository;
     private final IssueRepository issueRepository;
     private final UserRepository userRepository;

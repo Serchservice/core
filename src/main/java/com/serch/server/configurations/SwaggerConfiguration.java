@@ -10,8 +10,20 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * The SwaggerConfiguration class configures Swagger documentation settings for the application.
+ * It is responsible for defining the OpenAPI specification, including information about the API,
+ * security schemes, and contact details.
+ *
+ * @see org.springframework.context.annotation.Configuration
+ */
 @Configuration
 public class SwaggerConfiguration {
+    /**
+     * Configures custom OpenAPI specification for the application.
+     *
+     * @return An instance of OpenAPI containing custom API documentation settings.
+     */
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()

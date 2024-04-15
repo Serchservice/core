@@ -15,6 +15,25 @@ import org.hibernate.annotations.GenericGenerator;
 
 import java.math.BigDecimal;
 
+/**
+ * The Transaction class represents a financial transaction in the platform schema.
+ * It stores information such as amount, reference, account, status, type, and error reason.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Getter}</li>
+ *     <li>{@link Setter}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Relationships:
+ * <ul>
+ *     <li>One-to-one with {@link Trip} as the associated trip.</li>
+ *     <li>Many-to-one with {@link Call} as the associated call.</li>
+ *     <li>Many-to-one with {@link Profile} as the associated profile (associate).</li>
+ *     <li>Many-to-one with {@link Wallet} as the sender wallet.</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

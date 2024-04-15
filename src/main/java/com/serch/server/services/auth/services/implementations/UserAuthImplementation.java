@@ -11,7 +11,7 @@ import com.serch.server.models.auth.User;
 import com.serch.server.models.auth.incomplete.Incomplete;
 import com.serch.server.models.auth.incomplete.IncompleteProfile;
 import com.serch.server.repositories.auth.UserRepository;
-import com.serch.server.repositories.auth.incomplete.IncompleteRepository;
+import com.serch.server.repositories.auth.incomplete.*;
 import com.serch.server.services.account.services.ProfileService;
 import com.serch.server.services.account.services.ReferralService;
 import com.serch.server.services.auth.requests.RequestLogin;
@@ -19,6 +19,7 @@ import com.serch.server.services.auth.requests.RequestProfile;
 import com.serch.server.services.auth.requests.RequestSession;
 import com.serch.server.services.auth.responses.AuthResponse;
 import com.serch.server.services.auth.services.AuthService;
+import com.serch.server.services.auth.services.ProviderAuthService;
 import com.serch.server.services.auth.services.SessionService;
 import com.serch.server.services.auth.services.UserAuthService;
 import com.serch.server.utils.HelperUtil;
@@ -29,6 +30,20 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+/**
+ * Service responsible for implementing user authentication.
+ * It implements its wrapper class {@link UserAuthService}
+ * <p></p>
+ * It interacts with {@link AuthService}, {@link ReferralService}, {@link SessionService}, and others.
+ *
+ * @see AuthService
+ * @see ReferralService
+ * @see SessionService
+ * @see PasswordEncoder
+ * @see UserRepository
+ * @see IncompleteRepository
+ * @see ProfileService
+ */
 @Service
 @RequiredArgsConstructor
 public class UserAuthImplementation implements UserAuthService {

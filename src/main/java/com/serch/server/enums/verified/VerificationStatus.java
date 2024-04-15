@@ -3,16 +3,24 @@ package com.serch.server.enums.verified;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * The VerificationStatus enum represents different verification statuses in the application.
+ * Each enum constant corresponds to a specific verification status and provides a descriptive type.
+ * <p></p>
+ * The verification statuses are:
+ * <ul>
+ *     <li>{@link VerificationStatus#REQUESTED} - Indicates that verification has been requested</li>
+ *     <li>{@link VerificationStatus#VERIFIED} - Indicates that verification has been successfully completed</li>
+ *     <li>{@link VerificationStatus#NOT_VERIFIED} - Indicates that verification has not been completed</li>
+ *     <li>{@link VerificationStatus#ERROR} - Indicates an error occurred during verification</li>
+ * </ul>
+ */
 @Getter
 @RequiredArgsConstructor
 public enum VerificationStatus {
-    /// This is the status that shows that the verification status is ongoing.
     REQUESTED("Requested"),
-    /// This is the status that shows that the verification status is completed and checked to be `TRUE`.
     VERIFIED("Verified"),
-    /// This is the status that shows that the verification status is not verified.
     NOT_VERIFIED("Not Verified"),
-    /// This is the status that shows that there is an error with the verification.
     ERROR("Error");
 
     private final String type;

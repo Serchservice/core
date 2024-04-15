@@ -6,6 +6,33 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * The LaunchedCity class represents a launched city entity in the system.
+ * It stores information about launched cities, including the name, status, and the state it belongs to.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Column}</li>
+ *     <li>{@link Enumerated}</li>
+ *     <li>{@link ManyToOne}</li>
+ *     <li>{@link JoinColumn}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Enums:
+ * <ul>
+ *     <li>{@link AccountStatus}</li>
+ * </ul>
+ * Relationships:
+ * <ul>
+ *     <li>{@link LaunchedState} - The state to which the city belongs.</li>
+ * </ul>
+ * Methods:
+ * <ul>
+ *     <li>{@link LaunchedCity#isNotActive()} - Checks if the city is not active.</li>
+ * </ul>
+ * @see BaseModel
+ */
 @Getter
 @Setter
 @Entity
@@ -27,6 +54,11 @@ public class LaunchedCity extends BaseModel {
     )
     private LaunchedState launchedState;
 
+    /**
+     * Checks if the city is not active.
+     *
+     * @return true if the city is not active, otherwise false
+     */
     public boolean isNotActive() {
         return status != AccountStatus.ACTIVE;
     }

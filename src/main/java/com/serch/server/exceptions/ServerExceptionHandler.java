@@ -54,6 +54,162 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * The ServerExceptionHandler class handles exceptions globally for the server.
+ * It extends the ResponseEntityExceptionHandler class provided by Spring using {@link RestControllerAdvice}.
+ * It provides exception handling methods for various custom exceptions and standard exceptions.
+ * <p></p>
+ * Exceptions handled here are:
+ * <ul>
+ *     <li>{@link ServerExceptionHandler#handleChatException(ChatException)} -
+ *     Handles exception involved with chat services. {@link ChatException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleChatRoomException(ChatRoomException)} -
+ *     Handles exception involved with chat room services. {@link ChatRoomException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleCallException(CallException)} -
+ *     Handles exception involved with call services. {@link CallException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleRatingException(RatingException)} -
+ *     Handles exception involved with rating services. {@link RatingException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleScheduleException(ScheduleException)} -
+ *     Handles exception involved with schedule services. {@link ScheduleException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleAccountException(AccountException)} -
+ *     Handles exception involved with account services. {@link AccountException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleReferralException(ReferralException)} -
+ *     Handles exception involved with referral services. {@link ReferralException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleAuthException(AuthException)} -
+ *     Handles exception involved with authentication services. {@link AuthException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleSessionException(SessionException)} -
+ *     Handles exception involved with session services. {@link SessionException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleEmailException(EmailException)} -
+ *     Handles exception involved with email services. {@link EmailException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleCountryException(CompanyException)} -
+ *     Handles exception involved with country services. {@link CompanyException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleHelpException(HelpException)} -
+ *     Handles exception involved with help services. {@link HelpException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleMediaBlogException(MediaBlogException)} -
+ *     Handles exception involved with media blog services. {@link MediaBlogException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleMediaLegalException(MediaLegalException)} -
+ *     Handles exception involved with media legal services. {@link MediaLegalException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleMediaNewsroomException(MediaNewsroomException)} -
+ *     Handles exception involved with media newsroom services. {@link MediaNewsroomException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleWalletException(WalletException)} -
+ *     Handles exception involved with wallet services. {@link WalletException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleSubscriptionException(SubscriptionException)} -
+ *     Handles exception involved with subscription services. {@link SubscriptionException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handlePlanException(PlanException)} -
+ *     Handles exception involved with plan services. {@link PlanException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handlePaymentException(PaymentException)} -
+ *     Handles exception involved with payment services. {@link PaymentException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleSerchException(SerchException)} -
+ *     Handles exception involved with Serch services. {@link SerchException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleBookmarkException(BookmarkException)} -
+ *     Handles exception involved with bookmark services. {@link BookmarkException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleShopException(ShopException)} -
+ *     Handles exception involved with shop services. {@link ShopException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleStorageException(StorageException)} -
+ *     Handles exception involved with storage services. {@link StorageException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleSharedException(SharedException)} -
+ *     Handles exception involved with shared services. {@link SharedException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleConstraintViolationException(ConstraintViolationException)} -
+ *     Handles exception related to validation errors. {@link ConstraintViolationException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleDisabledException(DisabledException)} -
+ *     Handles exception related to disabled accounts. {@link DisabledException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleLockedException(LockedException)} -
+ *     Handles exception related to locked accounts. {@link LockedException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleBadCredentialsException()} -
+ *     Handles exception related to bad credentials.
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleSocketTimeoutException()} -
+ *     Handles exception related to socket timeouts.
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleUnknownHostException()} -
+ *     Handles exception related to unknown hosts.
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleUnexpectedTypeException(UnexpectedTypeException)} -
+ *     Handles exception related to unexpected types. {@link UnexpectedTypeException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleDataIntegrityViolationException(DataIntegrityViolationException)} -
+ *     Handles exception related to data integrity violation. {@link DataIntegrityViolationException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleServerException()} -
+ *     Handles exception related to server errors.
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleConnectException()} -
+ *     Handles exception related to connection errors.
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleMessagingException(MessagingException)} -
+ *     Handles exception related to messaging errors. {@link MessagingException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleJsonProcessingException(JsonProcessingException)} -
+ *     Handles exception related to JSON processing errors. {@link JsonProcessingException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleUsernameNotFoundException(UsernameNotFoundException)} -
+ *     Handles exception related to username not found. {@link UsernameNotFoundException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleHttpClientErrorException(HttpClientErrorException)} -
+ *     Handles exception related to HTTP client errors. {@link HttpClientErrorException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleQrException(QrGenerationException)} -
+ *     Handles exception related to QR code generation errors. {@link QrGenerationException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleWriterException(WriterException)} -
+ *     Handles exception related to writer errors. {@link WriterException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleIOException(IOException)} -
+ *     Handles exception related to I/O errors. {@link IOException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleExpiredJwtException()} -
+ *     Handles exception related to expired JWT tokens.
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleSignatureException()} -
+ *     Handles exception related to JWT token signature errors.
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleUnsupportedJwtException()} -
+ *     Handles exception related to unsupported JWT tokens.
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleMalformedJwtException()} -
+ *     Handles exception related to malformed JWT tokens.
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleMethodArgumentNotValid(MethodArgumentNotValidException, HttpHeaders, HttpStatusCode, WebRequest)} -
+ *     Handles exception related to method argument validation errors. {@link MethodArgumentNotValidException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleHttpMessageNotReadable(HttpMessageNotReadableException, HttpHeaders, HttpStatusCode, WebRequest)} -
+ *     Handles exception related to HTTP message not readable. {@link HttpMessageNotReadableException}
+ *     </li>
+ *     <li>{@link ServerExceptionHandler#handleIllegalArgumentException()} -
+ *     Handles exception related to illegal arguments.
+ *     </li>
+ * </ul>
+ * <p></p>
+ * @see ResponseEntityExceptionHandler
+ * @see ApiResponse
+ */
 @RestControllerAdvice
 public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(ChatException.class)

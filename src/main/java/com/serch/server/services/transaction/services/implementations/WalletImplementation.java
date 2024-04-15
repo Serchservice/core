@@ -26,9 +26,9 @@ import com.serch.server.services.payment.requests.InitializePaymentRequest;
 import com.serch.server.services.payment.responses.InitializePaymentData;
 import com.serch.server.services.payment.responses.PaymentVerificationData;
 import com.serch.server.services.subscription.services.InitSubscriptionService;
-import com.serch.server.services.subscription.services.VerifySubscriptionService;
 import com.serch.server.services.transaction.requests.*;
 import com.serch.server.services.transaction.responses.WalletResponse;
+import com.serch.server.services.transaction.services.InvoiceService;
 import com.serch.server.services.transaction.services.WalletService;
 import com.serch.server.utils.MoneyUtil;
 import com.serch.server.utils.UserUtil;
@@ -43,12 +43,20 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * The WalletImplementation class provides implementation for managing user wallets and transactions.
+ * <p></p>
+ * This class handles various operations related to user wallets, such as creating wallets, funding wallets,
+ * making payments, and viewing wallet details.
+ *
+ * @see WalletService
+ */
 @Service
 @RequiredArgsConstructor
 public class WalletImplementation implements WalletService {
     private final PaymentService paymentService;
     private final InitSubscriptionService initSubscriptionService;
-    private final VerifySubscriptionService verifySubscriptionService;
+    private final InvoiceService invoiceService;
     private final WalletUtil util;
     private final UserUtil userUtil;
     private final WalletRepository walletRepository;
@@ -265,7 +273,7 @@ public class WalletImplementation implements WalletService {
         }
 
         String ref = generateReference();
-        verifySubscriptionService.createInvoice(subscription, String.valueOf(amount), "WALLET", ref);
+        invoiceService.createInvoice(subscription, String.valueOf(amount), "WALLET", ref);
 
         Transaction transaction = new Transaction();
         transaction.setAmount(amount);

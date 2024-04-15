@@ -10,6 +10,23 @@ import lombok.Setter;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * The StageThree class represents the third stage of verification for entities in a verified system.
+ * It includes consent statuses for criminal background checks and crime-related consents.
+ * <p></p>
+ * Annotations:
+ * <ul>
+ *     <li>{@link Getter}</li>
+ *     <li>{@link Setter}</li>
+ *     <li>{@link Entity}</li>
+ *     <li>{@link Table}</li>
+ * </ul>
+ * Relationships:
+ * <ul>
+ *     <li>One-to-one with {@link Verification} using verificationId.</li>
+ *     <li>One-to-many with {@link SocialMediaLink} through the links field.</li>
+ * </ul>
+ */
 @Getter
 @Setter
 @Entity

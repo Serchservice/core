@@ -2,10 +2,10 @@ package com.serch.server.services.company.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.account.SerchCategory;
-import com.serch.server.models.company.SpecialtyService;
-import com.serch.server.repositories.company.SpecialtyServiceRepository;
-import com.serch.server.services.auth.responses.SpecialtyResponse;
-import com.serch.server.services.company.services.KeywordService;
+import com.serch.server.models.company.SpecialtyKeyword;
+import com.serch.server.repositories.company.SpecialtyKeywordRepository;
+import com.serch.server.services.company.responses.SpecialtyKeywordResponse;
+import com.serch.server.services.company.services.SpecialtyKeywordService;
 import com.serch.server.utils.MoneyUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,18 +17,18 @@ import java.util.stream.Collectors;
 
 /**
  * Service implementation for managing keywords related to specialties.
- * It implements the {@link KeywordService} interface.
+ * It implements the {@link SpecialtyKeywordService} interface.
  *
- * @see SpecialtyServiceRepository
+ * @see SpecialtyKeywordRepository
  */
 @Service
 @RequiredArgsConstructor
-public class ServiceKeywordImplementation implements KeywordService {
-    private final SpecialtyServiceRepository specialtyServiceRepository;
+public class SpecialtyKeywordImplementation implements SpecialtyKeywordService {
+    private final SpecialtyKeywordRepository repository;
 
     @Override
-    public ApiResponse<List<SpecialtyResponse>> getAllSpecialties(SerchCategory type) {
-        List<SpecialtyResponse> specialties = specialtyServiceRepository
+    public ApiResponse<List<SpecialtyKeywordResponse>> getAllSpecialties(SerchCategory type) {
+        List<SpecialtyKeywordResponse> specialties = repository
                 .findByCategory(type)
                 .stream()
                 .map(this::getSpecialtyResponse)
@@ -41,8 +41,8 @@ public class ServiceKeywordImplementation implements KeywordService {
     }
 
     @Override
-    public SpecialtyResponse getSpecialtyResponse(SpecialtyService keywordService) {
-        SpecialtyResponse response = new SpecialtyResponse();
+    public SpecialtyKeywordResponse getSpecialtyResponse(SpecialtyKeyword keywordService) {
+        SpecialtyKeywordResponse response = new SpecialtyKeywordResponse();
         response.setId(keywordService.getId());
         response.setSpecial(keywordService.getKeyword());
         response.setDifficulty(keywordService.getDifficulty());

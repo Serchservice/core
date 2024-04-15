@@ -11,7 +11,6 @@ import com.serch.server.models.auth.User;
 import com.serch.server.models.auth.incomplete.*;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.auth.incomplete.*;
-import com.serch.server.repositories.company.SpecialtyServiceRepository;
 import com.serch.server.services.account.services.ReferralService;
 import com.serch.server.services.auth.requests.*;
 import com.serch.server.services.auth.responses.AuthResponse;

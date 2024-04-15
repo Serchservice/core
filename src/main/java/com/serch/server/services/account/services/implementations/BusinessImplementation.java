@@ -9,7 +9,9 @@ import com.serch.server.models.auth.User;
 import com.serch.server.models.auth.incomplete.Incomplete;
 import com.serch.server.repositories.account.BusinessProfileRepository;
 import com.serch.server.repositories.account.PhoneInformationRepository;
-import com.serch.server.services.account.services.BusinessProfileService;
+import com.serch.server.services.account.responses.BusinessProfileResponse;
+import com.serch.server.services.account.responses.ProfileResponse;
+import com.serch.server.services.account.services.BusinessService;
 import com.serch.server.services.account.services.ReferralService;
 import com.serch.server.services.auth.services.TokenService;
 import com.serch.server.services.transaction.services.WalletService;
@@ -18,9 +20,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
-public class BusinessProfileImplementation implements BusinessProfileService {
+public class BusinessImplementation implements BusinessService {
     private final TokenService tokenService;
     private final ReferralService referralService;
     private final WalletService walletService;
@@ -65,5 +69,15 @@ public class BusinessProfileImplementation implements BusinessProfileService {
         businessProfile.setDefaultPassword(defaultPassword);
         businessProfile.setReferralCode(HelperUtil.extractReferralCode(referLink));
         return businessProfileRepository.save(businessProfile);
+    }
+
+    @Override
+    public ApiResponse<List<ProfileResponse>> associates() {
+        return null;
+    }
+
+    @Override
+    public ApiResponse<BusinessProfileResponse> profile() {
+        return null;
     }
 }

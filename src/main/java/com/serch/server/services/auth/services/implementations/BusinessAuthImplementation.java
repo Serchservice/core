@@ -9,7 +9,7 @@ import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.User;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.auth.incomplete.IncompleteRepository;
-import com.serch.server.services.account.services.BusinessProfileService;
+import com.serch.server.services.account.services.BusinessService;
 import com.serch.server.services.account.services.ProfileService;
 import com.serch.server.services.account.services.SpecialtyService;
 import com.serch.server.services.auth.requests.RequestAuth;
@@ -29,7 +29,7 @@ import org.springframework.stereotype.Service;
  *
  * @see AuthService
  * @see SessionService
- * @see BusinessProfileService
+ * @see BusinessService
  * @see ProfileService
  * @see SpecialtyService
  * @see UserRepository
@@ -40,7 +40,7 @@ import org.springframework.stereotype.Service;
 public class BusinessAuthImplementation implements BusinessAuthService {
     private final AuthService authService;
     private final SessionService sessionService;
-    private final BusinessProfileService businessProfileService;
+    private final BusinessService businessService;
     private final ProfileService profileService;
     private final SpecialtyService specialtyService;
     private final UserRepository userRepository;
@@ -67,7 +67,7 @@ public class BusinessAuthImplementation implements BusinessAuthService {
             if(incomplete.hasProfile()) {
                 if(incomplete.hasCategory()) {
                     User user = authService.getUserFromIncomplete(incomplete, Role.BUSINESS);
-                    ApiResponse<String> response = businessProfileService.createProfile(incomplete, user);
+                    ApiResponse<String> response = businessService.createProfile(incomplete, user);
 
                     if(response.getStatus().is2xxSuccessful()) {
                         RequestSession requestSession = new RequestSession();
@@ -110,7 +110,7 @@ public class BusinessAuthImplementation implements BusinessAuthService {
         User user = authService.getUserFromIncomplete(incomplete, Role.ASSOCIATE_PROVIDER);
         ApiResponse<Profile> response = profileService.createProviderProfile(incomplete, user);
         if(response.getStatus().is2xxSuccessful()) {
-            specialtyService.saveIncompleteSpecialties(incomplete, response);
+            specialtyService.saveIncompleteSpecialties(incomplete, response.getData());
 
             RequestSession requestSession = new RequestSession();
             requestSession.setPlatform(auth.getPlatform());

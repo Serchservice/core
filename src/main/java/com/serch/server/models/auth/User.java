@@ -81,8 +81,8 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "last_signed_in")
     private LocalDateTime lastSignedIn = LocalDateTime.now();
 
-    @Column(name = "last_seen")
-    private LocalDateTime lastSeen = LocalDateTime.now();
+    @Column(name = "last_updated_at")
+    private LocalDateTime lastUpdatedAt = LocalDateTime.now();
 
     @Column(name = "email_confirmed_at", updatable = false, nullable = false)
     @NotNull(message = "Email Confirmation Date cannot be null")
@@ -185,9 +185,12 @@ public class User extends BaseEntity implements UserDetails {
     }
 
     /**
-     * Checks if the user's profile is set.
+     * Checks if the user's profile is set and role is either {@link Role#USER}, {@link Role#ASSOCIATE_PROVIDER}
+     * or {@link Role#PROVIDER}.
      *
      * @return true if the profile is set, otherwise false
+     *
+     * @see Role
      */
     public boolean isProfile() {
         return getRole() == Role.USER || getRole() == Role.PROVIDER ||

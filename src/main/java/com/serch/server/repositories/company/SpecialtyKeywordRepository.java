@@ -1,7 +1,7 @@
 package com.serch.server.repositories.company;
 
 import com.serch.server.enums.account.SerchCategory;
-import com.serch.server.models.company.SpecialtyService;
+import com.serch.server.models.company.SpecialtyKeyword;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -9,8 +9,8 @@ import org.springframework.lang.NonNull;
 
 import java.util.List;
 
-public interface SpecialtyServiceRepository extends JpaRepository<SpecialtyService, Long> {
-    List<SpecialtyService> findByCategory(@NonNull SerchCategory category);
+public interface SpecialtyKeywordRepository extends JpaRepository<SpecialtyKeyword, Long> {
+    List<SpecialtyKeyword> findByCategory(@NonNull SerchCategory category);
     @Query(
             value = "SELECT * FROM " +
                     "(SELECT *, " +
@@ -22,7 +22,7 @@ public interface SpecialtyServiceRepository extends JpaRepository<SpecialtyServi
                     "ORDER BY GREATEST(category_rank, keyword_rank) DESC",
             nativeQuery = true
     )
-    List<SpecialtyService> fullTextSearch(@Param("query") String query);
+    List<SpecialtyKeyword> fullTextSearch(@Param("query") String query);
 
 //    @Query(value = """
 //    select   q.id

@@ -1,11 +1,11 @@
-package com.serch.server.services.auth.responses;
+package com.serch.server.services.company.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.serch.server.enums.account.SerchCategory;
 import lombok.Data;
 
 @Data
-public class SpecialtyResponse {
+public class SpecialtyKeywordResponse {
     private Long id;
     private String special;
     private String difficulty;

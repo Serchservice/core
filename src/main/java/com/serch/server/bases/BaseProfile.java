@@ -69,24 +69,6 @@ public class BaseProfile extends BaseUser {
     private Double rating = 5.0;
 
     /**
-     * The total number of ratings received by the profile, default is 0.
-     */
-    @Column(name = "number_of_ratings", nullable = false)
-    private Integer numberOfRating = 0;
-
-    /**
-     * The total number of service trips associated with the profile, default is 0.
-     */
-    @Column(name = "all_service_trips", nullable = false)
-    private Integer totalServiceTrips = 0;
-
-    /**
-     * The total number of shared trips associated with the profile, default is 0.
-     */
-    @Column(name = "all_shared_trips", nullable = false)
-    private Integer totalShared = 0;
-
-    /**
      * The FCM (Firebase Cloud Messaging) token associated with the profile.
      */
     @Column(name = "fcm_token", columnDefinition = "TEXT")

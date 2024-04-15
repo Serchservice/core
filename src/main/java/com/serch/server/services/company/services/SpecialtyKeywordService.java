@@ -2,17 +2,18 @@ package com.serch.server.services.company.services;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.account.SerchCategory;
-import com.serch.server.models.company.SpecialtyService;
-import com.serch.server.services.auth.responses.SpecialtyResponse;
+import com.serch.server.models.company.SpecialtyKeyword;
+import com.serch.server.services.company.responses.SpecialtyKeywordResponse;
+import com.serch.server.services.company.services.implementations.SpecialtyKeywordImplementation;
 
 import java.util.List;
 
 /**
  * Service interface for managing keywords.
  *
- * @see com.serch.server.services.company.services.implementations.ServiceKeywordImplementation
+ * @see SpecialtyKeywordImplementation
  */
-public interface KeywordService {
+public interface SpecialtyKeywordService {
 
     /**
      * Retrieves all specialties based on the specified category.
@@ -21,9 +22,9 @@ public interface KeywordService {
      * @return ApiResponse containing a list of SpecialtyResponse objects.
      *
      * @see ApiResponse
-     * @see SpecialtyResponse
+     * @see SpecialtyKeywordResponse
      */
-    ApiResponse<List<SpecialtyResponse>> getAllSpecialties(SerchCategory type);
+    ApiResponse<List<SpecialtyKeywordResponse>> getAllSpecialties(SerchCategory type);
 
     /**
      * Maps a SpecialtyService object to a SpecialtyResponse object.
@@ -31,8 +32,8 @@ public interface KeywordService {
      * @param keywordService The SpecialtyService object to map.
      * @return The mapped SpecialtyResponse object.
      *
-     * @see SpecialtyService
-     * @see SpecialtyResponse
+     * @see SpecialtyKeyword
+     * @see SpecialtyKeywordResponse
      */
-    SpecialtyResponse getSpecialtyResponse(SpecialtyService keywordService);
+    SpecialtyKeywordResponse getSpecialtyResponse(SpecialtyKeyword keywordService);
 }

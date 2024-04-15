@@ -19,6 +19,14 @@ import org.springframework.stereotype.Service;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Service implementation for managing referrals within the system.
+ * It implements it wrapper class {@link ReferralService}
+ *
+ * @see ReferralRepository
+ * @see ProfileRepository
+ * @see BusinessProfileRepository
+ */
 @Service
 @RequiredArgsConstructor
 public class ReferralImplementation implements ReferralService {

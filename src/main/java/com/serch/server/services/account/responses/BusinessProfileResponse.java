@@ -5,24 +5,22 @@ import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.verified.VerificationStatus;
 import com.serch.server.services.auth.requests.RequestPhoneInformation;
 import com.serch.server.services.company.responses.SpecialtyKeywordResponse;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.util.List;
 import java.util.UUID;
 
-@Getter
-@Setter
-@Builder
-public class ProfileResponse {
+@Data
+public class BusinessProfileResponse {
     private UUID id;
-    private SerchCategory category;
-    private String gender;
-    private String status;
-    private String avatar;
+    private String name;
+    private String description;
+    private String address;
+    private String logo;
     private String certificate;
     private Double rating;
+    private String gender;
+    private SerchCategory category;
 
     @JsonProperty("first_name")
     private String firstName;
@@ -38,6 +36,9 @@ public class ProfileResponse {
 
     @JsonProperty("referral_code")
     private String referralCode;
+
+    @JsonProperty("default_password")
+    private String defaultPassword;
 
     @JsonProperty("phone_info")
     private RequestPhoneInformation phoneInfo;

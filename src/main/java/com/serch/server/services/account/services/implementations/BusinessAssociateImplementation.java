@@ -16,7 +16,7 @@ import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.auth.incomplete.IncompleteRepository;
 import com.serch.server.services.account.requests.AddAssociateRequest;
 import com.serch.server.services.account.services.AccountDeleteService;
-import com.serch.server.services.account.services.AssociateService;
+import com.serch.server.services.account.services.BusinessAssociateService;
 import com.serch.server.services.auth.requests.RequestProviderProfile;
 import com.serch.server.services.auth.services.AuthService;
 import com.serch.server.services.auth.services.ProviderAuthService;
@@ -29,9 +29,24 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Service for managing business associates, including adding, deleting, deactivating,
+ * and activating providers associated with a business.
+ * <p></p>
+ * This implements its wrapper class {@link BusinessAssociateService}
+ *
+ * @see AuthService
+ * @see ProviderAuthService
+ * @see AccountDeleteService
+ * @see UserUtil
+ * @see BusinessProfileRepository
+ * @see UserRepository
+ * @see IncompleteRepository
+ * @see ProfileRepository
+ */
 @Service
 @RequiredArgsConstructor
-public class AssociateImplementation implements AssociateService {
+public class BusinessAssociateImplementation implements BusinessAssociateService {
     private final AuthService authService;
     private final ProviderAuthService providerAuthService;
     private final AccountDeleteService deleteService;
@@ -47,7 +62,7 @@ public class AssociateImplementation implements AssociateService {
                 .orElseThrow(() -> new AccountException("Business not found"));
 
         if(request.getConsent() == ConsentType.YES) {
-            Optional<User> user = userRepository.findByEmailAddress(request.getEmailAddress());
+            Optional<User> user = userRepository.findByEmailAddressIgnoreCase(request.getEmailAddress());
             if(user.isPresent()) {
                 throw new AccountException("Email already exists");
             } else {

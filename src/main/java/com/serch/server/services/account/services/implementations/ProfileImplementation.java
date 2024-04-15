@@ -11,23 +11,51 @@ import com.serch.server.models.auth.User;
 import com.serch.server.models.auth.incomplete.Incomplete;
 import com.serch.server.repositories.account.PhoneInformationRepository;
 import com.serch.server.repositories.account.ProfileRepository;
+import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.services.account.requests.RequestCreateProfile;
+import com.serch.server.services.account.requests.UpdateProfileRequest;
+import com.serch.server.services.account.responses.ProfileResponse;
 import com.serch.server.services.account.services.ProfileService;
 import com.serch.server.services.account.services.ReferralService;
 import com.serch.server.services.auth.requests.RequestProfile;
+import com.serch.server.services.storage.core.StorageService;
+import com.serch.server.services.storage.requests.UploadRequest;
 import com.serch.server.services.transaction.services.WalletService;
 import com.serch.server.utils.HelperUtil;
+import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
+/**
+ * Service for managing user profiles, including creation, updating, and retrieval.
+ * It implements the wrapper class {@link ProfileService}
+ *
+ * @see StorageService
+ * @see ReferralService
+ * @see WalletService
+ * @see UserUtil
+ * @see ProfileRepository
+ * @see PhoneInformationRepository
+ * @see UserRepository
+ */
 @Service
 @RequiredArgsConstructor
 public class ProfileImplementation implements ProfileService {
-    private final ProfileRepository profileRepository;
-    private final PhoneInformationRepository phoneInformationRepository;
+    private final StorageService storageService;
     private final ReferralService referralService;
     private final WalletService walletService;
+    private final UserUtil userUtil;
+    private final ProfileRepository profileRepository;
+    private final PhoneInformationRepository phoneInformationRepository;
+    private final UserRepository userRepository;
+
+    @Value("${application.settings.account-duration}")
+    private Integer ACCOUNT_DURATION;
 
     @Override
     public ApiResponse<Profile> createProfile(RequestCreateProfile request) {
@@ -92,5 +120,109 @@ public class ProfileImplementation implements ProfileService {
         profile.setCategory(request.getCategory());
         profile.setReferralCode(HelperUtil.extractReferralCode(referLink));
         return profileRepository.save(profile);
+    }
+
+    @Override
+    public ApiResponse<ProfileResponse> profile() {
+        Profile profile = profileRepository.findById(userUtil.getUser().getId())
+                .orElseThrow(() -> new AccountException("Profile not found"));
+        //
+        return null;
+    }
+
+    @Override
+    public ApiResponse<String> update(UpdateProfileRequest request) {
+        User user = userUtil.getUser();
+        Profile profile = profileRepository.findById(user.getId())
+                .orElseThrow(() -> new AccountException("Profile not found"));
+        if(user.isProfile()) {
+            Duration duration = Duration.between(user.getLastUpdatedAt(), LocalDateTime.now());
+            long remaining = ACCOUNT_DURATION - duration.toDays();
+
+            if(remaining < 0) {
+                updateLastName(request, user, profile);
+                updateFirstName(request, user, profile);
+                updatePhoneInformation(request, user);
+                if(!request.getAvatar().isEmpty()) {
+                    return updateAvatar(request, profile, user);
+                }
+                return new ApiResponse<>("Update successful", HttpStatus.OK);
+            } else {
+                throw new AccountException("You can update your profile in the next %s days".formatted(remaining));
+            }
+        } else {
+            throw new AccountException("Access denied. Cannot perform action");
+        }
+    }
+
+    private void updatePhoneInformation(UpdateProfileRequest request, User user) {
+        if(request.getPhone() != null) {
+            phoneInformationRepository.findByUser_Id(user.getId())
+                    .ifPresentOrElse(phone -> {
+                        if(!phone.getPhoneNumber().equalsIgnoreCase(request.getPhone().getPhoneNumber())) {
+                            phone.setPhoneNumber(request.getPhone().getPhoneNumber());
+                        }
+                        if(!phone.getCountry().equalsIgnoreCase(request.getPhone().getCountry())) {
+                            phone.setCountry(request.getPhone().getCountry());
+                        }
+                        if(!phone.getCountryCode().equalsIgnoreCase(request.getPhone().getCountryCode())) {
+                            phone.setCountryCode(request.getPhone().getCountryCode());
+                        }
+                        if(!phone.getIsoCode().equalsIgnoreCase(request.getPhone().getIsoCode())) {
+                            phone.setIsoCode(request.getPhone().getIsoCode());
+                        }
+                        phoneInformationRepository.save(phone);
+                    }, () -> {
+                        PhoneInformation phone = AccountMapper.INSTANCE.phoneInformation(request.getPhone());
+                        phone.setUser(user);
+                        phoneInformationRepository.save(phone);
+                    });
+            user.setUpdatedAt(LocalDateTime.now());
+            user.setLastUpdatedAt(LocalDateTime.now());
+            userRepository.save(user);
+        }
+    }
+
+    private ApiResponse<String> updateAvatar(UpdateProfileRequest request, Profile profile, User user) {
+        UploadRequest upload = new UploadRequest();
+        upload.setFile(request.getAvatar());
+
+        ApiResponse<String> response = storageService.upload(upload);
+        if(response.getStatus().is2xxSuccessful()) {
+            profile.setAvatar(response.getData());
+            updateTimeStamps(user, profile);
+        }
+        return response;
+    }
+
+    private void updateFirstName(UpdateProfileRequest request, User user, Profile profile) {
+        boolean canUpdateFirstName = request.getFirstName() != null
+                && !request.getFirstName().isEmpty()
+                && !user.getFirstName().equalsIgnoreCase(request.getFirstName());
+        if(canUpdateFirstName) {
+            user.setFirstName(request.getFirstName());
+            profile.setFirstName(request.getFirstName());
+            updateTimeStamps(user, profile);
+        }
+    }
+
+    private void updateLastName(UpdateProfileRequest request, User user, Profile profile) {
+        boolean canUpdateLastName = request.getLastName() != null
+                && !request.getLastName().isEmpty()
+                && !user.getLastName().equalsIgnoreCase(request.getLastName());
+        if(canUpdateLastName) {
+            user.setLastName(request.getLastName());
+            profile.setLastName(request.getLastName());
+            updateTimeStamps(user, profile);
+        }
+    }
+
+    private void updateTimeStamps(User user, Profile profile) {
+        user.setUpdatedAt(LocalDateTime.now());
+        user.setLastUpdatedAt(LocalDateTime.now());
+        userRepository.save(user);
+
+        profile.setUpdatedAt(LocalDateTime.now());
+        profileRepository.save(profile);
     }
 }

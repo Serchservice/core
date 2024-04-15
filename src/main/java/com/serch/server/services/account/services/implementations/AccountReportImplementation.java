@@ -28,6 +28,7 @@ import java.time.LocalDateTime;
  * @see UserUtil
  * @see UserRepository
  * @see AccountReportRepository
+ * @see ShopRepository
  */
 @Service
 @RequiredArgsConstructor
@@ -35,10 +36,10 @@ public class AccountReportImplementation implements AccountReportService {
     private final UserUtil userUtil;
     private final UserRepository userRepository;
     private final AccountReportRepository accountReportRepository;
+    private final ShopRepository shopRepository;
 
     @Value("${application.account.report-limit}")
     private Integer REPORT_LIMIT;
-    private final ShopRepository shopRepository;
 
     @Override
     public ApiResponse<String> report(AccountReportRequest request) {

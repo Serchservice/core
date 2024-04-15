@@ -90,7 +90,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(token);
                     // Update the last seen timestamp of the session
-                    sessionService.updateLastSeen();
+                    sessionService.updateLastSignedIn();
                 }
             }
             // Proceed to the next filter

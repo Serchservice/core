@@ -5,10 +5,73 @@ import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.User;
 import com.serch.server.models.auth.incomplete.Incomplete;
 import com.serch.server.services.account.requests.RequestCreateProfile;
+import com.serch.server.services.account.requests.UpdateProfileRequest;
+import com.serch.server.services.account.responses.ProfileResponse;
 import com.serch.server.services.auth.requests.RequestProfile;
 
+/**
+ * Service interface for managing user profiles, including creation, updating, and retrieval.
+ *
+ * @see com.serch.server.services.account.services.implementations.ProfileImplementation
+ */
 public interface ProfileService {
+    /**
+     * Creates a user profile based on the provided request.
+     *
+     * @param request The request containing user profile information.
+     * @return An ApiResponse containing the created profile.
+     *
+     * @see ApiResponse
+     * @see RequestCreateProfile
+     */
     ApiResponse<Profile> createProfile(RequestCreateProfile request);
+
+    /**
+     * Creates a provider profile based on incomplete information and a user.
+     *
+     * @param incomplete Incomplete information about the provider.
+     * @param user       The user for whom the profile is being created.
+     * @return An ApiResponse containing the created profile.
+     *
+     * @see ApiResponse
+     * @see Incomplete
+     * @see User
+     */
     ApiResponse<Profile> createProviderProfile(Incomplete incomplete, User user);
+
+    /**
+     * Creates a user profile based on provided profile information and user details.
+     *
+     * @param request  The request containing user profile information.
+     * @param user     The user for whom the profile is being created.
+     * @param referral The user who referred the new user.
+     * @return An ApiResponse containing the created profile.
+     *
+     * @see RequestProfile
+     * @see User
+     * @see ApiResponse
+     * @see Profile
+     */
     ApiResponse<Profile> createUserProfile(RequestProfile request, User user, User referral);
+
+    /**
+     * Retrieves the user's profile.
+     *
+     * @return An ApiResponse containing the user's profile.
+     *
+     * @see ApiResponse
+     * @see ProfileResponse
+     */
+    ApiResponse<ProfileResponse> profile();
+
+    /**
+     * Updates the user's profile based on the provided request.
+     *
+     * @param request The request containing updated profile information.
+     * @return An ApiResponse indicating the success of the update.
+     *
+     * @see ApiResponse
+     * @see UpdateProfileRequest
+     */
+    ApiResponse<String> update(UpdateProfileRequest request);
 }

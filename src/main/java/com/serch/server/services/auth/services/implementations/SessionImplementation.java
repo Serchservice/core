@@ -223,9 +223,9 @@ public class SessionImplementation implements SessionService {
     }
 
     @Override
-    public void updateLastSeen() {
+    public void updateLastSignedIn() {
         userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser()).ifPresent(user -> {
-            user.setLastSeen(LocalDateTime.now());
+            user.setLastSignedIn(LocalDateTime.now());
             userRepository.save(user);
         });
     }

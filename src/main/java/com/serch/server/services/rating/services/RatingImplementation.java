@@ -141,24 +141,28 @@ public class RatingImplementation implements RatingService {
 
     private String rated(Trip trip, RateRequest request) {
         if(request.getGuest() == null || request.getGuest().isEmpty()) {
-            if(trip.getUser().isSameAs(userUtil.getUser().getId())) {
-                if(trip.getInvitedProvider() != null && request.getIsInvited()) {
-                    return String.valueOf(trip.getInvitedProvider().getId());
+            try {
+                if(userUtil.getUser().isUser(UUID.fromString(trip.getAccount()))) {
+                    if(trip.getInvitedProvider() != null && request.getIsInvited()) {
+                        return String.valueOf(trip.getInvitedProvider().getId());
+                    } else {
+                        return String.valueOf(trip.getProvider().getId());
+                    }
+                } else if(trip.getProvider().isSameAs(userUtil.getUser().getId())) {
+                    if(trip.getInvitedProvider() != null && request.getIsInvited()) {
+                        return String.valueOf(trip.getInvitedProvider().getId());
+                    } else {
+                        return trip.getAccount();
+                    }
                 } else {
-                    return String.valueOf(trip.getProvider().getId());
+                    if(trip.getInvitedProvider() != null && request.getIsInvited()) {
+                        return String.valueOf(trip.getProvider().getId());
+                    } else {
+                        return trip.getAccount();
+                    }
                 }
-            } else if(trip.getProvider().isSameAs(userUtil.getUser().getId())) {
-                if(trip.getInvitedProvider() != null && request.getIsInvited()) {
-                    return String.valueOf(trip.getInvitedProvider().getId());
-                } else {
-                    return String.valueOf(trip.getUser().getId());
-                }
-            } else {
-                if(trip.getInvitedProvider() != null && request.getIsInvited()) {
-                    return String.valueOf(trip.getProvider().getId());
-                } else {
-                    return String.valueOf(trip.getUser().getId());
-                }
+            } catch (Exception e) {
+                throw new RatingException("Couldn't find the user being rated");
             }
         } else {
             if(trip.getInvitedProvider() != null && request.getIsInvited()) {

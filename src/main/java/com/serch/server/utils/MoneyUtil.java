@@ -82,4 +82,9 @@ public class MoneyUtil {
                 provider + " (Serch Provider) received " + formatToNaira(providerAmount) + " - " + providerPercent + "%\n" +
                 "Serchservice Inc. received " + formatToNaira(serch) + " - " + serchPercent + "% for taxes.";
     }
+
+    public static BigDecimal getDecimal(int percentage, BigDecimal amount) {
+        BigDecimal divided = amount.divide(BigDecimal.valueOf(percentage), RoundingMode.HALF_UP);
+        return divided.multiply(BigDecimal.valueOf(percentage));
+    }
 }

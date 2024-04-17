@@ -380,6 +380,13 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
         return response;
     }
 
+    @ExceptionHandler(TripException.class)
+    public ApiResponse<String> handleTripException(TripException exception) {
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        response.setData(exception.getLocalizedMessage());
+        return response;
+    }
+
     @ExceptionHandler(MapException.class)
     public ApiResponse<String> handleMapException(MapException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());

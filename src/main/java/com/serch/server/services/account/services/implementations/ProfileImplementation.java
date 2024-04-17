@@ -71,7 +71,7 @@ public class ProfileImplementation implements ProfileService {
     private final RatingRepository ratingRepository;
     private final SharedLinkRepository sharedLinkRepository;
 
-    @Value("${application.settings.account-duration}")
+    @Value("${application.account.duration}")
     private Integer ACCOUNT_DURATION;
 
     @Override

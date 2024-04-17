@@ -48,6 +48,7 @@ public class Subscription extends BaseDateTime {
            name = "plan",
            referencedColumnName = "id",
            nullable = false,
+           columnDefinition = "TEXT",
            foreignKey = @ForeignKey(name = "plan_id_fkey")
    )
    private PlanParent plan;
@@ -56,6 +57,7 @@ public class Subscription extends BaseDateTime {
    @JoinColumn(
            name = "sub_plan",
            referencedColumnName = "id",
+           columnDefinition = "TEXT",
            foreignKey = @ForeignKey(name = "sub_plan_id_fkey")
    )
    private PlanChild child;

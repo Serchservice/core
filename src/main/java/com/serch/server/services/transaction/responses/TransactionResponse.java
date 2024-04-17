@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.serch.server.enums.transaction.TransactionStatus;
 import com.serch.server.enums.transaction.TransactionType;
+import com.serch.server.services.shared.responses.SharedPricingData;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -22,6 +23,7 @@ public class TransactionResponse {
     private String reason;
     private String mode;
     private List<AssociateTransactionData> associates;
+    private SharedPricingData pricing;
 
     @JsonProperty("is_incoming")
     private Boolean isIncoming;

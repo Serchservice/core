@@ -11,8 +11,8 @@ import java.util.UUID;
 
 public interface SchedulePaymentRepository extends JpaRepository<SchedulePayment, String> {
     List<SchedulePayment> findByStatus(@NonNull TransactionStatus status);
-    @Query("select p from SchedulePayment p where p.schedule.user.serchId = :id " +
-            "or p.schedule.provider.serchId = :id or p.schedule.provider.business.serchId = :id " +
+    @Query("select p from SchedulePayment p where p.schedule.user.id = :id " +
+            "or p.schedule.provider.id = :id or p.schedule.provider.business.id = :id " +
             "order by p.updatedAt asc"
     )
     List<SchedulePayment> findByPayment(@NonNull UUID id);

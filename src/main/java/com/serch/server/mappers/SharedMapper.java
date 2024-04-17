@@ -31,7 +31,7 @@ public interface SharedMapper {
 
     @Mappings({
             @Mapping(target = "total", source = "amount"),
-            @Mapping(target = "guest", source = "guest", ignore = true)
+            @Mapping(source = "status", target = "status", ignore = true)
     })
     SharedPricingData data(SharedPricing pricing);
 }

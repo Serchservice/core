@@ -37,7 +37,7 @@ public class SpecialtyImplementation implements SpecialtyService {
     private final ProfileRepository profileRepository;
     private final SpecialtyKeywordRepository specialtyKeywordRepository;
 
-    @Value("${application.settings.specialty-limit}")
+    @Value("${application.account.limit.specialty}")
     private Integer SPECIALTY_LIMIT;
 
     @Override

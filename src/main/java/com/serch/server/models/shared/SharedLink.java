@@ -1,8 +1,6 @@
 package com.serch.server.models.shared;
 
-import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseDateTime;
-import com.serch.server.enums.shared.UseStatus;
 import com.serch.server.generators.shared.SharedLinkID;
 import com.serch.server.models.account.Profile;
 import jakarta.persistence.*;
@@ -35,7 +33,7 @@ import java.util.Set;
  *     <li>Many-to-one with {@link Profile} as the user.</li>
  *     <li>Many-to-one with {@link Profile} as the provider.</li>
  *     <li>Many-to-many with {@link Guest} as the guests.</li>
- *     <li>One-to-many with {@link SharedPricing} as the pricing.</li>
+ *     <li>One-to-many with {@link SharedStatus} as the status.</li>
  * </ul>
  */
 @Getter
@@ -48,11 +46,6 @@ public class SharedLink extends BaseDateTime {
     @GeneratedValue(generator = "shared_link_seq")
     @Column(nullable = false, columnDefinition = "TEXT")
     private String id;
-
-    @Column(name = "status", nullable = false)
-    @Enumerated(value = EnumType.STRING)
-    @SerchEnum(message = "UseStatus must be an enum")
-    private UseStatus status = UseStatus.NOT_USED;
 
     @Column(name = "link", unique = true, nullable = false, columnDefinition = "TEXT")
     @URL(message = "Shared Link must be formatted as a link")
@@ -98,5 +91,5 @@ public class SharedLink extends BaseDateTime {
     private Set<Guest> guests;
 
     @OneToMany(mappedBy = "sharedLink", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<SharedPricing> pricing;
+    private List<SharedStatus> statuses;
 }

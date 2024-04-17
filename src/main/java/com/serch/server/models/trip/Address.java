@@ -1,6 +1,6 @@
 package com.serch.server.models.trip;
 
-import com.serch.server.bases.BaseModel;
+import com.serch.server.bases.BaseAddress;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,30 +20,15 @@ import lombok.Setter;
  * <ul>
  *     <li>One-to-one with {@link Trip} representing the trip associated with the address location.</li>
  * </ul>
+ *
+ * @see BaseAddress
+ * @see Trip
  */
 @Getter
 @Setter
 @Entity
 @Table(schema = "platform", name = "address_locations")
-public class Address extends BaseModel {
-    @Column(name = "country", nullable = false, columnDefinition = "TEXT")
-    private String country;
-
-    @Column(name = "state", nullable = false, columnDefinition = "TEXT")
-    private String state;
-
-    @Column(name = "city", nullable = false, columnDefinition = "TEXT")
-    private String city;
-
-    @Column(name = "place", columnDefinition = "TEXT")
-    private String place;
-
-    @Column(name = "latitude", nullable = false)
-    private Double latitude;
-
-    @Column(name = "longitude", nullable = false)
-    private Double longitude;
-
+public class Address extends BaseAddress {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "trip_id",

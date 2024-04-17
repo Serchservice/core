@@ -25,9 +25,11 @@ public interface AccountMapper {
 
     @Mapping(source = "referral", target = "referralCode", ignore = true)
     Profile profile(RequestProfile profile);
+    @Mapping(source = "id", target = "id", ignore = true)
     BusinessProfile profile(IncompleteProfile profile);
     PhoneInformation phoneInformation(RequestPhoneInformation phoneInformation);
     RequestPhoneInformation phoneInformation(PhoneInformation phoneInformation);
+    @Mapping(source = "id", target = "id", ignore = true)
     PhoneInformation phoneInformation(IncompletePhoneInformation phoneInformation);
     RequestProviderProfile profile(AddAssociateRequest request);
     AdditionalInformationResponse additional(AdditionalInformation additionalInformation);

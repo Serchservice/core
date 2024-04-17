@@ -1,13 +1,13 @@
 package com.serch.server.services.shared.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.enums.trip.TripConnectionStatus;
 import com.serch.server.exceptions.others.SharedException;
 import com.serch.server.models.auth.User;
 import com.serch.server.models.shared.Guest;
-import com.serch.server.models.trip.Trip;
+import com.serch.server.models.shared.SharedLink;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.shared.GuestRepository;
+import com.serch.server.repositories.shared.SharedLinkRepository;
 import com.serch.server.repositories.trip.TripRepository;
 import com.serch.server.services.auth.requests.RequestProfile;
 import com.serch.server.services.auth.responses.AuthResponse;
@@ -21,8 +21,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.UUID;
+
+import static com.serch.server.enums.trip.TripConnectionStatus.ACCEPTED;
+import static com.serch.server.enums.trip.TripConnectionStatus.ON_TRIP;
 
 /**
  * This is the class that contains the logic and implementation of its wrapper class.
@@ -43,14 +45,18 @@ public class SwitchImplementation implements SwitchService {
     private final GuestRepository guestRepository;
     private final UserRepository userRepository;
     private final TripRepository tripRepository;
+    private final SharedLinkRepository sharedLinkRepository;
 
     @Override
     public ApiResponse<GuestResponse> switchToGuest(SwitchRequest request) {
-        Guest guest = guestRepository.findById(request.getTo())
+        Guest guest = guestRepository.findByIdAndSharedLinks_Id(request.getTo(), request.getLinkId())
                 .orElseThrow(() -> new SharedException("Couldn't find the account you want to switch to"));
+        SharedLink sharedLink = sharedLinkRepository.findById(request.getLinkId())
+                .orElseThrow(() -> new SharedException("Link not found"));
 
         if(guest.getSharedLinks().stream().anyMatch(link -> link.getId().equals(request.getLinkId()))) {
             checkRequest(request);
+            authService.checkLink(sharedLink, guest.getId());
             return new ApiResponse<>(
                     "Can switch account",
                     authService.response(
@@ -90,14 +96,11 @@ public class SwitchImplementation implements SwitchService {
     }
 
     private void checkRequest(SwitchRequest request) {
-        String emailAddress = guestRepository.findById(request.getActive())
+        String id = guestRepository.findById(request.getActive())
                 .orElseThrow(() -> new SharedException("Guest not found"))
-                .getEmailAddress();
+                .getId();
 
-        List<Trip> trips = tripRepository.findByEmailAddressIgnoreCase(emailAddress);
-        if(trips.stream().anyMatch(trip ->
-                trip.getStatus() == TripConnectionStatus.ACCEPTED || trip.getStatus() == TripConnectionStatus.ON_TRIP
-        )) {
+        if(tripRepository.existsByStatusAndAccount(ACCEPTED, ON_TRIP, id)) {
             throw new SharedException("Can't switch account when you are on a trip");
         }
     }

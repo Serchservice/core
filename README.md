@@ -61,6 +61,7 @@ To install and run the Serch Backend Server locally, follow these steps:
 > - providesharing
 > - subscription
 > - verified
+> - pricing
 4. Build the project using Maven: `mvn clean install`.
 5. Run the application: `java -jar target/serch-backend-server.jar`.
 

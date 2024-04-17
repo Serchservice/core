@@ -1,20 +1,19 @@
 package com.serch.server.services.shared.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.enums.shared.UseStatus;
 import com.serch.server.exceptions.ExceptionCodes;
 import com.serch.server.exceptions.others.SharedException;
 import com.serch.server.mappers.SharedMapper;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.User;
-import com.serch.server.models.shared.Guest;
-import com.serch.server.models.shared.GuestAuth;
-import com.serch.server.models.shared.SharedLink;
-import com.serch.server.models.shared.SharedPricing;
+import com.serch.server.models.shared.*;
 import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.shared.GuestAuthRepository;
 import com.serch.server.repositories.shared.GuestRepository;
 import com.serch.server.repositories.shared.SharedLinkRepository;
+import com.serch.server.repositories.shared.SharedStatusRepository;
 import com.serch.server.services.auth.services.TokenService;
 import com.serch.server.services.shared.requests.CreateGuestRequest;
 import com.serch.server.services.shared.requests.VerifyEmailRequest;
@@ -36,6 +35,9 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.Optional;
+
+import static com.serch.server.enums.shared.UseStatus.*;
+import static com.serch.server.enums.shared.UseStatus.USED;
 
 /**
  * This is the class that contains the logic and implementation of its wrapper class {@link GuestAuthService}
@@ -63,6 +65,7 @@ public class GuestAuthImplementation implements GuestAuthService {
 
     @Value("${application.security.otp-expiration-time}")
     protected Integer OTP_EXPIRATION_TIME;
+    private final SharedStatusRepository sharedStatusRepository;
 
     @Override
     public ApiResponse<GuestAuthResponse> verifyLink(String link) {
@@ -174,13 +177,13 @@ public class GuestAuthImplementation implements GuestAuthService {
         response.setUser(SharedMapper.INSTANCE.response(link.getUser()));
         response.getUser().setName(link.getUser().getFullName());
 
-        if(!link.getPricing().isEmpty()) {
+        if(!link.getStatuses().isEmpty()) {
             response.setPricing(
-                    link.getPricing()
+                    link.getStatuses()
                             .stream()
-                            .sorted(Comparator.comparing(SharedPricing::getCreatedAt))
-                            .filter(pricing -> pricing.getGuest().getId().equals(guest.getId()))
-                            .map(pricing -> getSharedPricingData(link, pricing))
+                            .filter(sharedStatus -> sharedStatus.getAccount().equals(guest.getId()))
+                            .sorted(Comparator.comparing(SharedStatus::getCreatedAt))
+                            .map(status -> getSharedPricingData(link, status.getPricing()))
                             .toList()
             );
         }
@@ -190,8 +193,8 @@ public class GuestAuthImplementation implements GuestAuthService {
     @Override
     public SharedPricingData getSharedPricingData(SharedLink link, SharedPricing pricing) {
         SharedPricingData data = SharedMapper.INSTANCE.data(pricing);
-        data.setGuest(pricing.getAmount().subtract(pricing.getProvider().add(pricing.getUser())));
         data.setLabel(TimeUtil.formatDay(pricing.getCreatedAt()));
+        data.setStatus(pricing.getStatus().getStatus());
         data.setMore(
                 MoneyUtil.getSharedInfo(
                         link.getProvider().getFullName(),
@@ -200,9 +203,21 @@ public class GuestAuthImplementation implements GuestAuthService {
                         pricing.getUser(), pricing.getProvider()
                 )
         );
-        data.setName(pricing.getGuest().getFullName());
-        data.setAvatar(pricing.getGuest().getAvatar());
-        data.setJoinedAt(TimeUtil.formatDay(pricing.getGuest().getCreatedAt()));
+        data.setName(
+                guestRepository.findById(pricing.getTrip().getAccount())
+                        .map(Guest::getFullName)
+                        .orElse("")
+        );
+        data.setAvatar(
+                guestRepository.findById(pricing.getTrip().getAccount())
+                        .map(Guest::getAvatar)
+                        .orElse("")
+        );
+        data.setJoinedAt(
+                guestRepository.findById(pricing.getTrip().getAccount())
+                        .map(guest -> TimeUtil.formatDay(guest.getCreatedAt()))
+                        .orElse("")
+        );
         return data;
     }
 
@@ -232,6 +247,7 @@ public class GuestAuthImplementation implements GuestAuthService {
                 ApiResponse<String> response = storageService.upload(upload);
                 if(response.getStatus().is2xxSuccessful()) {
                     Guest guest = getGuest(request, response.getData(), link);
+                    checkLink(link, guest.getId());
                     link.getGuests().add(guest);
                     sharedLinkRepository.save(link);
                     return new ApiResponse<>(
@@ -310,6 +326,7 @@ public class GuestAuthImplementation implements GuestAuthService {
                 request.setFcmToken(profile.getFcmToken());
             }
             Guest guest = getGuest(request, avatar, link);
+            checkLink(link, guest.getId());
             link.getGuests().add(guest);
             sharedLinkRepository.save(link);
             return new ApiResponse<>(
@@ -330,6 +347,7 @@ public class GuestAuthImplementation implements GuestAuthService {
                 .orElseThrow(() -> new SharedException("No verification requested"));
 
         if(auth.isEmailConfirmed()) {
+            checkLink(link, guest.getId());
             LocalDateTime current = LocalDateTime.now();
             if(auth.getConfirmedAt().isAfter(current) && auth.getConfirmedAt().isBefore(current.plusHours(24))) {
                 link.getGuests().add(guest);
@@ -352,6 +370,61 @@ public class GuestAuthImplementation implements GuestAuthService {
                     "Email is not verified",
                     ExceptionCodes.EMAIL_NOT_VERIFIED
             );
+        }
+    }
+
+    @Override
+    public void checkLink(SharedLink link, String guest) {
+        if(link.getStatuses().size() == 5) {
+            if(link.getStatuses().stream().allMatch(status -> status.getPricing() != null)) {
+                link.getStatuses().forEach(stat -> {
+                    if(stat.getPricing() != null) {
+                        stat.setIsExpired(true);
+                        sharedStatusRepository.save(stat);
+                    }
+                });
+                throw new SharedException("Link has reached it's maximum usage");
+            }
+        }
+
+        if(link.getStatuses().isEmpty()) {
+            SharedStatus status = new SharedStatus();
+            status.setStatus(COUNT_1);
+            status.setSharedLink(link);
+            status.setAccount(guest);
+
+            SharedStatus saved = sharedStatusRepository.save(status);
+            link.getStatuses().add(saved);
+        } else {
+            if(link.getStatuses().size() == 1) {
+                update(link, guest, COUNT_2);
+            } else if(link.getStatuses().size() == 2) {
+                update(link, guest, COUNT_3);
+            } else if(link.getStatuses().size() == 3) {
+                update(link, guest, COUNT_4);
+            } else if(link.getStatuses().size() == 4) {
+                update(link, guest, USED);
+            }
+
+            link.getStatuses().forEach(stat -> {
+                if(stat.getPricing() != null) {
+                    stat.setIsExpired(true);
+                    sharedStatusRepository.save(stat);
+                }
+            });
+        }
+    }
+
+    public void update(SharedLink link, String guest, UseStatus useStatus) {
+        if(link.getStatuses().stream().noneMatch(stat -> stat.getAccount().equals(guest))) {
+            SharedStatus status = new SharedStatus();
+            status.setStatus(useStatus);
+            status.setSharedLink(link);
+            status.setAccount(guest);
+            sharedStatusRepository.save(status);
+
+            SharedStatus saved = sharedStatusRepository.save(status);
+            link.getStatuses().add(saved);
         }
     }
 }

@@ -10,7 +10,6 @@ import java.math.BigDecimal;
 public class SharedPricingData {
     private BigDecimal user;
     private BigDecimal provider;
-    private BigDecimal guest;
     private BigDecimal total;
     private String more;
     private UseStatus status;

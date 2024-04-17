@@ -4,10 +4,10 @@ import lombok.Data;
 
 @Data
 public class OnlineRequest {
-    private String city;
-    private String state;
-    private String country;
     private String place;
-    private Double longitude;
+    private String country;
+    private String state;
+    private String city;
     private Double latitude;
+    private Double longitude;
 }

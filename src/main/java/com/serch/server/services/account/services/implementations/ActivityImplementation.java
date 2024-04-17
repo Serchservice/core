@@ -6,6 +6,7 @@ import com.serch.server.enums.transaction.TransactionStatus;
 import com.serch.server.repositories.rating.RatingRepository;
 import com.serch.server.repositories.schedule.ScheduleRepository;
 import com.serch.server.repositories.transaction.TransactionRepository;
+import com.serch.server.repositories.trip.TripRepository;
 import com.serch.server.services.account.responses.ActivityResponse;
 import com.serch.server.services.account.responses.RequestResponse;
 import com.serch.server.services.account.services.ActivityService;
@@ -18,6 +19,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
+import static com.serch.server.enums.auth.Role.USER;
+import static com.serch.server.enums.trip.TripConnectionStatus.COMPLETED;
+
 @Service
 @RequiredArgsConstructor
 public class ActivityImplementation implements ActivityService {
@@ -25,6 +29,7 @@ public class ActivityImplementation implements ActivityService {
     private final ScheduleRepository scheduleRepository;
     private final TransactionRepository transactionRepository;
     private final RatingRepository ratingRepository;
+    private final TripRepository tripRepository;
 
     private String todaySchedules() {
         return String.valueOf(
@@ -53,23 +58,14 @@ public class ActivityImplementation implements ActivityService {
     }
 
     private String todayTrips() {
-        return "";
-//        return String.valueOf(
-//                tripRepository.findTodayTrips(
-//                        userUtil.loggedInUserId(), ConnectionStatus.LEFT,
-//                        ConnectionStatus.NOT_ACCEPTED, ConnectionStatus.COMPLETED
-//                ).size()
-//        );
+        int size = userUtil.getUser().getRole() == USER
+                ? tripRepository.todayTrips(String.valueOf(userUtil.getUser().getId()), COMPLETED).size()
+                : tripRepository.todayTrips(userUtil.getUser().getId(), COMPLETED).size();
+        return String.valueOf(size);
     }
 
     private String todayShared() {
-        return "";
-//        return String.valueOf(
-//                tripRepository.findSharedTrips(
-//                        userUtil.loggedInUserId(), ConnectionStatus.LEFT,
-//                        ConnectionStatus.NOT_ACCEPTED, ConnectionStatus.COMPLETED
-//                ).size()
-//        );
+        return String.valueOf(tripRepository.todaySharedTrips(userUtil.getUser().getId(), COMPLETED).size());
     }
 
     @Override

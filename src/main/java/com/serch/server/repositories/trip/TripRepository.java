@@ -4,6 +4,7 @@ import com.serch.server.enums.trip.TripConnectionStatus;
 import com.serch.server.models.trip.Trip;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.lang.NonNull;
 
 import java.util.List;
@@ -36,4 +37,28 @@ public interface TripRepository extends JpaRepository<Trip, String> {
     Optional<Trip> findByIdAndProviderId(@NonNull String trip, @NonNull UUID id);
     @Query("select t from Trip t where t.account = ?1 or (t.invitedProvider.id = ?2 or t.provider.id = ?2)")
     List<Trip> findByAccount(@NonNull String account, @NonNull UUID id);
+    @Query("SELECT t from Trip t where (" +
+            "t.account = :userId " +
+            ") and (" +
+            "t.status = :status " +
+            " or t.inviteStatus = :status" +
+            ")" +
+            "order by t.updatedAt desc"
+    )
+    List<Trip> todayTrips(@Param("userId") String userId, TripConnectionStatus status);
+    @Query(
+            "SELECT t from Trip t where (t.provider.id = :userId OR t.provider.business.id = :userId) " +
+            "and (t.status = :status) order by t.updatedAt desc"
+    )
+    List<Trip> todayTrips(@Param("userId")UUID userId, TripConnectionStatus status);
+    @Query("SELECT t from Trip t where (" +
+            "t.invitedProvider.id = :userId " +
+            "OR t.invitedProvider.business.id = :userId " +
+            ") and (" +
+            "t.status = :status " +
+            " or t.inviteStatus = :status" +
+            ")" +
+            "order by t.updatedAt desc"
+    )
+    List<Trip> todaySharedTrips(@Param("userId") UUID userId, TripConnectionStatus status);
 }

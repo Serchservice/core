@@ -9,7 +9,6 @@ import com.serch.server.mappers.AuthMapper;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.User;
 import com.serch.server.models.auth.incomplete.Incomplete;
-import com.serch.server.models.auth.incomplete.IncompleteProfile;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.auth.incomplete.*;
 import com.serch.server.services.account.services.ProfileService;
@@ -19,7 +18,6 @@ import com.serch.server.services.auth.requests.RequestProfile;
 import com.serch.server.services.auth.requests.RequestSession;
 import com.serch.server.services.auth.responses.AuthResponse;
 import com.serch.server.services.auth.services.AuthService;
-import com.serch.server.services.auth.services.ProviderAuthService;
 import com.serch.server.services.auth.services.SessionService;
 import com.serch.server.services.auth.services.UserAuthService;
 import com.serch.server.utils.HelperUtil;
@@ -173,18 +171,5 @@ public class UserAuthImplementation implements UserAuthService {
                 }
             }
         }
-    }
-
-    private static RequestProfile getRequestProfile(RequestLogin login, IncompleteProfile profileInfo) {
-        RequestProfile profile = new RequestProfile();
-        profile.setGender(profileInfo.getGender());
-        profile.setLastName(profileInfo.getLastName());
-        profile.setDevice(login.getDevice());
-        profile.setPassword(profileInfo.getPassword());
-        profile.setFcmToken(profileInfo.getFcmToken());
-        profile.setPlatform(login.getPlatform());
-        profile.setReferral(profileInfo.getReferralCode());
-        profile.setFirstName(profileInfo.getFirstName());
-        return profile;
     }
 }

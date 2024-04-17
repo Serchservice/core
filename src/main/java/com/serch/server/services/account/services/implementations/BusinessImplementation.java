@@ -13,7 +13,6 @@ import com.serch.server.models.auth.incomplete.Incomplete;
 import com.serch.server.models.subscription.SubscriptionInvoice;
 import com.serch.server.repositories.account.BusinessProfileRepository;
 import com.serch.server.repositories.account.PhoneInformationRepository;
-import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.account.SpecialtyRepository;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.rating.RatingRepository;
@@ -81,7 +80,7 @@ public class BusinessImplementation implements BusinessService {
     private final SpecialtyRepository specialtyRepository;
     private final SubscriptionInvoiceRepository subscriptionInvoiceRepository;
 
-    @Value("${application.settings.account-duration}")
+    @Value("${application.account.duration}")
     private Integer ACCOUNT_DURATION;
 
     @Override

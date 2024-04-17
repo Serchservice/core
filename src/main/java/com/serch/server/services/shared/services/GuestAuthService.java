@@ -127,4 +127,14 @@ public interface GuestAuthService {
      * @see SharedPricing
      */
     SharedPricingData getSharedPricingData(SharedLink link, SharedPricing pricing);
+
+    /**
+     * This updates and checks if a shared link can be used again.
+     * If yes, it will change the status
+     * of the shared link accordingly
+     *
+     * @param link The {@link SharedLink} to make the check
+     * @param guest The profile id of the guest
+     */
+    void checkLink(SharedLink link, String guest);
 }

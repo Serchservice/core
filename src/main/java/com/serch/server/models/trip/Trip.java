@@ -1,25 +1,16 @@
 package com.serch.server.models.trip;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseDateTime;
-import com.serch.server.enums.trip.TripArrivalStatus;
-import com.serch.server.enums.trip.TripAuthStatus;
 import com.serch.server.enums.trip.TripConnectionStatus;
 import com.serch.server.generators.TripID;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.shared.SharedPricing;
 import com.serch.server.models.transaction.Transaction;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.AssertTrue;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
-import org.springframework.data.annotation.CreatedDate;
-
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
  * The Trip class represents service trips in the platform schema.
@@ -36,16 +27,13 @@ import java.util.UUID;
  * Relationships:
  * <ul>
  *     <li>One-to-one with {@link TripAuthentication} representing trip authentication details.</li>
+ *     <li>One-to-one with {@link TripTime} representing trip time details.</li>
+ *     <li>One-to-one with {@link SharedPricing} representing shared pricing details of the trip.</li>
  *     <li>One-to-one with {@link Transaction} representing transaction details associated with the trip.</li>
- *     <li>One-to-one with {@link Address} representing the address location of the trip.</li>
+ *     <li>One-to-one with {@link Address} representing the address location of the user.</li>
  *     <li>Many-to-one with {@link Profile} representing the service provider of the trip.</li>
  *     <li>Many-to-one with {@link Profile} representing the invited service provider (if any) of the trip.</li>
  *     <li>Many-to-one with {@link Profile} representing the user initiating the trip.</li>
- *     <li>One-to-one with {@link SharedPricing} representing shared pricing details of the trip.</li>
- * </ul>
- * Constraints:
- * <ul>
- *     <li>{@code isGuestOrUserNotNull()} - Asserts that either user or pricing must be provided.</li>
  * </ul>
  */
 @Getter
@@ -59,25 +47,17 @@ public class Trip extends BaseDateTime {
     @GeneratedValue(generator = "trip_id_gen")
     private String id;
 
-    @CreatedDate
-    @CreationTimestamp
-    @Column(nullable = false)
-    private LocalDateTime requestTime = LocalDateTime.now();
-
-    @JsonProperty("start_time")
-    private LocalDateTime startTime = null;
-
-    @JsonProperty("stop_time")
-    private LocalDateTime stopTime = null;
-
-    @JsonProperty("left_at")
-    private LocalDateTime leftAt = null;
-
-    @JsonProperty("invited_at")
-    private LocalDateTime invitedAt = null;
-
-    @Column(name = "reason", columnDefinition = "TEXT")
+    @Column(name = "cancel_reason", columnDefinition = "TEXT")
     private String cancelReason = null;
+
+    @Column(name = "invite_cancel_reason", columnDefinition = "TEXT")
+    private String inviteCancelReason = null;
+
+    @Column(name = "account", nullable = false, columnDefinition = "TEXT")
+    private String account;
+
+    @Column(nullable = false, name = "can_share")
+    private Boolean canShare = false;
 
     @Column(name = "status", nullable = false)
     @Enumerated(value = EnumType.STRING)
@@ -89,31 +69,11 @@ public class Trip extends BaseDateTime {
     @SerchEnum(message = "TripConnectionStatus - Invite must be an enum")
     private TripConnectionStatus inviteStatus = null;
 
-    @Column(name = "arrival_status", nullable = false)
-    @Enumerated(value = EnumType.STRING)
-    @SerchEnum(message = "TripArrivalStatus must be an enum")
-    private TripArrivalStatus arrivalStatus = null;
-
-    @Column(name = "invite_arrival_status", nullable = false)
-    @Enumerated(value = EnumType.STRING)
-    @SerchEnum(message = "TripArrivalStatus - Invite must be an enum")
-    private TripArrivalStatus inviteArrivalStatus = null;
-
-    @Column(name = "auth_status", nullable = false)
-    @Enumerated(value = EnumType.STRING)
-    @SerchEnum(message = "TripAuthStatus must be an enum")
-    private TripAuthStatus authStatus = TripAuthStatus.NONE;
-
-    @Column(name = "invite_auth_status", nullable = false)
-    @Enumerated(value = EnumType.STRING)
-    @SerchEnum(message = "TripAuthStatus - Invite must be an enum")
-    private TripAuthStatus inviteAuthStatus = TripAuthStatus.NONE;
-
-    @Column(name = "cancelled_by")
-    private UUID cancelledBy;
-
     @Column(name = "trip_amount", columnDefinition = "TEXT")
-    private String amount = null;
+    private Integer amount = null;
+
+    @OneToOne(mappedBy = "trip", cascade = CascadeType.ALL)
+    private TripTime time;
 
     @OneToOne(mappedBy = "trip", cascade = CascadeType.ALL)
     private TripAuthentication authentication;
@@ -124,37 +84,23 @@ public class Trip extends BaseDateTime {
     @OneToOne(mappedBy = "trip", cascade = CascadeType.ALL)
     private Address address;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "provider_id",
-            referencedColumnName = "serch_id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "provider_id_fkey")
-    )
-    private Profile provider;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "invited_provider_id",
-            referencedColumnName = "serch_id",
-            foreignKey = @ForeignKey(name = "invited_provider_id_fkey")
-    )
-    private Profile invitedProvider = null;
-
     @OneToOne(mappedBy = "trip")
     private SharedPricing pricing;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
-            name = "user_id",
+            name = "invited_provider_id",
+            referencedColumnName = "serch_id",
+            foreignKey = @ForeignKey(name = "trip_invited_provider_id_fkey")
+    )
+    private Profile invitedProvider = null;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "provider_id",
             referencedColumnName = "serch_id",
             nullable = false,
-            foreignKey = @ForeignKey(name = "user_id_fkey")
+            foreignKey = @ForeignKey(name = "trip_provider_id_fkey")
     )
-    private Profile user;
-
-    @AssertTrue(message = "Either user or pricing must be provided")
-    private boolean isGuestOrUserNotNull() {
-        return user != null || pricing != null;
-    }
+    private Profile provider;
 }

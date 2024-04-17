@@ -97,8 +97,8 @@ public class LocationImplementation implements LocationService {
         place.setPlaceId(data.getResult().getPlaceId());
         place.setLatitude(data.getResult().getGeometry().getLocation().getLat());
         place.setLongitude(data.getResult().getGeometry().getLocation().getLng());
-        place.setShortName(data.getResult().getAddressList().getFirst().getShortName());
-        place.setLongName(data.getResult().getAddressList().getFirst().getLongName());
+        place.setShortName(data.getResult().getAddressList().get(0).getShortName());
+        place.setLongName(data.getResult().getAddressList().get(0).getLongName());
         return place;
     }
 }

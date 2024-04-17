@@ -38,7 +38,7 @@ public class AccountReportImplementation implements AccountReportService {
     private final AccountReportRepository accountReportRepository;
     private final ShopRepository shopRepository;
 
-    @Value("${application.account.report-limit}")
+    @Value("${application.account.limit.report}")
     private Integer REPORT_LIMIT;
 
     @Override
@@ -55,7 +55,7 @@ public class AccountReportImplementation implements AccountReportService {
                 report.setStatus(IssueStatus.OPENED);
                 accountReportRepository.save(report);
 
-                if(accountReportRepository.findByShop_Id(reported.getId()).size() >= REPORT_LIMIT) {
+                if(accountReportRepository.findByAccount(reported.getId()).size() >= REPORT_LIMIT) {
                     reported.setStatus(ShopStatus.SUSPENDED);
                     reported.setUpdatedAt(LocalDateTime.now());
                     shopRepository.save(reported);
@@ -71,7 +71,7 @@ public class AccountReportImplementation implements AccountReportService {
                 report.setStatus(IssueStatus.OPENED);
                 accountReportRepository.save(report);
 
-                if(accountReportRepository.findByReported_Id(reported.getId()).size() >= REPORT_LIMIT) {
+                if(accountReportRepository.findByAccount(String.valueOf(reported.getId())).size() >= REPORT_LIMIT) {
                     reported.setAccountStatus(AccountStatus.HAS_REPORTED_ISSUES);
                     reported.setUpdatedAt(LocalDateTime.now());
                     userRepository.save(reported);

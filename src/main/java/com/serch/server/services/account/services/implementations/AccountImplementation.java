@@ -2,7 +2,6 @@ package com.serch.server.services.account.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.call.CallStatus;
-import com.serch.server.enums.trip.TripConnectionStatus;
 import com.serch.server.exceptions.account.AccountException;
 import com.serch.server.exceptions.others.SharedException;
 import com.serch.server.models.account.Profile;
@@ -10,7 +9,6 @@ import com.serch.server.models.auth.User;
 import com.serch.server.models.conversation.Call;
 import com.serch.server.models.shared.Guest;
 import com.serch.server.models.shared.SharedLink;
-import com.serch.server.models.trip.Trip;
 import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.call.CallRepository;
@@ -30,6 +28,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;
+
+import static com.serch.server.enums.trip.TripConnectionStatus.ACCEPTED;
+import static com.serch.server.enums.trip.TripConnectionStatus.ON_TRIP;
 
 /**
  * This is the class that contains the logic and implementation of its wrapper class {@link AccountService}.
@@ -75,10 +76,7 @@ public class AccountImplementation implements AccountService {
             User user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                             .orElseThrow(() -> new AccountException("User not found"));
 
-            List<Trip> trips = tripRepository.findByUserId(user.getId());
-            if(trips.stream().anyMatch(trip ->
-                    trip.getStatus() == TripConnectionStatus.ACCEPTED || trip.getStatus() == TripConnectionStatus.ON_TRIP
-            )) {
+            if(tripRepository.existsByStatusAndAccount(ACCEPTED, ON_TRIP, String.valueOf(user.getId()))) {
                 throw new SharedException("Can't switch account when you are on a trip");
             } else {
                 List<Call> calls = callRepository.findByUserId(user.getId());
@@ -117,7 +115,7 @@ public class AccountImplementation implements AccountService {
                     SharedAccountResponse response = new SharedAccountResponse();
                     response.setId(guest.getId());
                     response.setAvatar(guest.getAvatar());
-                    response.setCount(link.getStatus().getCount());
+                    response.setCount(link.getStatuses().size());
                     response.setLink(link.getLink());
                     response.setName(guest.getFullName());
                     response.setMode("GUEST");

@@ -118,12 +118,18 @@ public class ActiveImplementation implements ActiveService {
     @Override
     public void toggle(User user, TripStatus status, OnlineRequest request) {
         activeRepository.findByProfile_Id(user.getId())
-                .ifPresent(active -> {
+                .ifPresentOrElse(active -> {
                     active.setTripStatus(status);
                     active.setUpdatedAt(LocalDateTime.now());
                     updateActive(request, active);
                     activeRepository.save(active);
-                });
+                }, () -> profileRepository.findById(user.getId())
+                        .ifPresent(profile -> {
+                            Active active = TripMapper.INSTANCE.active(request);
+                            active.setTripStatus(status);
+                            active.setProfile(profile);
+                            activeRepository.save(active);
+                        }));
     }
 
     private SerchCategory category(String category) {

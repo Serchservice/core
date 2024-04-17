@@ -12,6 +12,7 @@ import com.serch.server.repositories.schedule.SchedulePaymentRepository;
 import com.serch.server.repositories.subscription.SubscriptionInvoiceRepository;
 import com.serch.server.repositories.transaction.TransactionRepository;
 import com.serch.server.repositories.transaction.WalletRepository;
+import com.serch.server.services.shared.services.GuestAuthService;
 import com.serch.server.services.transaction.responses.AssociateTransactionData;
 import com.serch.server.services.transaction.responses.TransactionResponse;
 import com.serch.server.services.transaction.services.TransactionService;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -33,6 +35,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class TransactionImplementation implements TransactionService {
+    private final GuestAuthService guestAuthService;
     private final UserUtil userUtil;
     private final TransactionRepository transactionRepository;
     private final WalletRepository walletRepository;
@@ -49,6 +52,7 @@ public class TransactionImplementation implements TransactionService {
         transactions.addAll(
                 transactionRepository.findBySender_User_Id(wallet.getUser().getId())
                         .stream()
+                        .filter(transaction -> transaction.getType() != TransactionType.TRIP)
                         .map(transaction -> createResponse(transaction, wallet))
                         .toList()
         );
@@ -56,7 +60,16 @@ public class TransactionImplementation implements TransactionService {
         transactions.addAll(
                 transactionRepository.findByAccount(wallet.getId())
                         .stream()
+                        .filter(transaction -> transaction.getType() != TransactionType.TRIP)
                         .map(transaction -> createResponse(transaction, wallet))
+                        .toList()
+        );
+
+        transactions.addAll(
+                transactionRepository.findByAccount(wallet.getId())
+                        .stream()
+                        .filter(transaction -> transaction.getType() == TransactionType.TRIP)
+                        .map(transaction -> createTripResponse(transaction, wallet))
                         .toList()
         );
 
@@ -74,6 +87,7 @@ public class TransactionImplementation implements TransactionService {
                         .toList()
         );
 
+        transactions.sort(Comparator.comparing(TransactionResponse::getCreatedAt));
         return new ApiResponse<>(transactions);
     }
 
@@ -176,6 +190,35 @@ public class TransactionImplementation implements TransactionService {
             );
         }
         response.setMode(invoice.getMode());
+        return response;
+    }
+
+    private TransactionResponse createTripResponse(Transaction transaction, Wallet wallet) {
+        TransactionResponse response = new TransactionResponse();
+        response.setId(transaction.getId());
+        response.setAmount(MoneyUtil.formatToNaira(transaction.getTrip().getPricing().getAmount()));
+        response.setReason(
+                "Transaction for Shared Trip %s - %s".formatted(
+                        transaction.getTrip().getPricing().getStatus().getSharedLink().getLink(),
+                        transaction.getTrip().getPricing().getStatus().getId()
+                )
+        );
+        response.setCompletedAt(TimeUtil.formatDay(transaction.getUpdatedAt()));
+        response.setStatus(transaction.getStatus());
+        response.setType(transaction.getType());
+        response.setIsIncoming(wallet.getId().equals(transaction.getAccount()));
+        response.setTime(TimeUtil.formatTime(transaction.getCreatedAt()));
+        response.setRequestedAt(TimeUtil.formatDay(transaction.getTrip().getPricing().getCreatedAt()));
+        response.setCreatedAt(transaction.getCreatedAt());
+        response.setName(transaction.getSender().getUser().getFullName());
+        response.setReference(transaction.getReference());
+        response.setPricing(
+                guestAuthService.getSharedPricingData(
+                        transaction.getTrip().getPricing().getStatus().getSharedLink(),
+                        transaction.getTrip().getPricing()
+                )
+        );
+        response.setMode("TRIP");
         return response;
     }
 }

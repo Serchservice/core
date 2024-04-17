@@ -14,7 +14,8 @@ import lombok.Getter;
  *     <li>{@link TripConnectionStatus#LEFT} - Represents the user left the trip</li>
  *     <li>{@link TripConnectionStatus#ON_TRIP} - Represents the trip has started</li>
  *     <li>{@link TripConnectionStatus#CANCELLED} - Represents the trip connection is cancelled</li>
- *     <li>{@link TripConnectionStatus#NOT_ACCEPTED} - Represents the trip connection is not accepted</li>
+ *     <li>{@link TripConnectionStatus#CLOSED} - Represents the trip connection is closed</li>
+ *     <li>{@link TripConnectionStatus#DECLINED} - Represents the trip connection is not accepted</li>
  * </ul>
  */
 @Getter
@@ -25,7 +26,8 @@ public enum TripConnectionStatus {
     LEFT("Left the trip"),
     ON_TRIP("Trip has started"),
     CANCELLED("Cancelled"),
-    NOT_ACCEPTED("Not Accepted");
+    CLOSED("Closed by Serch"),
+    DECLINED("Declined");
 
     private final String type;
     TripConnectionStatus(String type) {

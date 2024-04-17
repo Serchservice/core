@@ -5,6 +5,7 @@ import com.serch.server.bases.BaseProfile;
 import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.auth.Role;
 import com.serch.server.models.certificate.Certificate;
+import com.serch.server.models.trip.Active;
 import com.serch.server.models.verified.Verification;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -21,6 +22,7 @@ import java.util.UUID;
  * <ol>
  *     <li>One to one - {@link Verification}</li>
  *     <li>One to one - {@link Certificate}</li>
+ *     <li>One to one - {@link Active}</li>
  *     <li>One to many - {@link Specialty}</li>
  *     <li>Many to one - {@link BusinessProfile}</li>
  * </ol>
@@ -59,6 +61,12 @@ public class Profile extends BaseProfile {
      */
     @OneToOne(mappedBy = "profile", cascade = CascadeType.ALL)
     private Verification verification;
+
+    /**
+     * The active address associated with the profile - Mostly for a provider.
+     */
+    @OneToOne(mappedBy = "profile", cascade = CascadeType.ALL)
+    private Active active;
 
     /**
      * The list of specialties associated with the profile.

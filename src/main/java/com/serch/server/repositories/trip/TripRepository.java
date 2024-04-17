@@ -1,22 +1,39 @@
 package com.serch.server.repositories.trip;
 
+import com.serch.server.enums.trip.TripConnectionStatus;
 import com.serch.server.models.trip.Trip;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.lang.NonNull;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface TripRepository extends JpaRepository<Trip, String> {
-    @Query("select t from Trip t where " +
-            "t.provider.emailAddress = ?1 or t.invitedProvider.emailAddress = ?1 " +
-            "or t.user.emailAddress = ?1 or t.pricing.guest.emailAddress = ?1"
-    )
-    List<Trip> findByEmailAddressIgnoreCase(@NonNull String emailAddress);
-    @Query("select t from Trip t where " +
-            "t.provider.id = ?1 or t.invitedProvider.id = ?1 " +
-            "or t.user.id = ?1"
-    )
-    List<Trip> findByUserId(@NonNull UUID id);
+    @Query("""
+            select (count(t) > 0) from Trip t
+            where (t.status = ?1 or t.inviteStatus = ?1) or (t.status = ?2 or t.inviteStatus = ?2)
+            and (t.account = ?3)
+            """)
+    boolean existsByStatusAndAccount(
+            @NonNull TripConnectionStatus status,
+            @NonNull TripConnectionStatus inviteStatus,
+            @NonNull String id
+    );
+    @Query("""
+            select (count(t) > 0) from Trip t
+            where (t.status = ?1 or t.inviteStatus = ?1) or (t.status = ?2 or t.inviteStatus = ?2)
+            and (t.provider.id = ?3 or t.invitedProvider.id = ?3)
+            """)
+    boolean existsByStatusAndProvider(
+            @NonNull TripConnectionStatus status,
+            @NonNull TripConnectionStatus inviteStatus,
+            @NonNull UUID id
+    );
+    Optional<Trip> findByIdAndAccount(@NonNull String id, @NonNull String account);
+    @Query("select t from Trip t where t.id = ?1 and (t.invitedProvider.id = ?2 or t.provider.id = ?2)")
+    Optional<Trip> findByIdAndProviderId(@NonNull String trip, @NonNull UUID id);
+    @Query("select t from Trip t where t.account = ?1 or (t.invitedProvider.id = ?2 or t.provider.id = ?2)")
+    List<Trip> findByAccount(@NonNull String account, @NonNull UUID id);
 }

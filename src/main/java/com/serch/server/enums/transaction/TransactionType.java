@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
  *     <li>{@link TransactionType#SUBSCRIPTION} - Represents a Subscription transaction</li>
  *     <li>{@link TransactionType#T2F} - Represents a Tip2Fix transaction</li>
  *     <li>{@link TransactionType#FUNDING} - Represents a Fund transaction</li>
+ *     <li>{@link TransactionType#TRIP_WITHDRAW} - Represents a trip withdrawal transaction</li>
  * </ul>
  */
 @Getter
@@ -25,7 +26,8 @@ public enum TransactionType {
     WITHDRAW("Withdrawal"),
     SUBSCRIPTION("Subscription"),
     T2F("Tip2Fix"),
-    FUNDING("Fund");
+    FUNDING("Fund"),
+    TRIP_WITHDRAW("Trip Withdrawal");
 
     private final String type;
 }

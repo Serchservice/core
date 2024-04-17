@@ -2,6 +2,7 @@ package com.serch.server.mappers;
 
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.trip.Active;
+import com.serch.server.models.trip.Address;
 import com.serch.server.services.trip.requests.OnlineRequest;
 import com.serch.server.services.trip.responses.ActiveResponse;
 import org.mapstruct.Mapper;
@@ -13,4 +14,7 @@ public interface TripMapper {
 
     Active active(OnlineRequest request);
     ActiveResponse response(Profile profile);
+    Address address(OnlineRequest request);
+    OnlineRequest request(Active active);
+    OnlineRequest request(Address address);
 }

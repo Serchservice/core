@@ -11,6 +11,7 @@ import com.serch.server.models.auth.User;
 import com.serch.server.models.auth.incomplete.*;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.auth.incomplete.*;
+import com.serch.server.repositories.company.SpecialtyKeywordRepository;
 import com.serch.server.services.account.services.ReferralService;
 import com.serch.server.services.auth.requests.*;
 import com.serch.server.services.auth.responses.AuthResponse;
@@ -43,7 +44,7 @@ import java.util.List;
  * @see IncompleteProfileRepository
  * @see IncompletePhoneInformationRepository
  * @see IncompleteCategoryRepository
- * @see SpecialtyServiceRepository
+ * @see SpecialtyKeywordRepository
  * @see IncompleteSpecialtyRepository
  * @see IncompleteAdditionalRepository
  */
@@ -60,11 +61,11 @@ public class ProviderAuthImplementation implements ProviderAuthService {
     private final IncompleteProfileRepository incompleteProfileRepository;
     private final IncompletePhoneInformationRepository incompletePhoneInformationRepository;
     private final IncompleteCategoryRepository incompleteCategoryRepository;
-    private final SpecialtyServiceRepository specialtyServiceRepository;
+    private final SpecialtyKeywordRepository specialtyKeywordRepository;
     private final IncompleteSpecialtyRepository incompleteSpecialtyRepository;
     private final IncompleteAdditionalRepository incompleteAdditionalRepository;
 
-    @Value("${application.account.specialty-limit}")
+    @Value("${application.account.limit.specialty}")
     private Integer SPECIALTY_LIMIT;
 
     @Override
@@ -198,7 +199,7 @@ public class ProviderAuthImplementation implements ProviderAuthService {
 
     @Override
     public void addSpecialtiesToIncompleteProfile(List<Long> specialties, Incomplete incomplete) {
-        specialties.forEach(id -> specialtyServiceRepository.findById(id)
+        specialties.forEach(id -> specialtyKeywordRepository.findById(id)
                 .ifPresent(serviceKeyword -> {
                     IncompleteSpecialty incompleteSpecialty = new IncompleteSpecialty();
                     incompleteSpecialty.setService(serviceKeyword);

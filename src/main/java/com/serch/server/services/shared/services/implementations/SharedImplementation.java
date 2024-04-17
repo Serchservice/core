@@ -6,7 +6,7 @@ import com.serch.server.mappers.SharedMapper;
 import com.serch.server.models.auth.User;
 import com.serch.server.models.shared.Guest;
 import com.serch.server.models.shared.SharedLink;
-import com.serch.server.models.shared.SharedPricing;
+import com.serch.server.models.shared.SharedStatus;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.shared.GuestRepository;
 import com.serch.server.repositories.shared.SharedLinkRepository;
@@ -64,12 +64,12 @@ public class SharedImplementation implements SharedService {
                     response.setUser(SharedMapper.INSTANCE.response(link.getUser()));
                     response.getUser().setName(link.getUser().getFullName());
 
-                    if(!link.getPricing().isEmpty()) {
+                    if(!link.getStatuses().isEmpty()) {
                         response.setPricing(
-                                link.getPricing()
+                                link.getStatuses()
                                         .stream()
-                                        .sorted(Comparator.comparing(SharedPricing::getCreatedAt))
-                                        .map(pricing -> authService.getSharedPricingData(link, pricing))
+                                        .sorted(Comparator.comparing(SharedStatus::getCreatedAt))
+                                        .map(stat -> authService.getSharedPricingData(link, stat.getPricing()))
                                         .toList()
                         );
                     }

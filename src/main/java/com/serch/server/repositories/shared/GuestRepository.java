@@ -8,4 +8,5 @@ import java.util.Optional;
 
 public interface GuestRepository extends JpaRepository<Guest, String> {
     Optional<Guest> findByEmailAddressIgnoreCase(@NonNull String emailAddress);
+    Optional<Guest> findByIdAndSharedLinks_Id(@NonNull String id, @NonNull String id1);
 }

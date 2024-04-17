@@ -18,6 +18,7 @@ public enum SerchCategory {
     ELECTRICIAN("Electrician"),
     BUSINESS("Business"),
     CARPENTER("Carpenter"),
+    GUEST("Guest"),
     USER("User");
 
     private final String type;

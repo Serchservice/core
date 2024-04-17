@@ -53,6 +53,8 @@ public class WalletUtil {
                         }
                     } else if (request.getType() == TransactionType.TRIP) {
                         wallet.setBalance(wallet.getBalance().add(request.getAmount()));
+                    } else if (request.getType() == TransactionType.TRIP_WITHDRAW) {
+                        updateBalance(request, wallet);
                     } else if (request.getType() == TransactionType.FUNDING) {
                         wallet.setBalance(wallet.getBalance().add(request.getAmount()));
                     } else {

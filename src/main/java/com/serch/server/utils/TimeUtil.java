@@ -195,15 +195,19 @@ public class TimeUtil {
      * @return The formatted day.
      */
     public static String formatDay(LocalDateTime dateTime) {
-        LocalDateTime currentDateTime = LocalDateTime.now();
+        if(dateTime != null) {
+            LocalDateTime currentDateTime = LocalDateTime.now();
 
-        if (dateTime.toLocalDate().equals(currentDateTime.toLocalDate())) {
-            return "Today";
-        } else if (dateTime.toLocalDate().equals(currentDateTime.minusDays(1).toLocalDate())) {
-            return "Yesterday";
+            if (dateTime.toLocalDate().equals(currentDateTime.toLocalDate())) {
+                return "Today";
+            } else if (dateTime.toLocalDate().equals(currentDateTime.minusDays(1).toLocalDate())) {
+                return "Yesterday";
+            } else {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy");
+                return dateTime.format(formatter);
+            }
         } else {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy");
-            return dateTime.format(formatter);
+            return "";
         }
     }
 

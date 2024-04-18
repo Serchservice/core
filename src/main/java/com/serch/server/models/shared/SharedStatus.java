@@ -10,7 +10,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(schema = "providesharing", name = "statuses")
+@Table(schema = "sharing", name = "statuses")
 public class SharedStatus extends BaseModel {
     @Column(nullable = false)
     private String account;

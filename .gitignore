@@ -34,3 +34,4 @@ build/
 
 ### Others
 service-account.json
+.env

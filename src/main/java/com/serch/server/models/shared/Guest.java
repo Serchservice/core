@@ -42,7 +42,7 @@ import java.util.Set;
 @Getter
 @Setter
 @Entity
-@Table(schema = "providesharing", name = "profiles")
+@Table(schema = "sharing", name = "profiles")
 public class Guest extends BaseDateTime {
     @Id
     @GenericGenerator(name = "guest_id_seq", type = GuestID.class)

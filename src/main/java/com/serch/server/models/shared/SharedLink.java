@@ -39,7 +39,7 @@ import java.util.Set;
 @Getter
 @Setter
 @Entity
-@Table(schema = "providesharing", name = "links")
+@Table(schema = "sharing", name = "links")
 public class SharedLink extends BaseDateTime {
     @Id
     @GenericGenerator(name = "shared_link_seq", type = SharedLinkID.class)

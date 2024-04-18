@@ -29,7 +29,7 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @Entity
-@Table(schema = "providesharing", name = "pricings")
+@Table(schema = "sharing", name = "pricings")
 public class SharedPricing extends BaseModel {
     @Column(name = "amount", nullable = false)
     private BigDecimal amount;

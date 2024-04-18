@@ -32,7 +32,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Table(schema = "providesharing", name = "auth")
+@Table(schema = "sharing", name = "auth")
 public class GuestAuth extends BaseModel {
     @Column(name = "email_address", nullable = false, columnDefinition = "TEXT")
     @Email(

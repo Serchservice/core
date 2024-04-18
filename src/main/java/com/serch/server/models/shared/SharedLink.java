@@ -81,6 +81,7 @@ public class SharedLink extends BaseDateTime {
                     referencedColumnName = "id",
                     foreignKey = @ForeignKey(name = "guest_shared_link_id_fkey")
             ),
+            schema = "sharing",
             inverseJoinColumns = @JoinColumn(
                     name = "guest_id",
                     nullable = false,

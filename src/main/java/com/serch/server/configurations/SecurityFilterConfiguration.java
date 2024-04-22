@@ -76,26 +76,30 @@ public class SecurityFilterConfiguration {
                         // Define request matchers and their corresponding authorization rules
                         .requestMatchers(
                                 // Public endpoints
-                                "/auth/entry/**",
+                                "/auth/email/**",
                                 "/auth/user/**",
                                 "/auth/provider/**",
                                 "/auth/business/**",
-                                "/auth/admin/email",
-                                "/auth/admin/login",
-                                "/auth/admin/register",
-                                "/auth/admin/token",
                                 "/auth/reset/**",
-                                "/session/refresh",
-                                "/countries_in_serch/verify",
-                                "/countries_in_serch/request",
-                                "/account/plan/all",
-                                "/account/plan/subscribe",
-                                "/product",
-                                "/trip/pay/**",
-                                "/trip/request",
-                                "/trip/cancel",
-                                "/trip/end",
-                                "/server/**",
+                                "/auth/session/refresh",
+                                "/company/**",
+                                "/plan/**",
+                                "/auth/guest/**",
+                                "/guest/**",
+                                "/switch/**",
+                                "/shop/search",
+                                "/trip/shared/**",
+                                "/rating/rate/**",
+                                "/location/search/**"
+                        ).permitAll()
+                        .requestMatchers(
+                                // Public endpoints for actuator and server endpoints
+                                HttpMethod.GET,
+                                "/actuator/**",
+                                "/server/**"
+                        ).permitAll()
+                        .requestMatchers(
+                                // Public endpoints for swagger endpoints
                                 "/swagger-ui.html",
                                 "/webjars/**",
                                 "/swagger-ui/**",
@@ -114,27 +118,29 @@ public class SecurityFilterConfiguration {
                                 "/bookmark/remove"
                         ).hasAnyRole(USER.name())
                         .requestMatchers(
-                                // Endpoints requiring PROVIDER or BUSINESS role
+                                // Endpoints requiring PROVIDER role
+                                "/provider/active/**",
+                                "/account/additional"
+                        ).hasAnyRole(PROVIDER.name())
+                        .requestMatchers(
+                                // Endpoints requiring PROVIDER or USER roles
+                                "/account/delete"
+                        ).hasAnyRole(PROVIDER.name(), USER.name())
+                        .requestMatchers(
+                                // Endpoints requiring PROVIDER, USER and ASSOCIATE_PROVIDER roles
+                                "/account/switch",
+                                "/profile/**"
+                        ).hasAnyRole(ASSOCIATE_PROVIDER.name(), PROVIDER.name(), USER.name())
+                        .requestMatchers(
+                                // Endpoints requiring PROVIDER or BUSINESS roles
                                 "/verify/**",
                                 "/verify"
                         ).hasAnyRole(PROVIDER.name(), BUSINESS.name())
                         .requestMatchers(
-                                // Endpoints requiring PROVIDER role
-                                "/provider/active/**"
-                        ).hasAnyRole(PROVIDER.name())
-                        .requestMatchers(
                                 // Endpoints requiring BUSINESS role
-                                "/business/associates/**",
-                                "/business/associates",
-                                "/schedule/business",
-                                "/schedule/business_associate",
-                                "/account/specialty/business/**"
+                                "/business/associate/**",
+                                "/business/profiles/**"
                         ).hasAnyRole(BUSINESS.name())
-                        .requestMatchers(
-                                // Public endpoints for actuator endpoints
-                                HttpMethod.GET,
-                                "/actuator/**"
-                        ).permitAll()
                         // All other requests require authentication
                         .anyRequest().authenticated()
                 )

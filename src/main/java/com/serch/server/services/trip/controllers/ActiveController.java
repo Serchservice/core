@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/trip/active")
+@RequestMapping("/providers/active")
 @RequiredArgsConstructor
 public class ActiveController {
     private final ActiveService service;

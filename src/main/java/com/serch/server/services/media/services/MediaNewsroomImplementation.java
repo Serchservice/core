@@ -41,8 +41,8 @@ public class MediaNewsroomImplementation implements MediaNewsroomService {
 
     private MediaNewsroomResponse getNewsroomResponse(MediaNewsroom newsroom) {
         MediaNewsroomResponse response = MediaMapper.INSTANCE.response(newsroom);
-        response.setRegion(MediaUtil.formatRegionAndDate(newsroom.getCreatedAt(), newsroom.getRegion()));
-        response.setLabel(TimeUtil.formatDay(newsroom.getCreatedAt()));
+        response.setRegion(MediaUtil.formatRegionAndDate(response.getCreatedAt(), newsroom.getRegion()));
+        response.setLabel(TimeUtil.formatDay(response.getCreatedAt()));
         return response;
     }
 

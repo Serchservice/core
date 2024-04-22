@@ -41,8 +41,8 @@ public class MediaBlogImplementation implements MediaBlogService {
 
     private MediaBlogResponse getBlogResponse(MediaBlog blog) {
         MediaBlogResponse response = MediaMapper.INSTANCE.response(blog);
-        response.setRegion(MediaUtil.formatRegionAndDate(blog.getCreatedAt(), blog.getRegion()));
-        response.setLabel(TimeUtil.formatDay(blog.getCreatedAt()));
+        response.setRegion(MediaUtil.formatRegionAndDate(response.getCreatedAt(), blog.getRegion()));
+        response.setLabel(TimeUtil.formatDay(response.getCreatedAt()));
         return response;
     }
 

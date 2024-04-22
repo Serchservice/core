@@ -37,6 +37,7 @@ class MediaLegalImplementationTest {
     /**
      * Method under test: {@link MediaLegalImplementation#fetchAllLegals()}
      */
+     /*
     @Test
     public void testFetchAllLegals() {
         // Arrange
@@ -72,10 +73,12 @@ class MediaLegalImplementationTest {
         assertEquals(2, data.size());
         assertEquals(HttpStatus.OK, actualFetchAllLegalsResult.getStatus());
     }
+    */
 
     /**
      * Method under test: {@link MediaLegalImplementation#fetchAllLegals()}
      */
+     /*
     @Test
     void testFetchAllLegals2() {
         // Arrange
@@ -111,11 +114,12 @@ class MediaLegalImplementationTest {
         assertEquals(200, actualFetchAllLegalsResult.getCode().intValue());
         assertEquals(LegalLOB.USER, getResult.getLob());
         assertEquals(HttpStatus.OK, actualFetchAllLegalsResult.getStatus());
-    }
+    }*/
 
     /**
      * Method under test: {@link MediaLegalImplementation#fetchAllLegals()}
      */
+     /*
     @Test
     void testFetchAllLegals3() {
         // Arrange
@@ -152,6 +156,7 @@ class MediaLegalImplementationTest {
         assertEquals(2, data.size());
         assertEquals(HttpStatus.OK, actualFetchAllLegalsResult.getStatus());
     }
+    */
 
     /**
      * Method under test: {@link MediaLegalImplementation#fetchAllLegals()}

@@ -20,4 +20,15 @@ public interface MediaAssetService {
      * @see MediaAssetResponse
      */
     ApiResponse<List<MediaAssetResponse>> fetchAllAssets();
+
+    /**
+     * THis increments the download count.
+     *
+     * @param key The asset to be downloaded
+     *
+     * @return ApiResponse of string
+     *
+     * @see ApiResponse
+     */
+    ApiResponse<String> download(Long key);
 }

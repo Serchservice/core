@@ -42,4 +42,7 @@ public class MediaNewsroom extends BaseDateTime {
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String region;
+
+    @Column(nullable = false)
+    private Integer views = 0;
 }

@@ -10,6 +10,7 @@ import com.serch.server.exceptions.auth.SessionException;
 import com.serch.server.exceptions.conversation.CallException;
 import com.serch.server.exceptions.conversation.ChatException;
 import com.serch.server.exceptions.conversation.ChatRoomException;
+import com.serch.server.exceptions.media.MediaAssetException;
 import com.serch.server.exceptions.media.MediaBlogException;
 import com.serch.server.exceptions.media.MediaLegalException;
 import com.serch.server.exceptions.media.MediaNewsroomException;
@@ -305,6 +306,13 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(MediaLegalException.class)
     public ApiResponse<String> handleMediaLegalException(MediaLegalException exception) {
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        response.setData(exception.getLocalizedMessage());
+        return response;
+    }
+
+    @ExceptionHandler(MediaAssetException.class)
+    public ApiResponse<String> handleMediaAssetException(MediaAssetException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
         return response;

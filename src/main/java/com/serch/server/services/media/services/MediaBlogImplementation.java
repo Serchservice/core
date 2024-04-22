@@ -31,6 +31,9 @@ public class MediaBlogImplementation implements MediaBlogService {
     public ApiResponse<MediaBlogResponse> findBlog(String key) {
         MediaBlog blog = blogRepository.findById(key)
                 .orElseThrow(() -> new MediaBlogException("MediaBlog not found"));
+
+        blog.setViews(blog.getViews() + 1);
+        blogRepository.save(blog);
         return new ApiResponse<>("MediaBlog found", getBlogResponse(blog), HttpStatus.OK);
     }
 

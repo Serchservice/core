@@ -33,4 +33,7 @@ public class MediaAsset extends BaseDateTime {
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String asset;
+
+    @Column(nullable = false)
+    private Integer downloads = 0;
 }

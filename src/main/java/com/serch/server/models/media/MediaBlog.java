@@ -41,4 +41,7 @@ public class MediaBlog extends BaseDateTime {
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String title;
+
+    @Column(nullable = false)
+    private Integer views = 0;
 }

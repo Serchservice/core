@@ -32,6 +32,8 @@ public class MediaNewsroomImplementation implements MediaNewsroomService {
         MediaNewsroom newsroom = newsroomRepository.findById(key)
                 .orElseThrow(() -> new MediaNewsroomException("News not found"));
 
+        newsroom.setViews(newsroom.getViews() + 1);
+        newsroomRepository.save(newsroom);
         return new ApiResponse<>("News fetched", getNewsroomResponse(newsroom), HttpStatus.OK);
     }
 

@@ -7,6 +7,7 @@ import com.serch.server.models.media.MediaNewsroom;
 import com.serch.server.repositories.media.MediaNewsroomRepository;
 import com.serch.server.services.media.responses.MediaNewsroomResponse;
 import com.serch.server.utils.MediaUtil;
+import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -40,6 +42,7 @@ public class MediaNewsroomImplementation implements MediaNewsroomService {
     private MediaNewsroomResponse getNewsroomResponse(MediaNewsroom newsroom) {
         MediaNewsroomResponse response = MediaMapper.INSTANCE.response(newsroom);
         response.setRegion(MediaUtil.formatRegionAndDate(newsroom.getCreatedAt(), newsroom.getRegion()));
+        response.setLabel(TimeUtil.formatDay(newsroom.getCreatedAt()));
         return response;
     }
 
@@ -51,6 +54,33 @@ public class MediaNewsroomImplementation implements MediaNewsroomService {
                 Sort.Order.asc("created_at").getDirection()
         );
 
+        return new ApiResponse<>(
+                "News fetched",
+                newsroomRepository.findAll(pageable)
+                        .stream()
+                        .sorted(Comparator.comparing(MediaNewsroom::getCreatedAt))
+                        .map(this::getNewsroomResponse)
+                        .toList(),
+                HttpStatus.OK
+        );
+    }
+
+    @Override
+    public ApiResponse<List<MediaNewsroomResponse>> findPopularNews() {
+        Pageable pageable = PageRequest.of(0, 5, Sort.by("views").descending());
+        return new ApiResponse<>(
+                "News fetched",
+                newsroomRepository.findAll(pageable)
+                        .stream()
+                        .map(this::getNewsroomResponse)
+                        .toList(),
+                HttpStatus.OK
+        );
+    }
+
+    @Override
+    public ApiResponse<List<MediaNewsroomResponse>> findRecentNews() {
+        Pageable pageable = PageRequest.of(0, 5, Sort.by("createdAt").descending());
         return new ApiResponse<>(
                 "News fetched",
                 newsroomRepository.findAll(pageable)

@@ -25,10 +25,16 @@ public class MediaBlogController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<MediaBlogResponse>>> fetchAllBlogs(
+    public ResponseEntity<ApiResponse<List<MediaBlogResponse>>> findAllBlogs(
             @RequestParam(required = false) Integer page
     ) {
         ApiResponse<List<MediaBlogResponse>> response = service.findAllBlogs(page);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @GetMapping("/popular")
+    public ResponseEntity<ApiResponse<List<MediaBlogResponse>>> findPopularBlogs() {
+        ApiResponse<List<MediaBlogResponse>> response = service.findPopularBlogs();
         return new ResponseEntity<>(response, response.getStatus());
     }
 }

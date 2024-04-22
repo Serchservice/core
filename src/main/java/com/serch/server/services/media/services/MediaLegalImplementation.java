@@ -37,12 +37,25 @@ public class MediaLegalImplementation implements MediaLegalService {
 
         List<MediaLegalGroupResponse> response = new ArrayList<>();
         groupedByLOB.forEach((lob, legal) -> {
-            MediaLegalGroupResponse legalGroupResponse = new MediaLegalGroupResponse();
-            legalGroupResponse.setLineOfBusiness(lob.getType());
-            legalGroupResponse.setLob(lob);
-            legalGroupResponse.setLegalList(legal);
-            response.add(legalGroupResponse);
+            if(lob != LegalLOB.GENERAL) {
+                MediaLegalGroupResponse legalGroupResponse = new MediaLegalGroupResponse();
+                legalGroupResponse.setLineOfBusiness(lob.getType());
+                legalGroupResponse.setLob(lob);
+                legalGroupResponse.setLegalList(legal);
+                response.add(legalGroupResponse);
+            }
         });
+
+        MediaLegalGroupResponse general = new MediaLegalGroupResponse();
+        general.setLineOfBusiness(LegalLOB.GENERAL.getType());
+        general.setLob(LegalLOB.GENERAL);
+        general.setLegalList(
+                legalRepository.findAll()
+                        .stream()
+                        .map(this::getLegalResponse)
+                        .toList()
+        );
+        response.add(general);
 
         return new ApiResponse<>("Legals fetched", response, HttpStatus.OK);
     }

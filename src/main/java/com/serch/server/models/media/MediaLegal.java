@@ -43,5 +43,5 @@ public class MediaLegal extends BaseDateTime {
 
     @Enumerated(value = EnumType.STRING)
     @Column(nullable = false, name = "line_of_business")
-    private LegalLOB lob;
+    private LegalLOB lob = LegalLOB.GENERAL;
 }

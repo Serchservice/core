@@ -7,6 +7,7 @@ import com.serch.server.models.media.MediaBlog;
 import com.serch.server.repositories.media.MediaBlogRepository;
 import com.serch.server.services.media.responses.MediaBlogResponse;
 import com.serch.server.utils.MediaUtil;
+import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -40,6 +42,7 @@ public class MediaBlogImplementation implements MediaBlogService {
     private MediaBlogResponse getBlogResponse(MediaBlog blog) {
         MediaBlogResponse response = MediaMapper.INSTANCE.response(blog);
         response.setRegion(MediaUtil.formatRegionAndDate(blog.getCreatedAt(), blog.getRegion()));
+        response.setLabel(TimeUtil.formatDay(blog.getCreatedAt()));
         return response;
     }
 
@@ -55,6 +58,21 @@ public class MediaBlogImplementation implements MediaBlogService {
                 "Blogs fetched",
                 blogRepository.findAll(pageable)
                         .stream()
+                        .sorted(Comparator.comparing(MediaBlog::getCreatedAt))
+                        .map(this::getBlogResponse)
+                        .toList(),
+                HttpStatus.OK
+        );
+    }
+
+    @Override
+    public ApiResponse<List<MediaBlogResponse>> findPopularBlogs() {
+        Pageable pageable = PageRequest.of(0, 5, Sort.by("views").descending());
+        return new ApiResponse<>(
+                "Blogs fetched",
+                blogRepository.findAll(pageable)
+                        .stream()
+                        .sorted(Comparator.comparing(MediaBlog::getCreatedAt))
                         .map(this::getBlogResponse)
                         .toList(),
                 HttpStatus.OK

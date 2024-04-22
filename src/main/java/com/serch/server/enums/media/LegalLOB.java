@@ -18,6 +18,7 @@ import lombok.Getter;
  */
 @Getter
 public enum LegalLOB {
+    GENERAL("General"),
     USER("Request/User"),
     GUEST("Request/Guest"),
     PROVIDER("Provide/Independent Provider"),

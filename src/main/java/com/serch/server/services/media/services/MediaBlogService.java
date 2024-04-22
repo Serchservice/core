@@ -34,4 +34,14 @@ public interface MediaBlogService {
      * @see ApiResponse
      */
     ApiResponse<List<MediaBlogResponse>> findAllBlogs(Integer page);
+
+    /**
+     * Retrieves all popular media blog posts.
+     *
+     * @return ApiResponse containing a list of MediaBlogResponse objects.
+     *
+     * @see MediaBlogResponse
+     * @see ApiResponse
+     */
+    ApiResponse<List<MediaBlogResponse>> findPopularBlogs();
 }

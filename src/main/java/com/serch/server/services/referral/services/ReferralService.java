@@ -35,4 +35,13 @@ public interface ReferralService {
      * @see ApiResponse
      */
     ApiResponse<List<ReferralResponse>> viewReferrals();
+
+    /**
+     * Get user avatar from user
+     *
+     * @param user  The user to get the avatar of
+     *
+     * @return String of profile picture
+     */
+    String getAvatar(User user);
 }

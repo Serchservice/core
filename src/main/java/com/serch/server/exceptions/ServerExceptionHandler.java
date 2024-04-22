@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.zxing.WriterException;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.exceptions.account.AccountException;
-import com.serch.server.exceptions.account.ReferralException;
+import com.serch.server.exceptions.others.ReferralException;
 import com.serch.server.exceptions.auth.AuthException;
 import com.serch.server.exceptions.auth.SessionException;
 import com.serch.server.exceptions.conversation.CallException;

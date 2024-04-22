@@ -23,7 +23,6 @@ import org.mapstruct.factory.Mappers;
 public interface AccountMapper {
     AccountMapper INSTANCE = Mappers.getMapper(AccountMapper.class);
 
-    @Mapping(source = "referral", target = "referralCode", ignore = true)
     Profile profile(RequestProfile profile);
     @Mapping(source = "id", target = "id", ignore = true)
     BusinessProfile profile(IncompleteProfile profile);

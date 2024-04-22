@@ -4,4 +4,6 @@ import lombok.Data;
 
 @Data
 public class ReferralData {
+    private String info;
+    private String label;
 }

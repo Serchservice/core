@@ -1,4 +1,4 @@
-package com.serch.server.exceptions.account;
+package com.serch.server.exceptions.others;
 
 /**
  * The ReferralException class represents an exception related to referral operations.

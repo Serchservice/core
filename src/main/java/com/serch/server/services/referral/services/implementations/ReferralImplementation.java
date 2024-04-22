@@ -5,10 +5,14 @@ import com.serch.server.models.account.BusinessProfile;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.referral.Referral;
 import com.serch.server.models.auth.User;
+import com.serch.server.repositories.account.BusinessProfileRepository;
+import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.referral.ReferralRepository;
-import com.serch.server.repositories.referral.ReferralProgramRepository;
+import com.serch.server.repositories.shared.SharedLinkRepository;
+import com.serch.server.services.referral.responses.ReferralData;
 import com.serch.server.services.referral.responses.ReferralResponse;
 import com.serch.server.services.referral.services.ReferralService;
+import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,12 +25,16 @@ import java.util.List;
  * It implements it wrapper class {@link ReferralService}
  *
  * @see ReferralRepository
+ * @see BusinessProfileRepository
+ * @see SharedLinkRepository
  */
 @Service
 @RequiredArgsConstructor
 public class ReferralImplementation implements ReferralService {
     private final ReferralRepository referralRepository;
-    private final ReferralProgramRepository referralProgramRepository;
+    private final ProfileRepository profileRepository;
+    private final BusinessProfileRepository businessProfileRepository;
+    private final SharedLinkRepository sharedLinkRepository;
 
     @Override
     public void create(User referral, User referredBy) {
@@ -36,29 +44,47 @@ public class ReferralImplementation implements ReferralService {
         referralRepository.save(refer);
     }
 
+    private String getCount(User user, User referredBy) {
+        if(referredBy.getProgram().isReferral()) {
+            return "Total Referrals: " + referralRepository.findByReferral_Id(user.getId()).size();
+        } else if(referredBy.getProgram().isSharing()) {
+            return "Total Shared: " + sharedLinkRepository.findByUserId(user.getId()).size();
+        } else {
+            return "";
+        }
+    }
+
     @Override
     public ApiResponse<List<ReferralResponse>> viewReferrals() {
-        List<ReferralResponse> list = referralRepository.findByReferredBy_EmailAddress(UserUtil.getLoginUser())
+        List<ReferralResponse> list = referralRepository.findByReferredBy_User_EmailAddress(UserUtil.getLoginUser())
                 .stream()
                 .sorted(Comparator.comparing(Referral::getCreatedAt))
                 .map(referral -> {
                     ReferralResponse response = new ReferralResponse();
 
-                    String avatar = profileRepository.findById(referral.getReferral().getId())
-                            .map(Profile::getAvatar)
-                            .orElse(
-                                    businessProfileRepository.findById(referral.getReferral().getId())
-                                            .map(BusinessProfile::getAvatar)
-                                            .orElse("")
-                            );
+                    String avatar = getAvatar(referral.getReferral());
                     response.setAvatar(avatar);
                     response.setRole(referral.getReferral().getRole().getType());
                     response.setName(referral.getReferral().getFullName());
-                    response.setStatus(referral.getStatus());
-                    response.setId(referral.getReferId());
+                    response.setReferId(referral.getReferId());
+
+                    ReferralData data = new ReferralData();
+                    data.setInfo(getCount(referral.getReferral(), referral.getReferredBy().getUser()));
+                    data.setLabel("Joined Serch Platform: " + TimeUtil.formatDay(referral.getReferral().getCreatedAt()));
                     return response;
                 })
                 .toList();
         return new ApiResponse<>(list);
+    }
+
+    @Override
+    public String getAvatar(User user) {
+        return profileRepository.findById(user.getId())
+                .map(Profile::getAvatar)
+                .orElse(
+                        businessProfileRepository.findById(user.getId())
+                                .map(BusinessProfile::getAvatar)
+                                .orElse("")
+                );
     }
 }

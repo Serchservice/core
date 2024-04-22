@@ -77,7 +77,7 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
 
                     RequestProviderProfile profile = AccountMapper.INSTANCE.profile(request);
                     profile.setPassword(business.getDefaultPassword());
-                    profile.setReferral(business.getReferralCode());
+                    profile.setReferral(business.getUser().getProgram().getReferralCode());
                     providerAuthService.saveProfile(profile, saved);
                     providerAuthService.saveCategory(request.getCategory(), saved);
                     providerAuthService.addSpecialtiesToIncompleteProfile(request.getSpecialties(), saved);

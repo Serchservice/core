@@ -12,7 +12,7 @@ import com.serch.server.models.auth.incomplete.*;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.auth.incomplete.*;
 import com.serch.server.repositories.company.SpecialtyKeywordRepository;
-import com.serch.server.services.account.services.ReferralService;
+import com.serch.server.services.referral.services.ReferralProgramService;
 import com.serch.server.services.auth.requests.*;
 import com.serch.server.services.auth.responses.AuthResponse;
 import com.serch.server.services.auth.services.AuthService;
@@ -32,11 +32,11 @@ import java.util.List;
  * Service responsible for implementing provider authentication.
  * It implements its wrapper class {@link ProviderAuthService}
  * <p></p>
- * It interacts with {@link AuthService}, {@link ReferralService}, {@link SessionService}, and others.
+ * It interacts with {@link AuthService}, {@link ReferralProgramService}, {@link SessionService}, and others.
  *
  * @see AuthService
- * @see ReferralService
  * @see SessionService
+ * @see ReferralProgramService
  * @see PasswordEncoder
  * @see UserRepository
  * @see IncompleteRepository
@@ -52,8 +52,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProviderAuthImplementation implements ProviderAuthService {
     private final AuthService authService;
-    private final ReferralService referralService;
     private final SessionService sessionService;
+    private final ReferralProgramService referralProgramService;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final IncompleteRepository incompleteRepository;
@@ -125,7 +125,7 @@ public class ProviderAuthImplementation implements ProviderAuthService {
 
     @Override
     public void saveReferral(String code, Incomplete incomplete) {
-        User referredBy = referralService.verifyCode(code);
+        User referredBy = referralProgramService.verify(code);
         IncompleteReferral referral = new IncompleteReferral();
         referral.setIncomplete(incomplete);
         referral.setReferredBy(referredBy);

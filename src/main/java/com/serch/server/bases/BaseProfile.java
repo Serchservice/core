@@ -1,8 +1,6 @@
 package com.serch.server.bases;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -10,7 +8,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.validator.constraints.URL;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
@@ -64,20 +61,6 @@ public class BaseProfile extends BaseUser {
     @Column(name = "email_address", unique = true, nullable = false, columnDefinition = "TEXT")
     @Email(message = "Email address must be properly formatted")
     private String emailAddress;
-
-    /**
-     * The referral link associated with the profile.
-     */
-    @Column(name = "referral_link", nullable = false, columnDefinition = "TEXT")
-    @URL(message = "Referral Link must be a URL")
-    @NotBlank(message = "Referral link cannot be empty or blank")
-    private String referLink;
-
-    /**
-     * The referral code associated with the profile.
-     */
-    @Column(name = "referral_code", nullable = false, columnDefinition = "TEXT")
-    private String referralCode;
 
     /**
      * The URL of the profile picture.

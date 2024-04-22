@@ -1,5 +1,6 @@
 package com.serch.server.configurations;
 
+import com.serch.server.services.referral.services.ReferralProgramService;
 import com.serch.server.services.schedule.services.ScheduleService;
 import com.serch.server.services.subscription.services.UpdateSubscriptionService;
 import com.serch.server.services.transaction.services.SchedulePayService;
@@ -38,6 +39,10 @@ import org.springframework.scheduling.annotation.Scheduled;
  * For example, to run at 4:30 AM every day, you would use @Scheduled(cron = "0 30 4 * * ?").
  * <p></p>
  * @see org.springframework.context.annotation.Configuration
+ * @see UpdateSubscriptionService
+ * @see ScheduleService
+ * @see SchedulePayService
+ * @see ReferralProgramService
  */
 @Configuration
 @RequiredArgsConstructor
@@ -45,6 +50,7 @@ public class ServerCronJobs {
     private final UpdateSubscriptionService updateSubscriptionService;
     private final SchedulePayService schedulePayService;
     private final ScheduleService scheduleService;
+    private final ReferralProgramService referralProgramService;
 
     /**
      * Executes the updateSubscriptions method periodically, checking for any updates or changes in subscriptions.
@@ -90,5 +96,13 @@ public class ServerCronJobs {
     public void closeAnyScheduleThatIsNotCreatedForTheCurrentDayAndStillPending() {
         scheduleService.closePastUnaccepted();
     }
-}
 
+    /**
+     * Executes the updateSubscriptions method periodically, checking for any updates or changes in subscriptions.
+     * This method is scheduled to run every midnight.
+     */
+    @Scheduled(cron = "0 0 0 * * ?")
+    public void performReferralChecks() {
+        referralProgramService.performChecks();
+    }
+}

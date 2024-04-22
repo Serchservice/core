@@ -1,6 +1,5 @@
-package com.serch.server.models.account;
+package com.serch.server.models.referral;
 
-import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.shared.UseStatus;
 import com.serch.server.generators.account.ReferralID;
@@ -18,12 +17,13 @@ import org.hibernate.annotations.GenericGenerator;
  * Relationships:
  * <ol>
  *     <li>{@link User} - One to one (The user who used the referral code}</li>
- *     <li>{@link User} - Many to one (The user whose referral code was used)</li>
+ *     <li>{@link ReferralProgram} - Many to one (The user whose referral code was used)</li>
  * </ol>
  * Enums:
  * <ol>
  *     <li>{@link UseStatus} - Status of the referral program</li>
  * </ol>
+ *
  * @see BaseDateTime
  */
 @Getter
@@ -43,14 +43,6 @@ public class Referral extends BaseDateTime {
     private String referId;
 
     /**
-     * The status of the referral.
-     */
-    @Column(name = "referral_status", nullable = false)
-    @Enumerated(value = EnumType.STRING)
-    @SerchEnum(message = "UseStatus must be an enum")
-    private UseStatus status = UseStatus.NOT_USED;
-
-    /**
      * The user who made the referral.
      */
     @ManyToOne(fetch = FetchType.LAZY)
@@ -60,7 +52,7 @@ public class Referral extends BaseDateTime {
             nullable = false,
             foreignKey = @ForeignKey(name = "referred_by_user_id_fkey")
     )
-    private User referredBy;
+    private ReferralProgram referredBy;
 
     /**
      * The user who was referred.

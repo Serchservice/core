@@ -1,8 +1,8 @@
-package com.serch.server.services.account.controllers;
+package com.serch.server.services.referral.controllers;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.services.account.responses.ReferralResponse;
-import com.serch.server.services.account.services.ReferralService;
+import com.serch.server.services.referral.responses.ReferralResponse;
+import com.serch.server.services.referral.services.ReferralService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,12 +18,6 @@ public class ReferralController {
     @GetMapping("/all")
     public ResponseEntity<ApiResponse<List<ReferralResponse>>> viewReferrals() {
         var response = service.viewReferrals();
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
-    @GetMapping
-    public ResponseEntity<ApiResponse<String>> verifyLink(@RequestParam String link) {
-        var response = service.verifyLink(link);
         return new ResponseEntity<>(response, response.getStatus());
     }
 }

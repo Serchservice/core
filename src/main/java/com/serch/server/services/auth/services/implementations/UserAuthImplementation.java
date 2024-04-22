@@ -12,7 +12,7 @@ import com.serch.server.models.auth.incomplete.Incomplete;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.auth.incomplete.*;
 import com.serch.server.services.account.services.ProfileService;
-import com.serch.server.services.account.services.ReferralService;
+import com.serch.server.services.referral.services.ReferralProgramService;
 import com.serch.server.services.auth.requests.RequestLogin;
 import com.serch.server.services.auth.requests.RequestProfile;
 import com.serch.server.services.auth.requests.RequestSession;
@@ -32,23 +32,23 @@ import java.time.LocalDateTime;
  * Service responsible for implementing user authentication.
  * It implements its wrapper class {@link UserAuthService}
  * <p></p>
- * It interacts with {@link AuthService}, {@link ReferralService}, {@link SessionService}, and others.
+ * It interacts with {@link AuthService}, {@link SessionService}, and others.
  *
  * @see AuthService
- * @see ReferralService
  * @see SessionService
  * @see PasswordEncoder
  * @see UserRepository
  * @see IncompleteRepository
  * @see ProfileService
+ * @see ReferralProgramService
  */
 @Service
 @RequiredArgsConstructor
 public class UserAuthImplementation implements UserAuthService {
     private final ProfileService profileService;
-    private final ReferralService referralService;
     private final SessionService sessionService;
     private final AuthService authService;
+    private final ReferralProgramService referralProgramService;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final IncompleteRepository incompleteRepository;
@@ -89,16 +89,16 @@ public class UserAuthImplementation implements UserAuthService {
     private ApiResponse<AuthResponse> getSignupAuthResponse(RequestProfile request, Incomplete incomplete) {
         User referral = null;
         if(request.getReferral() != null && !request.getReferral().isEmpty()) {
-            referral = referralService.verifyCode(request.getReferral());
+            referral = referralProgramService.verify(request.getReferral());
         }
 
         if(HelperUtil.validatePassword(request.getPassword())) {
             incompleteRepository.delete(incomplete);
 
-            User newUser = getNewUser(request, incomplete.getTokenConfirmedAt());
-            ApiResponse<Profile> response = profileService.createUserProfile(request, newUser, referral);
+            User user = getNewUser(request, incomplete.getTokenConfirmedAt());
+            ApiResponse<Profile> response = profileService.createUserProfile(request, user, referral);
             if(response.getStatus().is2xxSuccessful()) {
-                return getAuthResponse(request, newUser);
+                return getAuthResponse(request, user);
             } else {
                 return new ApiResponse<>(response.getMessage());
             }
@@ -137,7 +137,9 @@ public class UserAuthImplementation implements UserAuthService {
         user.setRole(Role.USER);
         user.setFirstName(profile.getFirstName());
         user.setLastName(profile.getLastName());
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        referralProgramService.create(saved);
+        return saved;
     }
 
     @Override

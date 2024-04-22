@@ -1,6 +1,6 @@
-package com.serch.server.repositories.account;
+package com.serch.server.repositories.referral;
 
-import com.serch.server.models.account.Referral;
+import com.serch.server.models.referral.Referral;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.lang.NonNull;
 

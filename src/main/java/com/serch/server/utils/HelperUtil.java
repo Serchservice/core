@@ -4,8 +4,6 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
-import com.serch.server.enums.account.SerchCategory;
-import com.serch.server.exceptions.others.SerchException;
 import lombok.SneakyThrows;
 import org.apache.commons.codec.binary.Base64;
 
@@ -22,65 +20,6 @@ import java.util.regex.Pattern;
  * between two geographic points, generating QR codes, and formatting file sizes.
  */
 public class HelperUtil {
-    /**
-     * Generates a referral code based on the user's first name, last name, and category.
-     * @param firstName The first name of the user.
-     * @param lastName The last name of the user.
-     * @param category The category of the user (USER, BUSINESS, PROVIDER).
-     * @return The generated referral code.
-     */
-    static String code(String firstName, String lastName, SerchCategory category) {
-        if(category == SerchCategory.BUSINESS) {
-            return "%sBusiness%s".formatted(firstName, UUID.randomUUID().toString().substring(0, 4)
-                    .replaceAll("-", "").replaceAll("_", "")
-            );
-        } else {
-            return (firstName.substring(0, 3) + lastName.substring(0, 3) +
-                    UUID.randomUUID().toString().substring(0, 4))
-                    .replaceAll("-", "")
-                    .replaceAll("_", "");
-        }
-    };
-
-    /**
-     * Generates a referral link based on the user's first name, last name, and category.
-     * @param firstName The first name of the user.
-     * @param lastName The last name of the user.
-     * @param category The category of the user (USER, BUSINESS, PROVIDER).
-     * @return The generated referral link.
-     */
-    public static String generateReferralLink(String firstName, String lastName, SerchCategory category) {
-        if(category == SerchCategory.USER) {
-            return "https://serchservice.com/join_the_serch_user_app?ref=%s".formatted(
-                    code(firstName, lastName, category)
-            );
-        } else if(category == SerchCategory.BUSINESS) {
-            return "https://serchservice.com/join_the_serch_business_app?ref=%s".formatted(
-                    code(firstName, lastName, category)
-            );
-        } else {
-            return "https://serchservice.com/join_the_serch_provider_app?ref=%s".formatted(
-                    code(firstName, lastName, category)
-            );
-        }
-    }
-
-    /**
-     * Extracts the referral code from a referral link.
-     * @param referralLink The referral link.
-     * @return The extracted referral code.
-     */
-    public static String extractReferralCode(String referralLink) {
-        Pattern pattern = Pattern.compile("ref=([a-zA-Z0-9_]+)");
-        Matcher matcher = pattern.matcher(referralLink);
-
-        if (matcher.find()) {
-            return matcher.group(1);
-        } else {
-            throw new SerchException("Cannot find referral code from referral link");
-        }
-    }
-
     /**
      * Generates a sharing link based on the user's first name.
      * @param firstName The first name of the user.

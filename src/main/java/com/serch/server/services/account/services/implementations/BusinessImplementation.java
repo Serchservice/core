@@ -1,7 +1,6 @@
 package com.serch.server.services.account.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.subscription.PlanStatus;
 import com.serch.server.enums.verified.VerificationStatus;
 import com.serch.server.exceptions.account.AccountException;
@@ -25,13 +24,12 @@ import com.serch.server.services.account.responses.MoreProfileData;
 import com.serch.server.services.account.responses.ProfileResponse;
 import com.serch.server.services.account.services.BusinessService;
 import com.serch.server.services.account.services.ProfileService;
-import com.serch.server.services.account.services.ReferralService;
+import com.serch.server.services.referral.services.ReferralService;
 import com.serch.server.services.auth.services.TokenService;
 import com.serch.server.services.company.services.SpecialtyKeywordService;
 import com.serch.server.services.storage.core.StorageService;
 import com.serch.server.services.storage.requests.UploadRequest;
 import com.serch.server.services.transaction.services.WalletService;
-import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -103,11 +101,6 @@ public class BusinessImplementation implements BusinessService {
     }
 
     private BusinessProfile saveBusinessProfile(Incomplete incomplete, User user) {
-        String referLink = HelperUtil.generateReferralLink(
-                incomplete.getProfile().getFirstName(),
-                incomplete.getProfile().getBusinessName(),
-                SerchCategory.BUSINESS
-        );
         String defaultPassword = "@%s%s".formatted(
                 incomplete.getProfile().getBusinessName().toUpperCase(),
                 tokenService.generateCode(2)
@@ -115,11 +108,9 @@ public class BusinessImplementation implements BusinessService {
 
         BusinessProfile businessProfile = AccountMapper.INSTANCE.profile(incomplete.getProfile());
         businessProfile.setUser(user);
-        businessProfile.setReferLink(referLink);
         businessProfile.setEmailAddress(user.getEmailAddress());
         businessProfile.setCategory(incomplete.getCategory().getCategory());
         businessProfile.setDefaultPassword(defaultPassword);
-        businessProfile.setReferralCode(HelperUtil.extractReferralCode(referLink));
         return businessProfileRepository.save(businessProfile);
     }
 

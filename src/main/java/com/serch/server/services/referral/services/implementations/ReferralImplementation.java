@@ -1,19 +1,16 @@
-package com.serch.server.services.account.services.implementations;
+package com.serch.server.services.referral.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.exceptions.account.ReferralException;
 import com.serch.server.models.account.BusinessProfile;
 import com.serch.server.models.account.Profile;
-import com.serch.server.models.account.Referral;
+import com.serch.server.models.referral.Referral;
 import com.serch.server.models.auth.User;
-import com.serch.server.repositories.account.BusinessProfileRepository;
-import com.serch.server.repositories.account.ProfileRepository;
-import com.serch.server.repositories.account.ReferralRepository;
-import com.serch.server.services.account.responses.ReferralResponse;
-import com.serch.server.services.account.services.ReferralService;
+import com.serch.server.repositories.referral.ReferralRepository;
+import com.serch.server.repositories.referral.ReferralProgramRepository;
+import com.serch.server.services.referral.responses.ReferralResponse;
+import com.serch.server.services.referral.services.ReferralService;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -24,45 +21,19 @@ import java.util.List;
  * It implements it wrapper class {@link ReferralService}
  *
  * @see ReferralRepository
- * @see ProfileRepository
- * @see BusinessProfileRepository
  */
 @Service
 @RequiredArgsConstructor
 public class ReferralImplementation implements ReferralService {
     private final ReferralRepository referralRepository;
-    private final ProfileRepository profileRepository;
-    private final BusinessProfileRepository businessProfileRepository;
+    private final ReferralProgramRepository referralProgramRepository;
 
     @Override
     public void create(User referral, User referredBy) {
         Referral refer = new Referral();
         refer.setReferral(referral);
-        refer.setReferredBy(referredBy);
+        refer.setReferredBy(referredBy.getProgram());
         referralRepository.save(refer);
-    }
-
-    @Override
-    public User verifyCode(String code) {
-        return profileRepository.findByReferralCodeIgnoreCase(code)
-                .map(Profile::getUser)
-                .orElse(
-                        businessProfileRepository.findByReferralCodeIgnoreCase(code)
-                                .map(BusinessProfile::getUser)
-                                .orElseThrow(() -> new ReferralException("Referral not found"))
-                );
-    }
-
-    @Override
-    public ApiResponse<String> verifyLink(String link) {
-        String referLink = profileRepository.findByReferLink(link)
-                .map(Profile::getReferLink)
-                .orElse(
-                        businessProfileRepository.findByReferLink(link)
-                                .map(BusinessProfile::getReferLink)
-                                .orElseThrow(() -> new ReferralException("Referral not found"))
-                );
-        return new ApiResponse<>("Link found", referLink, HttpStatus.OK);
     }
 
     @Override

@@ -22,13 +22,12 @@ import com.serch.server.services.account.requests.UpdateProfileRequest;
 import com.serch.server.services.account.responses.MoreProfileData;
 import com.serch.server.services.account.responses.ProfileResponse;
 import com.serch.server.services.account.services.ProfileService;
-import com.serch.server.services.account.services.ReferralService;
+import com.serch.server.services.referral.services.ReferralService;
 import com.serch.server.services.auth.requests.RequestProfile;
 import com.serch.server.services.company.services.SpecialtyKeywordService;
 import com.serch.server.services.storage.core.StorageService;
 import com.serch.server.services.storage.requests.UploadRequest;
 import com.serch.server.services.transaction.services.WalletService;
-import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
@@ -80,13 +79,7 @@ public class ProfileImplementation implements ProfileService {
         if(user.isPresent()) {
             throw new AccountException("User already have a profile");
         } else {
-            String referLink = HelperUtil.generateReferralLink(
-                    request.getProfile().getFirstName(),
-                    request.getProfile().getLastName(),
-                    request.getCategory()
-            );
-
-            Profile profile = getProfile(request, referLink);
+            Profile profile = getProfile(request);
             PhoneInformation phoneInformation = AccountMapper.INSTANCE.phoneInformation(
                     request.getProfile().getPhoneInformation()
             );
@@ -130,12 +123,10 @@ public class ProfileImplementation implements ProfileService {
         return profile;
     }
 
-    private Profile getProfile(RequestCreateProfile request, String referLink) {
+    private Profile getProfile(RequestCreateProfile request) {
         Profile profile = AccountMapper.INSTANCE.profile(request.getProfile());
         profile.setUser(request.getUser());
-        profile.setReferLink(referLink);
         profile.setCategory(request.getCategory());
-        profile.setReferralCode(HelperUtil.extractReferralCode(referLink));
         return profileRepository.save(profile);
     }
 

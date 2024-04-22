@@ -5,6 +5,7 @@ import com.serch.server.bases.BaseEntity;
 import com.serch.server.enums.account.AccountStatus;
 import com.serch.server.enums.auth.Role;
 import com.serch.server.models.auth.mfa.MFAFactor;
+import com.serch.server.models.referral.ReferralProgram;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
@@ -47,6 +48,7 @@ import java.util.UUID;
  * </ul>
  * @see BaseEntity
  * @see UserDetails
+ * @see ReferralProgram
  * @see SerchEnum
  */
 @Getter
@@ -113,6 +115,9 @@ public class User extends BaseEntity implements UserDetails {
 
     @OneToOne(mappedBy = "user")
     private MFAFactor mfaFactor;
+
+    @OneToOne(mappedBy = "user")
+    private ReferralProgram program;
 
     /**
      * Retrieves the authorities granted to the user.
@@ -228,9 +233,6 @@ public class User extends BaseEntity implements UserDetails {
      * Checks for the logged-in user's account status and validates its presence.
      *
      * @return User - Logged In User
-     *
-     * @throws DisabledException
-     * @throws  LockedException
      */
     public User check() {
         if(accountStatus == AccountStatus.DELETED) {

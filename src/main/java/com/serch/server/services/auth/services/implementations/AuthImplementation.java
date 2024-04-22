@@ -20,6 +20,7 @@ import com.serch.server.services.auth.services.AuthService;
 import com.serch.server.services.auth.services.SessionService;
 import com.serch.server.services.auth.services.TokenService;
 import com.serch.server.services.email.services.EmailAuthService;
+import com.serch.server.services.referral.services.ReferralProgramService;
 import com.serch.server.utils.TimeUtil;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +46,7 @@ import java.time.LocalDateTime;
  * @see TokenService
  * @see AuthenticationManager
  * @see EmailAuthService
+ * @see ReferralProgramService
  * @see AccountDeleteRepository
  */
 @Service
@@ -54,6 +56,7 @@ public class AuthImplementation implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final SessionService sessionService;
+    private final ReferralProgramService referralProgramService;
     private final TokenService tokenService;
     private final AuthenticationManager authenticationManager;
     private final EmailAuthService emailService;
@@ -217,7 +220,9 @@ public class AuthImplementation implements AuthService {
         user.setRole(role);
         user.setFirstName(incomplete.getProfile().getFirstName());
         user.setLastName(incomplete.getProfile().getLastName());
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        referralProgramService.create(saved);
+        return saved;
     }
 
     private void authenticate(RequestLogin request) {

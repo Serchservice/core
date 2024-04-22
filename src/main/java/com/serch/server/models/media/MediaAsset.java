@@ -35,5 +35,8 @@ public class MediaAsset extends BaseDateTime {
     private String asset;
 
     @Column(nullable = false)
+    private Boolean isBlack = false;
+
+    @Column(nullable = false)
     private Integer downloads = 0;
 }

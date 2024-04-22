@@ -25,10 +25,20 @@ public class MediaNewsroomController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<MediaNewsroomResponse>>> fetchAllNews(
-            @RequestParam(required = false) Integer page
-    ) {
+    public ResponseEntity<ApiResponse<List<MediaNewsroomResponse>>> findAllNews(@RequestParam(required = false) Integer page) {
         ApiResponse<List<MediaNewsroomResponse>> response = service.findAllNews(page);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @GetMapping("/popular")
+    public ResponseEntity<ApiResponse<List<MediaNewsroomResponse>>> findPopularNews() {
+        ApiResponse<List<MediaNewsroomResponse>> response = service.findPopularNews();
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @GetMapping("/recent")
+    public ResponseEntity<ApiResponse<List<MediaNewsroomResponse>>> findRecentNews() {
+        ApiResponse<List<MediaNewsroomResponse>> response = service.findRecentNews();
         return new ResponseEntity<>(response, response.getStatus());
     }
 }

@@ -33,4 +33,24 @@ public interface MediaNewsroomService {
      * @see ApiResponse
      */
     ApiResponse<List<MediaNewsroomResponse>> findAllNews(Integer page);
+
+    /**
+     * Retrieves all popular media news articles.
+     *
+     * @return ApiResponse containing a list of MediaNewsroomResponse objects.
+     *
+     * @see MediaNewsroomResponse
+     * @see ApiResponse
+     */
+    ApiResponse<List<MediaNewsroomResponse>> findPopularNews();
+
+    /**
+     * Retrieves all recent media news articles.
+     *
+     * @return ApiResponse containing a list of MediaNewsroomResponse objects.
+     *
+     * @see MediaNewsroomResponse
+     * @see ApiResponse
+     */
+    ApiResponse<List<MediaNewsroomResponse>> findRecentNews();
 }

@@ -51,7 +51,7 @@ public class MediaNewsroomImplementation implements MediaNewsroomService {
         Pageable pageable = PageRequest.of(
                 page != null ? page : 1,
                 10,
-                Sort.Order.asc("created_at").getDirection()
+                Sort.Order.asc("createdAt").getDirection()
         );
 
         return new ApiResponse<>(

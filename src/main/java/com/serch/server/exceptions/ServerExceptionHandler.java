@@ -26,6 +26,7 @@ import io.jsonwebtoken.security.SignatureException;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.UnexpectedTypeException;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -211,11 +212,14 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @see ResponseEntityExceptionHandler
  * @see ApiResponse
  */
+@Slf4j
 @RestControllerAdvice
 public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(ChatException.class)
     public ApiResponse<String> handleChatException(ChatException exception) {
+        log.error(exception.getMessage(), exception);
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage(), exception);
         response.setData(exception.getLocalizedMessage());
         return response;
     }
@@ -223,6 +227,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(ChatRoomException.class)
     public ApiResponse<String> handleChatRoomException(ChatRoomException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage(), exception);
         response.setData(exception.getLocalizedMessage());
         return response;
     }
@@ -230,6 +235,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(CallException.class)
     public ApiResponse<String> handleCallException(CallException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage(), exception);
         response.setData(exception.getLocalizedMessage());
         return response;
     }
@@ -237,6 +243,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(RatingException.class)
     public ApiResponse<String> handleRatingException(RatingException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage(), exception);
         response.setData(exception.getLocalizedMessage());
         return response;
     }
@@ -244,6 +251,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(ScheduleException.class)
     public ApiResponse<String> handleScheduleException(ScheduleException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage(), exception);
         response.setData(exception.getLocalizedMessage());
         return response;
     }
@@ -251,6 +259,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(AccountException.class)
     public ApiResponse<String> handleAccountException(AccountException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage(), exception);
         response.setData(exception.getLocalizedMessage());
         return response;
     }
@@ -258,6 +267,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(ReferralException.class)
     public ApiResponse<String> handleReferralException(ReferralException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage(), exception);
         response.setData(exception.getLocalizedMessage());
         return response;
     }
@@ -265,6 +275,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(AuthException.class)
     public ApiResponse<String> handleAuthException(AuthException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage(), exception);
         response.setData(exception.getCode());
         return response;
     }
@@ -272,6 +283,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(SessionException.class)
     public ApiResponse<String> handleSessionException(SessionException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage(), exception);
         response.setData(exception.getCode());
         return response;
     }
@@ -279,6 +291,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(EmailException.class)
     public ApiResponse<String> handleEmailException(EmailException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage(), exception);
         response.setData(exception.getLocalizedMessage());
         return response;
     }
@@ -286,6 +299,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(CompanyException.class)
     public ApiResponse<String> handleCountryException(CompanyException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage(), exception);
         response.setData(exception.getLocalizedMessage());
         return response;
     }
@@ -293,6 +307,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(HelpException.class)
     public ApiResponse<String> handleHelpException(HelpException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage(), exception);
         response.setData(exception.getLocalizedMessage());
         return response;
     }
@@ -300,6 +315,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(MediaBlogException.class)
     public ApiResponse<String> handleMediaBlogException(MediaBlogException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage(), exception);
         response.setData(exception.getLocalizedMessage());
         return response;
     }
@@ -307,6 +323,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(MediaLegalException.class)
     public ApiResponse<String> handleMediaLegalException(MediaLegalException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage(), exception);
         response.setData(exception.getLocalizedMessage());
         return response;
     }
@@ -314,6 +331,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(MediaAssetException.class)
     public ApiResponse<String> handleMediaAssetException(MediaAssetException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage(), exception);
         response.setData(exception.getLocalizedMessage());
         return response;
     }
@@ -321,6 +339,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(MediaNewsroomException.class)
     public ApiResponse<String> handleMediaNewsroomException(MediaNewsroomException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage(), exception);
         response.setData(exception.getLocalizedMessage());
         return response;
     }
@@ -328,6 +347,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(WalletException.class)
     public ApiResponse<String> handleWalletException(WalletException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage(), exception);
         response.setData(exception.getLocalizedMessage());
         return response;
     }
@@ -335,6 +355,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(SubscriptionException.class)
     public ApiResponse<Object> handleSubscriptionException(SubscriptionException exception) {
         ApiResponse<Object> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage(), exception);
         if(exception.getData() != null) {
             response.setData(exception.getData());
         } else {
@@ -346,6 +367,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(PlanException.class)
     public ApiResponse<String> handlePlanException(PlanException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage(), exception);
         response.setData(exception.getLocalizedMessage());
         return response;
     }
@@ -353,6 +375,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(PaymentException.class)
     public ApiResponse<String> handlePaymentException(PaymentException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage(), exception);
         response.setData(exception.getLocalizedMessage());
         return response;
     }
@@ -360,6 +383,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(SerchException.class)
     public ApiResponse<String> handleSerchException(SerchException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage(), exception);
         response.setData(exception.getLocalizedMessage());
         return response;
     }
@@ -367,6 +391,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(BookmarkException.class)
     public ApiResponse<String> handleBookmarkException(BookmarkException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage(), exception);
         response.setData(exception.getLocalizedMessage());
         return response;
     }
@@ -374,6 +399,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(ShopException.class)
     public ApiResponse<String> handleShopException(ShopException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage(), exception);
         response.setData(exception.getLocalizedMessage());
         return response;
     }
@@ -381,6 +407,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(StorageException.class)
     public ApiResponse<String> handleStorageException(StorageException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage(), exception);
         response.setData(exception.getLocalizedMessage());
         return response;
     }
@@ -388,6 +415,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(SharedException.class)
     public ApiResponse<String> handleSharedException(SharedException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage(), exception);
         response.setData(exception.getCode());
         return response;
     }
@@ -395,6 +423,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(TripException.class)
     public ApiResponse<String> handleTripException(TripException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage(), exception);
         response.setData(exception.getLocalizedMessage());
         return response;
     }
@@ -402,6 +431,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(MapException.class)
     public ApiResponse<String> handleMapException(MapException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage(), exception);
         response.setData(exception.getLocalizedMessage());
         return response;
     }
@@ -416,11 +446,13 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
             data.put("Reason %s".formatted(count), reason.getMessage());
         }
         response.setData(data);
+        log.error(exception.getMessage(), exception);
         return response;
     }
 
     @ExceptionHandler(DisabledException.class)
     public ApiResponse<String> handleDisabledException(DisabledException exception) {
+        log.error(exception.getMessage(), exception);
         return new ApiResponse<>(
                 exception.getMessage(),
                 ExceptionCodes.ACCOUNT_DISABLED,
@@ -430,6 +462,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(LockedException.class)
     public ApiResponse<String> handleLockedException(LockedException exception) {
+        log.error(exception.getMessage(), exception);
         return new ApiResponse<>(
                 exception.getMessage(),
                 ExceptionCodes.ACCOUNT_LOCKED,
@@ -460,6 +493,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ApiResponse<String> handleDataIntegrityViolationException(DataIntegrityViolationException exception) {
         ApiResponse<String> response;
+        log.error(exception.getMessage(), exception);
         if(exception.getMessage().contains("Detail:")) {
             int detail = exception.getMessage().indexOf("Detail:");
             int stop = exception.getMessage().indexOf(".]");
@@ -489,6 +523,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(MessagingException.class)
     public ApiResponse<String> handleMessagingException(MessagingException exception){
+        log.error(exception.getMessage(), exception);
         return new ApiResponse<>(
                 exception.getMessage(),
                 HttpStatus.BAD_REQUEST
@@ -497,31 +532,37 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(JsonProcessingException.class)
     public ApiResponse<String> handleJsonProcessingException(JsonProcessingException exception) {
+        log.error(exception.getMessage(), exception);
         return new ApiResponse<>(exception.getMessage());
     }
 
     @ExceptionHandler(UsernameNotFoundException.class)
     public ApiResponse<String> handleUsernameNotFoundException(UsernameNotFoundException exception){
+        log.error(exception.getMessage(), exception);
         return new ApiResponse<>(exception.getMessage());
     }
 
     @ExceptionHandler(HttpClientErrorException.class)
     public ApiResponse<String> handleHttpClientErrorException(HttpClientErrorException exception){
+        log.error(exception.getMessage(), exception);
         return new ApiResponse<>(exception.getMessage());
     }
 
     @ExceptionHandler(QrGenerationException.class)
     public ApiResponse<String> handleQrException(QrGenerationException exception){
+        log.error(exception.getMessage(), exception);
         return new ApiResponse<>(exception.getMessage());
     }
 
     @ExceptionHandler(WriterException.class)
     public ApiResponse<String> handleWriterException(WriterException exception){
+        log.error(exception.getMessage(), exception);
         return new ApiResponse<>(exception.getMessage());
     }
 
     @ExceptionHandler(IOException.class)
     public ApiResponse<String> handleIOException(IOException exception){
+        log.error(exception.getMessage(), exception);
         return new ApiResponse<>(exception.getMessage());
     }
 
@@ -557,6 +598,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
         });
         ApiResponse<List<String>> response = new ApiResponse<>("Validation error");
         response.setData(errors);
+        log.error(ex.getMessage(), ex);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
@@ -566,6 +608,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
             @NonNull HttpStatusCode status, WebRequest request
     ) {
         ApiResponse<String> response = new ApiResponse<>(ex.getMessage());
+        log.error(ex.getMessage(), ex);
         response.setData(request.getContextPath());
         return new ResponseEntity<>(response, response.getStatus());
     }

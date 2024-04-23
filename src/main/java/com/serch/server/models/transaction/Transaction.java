@@ -70,7 +70,7 @@ public class Transaction extends BaseDateTime {
     @Column(name = "error_reason", columnDefinition = "TEXT")
     private String reason;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(
             name = "trip_id",
             referencedColumnName = "id",
@@ -78,7 +78,7 @@ public class Transaction extends BaseDateTime {
     )
     private Trip trip;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(
             name = "call_id",
             referencedColumnName = "channel",
@@ -86,7 +86,7 @@ public class Transaction extends BaseDateTime {
     )
     private Call call;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(
             name = "associate_id",
             referencedColumnName = "serch_id",
@@ -94,7 +94,7 @@ public class Transaction extends BaseDateTime {
     )
     private Profile associate;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(
             name = "sender_id",
             referencedColumnName = "id",

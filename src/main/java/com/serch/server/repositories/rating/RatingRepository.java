@@ -12,6 +12,7 @@ import java.util.UUID;
 
 public interface RatingRepository extends JpaRepository<Rating, Long> {
     List<Rating> findByRated(@NonNull String rated);
+    List<Rating> findByRater(@NonNull String rater);
     @Query("SELECT r FROM Rating r WHERE r.rating < 3.0 and r.rated = :id")
     List<Rating> findBad(String id);
     @Query("SELECT r FROM Rating r WHERE r.rating >= 3.0 and r.rated = :id")

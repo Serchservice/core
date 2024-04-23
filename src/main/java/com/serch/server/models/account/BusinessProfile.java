@@ -80,12 +80,12 @@ public class BusinessProfile extends BaseProfile {
     /**
      * The list of profiles associated with the business as associates.
      */
-    @OneToMany(mappedBy = "business", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "business", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Profile> associates;
 
     /**
      * The list of subscriptions associated with the business's associates.
      */
-    @OneToMany(mappedBy = "business", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "business", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<SubscriptionAssociate> associateSubscriptions;
 }

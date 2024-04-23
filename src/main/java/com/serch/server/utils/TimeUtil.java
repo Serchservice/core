@@ -7,6 +7,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Locale;
 
 /**
  * The TimeUtil class provides utility methods for working with dates and times.
@@ -224,5 +225,14 @@ public class TimeUtil {
         } else {
             return true;
         }
+    }
+
+    public static String log(LocalDateTime date) {
+        LocalDateTime dateTime = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(
+                "d MMMM, yyyy (EEEE) - h:mma",
+                Locale.ENGLISH
+        );
+        return dateTime.format(formatter);
     }
 }

@@ -1,15 +1,17 @@
-package com.serch.server.configurations;
+package com.serch.server.jobs;
 
-import com.serch.server.services.referral.services.ReferralProgramService;
 import com.serch.server.services.schedule.services.ScheduleService;
-import com.serch.server.services.subscription.services.UpdateSubscriptionService;
 import com.serch.server.services.transaction.services.SchedulePayService;
+import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.Scheduled;
 
+import java.time.LocalDateTime;
+
 /**
- * The ServerCronJobs class configured scheduled cron jobs for executing periodic tasks in the application.
+ * This class configured scheduled cron jobs for executing periodic tasks in the application.
  * It is annotated with @Configuration to indicate that it defines application beans.
  * Additionally, it uses constructor injection for dependency management.
  * <p></p>
@@ -39,27 +41,15 @@ import org.springframework.scheduling.annotation.Scheduled;
  * For example, to run at 4:30 AM every day, you would use @Scheduled(cron = "0 30 4 * * ?").
  * <p></p>
  * @see org.springframework.context.annotation.Configuration
- * @see UpdateSubscriptionService
  * @see ScheduleService
  * @see SchedulePayService
- * @see ReferralProgramService
  */
+@Slf4j
 @Configuration
 @RequiredArgsConstructor
-public class ServerCronJobs {
-    private final UpdateSubscriptionService updateSubscriptionService;
+public class ScheduleJobs {
     private final SchedulePayService schedulePayService;
     private final ScheduleService scheduleService;
-    private final ReferralProgramService referralProgramService;
-
-    /**
-     * Executes the updateSubscriptions method periodically, checking for any updates or changes in subscriptions.
-     * This method is scheduled to run every midnight.
-     */
-    @Scheduled(cron = "0 0 0 * * ?")
-    public void updateSubscriptions() {
-        updateSubscriptionService.checkSubscriptions();
-    }
 
     /**
      * Executes the payScheduleUnclearedDebts method periodically, initiating the payment process for uncleared debts.
@@ -71,6 +61,7 @@ public class ServerCronJobs {
      */
     @Scheduled(cron = "* * */1 * * ?")
     public void payScheduleUnclearedDebts() {
+        log.info("Running schedule task for pay method in %s on %s".formatted(SchedulePayService.class, TimeUtil.log(LocalDateTime.now())));
         schedulePayService.pay();
     }
 
@@ -81,6 +72,7 @@ public class ServerCronJobs {
      */
     @Scheduled(cron = "0 0 * * * ?")
     public void notifySchedulerAndScheduledWhenItIsTimeForTheSchedule() {
+        log.info("Running schedule task for notifySchedules method in %s on %s".formatted(ScheduleService.class, TimeUtil.log(LocalDateTime.now())));
         scheduleService.notifySchedules();
     }
 
@@ -94,15 +86,7 @@ public class ServerCronJobs {
      */
     @Scheduled(cron = "* * */1 * * ?")
     public void closeAnyScheduleThatIsNotCreatedForTheCurrentDayAndStillPending() {
+        log.info("Running schedule task for closePastUnaccepted method in %s on %s".formatted(ScheduleService.class, TimeUtil.log(LocalDateTime.now())));
         scheduleService.closePastUnaccepted();
-    }
-
-    /**
-     * Executes the updateSubscriptions method periodically, checking for any updates or changes in subscriptions.
-     * This method is scheduled to run every midnight.
-     */
-    @Scheduled(cron = "0 0 0 * * ?")
-    public void performReferralChecks() {
-        referralProgramService.performChecks();
     }
 }

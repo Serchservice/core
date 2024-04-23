@@ -15,7 +15,7 @@ import com.serch.server.models.subscription.PlanParent;
 import com.serch.server.models.subscription.Subscription;
 import com.serch.server.models.transaction.Transaction;
 import com.serch.server.models.transaction.Wallet;
-import com.serch.server.repositories.call.CallRepository;
+import com.serch.server.repositories.conversation.CallRepository;
 import com.serch.server.repositories.subscription.PlanChildRepository;
 import com.serch.server.repositories.subscription.PlanParentRepository;
 import com.serch.server.repositories.subscription.SubscriptionRepository;

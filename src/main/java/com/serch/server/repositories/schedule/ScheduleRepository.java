@@ -29,4 +29,7 @@ public interface ScheduleRepository extends JpaRepository<Schedule, String> {
     List<Schedule> schedules(UUID user);
     List<Schedule> findByCreatedAtBetween(LocalDateTime createdAt, LocalDateTime createdAt2);
     List<Schedule> findByStatusAndCreatedAtBefore(@NonNull ScheduleStatus status, @NonNull LocalDateTime createdAt);
+
+    @Query("select s from Schedule s where s.user.id = ?1 or s.provider.id = ?1 or s.user.business.id = ?1 or s.provider.business.id = ?1")
+    List<Schedule> findByUser_Id(@NonNull UUID id);
 }

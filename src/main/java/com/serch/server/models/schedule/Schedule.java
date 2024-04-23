@@ -64,6 +64,9 @@ public class Schedule extends BaseDateTime {
     @Column(name = "closed_on_time", columnDefinition = "TEXT", nullable = false)
     private Boolean closedOnTime = true;
 
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "schedule")
+    private SchedulePayment payment;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "provider_id",

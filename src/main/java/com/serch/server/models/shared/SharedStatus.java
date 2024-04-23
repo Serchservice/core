@@ -12,7 +12,7 @@ import lombok.Setter;
 @Entity
 @Table(schema = "sharing", name = "statuses")
 public class SharedStatus extends BaseModel {
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String account;
 
     @Column(nullable = false, name = "is_expired")

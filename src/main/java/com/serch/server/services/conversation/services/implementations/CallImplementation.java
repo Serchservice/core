@@ -10,7 +10,7 @@ import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.User;
 import com.serch.server.models.conversation.Call;
 import com.serch.server.repositories.account.ProfileRepository;
-import com.serch.server.repositories.call.CallRepository;
+import com.serch.server.repositories.conversation.CallRepository;
 import com.serch.server.services.conversation.requests.StartCallRequest;
 import com.serch.server.services.conversation.responses.CallInformation;
 import com.serch.server.services.conversation.responses.CallMemberData;

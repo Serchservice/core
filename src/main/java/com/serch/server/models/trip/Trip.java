@@ -87,7 +87,7 @@ public class Trip extends BaseDateTime {
     @OneToOne(mappedBy = "trip")
     private SharedPricing pricing;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(
             name = "invited_provider_id",
             referencedColumnName = "serch_id",
@@ -95,7 +95,7 @@ public class Trip extends BaseDateTime {
     )
     private Profile invitedProvider = null;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(
             name = "provider_id",
             referencedColumnName = "serch_id",

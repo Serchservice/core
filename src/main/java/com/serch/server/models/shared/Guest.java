@@ -1,6 +1,8 @@
 package com.serch.server.models.shared;
 
+import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseDateTime;
+import com.serch.server.enums.account.Gender;
 import com.serch.server.generators.shared.GuestID;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -67,10 +69,10 @@ public class Guest extends BaseDateTime {
     @NotBlank(message = "Last name cannot be empty or null")
     private String lastName;
 
-    @Column(name = "gender", nullable = false, columnDefinition = "TEXT")
-    @Size(min = 3, message = "Gender must be above 3 characters")
-    @NotBlank(message = "Gender cannot be empty or null")
-    private String gender;
+    @Column(name = "gender", nullable = false)
+    @Enumerated(value = EnumType.STRING)
+    @SerchEnum(message = "Gender must be an enum")
+    private Gender gender = Gender.ANY;
 
     @Column(name = "avatar", nullable = false, columnDefinition = "TEXT")
     @NotBlank(message = "Avatar cannot be empty or null")

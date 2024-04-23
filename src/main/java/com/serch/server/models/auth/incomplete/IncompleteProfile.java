@@ -1,8 +1,9 @@
 package com.serch.server.models.auth.incomplete;
 
+import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseModel;
+import com.serch.server.enums.account.Gender;
 import com.serch.server.enums.auth.Role;
-import com.serch.server.models.auth.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -47,9 +48,9 @@ public class IncompleteProfile extends BaseModel {
     private String lastName;
 
     @Column(name = "gender", nullable = false, columnDefinition = "TEXT")
-    @Size(min = 3, message = "Gender must be above 3 characters")
-    @NotBlank(message = "Gender cannot be empty or null")
-    private String gender;
+    @Enumerated(value = EnumType.STRING)
+    @SerchEnum(message = "Gender must be an enum")
+    private Gender gender = Gender.ANY;
 
     @Column(name = "business_name", columnDefinition = "TEXT")
     private String businessName;

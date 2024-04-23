@@ -1,5 +1,7 @@
 package com.serch.server.bases;
 
+import com.serch.server.annotations.SerchEnum;
+import com.serch.server.enums.account.Gender;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -50,10 +52,10 @@ public class BaseProfile extends BaseUser {
     /**
      * The gender associated with the profile.
      */
-    @Column(name = "gender", nullable = false, columnDefinition = "TEXT")
-    @Size(min = 3, message = "Gender must be above 3 characters")
-    @NotBlank(message = "Gender cannot be empty or null")
-    private String gender;
+    @Column(name = "gender", nullable = false)
+    @Enumerated(value = EnumType.STRING)
+    @SerchEnum(message = "Gender must be an enum")
+    private Gender gender = Gender.ANY;
 
     /**
      * The email address associated with the profile.

@@ -1,6 +1,8 @@
 package com.serch.server.services.shared.requests;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.serch.server.annotations.SerchEnum;
+import com.serch.server.enums.account.Gender;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,7 +20,9 @@ public class CreateGuestRequest {
     @JsonProperty("fcm_token")
     private String fcmToken;
 
-    private String gender;
+    @SerchEnum(message = "Gender must be an enum")
+    private Gender gender;
+
     private String link;
     private MultipartFile avatar;
     private String platform;

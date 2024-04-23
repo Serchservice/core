@@ -1,6 +1,8 @@
 package com.serch.server.services.auth.requests;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.serch.server.annotations.SerchEnum;
+import com.serch.server.enums.account.Gender;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.Getter;
@@ -18,8 +20,8 @@ public class RequestProviderProfile {
     @JsonProperty(value = "last_name")
     private String lastName;
 
-    @NotEmpty(message = "Gender cannot be empty")
-    private String gender;
+    @SerchEnum(message = "Gender must be an enum")
+    private Gender gender;
 
     @JsonProperty(value = "phone_information")
     RequestPhoneInformation phoneInformation;

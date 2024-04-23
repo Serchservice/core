@@ -11,6 +11,7 @@ import com.serch.server.models.auth.User;
 import com.serch.server.models.auth.incomplete.Incomplete;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.auth.incomplete.*;
+import com.serch.server.services.account.services.AccountSettingService;
 import com.serch.server.services.account.services.ProfileService;
 import com.serch.server.services.referral.services.ReferralProgramService;
 import com.serch.server.services.auth.requests.RequestLogin;
@@ -41,6 +42,7 @@ import java.time.LocalDateTime;
  * @see IncompleteRepository
  * @see ProfileService
  * @see ReferralProgramService
+ * @see AccountSettingService
  */
 @Service
 @RequiredArgsConstructor
@@ -48,6 +50,7 @@ public class UserAuthImplementation implements UserAuthService {
     private final ProfileService profileService;
     private final SessionService sessionService;
     private final AuthService authService;
+    private final AccountSettingService accountSettingService;
     private final ReferralProgramService referralProgramService;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
@@ -139,6 +142,7 @@ public class UserAuthImplementation implements UserAuthService {
         user.setLastName(profile.getLastName());
         User saved = userRepository.save(user);
         referralProgramService.create(saved);
+        accountSettingService.create(saved);
         return saved;
     }
 

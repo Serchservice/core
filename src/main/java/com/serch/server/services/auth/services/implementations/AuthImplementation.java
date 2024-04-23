@@ -12,6 +12,7 @@ import com.serch.server.models.email.SendEmail;
 import com.serch.server.repositories.account.AccountDeleteRepository;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.auth.incomplete.IncompleteRepository;
+import com.serch.server.services.account.services.AccountSettingService;
 import com.serch.server.services.auth.requests.RequestEmailToken;
 import com.serch.server.services.auth.requests.RequestLogin;
 import com.serch.server.services.auth.requests.RequestSession;
@@ -48,6 +49,7 @@ import java.time.LocalDateTime;
  * @see EmailAuthService
  * @see ReferralProgramService
  * @see AccountDeleteRepository
+ * @see AccountSettingService
  */
 @Service
 @RequiredArgsConstructor
@@ -56,6 +58,7 @@ public class AuthImplementation implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final SessionService sessionService;
+    private final AccountSettingService accountSettingService;
     private final ReferralProgramService referralProgramService;
     private final TokenService tokenService;
     private final AuthenticationManager authenticationManager;
@@ -222,6 +225,7 @@ public class AuthImplementation implements AuthService {
         user.setLastName(incomplete.getProfile().getLastName());
         User saved = userRepository.save(user);
         referralProgramService.create(saved);
+        accountSettingService.create(saved);
         return saved;
     }
 

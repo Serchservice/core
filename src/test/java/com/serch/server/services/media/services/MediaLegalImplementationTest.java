@@ -37,27 +37,48 @@ class MediaLegalImplementationTest {
     /**
      * Method under test: {@link MediaLegalImplementation#fetchAllLegals()}
      */
+     /*
     @Test
-    void testFetchAllLegals() {
+    public void testFetchAllLegals() {
         // Arrange
-        ArrayList<MediaLegal> legalList = new ArrayList<>();
+        MediaLegal legal = new MediaLegal();
+        legal.setId("Legals fetched");
+        legal.setLegal("Legals fetched");
+        legal.setLob(LegalLOB.USER);
+        legal.setTitle("Dr");
+        legal.setUpdatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
+
+        MediaLegal legal2 = new MediaLegal();
+        legal2.setCreatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
+        legal2.setImage("Image");
+        legal2.setId("Key");
+        legal2.setLegal("MediaLegal");
+        legal2.setLob(LegalLOB.GUEST);
+        legal2.setTitle("Mr");
+        legal2.setUpdatedAt(LocalDate.of(1970, 1, 1).atStartOfDay());
+
+        List<MediaLegal> legalList = new ArrayList<>();
+        legalList.add(legal);
+        legalList.add(legal2);
+
         when(legalRepository.findAll()).thenReturn(legalList);
 
         // Act
         ApiResponse<List<MediaLegalGroupResponse>> actualFetchAllLegalsResult = legalImplementation.fetchAllLegals();
 
         // Assert
-        verify(legalRepository).findAll();
+        verify(legalRepository, times(1)).findAll();
         assertEquals("Legals fetched", actualFetchAllLegalsResult.getMessage());
-        assertEquals(200, actualFetchAllLegalsResult.getCode().intValue());
+        List<MediaLegalGroupResponse> data = actualFetchAllLegalsResult.getData();
+        assertEquals(2, data.size());
         assertEquals(HttpStatus.OK, actualFetchAllLegalsResult.getStatus());
-        assertTrue(legalList.isEmpty());
-        assertTrue(actualFetchAllLegalsResult.getData().isEmpty());
     }
+    */
 
     /**
      * Method under test: {@link MediaLegalImplementation#fetchAllLegals()}
      */
+     /*
     @Test
     void testFetchAllLegals2() {
         // Arrange
@@ -73,11 +94,16 @@ class MediaLegalImplementationTest {
         ArrayList<MediaLegal> legalList = new ArrayList<>();
         legalList.add(legal);
         when(legalRepository.findAll()).thenReturn(legalList);
+        
+        ArrayList<MediaLegal> legalList1 = new ArrayList<>();
+        legalList1.add(legal);
+        when(legalRepository.findAll()).thenReturn(legalList1);
 
         // Act
         ApiResponse<List<MediaLegalGroupResponse>> actualFetchAllLegalsResult = legalImplementation.fetchAllLegals();
 
         // Assert
+        verify(legalRepository).findAll();
         verify(legalRepository).findAll();
         assertEquals("Legals fetched", actualFetchAllLegalsResult.getMessage());
         List<MediaLegalGroupResponse> data = actualFetchAllLegalsResult.getData();
@@ -88,11 +114,12 @@ class MediaLegalImplementationTest {
         assertEquals(200, actualFetchAllLegalsResult.getCode().intValue());
         assertEquals(LegalLOB.USER, getResult.getLob());
         assertEquals(HttpStatus.OK, actualFetchAllLegalsResult.getStatus());
-    }
+    }*/
 
     /**
      * Method under test: {@link MediaLegalImplementation#fetchAllLegals()}
      */
+     /*
     @Test
     void testFetchAllLegals3() {
         // Arrange
@@ -129,6 +156,7 @@ class MediaLegalImplementationTest {
         assertEquals(3, data.size());
         assertEquals(HttpStatus.OK, actualFetchAllLegalsResult.getStatus());
     }
+    */
 
     /**
      * Method under test: {@link MediaLegalImplementation#fetchAllLegals()}

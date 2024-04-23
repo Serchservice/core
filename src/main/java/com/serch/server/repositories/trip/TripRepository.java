@@ -65,4 +65,9 @@ public interface TripRepository extends JpaRepository<Trip, String> {
     int countCompletedTripsOfReferralsOfReferralsByReferredByAndAccount(@Param("referredBy") UUID referredBy);
     @Query("SELECT COUNT(t) FROM Trip t WHERE cast(t.provider.id as string) = :id OR cast(t.provider.business.id as string) = :id OR t.account = :id AND t.status = 'COMPLETED' ")
     int countCompletedTripsForUserAndAccount(@Param("id") String id);
+
+    @Query("select t from Trip t where t.provider.id = ?1 or t.invitedProvider.id = ?1")
+    List<Trip> findByProviderId(@NonNull UUID id);
+    @Query("select t from Trip t where t.account = ?1")
+    List<Trip> findByAccount(@NonNull String account);
 }

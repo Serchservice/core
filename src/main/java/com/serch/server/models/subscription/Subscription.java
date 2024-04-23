@@ -78,7 +78,7 @@ public class Subscription extends BaseDateTime {
    @Column(name = "retries", nullable = false)
    private Integer retries = 0;
 
-   @OneToOne(mappedBy = "subscription")
+   @OneToOne(mappedBy = "subscription", cascade = CascadeType.ALL)
    private SubscriptionAuth auth;
 
    @OneToOne(fetch = FetchType.LAZY)
@@ -90,7 +90,7 @@ public class Subscription extends BaseDateTime {
    )
    private User user;
 
-   @OneToMany(fetch = FetchType.LAZY, mappedBy = "subscription")
+   @OneToMany(fetch = FetchType.LAZY, mappedBy = "subscription", cascade = CascadeType.ALL)
    private List<SubscriptionInvoice> invoices;
 
    /**

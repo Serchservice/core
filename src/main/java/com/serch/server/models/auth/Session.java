@@ -74,7 +74,7 @@ public class Session extends BaseEntity {
     @ToString.Exclude
     private User user;
 
-    @OneToMany(mappedBy = "session", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "session", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @ToString.Exclude
     private List<RefreshToken> refreshTokens;
 }

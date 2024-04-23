@@ -15,7 +15,7 @@ import com.serch.server.models.shared.Guest;
 import com.serch.server.models.trip.Trip;
 import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.auth.UserRepository;
-import com.serch.server.repositories.call.CallRepository;
+import com.serch.server.repositories.conversation.CallRepository;
 import com.serch.server.repositories.rating.AppRatingRepository;
 import com.serch.server.repositories.rating.RatingRepository;
 import com.serch.server.repositories.schedule.ScheduleRepository;

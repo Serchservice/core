@@ -94,7 +94,7 @@ public class Shop extends BaseDateTime {
     )
     private User user;
 
-    @OneToMany(mappedBy = "shop", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "shop", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ShopService> services;
 
     public boolean isUser(UUID user) {

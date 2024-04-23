@@ -40,10 +40,10 @@ public class SharedPricing extends BaseModel {
     @Column(name = "provider_share", nullable = false)
     private BigDecimal provider;
 
-    @OneToOne(mappedBy = "pricing")
+    @OneToOne(mappedBy = "pricing", cascade = CascadeType.ALL)
     private SharedStatus status;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(
             name = "trip_id",
             referencedColumnName = "id",

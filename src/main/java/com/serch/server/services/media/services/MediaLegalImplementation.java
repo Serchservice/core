@@ -30,7 +30,8 @@ public class MediaLegalImplementation implements MediaLegalService {
 
     @Override
     public ApiResponse<List<MediaLegalGroupResponse>> fetchAllLegals() {
-        Map<LegalLOB, List<MediaLegalResponse>> groupedByLOB = legalRepository.findAll()
+        List<MediaLegal> legals = legalRepository.findAll();
+        Map<LegalLOB, List<MediaLegalResponse>> groupedByLOB = legals
                 .stream()
                 .map(this::getLegalResponse)
                 .collect(Collectors.groupingBy(MediaLegalResponse::getLob));
@@ -46,16 +47,17 @@ public class MediaLegalImplementation implements MediaLegalService {
             }
         });
 
-        MediaLegalGroupResponse general = new MediaLegalGroupResponse();
-        general.setLineOfBusiness(LegalLOB.GENERAL.getType());
-        general.setLob(LegalLOB.GENERAL);
-        general.setLegalList(
-                legalRepository.findAll()
-                        .stream()
-                        .map(this::getLegalResponse)
-                        .toList()
-        );
-        response.add(general);
+        if(!legals.isEmpty()) {
+            MediaLegalGroupResponse general = new MediaLegalGroupResponse();
+            general.setLineOfBusiness(LegalLOB.GENERAL.getType());
+            general.setLob(LegalLOB.GENERAL);
+            general.setLegalList(
+                    legals.stream()
+                            .map(this::getLegalResponse)
+                            .toList()
+            );
+            response.add(general);
+        }
 
         return new ApiResponse<>("Legals fetched", response, HttpStatus.OK);
     }

@@ -81,7 +81,7 @@ class MediaLegalImplementationTest {
         verify(legalRepository).findAll();
         assertEquals("Legals fetched", actualFetchAllLegalsResult.getMessage());
         List<MediaLegalGroupResponse> data = actualFetchAllLegalsResult.getData();
-        assertEquals(1, data.size());
+        assertEquals(2, data.size());
         MediaLegalGroupResponse getResult = data.get(0);
         assertEquals("Request/User", getResult.getLineOfBusiness());
         assertEquals(1, getResult.getLegalList().size());
@@ -126,7 +126,7 @@ class MediaLegalImplementationTest {
         verify(legalRepository).findAll();
         assertEquals("Legals fetched", actualFetchAllLegalsResult.getMessage());
         List<MediaLegalGroupResponse> data = actualFetchAllLegalsResult.getData();
-        assertEquals(2, data.size());
+        assertEquals(3, data.size());
         assertEquals(HttpStatus.OK, actualFetchAllLegalsResult.getStatus());
     }
 

@@ -9,6 +9,7 @@ import com.serch.server.services.subscription.responses.PlanParentResponse;
 import com.serch.server.services.subscription.responses.SubscriptionResponse;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * This is the wrapper class for SubscriptionImplementation.
@@ -37,6 +38,11 @@ public interface SubscriptionService {
      * @return An API response containing details of the current subscription.
      */
     ApiResponse<SubscriptionResponse> seeCurrentSubscription();
+    /**
+     * Check if the logged-in user or business account of the logged-in user has an active subscription
+     * @return An API response containing details of the current subscription.
+     */
+    ApiResponse<SubscriptionResponse> checkSubscription(UUID business);
     /**
      * Retrieves the available subscription plans based on the user's current subscription status.
      * @return An API response containing a list of available subscription plans.

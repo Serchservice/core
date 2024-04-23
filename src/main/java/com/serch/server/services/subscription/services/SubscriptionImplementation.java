@@ -1,6 +1,7 @@
 package com.serch.server.services.subscription.services;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.enums.auth.Role;
 import com.serch.server.enums.subscription.PlanStatus;
 import com.serch.server.enums.subscription.PlanType;
 import com.serch.server.exceptions.subscription.SubscriptionException;
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * This is the class that holds the logic and implementation for its wrapper class.
@@ -68,6 +70,11 @@ public class SubscriptionImplementation implements SubscriptionService {
         Subscription subscription = subscriptionRepository.findByUser_Id(userUtil.getUser().getId())
                 .orElseThrow(() -> new SubscriptionException("Subscription not found"));
 
+        SubscriptionResponse response = getSubscriptionResponse(subscription);
+        return new ApiResponse<>(response);
+    }
+
+    private SubscriptionResponse getSubscriptionResponse(Subscription subscription) {
         SubscriptionResponse response = SubscriptionMapper.INSTANCE.subscription(subscription.getPlan());
         response.setAmount(getAmountFromUserActivePlan(subscription));
         response.setBenefits(subscription.getPlan().getBenefits().stream().map(PlanBenefit::getBenefit).toList());
@@ -88,7 +95,27 @@ public class SubscriptionImplementation implements SubscriptionService {
         card.setExpDate(subscription.getAuth().getExpYear() + "/" + subscription.getAuth().getExpMonth());
 
         response.setCard(card);
-        return new ApiResponse<>(response);
+        return response;
+    }
+
+    @Override
+    public ApiResponse<SubscriptionResponse> checkSubscription(UUID business) {
+        User user = userUtil.getUser();
+        Subscription subscription;
+        if(user.getRole() == Role.ASSOCIATE_PROVIDER) {
+            subscription = subscriptionRepository.findByUser_Id(business)
+                    .orElseThrow(() -> new SubscriptionException("Subscription not found"));
+        } else {
+            subscription = subscriptionRepository.findByUser_Id(userUtil.getUser().getId())
+                    .orElseThrow(() -> new SubscriptionException("Subscription not found"));
+        }
+
+        SubscriptionResponse data = getSubscriptionResponse(subscription);
+        if(subscription.isExpired()) {
+            throw new SubscriptionException("Your subscription has expired", data);
+        } else {
+            return new ApiResponse<>(data);
+        }
     }
 
     @Override

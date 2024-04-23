@@ -7,12 +7,14 @@ import com.serch.server.services.account.responses.ProfileResponse;
 import com.serch.server.services.account.services.BusinessService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('BUSINESS')")
 @RequestMapping("/business/profile")
 public class BusinessController {
     private final BusinessService service;

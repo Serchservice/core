@@ -333,9 +333,13 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(SubscriptionException.class)
-    public ApiResponse<String> handleSubscriptionException(SubscriptionException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
-        response.setData(exception.getLocalizedMessage());
+    public ApiResponse<Object> handleSubscriptionException(SubscriptionException exception) {
+        ApiResponse<Object> response = new ApiResponse<>(exception.getMessage());
+        if(exception.getData() != null) {
+            response.setData(exception.getData());
+        } else {
+            response.setData(exception.getLocalizedMessage());
+        }
         return response;
     }
 

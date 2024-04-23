@@ -6,11 +6,13 @@ import com.serch.server.services.account.responses.ProfileResponse;
 import com.serch.server.services.account.services.ProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/profile")
+@PreAuthorize("hasRole('PROVIDER', 'USER', 'ASSOCIATE_PROVIDER')")
 public class ProfileController {
     private final ProfileService service;
 

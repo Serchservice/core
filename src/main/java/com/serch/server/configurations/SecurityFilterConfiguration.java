@@ -20,7 +20,7 @@ import static com.serch.server.enums.auth.Role.*;
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 /**
- * The SecurityFilterConfiguration class configures security settings for the application,
+ * The SecurityFilterConfiguration class configured security settings for the application,
  * including authentication, authorization, CORS, and exception handling.
  * <p></p>
  * It is annotated with @Configuration to indicate that it defines application beans.
@@ -87,10 +87,11 @@ public class SecurityFilterConfiguration {
                                 "/auth/guest/**",
                                 "/guest/**",
                                 "/switch/**",
-                                "/shop/search",
                                 "/trip/shared/**",
                                 "/rating/rate/**",
-                                "/location/search/**"
+                                "/location/search/**",
+                                "/issue/lodge",
+                                "/rating/app"
                         ).permitAll()
                         .requestMatchers(
                                 // Public endpoints for actuator and server endpoints
@@ -115,7 +116,14 @@ public class SecurityFilterConfiguration {
                                 // Endpoints requiring USER role
                                 "/sharing/create",
                                 "/bookmark/add",
-                                "/bookmark/remove"
+                                "/bookmark/remove",
+                                "/schedule/all/times/**",
+                                "/schedule/request",
+                                "/schedule/cancel",
+                                "/wallet/pay/trip/check",
+                                "/trip/request",
+                                "/trip/cancel",
+                                "/trip/sharing/permit"
                         ).hasAnyRole(USER.name())
                         .requestMatchers(
                                 // Endpoints requiring PROVIDER role
@@ -128,19 +136,57 @@ public class SecurityFilterConfiguration {
                         ).hasAnyRole(PROVIDER.name(), USER.name())
                         .requestMatchers(
                                 // Endpoints requiring PROVIDER, USER and ASSOCIATE_PROVIDER roles
+                                "/schedule/decline",
+                                "/schedule/accept",
+                                "/providers/active/status",
+                                "providers/active/toggle",
+                                "/trip/accept",
+                                "/trip/cancel",
+                                "/trip/arrival/announce",
+                                "/trip/invite",
+                                "/trip/invite/cancel"
+                        ).hasAnyRole(ASSOCIATE_PROVIDER.name(), PROVIDER.name())
+                        .requestMatchers(
+                                // Endpoints requiring PROVIDER, USER and ASSOCIATE_PROVIDER roles
                                 "/account/switch",
-                                "/profile/**"
+                                "/bookmark/all",
+                                "/schedule/close",
+                                "/schedule/start/",
+                                "/profile/**",
+                                "/trip/end",
+                                "/trip/leave"
                         ).hasAnyRole(ASSOCIATE_PROVIDER.name(), PROVIDER.name(), USER.name())
                         .requestMatchers(
                                 // Endpoints requiring PROVIDER or BUSINESS roles
-                                "/verify/**",
-                                "/verify"
+                                "/shop/create",
+                                "/shop/service/add",
+                                "/shop/service/remove",
+                                "/shop/all/open",
+                                "/shop/all/close",
+                                "/shop/status/toggle",
+                                "/shop/update",
+                                "/subscription/all",
+                                "/subscription/unsubscribe",
+                                "/subscription",
+                                "/wallet/pay/subscription"
                         ).hasAnyRole(PROVIDER.name(), BUSINESS.name())
                         .requestMatchers(
                                 // Endpoints requiring BUSINESS role
                                 "/business/associate/**",
                                 "/business/profiles/**"
                         ).hasAnyRole(BUSINESS.name())
+                        .requestMatchers(
+                                // Endpoints requiring PROVIDER, BUSINESS and ASSOCIATE_PROVIDER roles
+                                "/subscription/check"
+                        ).hasAnyRole(ASSOCIATE_PROVIDER.name(), PROVIDER.name(), BUSINESS.name())
+                        .requestMatchers(
+                                // Endpoints requiring PROVIDER, BUSINESS and USER roles
+                                "/wallet",
+                                "/wallet/fund/verify",
+                                "/wallet/fund",
+                                "/wallet/pay/withdraw",
+                                "/wallet/update"
+                        ).hasAnyRole(USER.name(), PROVIDER.name(), BUSINESS.name())
                         // All other requests require authentication
                         .anyRequest().authenticated()
                 )

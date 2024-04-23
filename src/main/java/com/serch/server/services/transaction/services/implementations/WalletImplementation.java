@@ -34,6 +34,7 @@ import com.serch.server.utils.MoneyUtil;
 import com.serch.server.utils.UserUtil;
 import com.serch.server.utils.WalletUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -51,6 +52,7 @@ import java.util.UUID;
  *
  * @see WalletService
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class WalletImplementation implements WalletService {
@@ -176,7 +178,8 @@ public class WalletImplementation implements WalletService {
 
     @Override
     public ApiResponse<String> payTrip(PayRequest request) {
-        return null;
+        log.error("Pay trip in wallet implementation is yet to be implemented");
+        throw new WalletException("Unimplemented error");
     }
 
     @Override

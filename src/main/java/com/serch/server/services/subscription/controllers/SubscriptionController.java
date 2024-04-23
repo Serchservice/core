@@ -8,9 +8,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Controller class for managing user subscription-related operations. It provides endpoints for
@@ -31,6 +33,12 @@ public class SubscriptionController {
     @GetMapping
     public ResponseEntity<ApiResponse<SubscriptionResponse>> seeCurrentSubscription() {
         ApiResponse<SubscriptionResponse> response = service.seeCurrentSubscription();
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @GetMapping("/check")
+    public ResponseEntity<ApiResponse<SubscriptionResponse>> checkSubscription(@RequestParam(required = false) UUID business) {
+        ApiResponse<SubscriptionResponse> response = service.checkSubscription(business);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

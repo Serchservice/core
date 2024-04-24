@@ -17,8 +17,14 @@ public class SessionController {
     private final SessionService sessionService;
 
     @GetMapping("/refresh")
-    public ResponseEntity<ApiResponse<SessionResponse>> refreshToken(@RequestParam String accessToken) {
-        var response = sessionService.refreshSession(accessToken);
+    public ResponseEntity<ApiResponse<SessionResponse>> refreshSession(@RequestParam String token) {
+        ApiResponse<SessionResponse> response = sessionService.refreshSession(token);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @GetMapping("/validate")
+    public ResponseEntity<ApiResponse<String>> validateSession(@RequestParam String token) {
+        ApiResponse<String> response = sessionService.validateSession(token);
         return new ResponseEntity<>(response, response.getStatus());
     }
 }

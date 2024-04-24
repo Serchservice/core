@@ -81,7 +81,7 @@ public class SecurityFilterConfiguration {
                                 "/auth/provider/**",
                                 "/auth/business/**",
                                 "/auth/reset/**",
-                                "/auth/session/refresh",
+                                "/auth/session/**",
                                 "/company/**",
                                 "/plan/**",
                                 "/auth/guest/**",

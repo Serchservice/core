@@ -381,8 +381,8 @@ public class EmailAuthTemplate {
                 "    <p style=\"font-size: 14px; line-height: 130%;\"><span style=\"font-size: 12px; line-height: 15.6px;\">Don't know how you got this email?</span></p>\n" +
                 "<p style=\"font-size: 14px; line-height: 130%;\"> </p>\n" +
                 "<p style=\"font-size: 14px; line-height: 130%;\"><span style=\"font-size: 12px; line-height: 15.6px;\"><a rel=\"noopener\" href=\"mailto:" + template.getEmailAddress() + "\" target=\"_blank\">" + template.getEmailAddress() + "</a></span></p>\n" +
-                "<p style=\"font-size: 14px; line-height: 130%;\"><span style=\"font-size: 12px; line-height: 15.6px;\">was used to check for email</span></p>\n" +
-                "<p style=\"font-size: 14px; line-height: 130%;\"><span style=\"font-size: 12px; line-height: 15.6px;\">availability in the Serch platform. Ignore if you didn't </span><span style=\"font-size: 12px; line-height: 15.6px;\">perform this action.</span></p>\n" +
+                "<p style=\"font-size: 14px; line-height: 130%;\"><span style=\"font-size: 12px; line-height: 15.6px;\">was used to perform an action</span></p>\n" +
+                "<p style=\"font-size: 14px; line-height: 130%;\"><span style=\"font-size: 12px; line-height: 15.6px;\">in Serch platform. Ignore if you didn't </span><span style=\"font-size: 12px; line-height: 15.6px;\">perform this action.</span></p>\n" +
                 "<p style=\"font-size: 14px; line-height: 130%;\"> </p>\n" +
                 "<p style=\"font-size: 14px; line-height: 130%;\"> </p>\n" +
                 "<p style=\"font-size: 14px; line-height: 130%;\"><span style=\"font-size: 12px; line-height: 15.6px;\">© 2023 Serchservice Inc. All Rights Reserved.</span></p>\n" +
@@ -404,47 +404,6 @@ public class EmailAuthTemplate {
                 "  \n" +
                 "\n" +
                 "\n" +
-                "  \n" +
-                "  \n" +
-                "<div class=\"u-row-container\" style=\"padding: 0px;background-color: transparent\">\n" +
-                "  <div class=\"u-row\" style=\"margin: 0 auto;min-width: 320px;max-width: 600px;overflow-wrap: break-word;word-wrap: break-word;word-break: break-word;background-color: transparent;\">\n" +
-                "    <div style=\"border-collapse: collapse;display: table;width: 100%;height: 100%;background-color: transparent;\">\n" +
-                "      <!--[if (mso)|(IE)]><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td style=\"padding: 0px;background-color: transparent;\" align=\"center\"><table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"width:600px;\"><tr style=\"background-color: transparent;\"><![endif]-->\n" +
-                "      \n" +
-                "<!--[if (mso)|(IE)]><td align=\"center\" width=\"600\" style=\"width: 600px;padding: 0px;border-top: 0px solid transparent;border-left: 0px solid transparent;border-right: 0px solid transparent;border-bottom: 0px solid transparent;border-radius: 0px;-webkit-border-radius: 0px; -moz-border-radius: 0px;\" valign=\"top\"><![endif]-->\n" +
-                "<div class=\"u-col u-col-100\" style=\"max-width: 320px;min-width: 600px;display: table-cell;vertical-align: top;\">\n" +
-                "  <div style=\"height: 100%;width: 100% !important;border-radius: 0px;-webkit-border-radius: 0px; -moz-border-radius: 0px;\">\n" +
-                "  <!--[if (!mso)&(!IE)]><!--><div style=\"box-sizing: border-box; height: 100%; padding: 0px;border-top: 0px solid transparent;border-left: 0px solid transparent;border-right: 0px solid transparent;border-bottom: 0px solid transparent;border-radius: 0px;-webkit-border-radius: 0px; -moz-border-radius: 0px;\"><!--<![endif]-->\n" +
-                "  \n" +
-                "<table style=\"font-family:'Montserrat',sans-serif;\" role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" border=\"0\">\n" +
-                "  <tbody>\n" +
-                "    <tr>\n" +
-                "      <td class=\"v-container-padding-padding\" style=\"overflow-wrap:break-word;word-break:break-word;padding:0px;font-family:'Montserrat',sans-serif;\" align=\"left\">\n" +
-                "        \n" +
-                "<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n" +
-                "  <tr>\n" +
-                "    <td class=\"v-text-align\" style=\"padding-right: 0px;padding-left: 0px;\" align=\"center\">\n" +
-                "      \n" +
-                "      <img align=\"center\" border=\"0\" src=\"" + image("tagBlack.png?alt=media&token=3e7cf04a-9022-42b1-bed9-607d86815ed7") + "\" alt=\"border\" title=\"border\" style=\"outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;clear: both;display: inline-block !important;border: none;height: auto;float: none;width: 100%;max-width: 600px;\" width=\"600\" class=\"v-src-width v-src-max-width\"/>\n" +
-                "      \n" +
-                "    </td>\n" +
-                "  </tr>\n" +
-                "</table>\n" +
-                "\n" +
-                "      </td>\n" +
-                "    </tr>\n" +
-                "  </tbody>\n" +
-                "</table>\n" +
-                "\n" +
-                "  <!--[if (!mso)&(!IE)]><!--></div><!--<![endif]-->\n" +
-                "  </div>\n" +
-                "</div>\n" +
-                "<!--[if (mso)|(IE)]></td><![endif]-->\n" +
-                "      <!--[if (mso)|(IE)]></tr></table></td></tr></table><![endif]-->\n" +
-                "    </div>\n" +
-                "  </div>\n" +
-                "  </div>\n" +
-                "  \n" +
                 "\n" +
                 "\n" +
                 "    <!--[if (mso)|(IE)]></td></tr></table><![endif]-->\n" +

@@ -9,8 +9,19 @@ import lombok.Setter;
 @Getter
 @Setter
 public class RequestDevice {
-    private String id;
+    private String device;
     private String name;
+    private String host;
+    private String platform;
+
+    @JsonProperty("operating_system")
+    private String operatingSystem;
+
+    @JsonProperty("operating_system_version")
+    private String operatingSystemVersion;
+
+    @JsonProperty("local_host")
+    private String localHost;
 
     @JsonProperty(value = "ip_address")
     private String ipAddress;

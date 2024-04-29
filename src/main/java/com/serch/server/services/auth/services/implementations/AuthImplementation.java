@@ -24,6 +24,8 @@ import com.serch.server.services.email.services.EmailAuthService;
 import com.serch.server.services.referral.services.ReferralProgramService;
 import com.serch.server.utils.TimeUtil;
 import jakarta.validation.constraints.NotNull;
+import java.time.LocalDateTime;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -33,8 +35,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
 
 /**
  * Service implementation for managing authentication-related operations.
@@ -72,8 +72,8 @@ public class AuthImplementation implements AuthService {
     public Incomplete sendOtp(String emailAddress) {
         var user = incompleteRepository.findByEmailAddress(emailAddress);
         String otp = tokenService.generateOtp();
-        if(user.isPresent()) {
-            if(TimeUtil.isOtpExpired(user.get().getTokenExpiresAt(), OTP_EXPIRATION_TIME)) {
+        if (user.isPresent()) {
+            if (TimeUtil.isOtpExpired(user.get().getTokenExpiresAt(), OTP_EXPIRATION_TIME)) {
                 user.get().setToken(passwordEncoder.encode(otp));
                 user.get().setUpdatedAt(LocalDateTime.now());
                 user.get().setTokenExpiresAt(LocalDateTime.now().plusMinutes(OTP_EXPIRATION_TIME));
@@ -82,9 +82,7 @@ public class AuthImplementation implements AuthService {
                 return user.get();
             } else {
                 throw new AuthException(
-                        "You can request a new token in %s".formatted(
-                                TimeUtil.formatFutureTime(user.get().getTokenExpiresAt())
-                        ),
+                        "You can request a new token in %s".formatted(TimeUtil.formatFutureTime(user.get().getTokenExpiresAt())),
                         ExceptionCodes.EMAIL_NOT_VERIFIED
                 );
             }
@@ -114,28 +112,32 @@ public class AuthImplementation implements AuthService {
     @Override
     public ApiResponse<String> checkEmail(String email) {
         var user = userRepository.findByEmailAddressIgnoreCase(email);
-        if(user.isPresent()) {
-            return new ApiResponse<>("Login with email and password", HttpStatus.OK);
+        if (user.isPresent()) {
+            return new ApiResponse<>(
+                    "Login with email and password",
+                    user.get().getFirstName(),
+                    HttpStatus.OK)
+                    ;
         } else {
             var incomplete = incompleteRepository.findByEmailAddress(email);
-            if(incomplete.isPresent()) {
-                if(!incomplete.get().isEmailConfirmed()) {
+            if (incomplete.isPresent()) {
+                if (!incomplete.get().isEmailConfirmed()) {
                     sendOtp(email);
                     throw new AuthException(
                             "Email not verified. Check your email",
                             ExceptionCodes.EMAIL_NOT_VERIFIED
                     );
-                } else if(!incomplete.get().hasProfile()) {
+                } else if (!incomplete.get().hasProfile()) {
                     throw new AuthException(
                             "Profile is not saved. Signup to create your profile",
                             ExceptionCodes.PROFILE_NOT_SET
                     );
-                } else if(!incomplete.get().hasCategory()) {
+                } else if (!incomplete.get().hasCategory()) {
                     throw new AuthException(
                             "Category is not selected. Signup to pick your skill",
                             ExceptionCodes.CATEGORY_NOT_SET
                     );
-                } else if(!incomplete.get().hasAdditional()) {
+                } else if (!incomplete.get().hasAdditional()) {
                     throw new AuthException(
                             "Additional Information is not saved. Signup to get started",
                             ExceptionCodes.ADDITIONAL_NOT_SET
@@ -158,20 +160,20 @@ public class AuthImplementation implements AuthService {
 
     @Override
     public ApiResponse<String> verifyEmailOtp(@NotNull RequestEmailToken request) {
-        var incomplete = incompleteRepository.findByEmailAddress(request.getEmailAddress())
+        Incomplete incomplete = incompleteRepository.findByEmailAddress(request.getEmailAddress())
                 .orElseThrow(() -> new AuthException("User not found", ExceptionCodes.USER_NOT_FOUND));
-        if(TimeUtil.isOtpExpired(incomplete.getTokenExpiresAt(), OTP_EXPIRATION_TIME)) {
+        if (TimeUtil.isOtpExpired(incomplete.getTokenExpiresAt(), OTP_EXPIRATION_TIME)) {
             throw new AuthException(
                     "OTP is expired. Request for another.",
                     ExceptionCodes.INCORRECT_TOKEN
             );
         } else {
-            if(passwordEncoder.matches(request.getToken(), incomplete.getToken())) {
+            if (passwordEncoder.matches(request.getToken(), incomplete.getToken())) {
                 incomplete.setTokenConfirmedAt(LocalDateTime.now());
                 incomplete.setUpdatedAt(LocalDateTime.now());
                 incompleteRepository.save(incomplete);
 
-                if(incomplete.getRole() == Role.ASSOCIATE_PROVIDER) {
+                if (incomplete.getRole() == Role.ASSOCIATE_PROVIDER) {
                     throw new AuthException(
                             "Finish signup for associate provider",
                             ExceptionCodes.ASSOCIATE_PROVIDER_EMAIL
@@ -189,7 +191,6 @@ public class AuthImplementation implements AuthService {
         authenticate(request);
 
         RequestSession requestSession = new RequestSession();
-        requestSession.setPlatform(request.getPlatform());
         requestSession.setMethod(AuthMethod.PASSWORD);
         requestSession.setUser(user);
         requestSession.setDevice(request.getDevice());
@@ -204,14 +205,7 @@ public class AuthImplementation implements AuthService {
 
         accountDeleteRepository.findByUser_EmailAddress(user.getEmailAddress())
                 .ifPresent(accountDeleteRepository::delete);
-        return new ApiResponse<>(AuthResponse.builder()
-                .mfaEnabled(user.getMfaEnabled())
-                .session(session.getData())
-                .firstName(user.getFirstName())
-                .role(user.getRole().getType())
-                .recoveryCodesEnabled(user.getRecoveryCodeEnabled())
-                .build()
-        );
+        return session;
     }
 
     @Override

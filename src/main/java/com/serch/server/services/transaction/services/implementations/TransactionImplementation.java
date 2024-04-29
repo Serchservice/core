@@ -50,7 +50,9 @@ public class TransactionImplementation implements TransactionService {
         List<TransactionResponse> transactions = new ArrayList<>();
 
         transactions.addAll(
-                transactionRepository.findBySender_User_Id(wallet.getUser().getId())
+                transactionRepository.findBySender_User_Id(wallet.getUser().getId()).isEmpty()
+                        ? List.of()
+                        : transactionRepository.findBySender_User_Id(wallet.getUser().getId())
                         .stream()
                         .filter(transaction -> transaction.getType() != TransactionType.TRIP)
                         .map(transaction -> createResponse(transaction, wallet))
@@ -58,7 +60,9 @@ public class TransactionImplementation implements TransactionService {
         );
 
         transactions.addAll(
-                transactionRepository.findByAccount(wallet.getId())
+                transactionRepository.findByAccount(wallet.getId()).isEmpty()
+                        ? List.of()
+                        : transactionRepository.findByAccount(wallet.getId())
                         .stream()
                         .filter(transaction -> transaction.getType() != TransactionType.TRIP)
                         .map(transaction -> createResponse(transaction, wallet))
@@ -66,7 +70,9 @@ public class TransactionImplementation implements TransactionService {
         );
 
         transactions.addAll(
-                transactionRepository.findByAccount(wallet.getId())
+                transactionRepository.findByAccount(wallet.getId()).isEmpty()
+                        ? List.of()
+                        : transactionRepository.findByAccount(wallet.getId())
                         .stream()
                         .filter(transaction -> transaction.getType() == TransactionType.TRIP)
                         .map(transaction -> createTripResponse(transaction, wallet))
@@ -74,14 +80,18 @@ public class TransactionImplementation implements TransactionService {
         );
 
         transactions.addAll(
-                subscriptionInvoiceRepository.findBySubscription_User_Id(wallet.getUser().getId())
+                subscriptionInvoiceRepository.findBySubscription_User_Id(wallet.getUser().getId()).isEmpty()
+                        ? List.of()
+                        : subscriptionInvoiceRepository.findBySubscription_User_Id(wallet.getUser().getId())
                         .stream()
                         .map(this::subscription)
                         .toList()
         );
 
         transactions.addAll(
-                schedulePaymentRepository.findByPayment(wallet.getUser().getId())
+                schedulePaymentRepository.findByPayment(wallet.getUser().getId()).isEmpty()
+                         ? List.of()
+                        : schedulePaymentRepository.findByPayment(wallet.getUser().getId())
                         .stream()
                         .map(pay -> schedule(pay, wallet))
                         .toList()

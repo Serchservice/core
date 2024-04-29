@@ -2,6 +2,7 @@ package com.serch.server;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * This is the <a href="https://www.serchservice.com">Serch (a requestSharing and provideSharing platform)</a> server
@@ -10,9 +11,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  *
  * @author <a href="https://iamevaristus.github.com">Evaristus Adimonyemma</a>
  */
+//@EnableScheduling
 @SpringBootApplication
 public class ServerApplication {
-
 	public static void main(String[] args) {
 		SpringApplication.run(ServerApplication.class, args);
 	}

@@ -31,10 +31,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Service implementation for managing ratings, including rating providers,
@@ -210,12 +207,8 @@ public class RatingImplementation implements RatingService {
 
     @Override
     public ApiResponse<List<RatingResponse>> view() {
-        List<RatingResponse> list = ratingRepository.findByRated(String.valueOf(userUtil.getUser().getId()))
-                .stream()
-                .sorted(Comparator.comparing(Rating::getCreatedAt))
-                .map(this::getRatingResponse)
-                .toList();
-        return new ApiResponse<>(list);
+        List<Rating> ratings = ratingRepository.findByRated(String.valueOf(userUtil.getUser().getId()));
+        return getRatingResponseList(ratings);
     }
 
     private RatingResponse getRatingResponse(Rating rating) {
@@ -257,22 +250,26 @@ public class RatingImplementation implements RatingService {
 
     @Override
     public ApiResponse<List<RatingResponse>> good() {
-        List<RatingResponse> list = ratingRepository.findGood(String.valueOf(userUtil.getUser().getId()))
-                .stream()
-                .sorted(Comparator.comparing(Rating::getCreatedAt))
-                .map(this::getRatingResponse)
-                .toList();
+        List<Rating> ratings = ratingRepository.findGood(String.valueOf(userUtil.getUser().getId()));
+        return getRatingResponseList(ratings);
+    }
+
+    private ApiResponse<List<RatingResponse>> getRatingResponseList(List<Rating> ratings) {
+        List<RatingResponse> list = new ArrayList<>();
+
+        if(!ratings.isEmpty()) {
+            list = ratings.stream()
+                    .sorted(Comparator.comparing(Rating::getCreatedAt))
+                    .map(this::getRatingResponse)
+                    .toList();
+        }
         return new ApiResponse<>(list);
     }
 
     @Override
     public ApiResponse<List<RatingResponse>> bad() {
-        List<RatingResponse> list = ratingRepository.findBad(String.valueOf(userUtil.getUser().getId()))
-                .stream()
-                .sorted(Comparator.comparing(Rating::getCreatedAt))
-                .map(this::getRatingResponse)
-                .toList();
-        return new ApiResponse<>(list);
+        List<Rating> ratings = ratingRepository.findBad(String.valueOf(userUtil.getUser().getId()));
+        return getRatingResponseList(ratings);
     }
 
     @Override

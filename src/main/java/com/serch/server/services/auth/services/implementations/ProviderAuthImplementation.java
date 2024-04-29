@@ -262,19 +262,10 @@ public class ProviderAuthImplementation implements ProviderAuthService {
         User user = userRepository.findByEmailAddressIgnoreCase(auth.getEmailAddress())
                 .orElseThrow(() -> new AuthException("User not found"));
         RequestSession requestSession = new RequestSession();
-        requestSession.setPlatform(auth.getPlatform());
         requestSession.setMethod(AuthMethod.PASSWORD);
         requestSession.setUser(user);
         requestSession.setDevice(auth.getDevice());
-        var session = sessionService.generateSession(requestSession);
 
-        return new ApiResponse<>(AuthResponse.builder()
-                .mfaEnabled(user.getMfaEnabled())
-                .session(session.getData())
-                .role(user.getRole().getType())
-                .firstName(user.getFirstName())
-                .recoveryCodesEnabled(user.getRecoveryCodeEnabled())
-                .build()
-        );
+        return sessionService.generateSession(requestSession);
     }
 }

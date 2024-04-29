@@ -38,7 +38,7 @@ public class HelpImplementation implements HelpService {
     public ApiResponse<List<HelpCategoryResponse>> fetchCategories() {
         return new ApiResponse<>(
                 "Categories fetched",
-                categoryRepository.findAll()
+                categoryRepository.findAll().isEmpty() ? List.of() : categoryRepository.findAll()
                         .stream()
                         .map(HelpMapper.INSTANCE::response)
                         .toList(),
@@ -64,7 +64,7 @@ public class HelpImplementation implements HelpService {
 
         return new ApiResponse<>(
                 "Sections fetched",
-                category.getSections()
+                category.getSections().isEmpty() ? List.of() : category.getSections()
                         .stream()
                         .map(HelpMapper.INSTANCE::response)
                         .toList(),
@@ -90,7 +90,7 @@ public class HelpImplementation implements HelpService {
 
         return new ApiResponse<>(
                 "Groups fetched",
-                foundSection.getGroups()
+                foundSection.getGroups().isEmpty() ? List.of() : foundSection.getGroups()
                         .stream()
                         .map(group -> {
                             HelpGroupResponse groupResponse = HelpMapper.INSTANCE.response(group);
@@ -132,7 +132,7 @@ public class HelpImplementation implements HelpService {
     public ApiResponse<List<HelpSearchResponse>> search(String query) {
         return new ApiResponse<>(
                 "Query found",
-                helpRepository.search(query)
+                helpRepository.search(query).isEmpty() ? List.of() : helpRepository.search(query)
                         .stream()
                         .map(objects -> {
                             HelpSearchResponse response = new HelpSearchResponse();

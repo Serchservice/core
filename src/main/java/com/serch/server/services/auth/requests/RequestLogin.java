@@ -13,6 +13,5 @@ public class RequestLogin {
     private String emailAddress;
 
     private String password;
-    private String platform;
     private RequestDevice device;
 }

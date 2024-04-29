@@ -17,6 +17,8 @@ public enum SerchCategory {
     PLUMBER("Plumber"),
     ELECTRICIAN("Electrician"),
     BUSINESS("Business"),
+    ERRAND_RUNNER("Errand Runner"),
+    HOUSE_KEEPING("House Keeper"),
     CARPENTER("Carpenter"),
     GUEST("Guest"),
     USER("User");

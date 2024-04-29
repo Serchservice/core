@@ -15,6 +15,7 @@ import com.serch.server.services.referral.responses.ReferralProgramData;
 import com.serch.server.services.referral.responses.ReferralProgramResponse;
 import com.serch.server.services.referral.services.ReferralProgramService;
 import com.serch.server.services.referral.services.ReferralService;
+import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -34,6 +35,7 @@ import java.util.regex.Pattern;
  * @see ReferralRepository
  * @see SharedLinkRepository
  * @see TripRepository
+ * @see UserUtil
  *
  * @author <a href="https://iamevaristus.github.com">Evaristus Adimonyemma</a>
  */
@@ -165,6 +167,15 @@ public class ReferralProgramImplementation implements ReferralProgramService {
 
         ReferralProgramResponse response = getResponse(program);
         return new ApiResponse<>("Referral Code found", response, HttpStatus.OK);
+    }
+
+    @Override
+    public ApiResponse<ReferralProgramResponse> program() {
+        ReferralProgram program = referralProgramRepository.findByUser_EmailAddress(UserUtil.getLoginUser())
+                .orElseThrow(() -> new ReferralException("Referral not found"));
+
+        ReferralProgramResponse response = getResponse(program);
+        return new ApiResponse<>("Referral fetched", response, HttpStatus.OK);
     }
 
     @Override

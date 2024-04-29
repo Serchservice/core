@@ -12,6 +12,5 @@ import lombok.Setter;
 public class RequestSession {
     private User user;
     private RequestDevice device;
-    private String platform;
     private AuthMethod method;
 }

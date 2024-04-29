@@ -6,6 +6,7 @@ import com.serch.server.models.auth.incomplete.Incomplete;
 import com.serch.server.services.account.requests.UpdateProfileRequest;
 import com.serch.server.services.account.responses.BusinessProfileResponse;
 import com.serch.server.services.account.responses.ProfileResponse;
+import com.serch.server.services.auth.requests.RequestBusinessProfile;
 
 import java.util.List;
 
@@ -20,13 +21,15 @@ public interface BusinessService {
      *
      * @param incomplete Incomplete information about the business.
      * @param user       The user for whom the profile is being created.
+     * @param profile The profile of the business
      * @return An ApiResponse indicating the success of the operation.
      *
      * @see Incomplete
      * @see User
      * @see ApiResponse
+     * @see RequestBusinessProfile
      */
-    ApiResponse<String> createProfile(Incomplete incomplete, User user);
+    ApiResponse<String> createProfile(Incomplete incomplete, User user, RequestBusinessProfile profile);
 
     /**
      * Retrieves profiles of associates with the business.

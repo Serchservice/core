@@ -52,15 +52,6 @@ public class IncompleteProfile extends BaseModel {
     @SerchEnum(message = "Gender must be an enum")
     private Gender gender = Gender.ANY;
 
-    @Column(name = "business_name", columnDefinition = "TEXT")
-    private String businessName;
-
-    @Column(name = "business_description", columnDefinition = "TEXT")
-    private String businessDescription;
-
-    @Column(name = "business_address", columnDefinition = "TEXT")
-    private String businessAddress;
-
     @Column(name = "password", nullable = false, columnDefinition = "TEXT")
     private String password;
 

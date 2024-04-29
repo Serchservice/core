@@ -13,6 +13,7 @@ import com.serch.server.services.account.services.BusinessService;
 import com.serch.server.services.account.services.ProfileService;
 import com.serch.server.services.account.services.SpecialtyService;
 import com.serch.server.services.auth.requests.RequestAuth;
+import com.serch.server.services.auth.requests.RequestBusinessProfile;
 import com.serch.server.services.auth.requests.RequestLogin;
 import com.serch.server.services.auth.requests.RequestSession;
 import com.serch.server.services.auth.responses.AuthResponse;
@@ -59,33 +60,24 @@ public class BusinessAuthImplementation implements BusinessAuthService {
     }
 
     @Override
-    public ApiResponse<AuthResponse> signup(RequestAuth auth) {
-        var incomplete = incompleteRepository.findByEmailAddress(auth.getEmailAddress())
+    public ApiResponse<AuthResponse> signup(RequestBusinessProfile profile) {
+        var incomplete = incompleteRepository.findByEmailAddress(profile.getEmailAddress())
                 .orElseThrow(() -> new AuthException("User not found"));
 
         if(incomplete.isEmailConfirmed()) {
             if(incomplete.hasProfile()) {
                 if(incomplete.hasCategory()) {
                     User user = authService.getUserFromIncomplete(incomplete, Role.BUSINESS);
-                    ApiResponse<String> response = businessService.createProfile(incomplete, user);
+                    ApiResponse<String> response = businessService.createProfile(incomplete, user, profile);
 
                     if(response.getStatus().is2xxSuccessful()) {
                         RequestSession requestSession = new RequestSession();
-                        requestSession.setPlatform(auth.getPlatform());
                         requestSession.setMethod(AuthMethod.PASSWORD);
                         requestSession.setUser(user);
-                        requestSession.setDevice(auth.getDevice());
-                        var session = sessionService.generateSession(requestSession);
+                        requestSession.setDevice(profile.getDevice());
 
                         incompleteRepository.delete(incomplete);
-                        return new ApiResponse<>(AuthResponse.builder()
-                                .mfaEnabled(user.getMfaEnabled())
-                                .session(session.getData())
-                                .role(user.getRole().getType())
-                                .firstName(incomplete.getProfile().getFirstName())
-                                .recoveryCodesEnabled(user.getRecoveryCodeEnabled())
-                                .build()
-                        );
+                        return sessionService.generateSession(requestSession);
                     } else {
                         throw new AuthException(response.getMessage());
                     }
@@ -113,20 +105,11 @@ public class BusinessAuthImplementation implements BusinessAuthService {
             specialtyService.saveIncompleteSpecialties(incomplete, response.getData());
 
             RequestSession requestSession = new RequestSession();
-            requestSession.setPlatform(auth.getPlatform());
             requestSession.setMethod(AuthMethod.PASSWORD);
             requestSession.setUser(user);
             requestSession.setDevice(auth.getDevice());
-            var session = sessionService.generateSession(requestSession);
 
-            return new ApiResponse<>(AuthResponse.builder()
-                    .mfaEnabled(user.getMfaEnabled())
-                    .session(session.getData())
-                    .role(user.getRole().getType())
-                    .firstName(incomplete.getProfile().getFirstName())
-                    .recoveryCodesEnabled(user.getRecoveryCodeEnabled())
-                    .build()
-            );
+            return sessionService.generateSession(requestSession);
         } else {
             return new ApiResponse<>(response.getMessage());
         }

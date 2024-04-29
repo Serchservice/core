@@ -85,7 +85,6 @@ public class SwitchImplementation implements SwitchService {
                 checkRequest(request);
                 RequestProfile profile = new RequestProfile();
                 profile.setDevice(request.getDevice());
-                profile.setPlatform(request.getPlatform());
                 return userAuthService.getAuthResponse(profile, user);
             } else {
                 throw new SharedException("Incorrect password details");

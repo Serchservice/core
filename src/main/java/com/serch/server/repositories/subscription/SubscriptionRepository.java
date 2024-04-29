@@ -7,6 +7,6 @@ import org.springframework.lang.NonNull;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface SubscriptionRepository extends JpaRepository<Subscription, Long> {
+public interface SubscriptionRepository extends JpaRepository<Subscription, String> {
     Optional<Subscription> findByUser_Id(@NonNull UUID id);
 }

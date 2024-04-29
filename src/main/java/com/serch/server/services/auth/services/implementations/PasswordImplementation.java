@@ -13,7 +13,7 @@ import com.serch.server.services.auth.requests.RequestResetPassword;
 import com.serch.server.services.auth.requests.RequestResetPasswordVerify;
 import com.serch.server.services.auth.requests.RequestSession;
 import com.serch.server.services.auth.responses.AuthResponse;
-import com.serch.server.services.auth.services.ResetPasswordService;
+import com.serch.server.services.auth.services.PasswordService;
 import com.serch.server.services.auth.services.SessionService;
 import com.serch.server.services.auth.services.TokenService;
 import com.serch.server.services.email.services.EmailAuthService;
@@ -31,10 +31,9 @@ import java.time.LocalDateTime;
 
 /**
  * Service responsible for implementing password reset functionality.
- * It implements its wrapper class {@link ResetPasswordService}
+ * It implements its wrapper class {@link PasswordService}
  *
  * @see UserRepository
- * @see AccountRequestRepository
  * @see AccountDeleteRepository
  * @see TokenService
  * @see EmailAuthService
@@ -43,7 +42,7 @@ import java.time.LocalDateTime;
  */
 @Service
 @RequiredArgsConstructor
-public class ResetPasswordImplementation implements ResetPasswordService {
+public class PasswordImplementation implements PasswordService {
     private final UserRepository userRepository;
     private final AccountDeleteRepository accountDeleteRepository;
     private final TokenService tokenService;
@@ -58,6 +57,7 @@ public class ResetPasswordImplementation implements ResetPasswordService {
     public ApiResponse<String> checkEmail(String emailAddress) {
         var user = userRepository.findByEmailAddressIgnoreCase(emailAddress)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        user.check();
         if(TimeUtil.isOtpExpired(user.getPasswordRecoveryExpiresAt(), OTP_EXPIRATION_TIME)) {
             String otp = tokenService.generateOtp();
             user.setPasswordRecoveryToken(passwordEncoder.encode(otp));
@@ -72,7 +72,11 @@ public class ResetPasswordImplementation implements ResetPasswordService {
             email.setContent(otp);
             emailService.send(email);
 
-            return new ApiResponse<>("Check your email for OTP", HttpStatus.OK);
+            return new ApiResponse<>(
+                    "Check your email for verification token",
+                    user.getFirstName(),
+                    HttpStatus.OK
+            );
         } else {
             throw new AuthException(
                     "You can request a new token in %s".formatted(
@@ -100,7 +104,11 @@ public class ResetPasswordImplementation implements ResetPasswordService {
                     user.setPasswordRecoveryConfirmedAt(LocalDateTime.now());
                     user.setUpdatedAt(LocalDateTime.now());
                     userRepository.save(user);
-                    return new ApiResponse<>("OTP successfully confirmed",HttpStatus.OK);
+                    return new ApiResponse<>(
+                            "OTP successfully confirmed",
+                            user.getFirstName(),
+                            HttpStatus.OK
+                    );
                 } else {
                     throw new AuthException("Incorrect OTP");
                 }
@@ -151,6 +159,7 @@ public class ResetPasswordImplementation implements ResetPasswordService {
     public ApiResponse<AuthResponse> changePassword(RequestPasswordChange request) {
         var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
         if(passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
             if(passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
                 throw new AuthException("New password cannot be same as old password");
@@ -162,22 +171,11 @@ public class ResetPasswordImplementation implements ResetPasswordService {
                         .ifPresent(accountDeleteRepository::delete);
 
                 RequestSession requestSession = new RequestSession();
-                requestSession.setPlatform(request.getPlatform());
                 requestSession.setMethod(AuthMethod.PASSWORD_CHANGE);
                 requestSession.setUser(user);
                 requestSession.setDevice(request.getDevice());
-                var session = sessionService.generateSession(requestSession);
 
-                return new ApiResponse<>(
-                        "Password changed successfully",
-                        AuthResponse.builder()
-                                .mfaEnabled(user.getMfaEnabled())
-                                .session(session.getData())
-                                .firstName(user.getFirstName())
-                                .recoveryCodesEnabled(user.getRecoveryCodeEnabled())
-                                .build(),
-                        HttpStatus.OK
-                );
+                return sessionService.generateSession(requestSession);
             } else {
                 throw new AuthException(
                         "New password must contain a lowercase, uppercase, special character and number",

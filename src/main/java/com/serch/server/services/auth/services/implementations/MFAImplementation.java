@@ -5,6 +5,7 @@ import com.serch.server.enums.auth.AuthMethod;
 import com.serch.server.enums.auth.Role;
 import com.serch.server.exceptions.ExceptionCodes;
 import com.serch.server.exceptions.auth.AuthException;
+import com.serch.server.mappers.AuthMapper;
 import com.serch.server.models.auth.User;
 import com.serch.server.models.auth.mfa.MFAChallenge;
 import com.serch.server.models.auth.mfa.MFAFactor;
@@ -153,30 +154,18 @@ public class MFAImplementation implements MFAService {
     }
 
     private void saveMFAChallenge(RequestMFAChallenge request, MFAFactor factor) {
-        MFAChallenge challenge = new MFAChallenge();
+        MFAChallenge challenge = AuthMapper.INSTANCE.challenge(request.getDevice());
         challenge.setMfaFactor(factor);
-        challenge.setIpAddress(request.getDevice().getIpAddress());
-        challenge.setDeviceId(request.getDevice().getId());
-        challenge.setDeviceName(request.getDevice().getName());
-        challenge.setPlatform(request.getPlatform());
         mFAChallengeRepository.save(challenge);
     }
 
     private ApiResponse<AuthResponse> sessionResponse(RequestMFAChallenge request, User user) {
         RequestSession requestSession = new RequestSession();
-        requestSession.setPlatform(request.getPlatform());
         requestSession.setMethod(AuthMethod.MFA);
         requestSession.setUser(user);
         requestSession.setDevice(request.getDevice());
-        var session = sessionService.generateSession(requestSession);
 
-        return new ApiResponse<>(AuthResponse.builder()
-                .mfaEnabled(user.getMfaEnabled())
-                .session(session.getData())
-                .firstName(user.getFirstName())
-                .recoveryCodesEnabled(user.getRecoveryCodeEnabled())
-                .build()
-        );
+        return sessionService.generateSession(requestSession);
     }
 
     @Override

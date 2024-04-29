@@ -23,6 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -65,7 +66,7 @@ public class ShopImplementation implements ShopServices {
     private ApiResponse<List<ShopResponse>> getShopResponse(User user) {
         return new ApiResponse<>(
                 "Success",
-                shopRepository.findByUser_Id(user.getId())
+                shopRepository.findByUser_Id(user.getId()).isEmpty() ? List.of() : shopRepository.findByUser_Id(user.getId())
                         .stream()
                         .sorted(Comparator.comparing(Shop::getCreatedAt))
                         .map(s -> {
@@ -226,7 +227,7 @@ public class ShopImplementation implements ShopServices {
 
     @Override
     public ApiResponse<List<SearchShopResponse>> drive(String query, String category, Double longitude, Double latitude, Double radius) {
-        List<Shop> listOfShops;
+        List<Shop> listOfShops = new ArrayList<>();
         if(query != null && !query.isEmpty()) {
             listOfShops = shopRepository.findByServiceAndLocation(
                     latitude, longitude, query, radius, PlanStatus.ACTIVE.name()
@@ -236,9 +237,9 @@ public class ShopImplementation implements ShopServices {
                     latitude, longitude, category, radius, PlanStatus.ACTIVE.name()
             );
         }
+
         return new ApiResponse<>(
-                listOfShops
-                        .stream()
+                listOfShops.stream()
                         .map(shop -> {
                             SearchShopResponse response = ShopMapper.INSTANCE.search(shop);
 

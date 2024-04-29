@@ -239,11 +239,15 @@ public class ScheduleImplementation implements ScheduleService {
 
     @Override
     public ApiResponse<List<ScheduleResponse>> today() {
-        List<ScheduleResponse> list = scheduleRepository.today(userUtil.getUser().getId())
-                .stream()
-                .sorted(Comparator.comparing(Schedule::getUpdatedAt))
-                .map(this::getScheduleResponse)
-                .toList();
+        List<Schedule> schedules = scheduleRepository.today(userUtil.getUser().getId());
+        List<ScheduleResponse> list = new ArrayList<>();
+
+        if(!schedules.isEmpty()) {
+            list = schedules.stream()
+                    .sorted(Comparator.comparing(Schedule::getUpdatedAt))
+                    .map(this::getScheduleResponse)
+                    .toList();
+        }
         return new ApiResponse<>(list);
     }
 
@@ -261,11 +265,15 @@ public class ScheduleImplementation implements ScheduleService {
 
     @Override
     public ApiResponse<List<ScheduleResponse>> schedules() {
-        List<ScheduleResponse> list = scheduleRepository.schedules(userUtil.getUser().getId())
-                .stream()
-                .sorted(Comparator.comparing(Schedule::getUpdatedAt))
-                .map(this::getScheduleResponse)
-                .toList();
+        List<Schedule> schedules = scheduleRepository.schedules(userUtil.getUser().getId());
+        List<ScheduleResponse> list = new ArrayList<>();
+
+        if(!schedules.isEmpty()) {
+            list = schedules.stream()
+                    .sorted(Comparator.comparing(Schedule::getUpdatedAt))
+                    .map(this::getScheduleResponse)
+                    .toList();
+        }
         return new ApiResponse<>(list);
     }
 

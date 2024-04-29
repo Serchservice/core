@@ -78,7 +78,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             // Validate the session associated with the JWT token
             var session = sessionService.validateSession(header.substring(7));
-            if(session.getCode() == 200) {
+            if(session.getStatus().is2xxSuccessful()) {
                 // If the user is not already authenticated, set up the authentication context
                 if(SecurityContextHolder.getContext().getAuthentication() == null){
                     UserDetails userDetails = this.userDetailsService.loadUserByUsername(session.getData());
@@ -102,13 +102,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if(e instanceof AuthException) {
                 handler.handleAuthException((AuthException) e);
             } else if(e instanceof  ExpiredJwtException) {
-                handler.handleExpiredJwtException();
+                handler.handleExpiredJwtException((ExpiredJwtException) e);
             } else if(e instanceof  MalformedJwtException) {
-                handler.handleMalformedJwtException();
+                handler.handleMalformedJwtException((MalformedJwtException) e);
             } else if(e instanceof  SignatureException) {
-                handler.handleSignatureException();
+                handler.handleSignatureException((SignatureException) e);
             } else if(e instanceof  UnsupportedJwtException) {
-                handler.handleUnsupportedJwtException();
+                handler.handleUnsupportedJwtException((UnsupportedJwtException) e);
             }
         }
     }

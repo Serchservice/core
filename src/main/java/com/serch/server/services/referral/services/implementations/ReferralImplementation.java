@@ -17,6 +17,7 @@ import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -56,24 +57,28 @@ public class ReferralImplementation implements ReferralService {
 
     @Override
     public ApiResponse<List<ReferralResponse>> viewReferrals() {
-        List<ReferralResponse> list = referralRepository.findByReferredBy_User_EmailAddress(UserUtil.getLoginUser())
-                .stream()
-                .sorted(Comparator.comparing(Referral::getCreatedAt))
-                .map(referral -> {
-                    ReferralResponse response = new ReferralResponse();
+        List<Referral> referrals = referralRepository.findByReferredBy_User_EmailAddress(UserUtil.getLoginUser());
+        List<ReferralResponse> list = new ArrayList<>();
 
-                    String avatar = getAvatar(referral.getReferral());
-                    response.setAvatar(avatar);
-                    response.setRole(referral.getReferral().getRole().getType());
-                    response.setName(referral.getReferral().getFullName());
-                    response.setReferId(referral.getReferId());
+        if(!referrals.isEmpty()) {
+            list = referrals.stream()
+                    .sorted(Comparator.comparing(Referral::getCreatedAt))
+                    .map(referral -> {
+                        ReferralResponse response = new ReferralResponse();
 
-                    ReferralData data = new ReferralData();
-                    data.setInfo(getCount(referral.getReferral(), referral.getReferredBy().getUser()));
-                    data.setLabel("Joined Serch Platform: " + TimeUtil.formatDay(referral.getReferral().getCreatedAt()));
-                    return response;
-                })
-                .toList();
+                        String avatar = getAvatar(referral.getReferral());
+                        response.setAvatar(avatar);
+                        response.setRole(referral.getReferral().getRole().getType());
+                        response.setName(referral.getReferral().getFullName());
+                        response.setReferId(referral.getReferId());
+
+                        ReferralData data = new ReferralData();
+                        data.setInfo(getCount(referral.getReferral(), referral.getReferredBy().getUser()));
+                        data.setLabel("Joined Serch Platform: " + TimeUtil.formatDay(referral.getReferral().getCreatedAt()));
+                        return response;
+                    })
+                    .toList();
+        }
         return new ApiResponse<>(list);
     }
 

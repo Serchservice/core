@@ -116,19 +116,11 @@ public class UserAuthImplementation implements UserAuthService {
     @Override
     public ApiResponse<AuthResponse> getAuthResponse(RequestProfile request, User newUser) {
         RequestSession requestSession = new RequestSession();
-        requestSession.setPlatform(request.getPlatform());
         requestSession.setMethod(AuthMethod.PASSWORD);
         requestSession.setUser(newUser);
         requestSession.setDevice(request.getDevice());
-        var session = sessionService.generateSession(requestSession);
 
-        return new ApiResponse<>(AuthResponse.builder()
-                .mfaEnabled(newUser.getMfaEnabled())
-                .session(session.getData())
-                .firstName(newUser.getFirstName())
-                .recoveryCodesEnabled(newUser.getRecoveryCodeEnabled())
-                .build()
-        );
+        return sessionService.generateSession(requestSession);
     }
 
     @Override
@@ -167,7 +159,6 @@ public class UserAuthImplementation implements UserAuthService {
                 if(passwordEncoder.matches(login.getPassword(), profileInfo.getPassword())) {
                     RequestProfile profile = AuthMapper.INSTANCE.profile(profileInfo);
                     profile.setDevice(login.getDevice());
-                    profile.setPlatform(login.getPlatform());
                     profile.setPassword(login.getPassword());
                     profile.setEmailAddress(login.getEmailAddress());
                     profile.setPhoneInformation(AuthMapper.INSTANCE.phoneInformation(phoneInfo));

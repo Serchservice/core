@@ -65,6 +65,13 @@ public class BusinessProfile extends BaseProfile {
     private String defaultPassword;
 
     /**
+     * The default password associated with the business.
+     */
+    @Column(name = "contact", nullable = false, columnDefinition = "TEXT")
+    @NotBlank(message = "Contact cannot be empty or null")
+    private String contact;
+
+    /**
      * The category of the business.
      */
     @Column(name = "category", nullable = false)

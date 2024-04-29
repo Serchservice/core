@@ -26,7 +26,7 @@ public class MediaAssetImplementation implements MediaAssetService {
     public ApiResponse<List<MediaAssetResponse>> fetchAllAssets() {
         return new ApiResponse<>(
                 "Fetched assets",
-                assetRepository.findAll()
+                assetRepository.findAll().isEmpty() ? List.of() : assetRepository.findAll()
                         .stream().map(MediaMapper.INSTANCE::response)
                         .toList(),
                 HttpStatus.OK

@@ -1,7 +1,7 @@
 package com.serch.server.models.auth;
 
 import com.serch.server.annotations.SerchEnum;
-import com.serch.server.bases.BaseEntity;
+import com.serch.server.bases.BaseDevice;
 import com.serch.server.enums.auth.AuthLevel;
 import com.serch.server.enums.auth.AuthMethod;
 import jakarta.persistence.*;
@@ -31,7 +31,7 @@ import java.util.List;
  *     <li>{@link Enumerated}</li>
  *     <li>{@link JoinColumn}</li>
  * </ul>
- * @see BaseEntity
+ * @see BaseDevice
  * @see SerchEnum
  */
 @Getter
@@ -39,7 +39,7 @@ import java.util.List;
 @Entity
 @ToString
 @Table(schema = "identity", name = "sessions")
-public class Session extends BaseEntity {
+public class Session extends BaseDevice {
     @Column(name = "revoked", nullable = false)
     private Boolean revoked = false;
 
@@ -52,18 +52,6 @@ public class Session extends BaseEntity {
     @Enumerated(value = EnumType.STRING)
     @SerchEnum(message = "AuthenticationMethod must be an enum")
     private AuthMethod method = AuthMethod.TOKEN;
-
-    @Column(name = "platform", columnDefinition = "TEXT")
-    private String platform = null;
-
-    @Column(name = "device_name", columnDefinition = "TEXT", nullable = false)
-    private String deviceName;
-
-    @Column(name = "device_id", columnDefinition = "TEXT")
-    private String deviceId = null;
-
-    @Column(name = "device_address", columnDefinition = "TEXT")
-    private String deviceIpAddress = null;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(

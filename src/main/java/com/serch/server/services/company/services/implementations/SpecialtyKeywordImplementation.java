@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -59,10 +60,14 @@ public class SpecialtyKeywordImplementation implements SpecialtyKeywordService {
 
     @Override
     public ApiResponse<List<SpecialtyKeywordResponse>> searchService(String query) {
-        List<SpecialtyKeywordResponse> keywords = repository.fullTextSearch(query)
-                .stream()
-                .map(this::getSpecialtyResponse)
-                .toList();
+        List<SpecialtyKeyword> result = repository.fullTextSearch(query);
+        List<SpecialtyKeywordResponse> keywords = new ArrayList<>();
+
+        if(!result.isEmpty()) {
+            keywords = result.stream()
+                    .map(this::getSpecialtyResponse)
+                    .toList();
+        }
         return new ApiResponse<>(keywords);
     }
 }

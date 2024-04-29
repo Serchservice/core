@@ -9,6 +9,5 @@ import lombok.Setter;
 @Setter
 public class RequestMFAChallenge {
     private String code;
-    private String platform;
     private RequestDevice device;
 }

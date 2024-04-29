@@ -31,8 +31,7 @@ public class MediaLegalImplementation implements MediaLegalService {
     @Override
     public ApiResponse<List<MediaLegalGroupResponse>> fetchAllLegals() {
         List<MediaLegal> legals = legalRepository.findAll();
-        Map<LegalLOB, List<MediaLegalResponse>> groupedByLOB = legals
-                .stream()
+        Map<LegalLOB, List<MediaLegalResponse>> groupedByLOB = legals.stream()
                 .map(this::getLegalResponse)
                 .collect(Collectors.groupingBy(MediaLegalResponse::getLob));
 

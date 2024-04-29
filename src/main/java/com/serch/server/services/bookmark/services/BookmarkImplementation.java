@@ -65,40 +65,44 @@ public class BookmarkImplementation implements BookmarkService {
 
     @Override
     public ApiResponse<List<BookmarkResponse>> bookmarks() {
-        List<BookmarkResponse> list = bookmarkRepository.findByUserId(userUtil.getUser().getId())
-                .stream()
-                .sorted(Comparator.comparing(Bookmark::getCreatedAt))
-                .map(bookmark -> {
-                    BookmarkResponse response = new BookmarkResponse();
-                    response.setId(bookmark.getBookmarkId());
-                    response.setCategory(
-                            userUtil.getUser().isUser(bookmark.getUser().getId())
-                                    ? bookmark.getProvider().getCategory().getType()
-                                    : bookmark.getUser().getCategory().getType()
-                    );
-                    response.setName(
-                            userUtil.getUser().isUser(bookmark.getUser().getId())
-                                    ? bookmark.getProvider().getFullName()
-                                    : bookmark.getUser().getFullName()
-                    );
-                    response.setAvatar(
-                            userUtil.getUser().isUser(bookmark.getUser().getId())
-                                    ? bookmark.getProvider().getAvatar()
-                                    : bookmark.getUser().getAvatar()
-                    );
-                    response.setRating(
-                            userUtil.getUser().isUser(bookmark.getUser().getId())
-                                    ? bookmark.getProvider().getRating()
-                                    : bookmark.getUser().getRating()
-                    );
-                    response.setLastSignedIn(
-                            userUtil.getUser().isUser(bookmark.getUser().getId())
-                                    ? TimeUtil.formatLastSignedIn(bookmark.getProvider().getUser().getLastSignedIn())
-                                    : TimeUtil.formatLastSignedIn(bookmark.getUser().getUser().getLastSignedIn())
-                    );
-                    return response;
-                })
-                .toList();
+        List<BookmarkResponse> list = new ArrayList<>();
+
+        List<Bookmark> bookmarks = bookmarkRepository.findByUserId(userUtil.getUser().getId());
+        if(!bookmarks.isEmpty()) {
+            list = bookmarks.stream()
+                    .sorted(Comparator.comparing(Bookmark::getCreatedAt))
+                    .map(bookmark -> {
+                        BookmarkResponse response = new BookmarkResponse();
+                        response.setId(bookmark.getBookmarkId());
+                        response.setCategory(
+                                userUtil.getUser().isUser(bookmark.getUser().getId())
+                                        ? bookmark.getProvider().getCategory().getType()
+                                        : bookmark.getUser().getCategory().getType()
+                        );
+                        response.setName(
+                                userUtil.getUser().isUser(bookmark.getUser().getId())
+                                        ? bookmark.getProvider().getFullName()
+                                        : bookmark.getUser().getFullName()
+                        );
+                        response.setAvatar(
+                                userUtil.getUser().isUser(bookmark.getUser().getId())
+                                        ? bookmark.getProvider().getAvatar()
+                                        : bookmark.getUser().getAvatar()
+                        );
+                        response.setRating(
+                                userUtil.getUser().isUser(bookmark.getUser().getId())
+                                        ? bookmark.getProvider().getRating()
+                                        : bookmark.getUser().getRating()
+                        );
+                        response.setLastSignedIn(
+                                userUtil.getUser().isUser(bookmark.getUser().getId())
+                                        ? TimeUtil.formatLastSignedIn(bookmark.getProvider().getUser().getLastSignedIn())
+                                        : TimeUtil.formatLastSignedIn(bookmark.getUser().getUser().getLastSignedIn())
+                        );
+                        return response;
+                    })
+                    .toList();
+        }
         return new ApiResponse<>(list);
     }
 }

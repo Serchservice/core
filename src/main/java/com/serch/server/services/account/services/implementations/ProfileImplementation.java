@@ -37,6 +37,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Service for managing user profiles, including creation, updating, and retrieval.
@@ -161,7 +162,7 @@ public class ProfileImplementation implements ProfileService {
         response.setMore(more);
 
         response.setSpecializations(
-                specialtyRepository.findByProfile_Id(profile.getId())
+                specialtyRepository.findByProfile_Id(profile.getId()).isEmpty() ? List.of() : specialtyRepository.findByProfile_Id(profile.getId())
                         .stream()
                         .map(specialty -> keywordService.getSpecialtyResponse(specialty.getService()))
                         .toList()

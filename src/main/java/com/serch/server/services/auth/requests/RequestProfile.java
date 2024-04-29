@@ -42,6 +42,5 @@ public class RequestProfile {
     private String emailAddress;
 
     private String referral;
-    private String platform;
     private RequestDevice device;
 }

@@ -2,6 +2,7 @@ package com.serch.server.services.auth.services;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.services.auth.requests.RequestSession;
+import com.serch.server.services.auth.responses.AuthResponse;
 import com.serch.server.services.auth.responses.SessionResponse;
 
 import java.util.UUID;
@@ -34,10 +35,10 @@ public interface SessionService {
      * @return ApiResponse containing the session response.
      *
      * @see RequestSession
-     * @see SessionResponse
+     * @see AuthResponse
      * @see ApiResponse
      */
-    ApiResponse<SessionResponse> generateSession(RequestSession request);
+    ApiResponse<AuthResponse> generateSession(RequestSession request);
 
     /**
      * Refreshes an existing session based on the provided token.

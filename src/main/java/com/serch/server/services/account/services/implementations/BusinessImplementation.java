@@ -24,6 +24,7 @@ import com.serch.server.services.account.responses.MoreProfileData;
 import com.serch.server.services.account.responses.ProfileResponse;
 import com.serch.server.services.account.services.BusinessService;
 import com.serch.server.services.account.services.ProfileService;
+import com.serch.server.services.auth.requests.RequestBusinessProfile;
 import com.serch.server.services.referral.services.ReferralService;
 import com.serch.server.services.auth.services.TokenService;
 import com.serch.server.services.company.services.SpecialtyKeywordService;
@@ -82,8 +83,8 @@ public class BusinessImplementation implements BusinessService {
     private Integer ACCOUNT_DURATION;
 
     @Override
-    public ApiResponse<String> createProfile(Incomplete incomplete, User user) {
-        BusinessProfile businessProfile = saveBusinessProfile(incomplete, user);
+    public ApiResponse<String> createProfile(Incomplete incomplete, User user, RequestBusinessProfile profile) {
+        BusinessProfile businessProfile = saveProfile(incomplete, user, profile);
         savePhoneInformation(incomplete, user);
         if(incomplete.getReferredBy() != null) {
             referralService.create(user, incomplete.getReferredBy().getReferredBy());
@@ -100,18 +101,19 @@ public class BusinessImplementation implements BusinessService {
         phoneInformationRepository.save(phoneInformation);
     }
 
-    private BusinessProfile saveBusinessProfile(Incomplete incomplete, User user) {
-        String defaultPassword = "@%s%s".formatted(
-                incomplete.getProfile().getBusinessName().toUpperCase(),
-                tokenService.generateCode(2)
-        );
+    private BusinessProfile saveProfile(Incomplete incomplete, User user, RequestBusinessProfile profile) {
+        String defaultPassword = "@%s%s".formatted(profile.getName().toUpperCase(), tokenService.generateCode(2));
 
-        BusinessProfile businessProfile = AccountMapper.INSTANCE.profile(incomplete.getProfile());
-        businessProfile.setUser(user);
-        businessProfile.setEmailAddress(user.getEmailAddress());
-        businessProfile.setCategory(incomplete.getCategory().getCategory());
-        businessProfile.setDefaultPassword(defaultPassword);
-        return businessProfileRepository.save(businessProfile);
+        BusinessProfile business = AccountMapper.INSTANCE.profile(incomplete.getProfile());
+        business.setUser(user);
+        business.setEmailAddress(user.getEmailAddress());
+        business.setCategory(incomplete.getCategory().getCategory());
+        business.setDefaultPassword(defaultPassword);
+        business.setBusinessAddress(profile.getAddress());
+        business.setBusinessName(profile.getName());
+        business.setBusinessDescription(profile.getDescription());
+        business.setContact(profile.getContact());
+        return businessProfileRepository.save(business);
     }
 
     @Override
@@ -120,7 +122,7 @@ public class BusinessImplementation implements BusinessService {
                 .orElseThrow(() -> new AccountException("Profile not found"));
         return new ApiResponse<>(
                 "Success",
-                profile.getAssociates()
+                profile.getAssociates().isEmpty() ? List.of() : profile.getAssociates()
                         .stream()
                         .map(profileService::profile)
                         .toList(),
@@ -136,7 +138,7 @@ public class BusinessImplementation implements BusinessService {
 
         return new ApiResponse<>(
                 "Success",
-                invoice.getAssociates()
+                invoice.getAssociates().isEmpty() ? List.of() :  invoice.getAssociates()
                         .stream()
                         .map(subscriptionAssociate -> profileService.profile(subscriptionAssociate.getProfile()))
                         .toList(),

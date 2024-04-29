@@ -56,7 +56,7 @@ public class MediaNewsroomImplementation implements MediaNewsroomService {
 
         return new ApiResponse<>(
                 "News fetched",
-                newsroomRepository.findAll(pageable)
+                newsroomRepository.findAll(pageable).isEmpty() ? List.of() : newsroomRepository.findAll(pageable)
                         .stream()
                         .sorted(Comparator.comparing(MediaNewsroom::getCreatedAt))
                         .map(this::getNewsroomResponse)
@@ -70,7 +70,7 @@ public class MediaNewsroomImplementation implements MediaNewsroomService {
         Pageable pageable = PageRequest.of(0, 5, Sort.by("views").descending());
         return new ApiResponse<>(
                 "News fetched",
-                newsroomRepository.findAll(pageable)
+                newsroomRepository.findAll(pageable).isEmpty() ? List.of() : newsroomRepository.findAll(pageable)
                         .stream()
                         .map(this::getNewsroomResponse)
                         .toList(),

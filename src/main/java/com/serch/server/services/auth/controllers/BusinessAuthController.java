@@ -38,13 +38,13 @@ public class BusinessAuthController {
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @GetMapping("/signup")
-    public ResponseEntity<ApiResponse<AuthResponse>> signup(@RequestBody RequestAuth auth) {
-        var response = authService.signup(auth);
+    @PostMapping("/signup")
+    public ResponseEntity<ApiResponse<AuthResponse>> signup(@RequestBody RequestBusinessProfile profile) {
+        var response = authService.signup(profile);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @GetMapping("/associate/signup")
+    @PostMapping("/associate/signup")
     public ResponseEntity<ApiResponse<AuthResponse>> finishAssociateSignup(@RequestBody RequestAuth auth) {
         var response = authService.finishAssociateSignup(auth);
         return new ResponseEntity<>(response, response.getStatus());

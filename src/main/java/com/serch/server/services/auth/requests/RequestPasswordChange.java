@@ -15,6 +15,5 @@ public class RequestPasswordChange {
     @JsonProperty("old_password")
     private String oldPassword;
 
-    private String platform;
     private RequestDevice device;
 }

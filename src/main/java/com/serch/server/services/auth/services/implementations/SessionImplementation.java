@@ -6,6 +6,7 @@ import com.serch.server.enums.auth.AuthMethod;
 import com.serch.server.exceptions.ExceptionCodes;
 import com.serch.server.exceptions.auth.AuthException;
 import com.serch.server.exceptions.auth.SessionException;
+import com.serch.server.mappers.AuthMapper;
 import com.serch.server.models.auth.RefreshToken;
 import com.serch.server.models.auth.Session;
 import com.serch.server.repositories.auth.RefreshTokenRepository;
@@ -13,6 +14,7 @@ import com.serch.server.repositories.auth.SessionRepository;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.services.auth.requests.RequestSession;
 import com.serch.server.services.auth.requests.RequestSessionToken;
+import com.serch.server.services.auth.responses.AuthResponse;
 import com.serch.server.services.auth.responses.SessionResponse;
 import com.serch.server.services.auth.services.JwtService;
 import com.serch.server.services.auth.services.SessionService;
@@ -75,13 +77,9 @@ public class SessionImplementation implements SessionService {
     }
 
     private static Session getSession(RequestSession request) {
-        Session session = new Session();
+        Session session = AuthMapper.INSTANCE.session(request.getDevice());
         session.setUser(request.getUser());
-        session.setPlatform(request.getPlatform());
         session.setMethod(request.getMethod());
-        session.setDeviceId(request.getDevice().getId());
-        session.setDeviceName(request.getDevice().getName());
-        session.setDeviceIpAddress(request.getDevice().getIpAddress());
         if(request.getMethod() == AuthMethod.MFA) {
             session.setAuthLevel(AuthLevel.LEVEL_2);
         } else {
@@ -99,7 +97,7 @@ public class SessionImplementation implements SessionService {
     }
 
     @Override
-    public ApiResponse<SessionResponse> generateSession(RequestSession request) {
+    public ApiResponse<AuthResponse> generateSession(RequestSession request) {
         request.getUser().check();
         revokeAllSessions(request.getUser().getId());
         revokeAllRefreshTokens(request.getUser().getId());
@@ -116,7 +114,17 @@ public class SessionImplementation implements SessionService {
         sessionToken.setRefreshId(refreshToken.getId());
 
         String accessToken = jwtService.generateToken(sessionToken);
-        return new ApiResponse<>(new SessionResponse(accessToken, token));
+        return new ApiResponse<>(
+                "Successful",
+                AuthResponse.builder()
+                        .mfaEnabled(request.getUser().getMfaEnabled())
+                        .session(new SessionResponse(accessToken, token))
+                        .firstName(request.getUser().getFirstName())
+                        .role(request.getUser().getRole().name())
+                        .recoveryCodesEnabled(request.getUser().getRecoveryCodeEnabled())
+                        .build(),
+                HttpStatus.CREATED
+        );
     }
 
     @Override
@@ -189,9 +197,8 @@ public class SessionImplementation implements SessionService {
                         .orElseThrow(() -> new SessionException("Invalid token"));
                 var refreshToken = refreshTokenRepository.findById(refreshId)
                         .orElseThrow(() -> new SessionException("Invalid token"));
-                if(user.getId() == userId && jwtService.isTokenIssuedBySerch(token)
-                        && (!session.getRevoked() && !refreshToken.getRevoked())
-                ) {
+
+                if(user.getId().equals(userId) && jwtService.isTokenIssuedBySerch(token) && (!session.getRevoked() && !refreshToken.getRevoked())) {
                     user.setLastSignedIn(LocalDateTime.now());
                     user.setUpdatedAt(LocalDateTime.now());
                     userRepository.save(user);

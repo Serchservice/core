@@ -43,6 +43,16 @@ public interface ReferralProgramService {
     ApiResponse<ReferralProgramResponse> verifyCode(String code);
 
     /**
+     * Retrieves the ReferralProgram for the logged-in user.
+     *
+     * @return An ApiResponse containing the verified referral link.
+     *
+     * @see ReferralProgramResponse
+     * @see ApiResponse
+     */
+    ApiResponse<ReferralProgramResponse> program();
+
+    /**
      * Verifies a referral code and retrieves the associated user.
      *
      * @param code The referral code to verify.

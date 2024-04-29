@@ -14,5 +14,4 @@ public class SwitchRequest {
 
     private String password;
     private RequestDevice device;
-    private String platform;
 }

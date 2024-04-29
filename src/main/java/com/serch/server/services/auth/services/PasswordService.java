@@ -5,13 +5,14 @@ import com.serch.server.services.auth.requests.RequestPasswordChange;
 import com.serch.server.services.auth.requests.RequestResetPassword;
 import com.serch.server.services.auth.requests.RequestResetPasswordVerify;
 import com.serch.server.services.auth.responses.AuthResponse;
+import com.serch.server.services.auth.services.implementations.PasswordImplementation;
 
 /**
  * Service interface for managing password reset operations.
  *
- * @see com.serch.server.services.auth.services.implementations.ResetPasswordImplementation
+ * @see PasswordImplementation
  */
-public interface ResetPasswordService {
+public interface PasswordService {
 
     /**
      * Checks the provided email address for initiating the password reset process.

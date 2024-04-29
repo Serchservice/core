@@ -26,6 +26,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -107,23 +108,25 @@ public class AccountImplementation implements AccountService {
 
     @Override
     public ApiResponse<AccountResponse> buildAccountResponse(Guest guest, User user) {
-        List<SharedAccountResponse> list;
-        list = guest.getSharedLinks()
-                .stream()
-                .sorted(Comparator.comparing(SharedLink::getCreatedAt))
-                .map(link -> {
-                    SharedAccountResponse response = new SharedAccountResponse();
-                    response.setId(guest.getId());
-                    response.setAvatar(guest.getAvatar());
-                    response.setCount(link.getStatuses().size());
-                    response.setLink(link.getLink());
-                    response.setName(guest.getFullName());
-                    response.setMode("GUEST");
-                    response.setEmailAddress(guest.getEmailAddress());
-                    response.setLinkId(link.getId());
-                    return response;
-                })
-                .toList();
+        List<SharedAccountResponse> list = new ArrayList<>();
+        if(!guest.getSharedLinks().isEmpty()) {
+            list = guest.getSharedLinks()
+                    .stream()
+                    .sorted(Comparator.comparing(SharedLink::getCreatedAt))
+                    .map(link -> {
+                        SharedAccountResponse response = new SharedAccountResponse();
+                        response.setId(guest.getId());
+                        response.setAvatar(guest.getAvatar());
+                        response.setCount(link.getStatuses().size());
+                        response.setLink(link.getLink());
+                        response.setName(guest.getFullName());
+                        response.setMode("GUEST");
+                        response.setEmailAddress(guest.getEmailAddress());
+                        response.setLinkId(link.getId());
+                        return response;
+                    })
+                    .toList();
+        }
 
         AccountResponse response = new AccountResponse();
         response.setAvatar(

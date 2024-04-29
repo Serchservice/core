@@ -16,6 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class ReferralProgramController {
     private final ReferralProgramService service;
 
+    @GetMapping
+    public ResponseEntity<ApiResponse<ReferralProgramResponse>> program() {
+        ApiResponse<ReferralProgramResponse> response = service.program();
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
     @GetMapping("/verify/link")
     public ResponseEntity<ApiResponse<ReferralProgramResponse>> verifyLink(@RequestParam String link) {
         ApiResponse<ReferralProgramResponse> response = service.verifyLink(link);

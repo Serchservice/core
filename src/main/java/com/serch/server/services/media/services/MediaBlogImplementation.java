@@ -56,7 +56,7 @@ public class MediaBlogImplementation implements MediaBlogService {
 
         return new ApiResponse<>(
                 "Blogs fetched",
-                blogRepository.findAll(pageable)
+                blogRepository.findAll(pageable).isEmpty() ? List.of() : blogRepository.findAll(pageable)
                         .stream()
                         .sorted(Comparator.comparing(MediaBlog::getCreatedAt))
                         .map(this::getBlogResponse)
@@ -70,7 +70,7 @@ public class MediaBlogImplementation implements MediaBlogService {
         Pageable pageable = PageRequest.of(0, 5, Sort.by("views").descending());
         return new ApiResponse<>(
                 "Blogs fetched",
-                blogRepository.findAll(pageable)
+                blogRepository.findAll(pageable).isEmpty() ? List.of() : blogRepository.findAll(pageable)
                         .stream()
                         .sorted(Comparator.comparing(MediaBlog::getCreatedAt))
                         .map(this::getBlogResponse)

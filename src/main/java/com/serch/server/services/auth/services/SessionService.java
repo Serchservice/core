@@ -1,6 +1,7 @@
 package com.serch.server.services.auth.services;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.models.auth.User;
 import com.serch.server.services.auth.requests.RequestSession;
 import com.serch.server.services.auth.responses.AuthResponse;
 import com.serch.server.services.auth.responses.SessionResponse;
@@ -60,6 +61,16 @@ public interface SessionService {
      * @see ApiResponse
      */
     ApiResponse<String> validateSession(String token);
+
+    /**
+     * Validates the authenticity and expiration of a session token.
+     *
+     * @param token The session token to validate.
+     * @return User with the token
+     *
+     * @see User
+     */
+    User validate(String token);
 
     /**
      * Updates the last signed in timestamp of the user.

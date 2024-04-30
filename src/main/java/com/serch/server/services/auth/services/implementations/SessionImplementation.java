@@ -9,6 +9,7 @@ import com.serch.server.exceptions.auth.SessionException;
 import com.serch.server.mappers.AuthMapper;
 import com.serch.server.models.auth.RefreshToken;
 import com.serch.server.models.auth.Session;
+import com.serch.server.models.auth.User;
 import com.serch.server.repositories.auth.RefreshTokenRepository;
 import com.serch.server.repositories.auth.SessionRepository;
 import com.serch.server.repositories.auth.UserRepository;
@@ -219,6 +220,11 @@ public class SessionImplementation implements SessionService {
         } catch (Exception e) {
             return new ApiResponse<>("Invalid token. Please verify your token or login again");
         }
+    }
+
+    @Override
+    public User validate(String token) {
+        return null;
     }
 
     @Override

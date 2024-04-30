@@ -133,7 +133,7 @@ public class CountryImplementation implements CountryService {
                     requestCountryRepository.save(newCountry);
                     return newCountry;
                 });
-        if (country.getRequestedStates().stream().anyMatch(c -> c.getName().contains(request.getState()))) {
+        if (country.getRequestedStates() != null && country.getRequestedStates().stream().anyMatch(c -> c.getName().contains(request.getState()))) {
             throw new CompanyException("State has already been requested for.");
         }
         RequestState state = new RequestState();
@@ -151,17 +151,9 @@ public class CountryImplementation implements CountryService {
                     requestCountryRepository.save(newCountry);
                     return newCountry;
                 });
-        RequestState state = country.getRequestedStates().stream()
-                .filter(s -> s.getName().contains(request.getState()))
-                .findFirst()
-                .orElseGet(() -> {
-                    RequestState newState = new RequestState();
-                    newState.setRequestCountry(country);
-                    newState.setName(request.getState());
-                    return requestStateRepository.save(newState);
-                });
+        RequestState state = getState(country, request);
 
-        if (state.getRequestedCities().stream().anyMatch(c -> c.getName().contains(request.getCity()))) {
+        if (state.getRequestedCities() != null && state.getRequestedCities().stream().anyMatch(c -> c.getName().contains(request.getCity()))) {
             throw new CompanyException("City has already been requested for.");
         }
 
@@ -171,5 +163,24 @@ public class CountryImplementation implements CountryService {
         requestCityRepository.save(requestCity);
 
         return new ApiResponse<>("City request processed successfully.", HttpStatus.CREATED);
+    }
+
+    private RequestState getState(RequestCountry country, CountryRequest request) {
+        if(country.getRequestedStates() != null) {
+            return country.getRequestedStates().stream()
+                    .filter(s -> s.getName().contains(request.getState()))
+                    .findFirst()
+                    .orElseGet(() -> {
+                        RequestState newState = new RequestState();
+                        newState.setRequestCountry(country);
+                        newState.setName(request.getState());
+                        return requestStateRepository.save(newState);
+                    });
+        } else {
+            RequestState newState = new RequestState();
+            newState.setRequestCountry(country);
+            newState.setName(request.getState());
+            return requestStateRepository.save(newState);
+        }
     }
 }

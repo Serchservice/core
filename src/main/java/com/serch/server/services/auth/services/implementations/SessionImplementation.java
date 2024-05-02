@@ -119,6 +119,13 @@ public class SessionImplementation implements SessionService {
                                 .map(BusinessProfile::getCategory)
                                 .orElse(SerchCategory.USER)
                 );
+        String avatar = profileRepository.findById(request.getUser().getId())
+                .map(Profile::getAvatar)
+                .orElse(
+                        businessProfileRepository.findById(request.getUser().getId())
+                                .map(BusinessProfile::getAvatar)
+                                .orElse("")
+                );
         Double rating = profileRepository.findById(request.getUser().getId())
                 .map(Profile::getRating)
                 .orElse(
@@ -137,6 +144,7 @@ public class SessionImplementation implements SessionService {
                         .category(category.getType())
                         .image(category.getImage())
                         .rating(rating)
+                        .avatar(avatar)
                         .recoveryCodesEnabled(request.getUser().getRecoveryCodeEnabled())
                         .build(),
                 HttpStatus.CREATED

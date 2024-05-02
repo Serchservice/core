@@ -25,5 +25,6 @@ public class AuthResponse {
     private String category;
     private String image;
     private Double rating;
+    private String avatar;
     private SessionResponse session;
 }

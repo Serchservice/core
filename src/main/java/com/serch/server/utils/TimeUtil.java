@@ -220,8 +220,8 @@ public class TimeUtil {
      */
     public static boolean isOtpExpired(LocalDateTime time, int expirationTime) {
         if(time != null) {
-            long minutesSinceLastOtp = ChronoUnit.MINUTES.between(time, LocalDateTime.now());
-            return minutesSinceLastOtp >= expirationTime;
+            LocalDateTime expirationTimePoint = time.plusMinutes(expirationTime);
+            return LocalDateTime.now().isAfter(expirationTimePoint);
         } else {
             return true;
         }

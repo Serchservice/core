@@ -30,6 +30,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
@@ -84,7 +85,15 @@ public class AuthImplementation implements AuthService {
         Optional<Incomplete> user = incompleteRepository.findByEmailAddress(emailAddress);
         String otp = tokenService.generateOtp();
         if (user.isPresent()) {
-            if (TimeUtil.isOtpExpired(user.get().getTokenExpiresAt(), OTP_EXPIRATION_TIME) || user.get().getTrials() < MAXIMUM_OTP_TRIALS) {
+            if (TimeUtil.isOtpExpired(user.get().getTokenExpiresAt(), OTP_EXPIRATION_TIME) && Objects.equals(user.get().getTrials(), MAXIMUM_OTP_TRIALS)) {
+                user.get().setToken(passwordEncoder.encode(otp));
+                user.get().setUpdatedAt(LocalDateTime.now());
+                user.get().setTrials(0);
+                user.get().setTokenExpiresAt(LocalDateTime.now().plusMinutes(OTP_EXPIRATION_TIME));
+                incompleteRepository.save(user.get());
+                sendEmail(emailAddress, otp);
+                return user.get();
+            } else if (TimeUtil.isOtpExpired(user.get().getTokenExpiresAt(), OTP_EXPIRATION_TIME) && user.get().getTrials() < MAXIMUM_OTP_TRIALS) {
                 user.get().setToken(passwordEncoder.encode(otp));
                 user.get().setUpdatedAt(LocalDateTime.now());
                 user.get().setTrials(user.get().getTrials() + 1);

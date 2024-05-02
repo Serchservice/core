@@ -1,67 +1,41 @@
 package com.serch.server.services.subscription.controllers;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.services.subscription.responses.PlanParentResponse;
+import com.serch.server.services.payment.responses.InitializePaymentData;
+import com.serch.server.services.subscription.requests.InitializeSubscriptionRequest;
 import com.serch.server.services.subscription.responses.SubscriptionResponse;
 import com.serch.server.services.subscription.services.SubscriptionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.UUID;
-
-/**
- * Controller class for managing user subscription-related operations. It provides endpoints for
- * viewing current subscription details, fetching available plans, and unsubscribing from the current plan.
- */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/subscription")
 public class SubscriptionController {
     private final SubscriptionService service;
 
-    /**
-     * Retrieves details of the current user's subscription.
-     *
-     * @return A response entity containing details of the current user's subscription.
-     * @see SubscriptionResponse
-     */
     @GetMapping
     public ResponseEntity<ApiResponse<SubscriptionResponse>> seeCurrentSubscription() {
         ApiResponse<SubscriptionResponse> response = service.seeCurrentSubscription();
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @GetMapping("/check")
-    public ResponseEntity<ApiResponse<SubscriptionResponse>> checkSubscription(@RequestParam(required = false) UUID business) {
-        ApiResponse<SubscriptionResponse> response = service.checkSubscription(business);
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
-    /**
-     * Retrieves details of all available plans.
-     *
-     * @return A response entity containing details of all available plans.
-     * @see PlanParentResponse
-     */
-    @GetMapping("/all")
-    public ResponseEntity<ApiResponse<List<PlanParentResponse>>> getPlans() {
-        ApiResponse<List<PlanParentResponse>> response = service.getPlans();
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
-    /**
-     * Unsubscribes the current user from the current subscription plan.
-     *
-     * @return A response entity indicating the success or failure of the unsubscription process.
-     */
     @GetMapping("/unsubscribe")
     public ResponseEntity<ApiResponse<String>> unsubscribe() {
         ApiResponse<String> response = service.unsubscribe();
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @PostMapping("/subscribe")
+    public ResponseEntity<ApiResponse<InitializePaymentData>> subscribe(@RequestBody InitializeSubscriptionRequest request) {
+        ApiResponse<InitializePaymentData> response = service.subscribe(request);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @PostMapping("/verify")
+    public ResponseEntity<ApiResponse<String>> verify(@RequestBody String reference) {
+        ApiResponse<String> response = service.verify(reference);
         return new ResponseEntity<>(response, response.getStatus());
     }
 }

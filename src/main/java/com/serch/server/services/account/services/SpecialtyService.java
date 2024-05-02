@@ -21,7 +21,7 @@ public interface SpecialtyService {
      * @see Incomplete
      * @see Profile
      */
-    void saveIncompleteSpecialties(Incomplete incomplete, Profile profile);
+    void createSpecialties(Incomplete incomplete, Profile profile);
 
     /**
      * Adds a specialty keyword to a user's profile.

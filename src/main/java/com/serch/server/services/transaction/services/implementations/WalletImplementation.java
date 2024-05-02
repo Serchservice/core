@@ -2,33 +2,23 @@ package com.serch.server.services.transaction.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.auth.Role;
-import com.serch.server.enums.subscription.PlanStatus;
-import com.serch.server.enums.subscription.PlanType;
 import com.serch.server.enums.transaction.TransactionStatus;
 import com.serch.server.enums.transaction.TransactionType;
 import com.serch.server.exceptions.transaction.WalletException;
 import com.serch.server.mappers.TransactionMapper;
 import com.serch.server.models.auth.User;
 import com.serch.server.models.conversation.Call;
-import com.serch.server.models.subscription.PlanChild;
-import com.serch.server.models.subscription.PlanParent;
-import com.serch.server.models.subscription.Subscription;
 import com.serch.server.models.transaction.Transaction;
 import com.serch.server.models.transaction.Wallet;
 import com.serch.server.repositories.conversation.CallRepository;
-import com.serch.server.repositories.subscription.PlanChildRepository;
-import com.serch.server.repositories.subscription.PlanParentRepository;
-import com.serch.server.repositories.subscription.SubscriptionRepository;
 import com.serch.server.repositories.transaction.TransactionRepository;
 import com.serch.server.repositories.transaction.WalletRepository;
 import com.serch.server.services.payment.core.PaymentService;
 import com.serch.server.services.payment.requests.InitializePaymentRequest;
 import com.serch.server.services.payment.responses.InitializePaymentData;
 import com.serch.server.services.payment.responses.PaymentVerificationData;
-import com.serch.server.services.subscription.services.InitSubscriptionService;
 import com.serch.server.services.transaction.requests.*;
 import com.serch.server.services.transaction.responses.WalletResponse;
-import com.serch.server.services.transaction.services.InvoiceService;
 import com.serch.server.services.transaction.services.WalletService;
 import com.serch.server.utils.MoneyUtil;
 import com.serch.server.utils.UserUtil;
@@ -57,16 +47,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class WalletImplementation implements WalletService {
     private final PaymentService paymentService;
-    private final InitSubscriptionService initSubscriptionService;
-    private final InvoiceService invoiceService;
     private final WalletUtil util;
     private final UserUtil userUtil;
     private final WalletRepository walletRepository;
     private final CallRepository callRepository;
     private final TransactionRepository transactionRepository;
-    private final SubscriptionRepository subscriptionRepository;
-    private final PlanParentRepository planParentRepository;
-    private final PlanChildRepository planChildRepository;
 
     @Value("${application.wallet.fund-limit}")
     private Integer FUND_LIMIT;
@@ -90,6 +75,11 @@ public class WalletImplementation implements WalletService {
         }
     }
 
+    @Override
+    public void undo(User user) {
+        walletRepository.findByUser_Id(user.getId()).ifPresent(walletRepository::delete);
+    }
+
     private static String generateReference() {
         return "STR_%s".formatted(UUID.randomUUID().toString().substring(0, 8));
     }
@@ -98,8 +88,6 @@ public class WalletImplementation implements WalletService {
     public ApiResponse<String> pay(PayRequest request) {
         if(request.getType() == TransactionType.T2F) {
             return payTip2Fix(request);
-        } else if(request.getType() == TransactionType.SUBSCRIPTION) {
-            return paySubscription(request);
         } else if(request.getType() == TransactionType.TRIP) {
             return payTrip(request);
         } else {
@@ -180,114 +168,6 @@ public class WalletImplementation implements WalletService {
     public ApiResponse<String> payTrip(PayRequest request) {
         log.error("Pay trip in wallet implementation is yet to be implemented");
         throw new WalletException("Unimplemented error");
-    }
-
-    @Override
-    public ApiResponse<String> paySubscription(PayRequest request) {
-        Subscription subscription = subscriptionRepository.findByUser_Id(userUtil.getUser().getId())
-                .orElseThrow(() -> new WalletException("You cannot pay with wallet"));
-
-        if(subscription.isActive()) {
-            throw new WalletException("You have an active subscription");
-        } else {
-            if (subscription.getPlan().getType() != PlanType.FREE && (request.getEvent() == null || request.getEvent().isEmpty())) {
-                if (subscription.getChild() != null) {
-                    request.setEvent(subscription.getChild().getId());
-                } else {
-                    request.setEvent(subscription.getPlan().getId());
-                }
-            }
-            return subscribeWithWalletBalance(request, subscription);
-        }
-    }
-
-    private ApiResponse<String> subscribeWithWalletBalance(PayRequest request, Subscription subscription) {
-        BigDecimal amount;
-        Wallet wallet = walletRepository.findByUser_Id(userUtil.getUser().getId())
-                .orElseThrow(() -> new WalletException("Wallet not found"));
-
-        Optional<PlanParent> parent = planParentRepository.findById(request.getEvent());
-        if(parent.isPresent()) {
-            amount = BigDecimal.valueOf(Integer.parseInt(parent.get().getAmount()));
-
-            if(!subscription.getUser().isProfile()) {
-                int businessAmount = Integer.parseInt(parent.get().getAmount()) * initSubscriptionService.getBusinessSize(subscription);
-                amount = BigDecimal.valueOf(businessAmount);
-            }
-
-            if(util.isBalanceSufficient(
-                    BalanceUpdateRequest.builder()
-                            .amount(amount)
-                            .user(subscription.getUser().getId())
-                            .type(TransactionType.SUBSCRIPTION)
-                            .build()
-            )) {
-                BalanceUpdateRequest update = BalanceUpdateRequest.builder()
-                        .type(TransactionType.SUBSCRIPTION)
-                        .user(subscription.getUser().getId())
-                        .amount(amount)
-                        .build();
-                util.updateBalance(update);
-
-                subscription.setUpdatedAt(LocalDateTime.now());
-                subscription.setPlanStatus(PlanStatus.ACTIVE);
-                subscription.setSubscribedAt(LocalDateTime.now());
-                subscription.setPlan(parent.get());
-
-                subscriptionRepository.save(subscription);
-            } else {
-                throw new WalletException("Insufficient balance to finish transaction");
-            }
-        } else {
-            PlanChild child = planChildRepository.findById(request.getEvent())
-                    .orElseThrow(() -> new WalletException("Plan not found"));
-
-            amount = BigDecimal.valueOf(Integer.parseInt(child.getAmount()));
-
-            if(!subscription.getUser().isProfile()) {
-                int businessAmount = Integer.parseInt(child.getAmount()) * initSubscriptionService.getBusinessSize(subscription);
-                amount = BigDecimal.valueOf(businessAmount);
-            }
-
-            if(util.isBalanceSufficient(
-                    BalanceUpdateRequest.builder()
-                            .amount(amount)
-                            .user(subscription.getUser().getId())
-                            .type(TransactionType.SUBSCRIPTION)
-                            .build()
-            )) {
-                BalanceUpdateRequest update = BalanceUpdateRequest.builder()
-                        .type(TransactionType.SUBSCRIPTION)
-                        .user(subscription.getUser().getId())
-                        .amount(amount)
-                        .build();
-                util.updateBalance(update);
-
-                subscription.setUpdatedAt(LocalDateTime.now());
-                subscription.setSubscribedAt(LocalDateTime.now());
-                subscription.setPlanStatus(PlanStatus.ACTIVE);
-                subscription.setPlan(child.getParent());
-                subscription.setChild(child);
-
-                subscriptionRepository.save(subscription);
-            } else {
-                throw new WalletException("Insufficient balance to finish transaction");
-            }
-        }
-
-        String ref = generateReference();
-        invoiceService.createInvoice(subscription, String.valueOf(amount), "WALLET", ref);
-
-        Transaction transaction = new Transaction();
-        transaction.setAmount(amount);
-        transaction.setType(TransactionType.SUBSCRIPTION);
-        transaction.setVerified(true);
-        transaction.setStatus(TransactionStatus.SUCCESSFUL);
-        transaction.setAccount(wallet.getId());
-        transaction.setSender(wallet);
-        transaction.setReference(ref);
-        transactionRepository.save(transaction);
-        return new ApiResponse<>("Success", HttpStatus.OK);
     }
 
     @Override

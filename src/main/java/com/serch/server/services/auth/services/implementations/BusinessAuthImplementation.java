@@ -7,9 +7,10 @@ import com.serch.server.exceptions.ExceptionCodes;
 import com.serch.server.exceptions.auth.AuthException;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.User;
+import com.serch.server.models.auth.incomplete.Incomplete;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.auth.incomplete.IncompleteRepository;
-import com.serch.server.services.account.services.BusinessService;
+import com.serch.server.services.business.services.BusinessService;
 import com.serch.server.services.account.services.ProfileService;
 import com.serch.server.services.account.services.SpecialtyService;
 import com.serch.server.services.auth.requests.RequestAuth;
@@ -79,6 +80,7 @@ public class BusinessAuthImplementation implements BusinessAuthService {
                         incompleteRepository.delete(incomplete);
                         return sessionService.generateSession(requestSession);
                     } else {
+                        businessService.undo(incomplete.getEmailAddress());
                         throw new AuthException(response.getMessage());
                     }
                 } else {
@@ -96,13 +98,13 @@ public class BusinessAuthImplementation implements BusinessAuthService {
 
     @Override
     public ApiResponse<AuthResponse> finishAssociateSignup(RequestAuth auth) {
-        var incomplete = incompleteRepository.findByEmailAddress(auth.getEmailAddress())
+        Incomplete incomplete = incompleteRepository.findByEmailAddress(auth.getEmailAddress())
                 .orElseThrow(() -> new AuthException("User not found"));
 
         User user = authService.getUserFromIncomplete(incomplete, Role.ASSOCIATE_PROVIDER);
         ApiResponse<Profile> response = profileService.createProviderProfile(incomplete, user);
         if(response.getStatus().is2xxSuccessful()) {
-            specialtyService.saveIncompleteSpecialties(incomplete, response.getData());
+            specialtyService.createSpecialties(incomplete, response.getData());
 
             RequestSession requestSession = new RequestSession();
             requestSession.setMethod(AuthMethod.PASSWORD);

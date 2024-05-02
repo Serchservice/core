@@ -2,26 +2,35 @@ package com.serch.server.services.auth.controllers;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.services.auth.requests.RequestEmailToken;
+import com.serch.server.services.auth.responses.SerchCategoryResponse;
 import com.serch.server.services.auth.services.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/auth/email")
+@RequestMapping("/auth")
 public class AuthController {
     private final AuthService authService;
 
-    @GetMapping("/check")
+    @GetMapping("/email/check")
     public ResponseEntity<ApiResponse<String>> checkIfEmailExists(@RequestParam String email) {
-        var response = authService.checkEmail(email);
+        ApiResponse<String> response = authService.checkEmail(email);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @PostMapping("/verify")
+    @GetMapping("/categories")
+    public ResponseEntity<ApiResponse<List<SerchCategoryResponse>>> categories() {
+        ApiResponse<List<SerchCategoryResponse>> response = authService.categories();
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @PostMapping("/email/verify")
     public ResponseEntity<ApiResponse<String>> verifyEmailAndToken(@RequestBody RequestEmailToken request) {
-        var response = authService.verifyEmailOtp(request);
+        ApiResponse<String> response = authService.verifyEmailOtp(request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 }

@@ -2,8 +2,8 @@ package com.serch.server.services.account.services;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.models.account.Profile;
-import com.serch.server.models.auth.incomplete.Incomplete;
 import com.serch.server.services.account.responses.AdditionalInformationResponse;
+import com.serch.server.services.auth.requests.RequestAdditionalInformation;
 
 /**
  * The AdditionalService interface provides methods for managing additional profile information.
@@ -13,14 +13,14 @@ import com.serch.server.services.account.responses.AdditionalInformationResponse
 public interface AdditionalService {
 
     /**
-     * Saves incomplete additional information provided by the user.
-     * @param incomplete The incomplete profile information.
+     * Saves additional information provided by the user.
+     * @param additional The additional profile information.
      * @param profile The user's profile.
      *
-     * @see Incomplete
+     * @see RequestAdditionalInformation
      * @see Profile
      */
-    void saveIncompleteAdditional(Incomplete incomplete, Profile profile);
+    void createAdditional(RequestAdditionalInformation additional, Profile profile);
 
     /**
      * Retrieves and returns the additional profile information of the current user.

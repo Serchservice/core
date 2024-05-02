@@ -13,15 +13,53 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum SerchCategory {
-    MECHANIC("Mechanic"),
-    PLUMBER("Plumber"),
-    ELECTRICIAN("Electrician"),
-    BUSINESS("Business"),
-    ERRAND_RUNNER("Errand Runner"),
-    HOUSE_KEEPING("House Keeper"),
-    CARPENTER("Carpenter"),
-    GUEST("Guest"),
-    USER("User");
+    MECHANIC(
+            "Mechanic",
+            true,
+            "https://wyvcjsumdfoamsmdzsna.supabase.co/storage/v1/object/public/categories/mechanic.png"
+    ),
+    PLUMBER(
+            "Plumber",
+            true,
+            "https://wyvcjsumdfoamsmdzsna.supabase.co/storage/v1/object/public/categories/plumber.png"
+    ),
+    ELECTRICIAN(
+            "Electrician",
+            true,
+            "https://wyvcjsumdfoamsmdzsna.supabase.co/storage/v1/object/public/categories/electrician.png"
+    ),
+    BUSINESS(
+            "Business",
+            false,
+            "https://wyvcjsumdfoamsmdzsna.supabase.co/storage/v1/object/public/categories/business.png"
+    ),
+    PERSONAL_SHOPPER(
+            "Personal Shopper",
+            false,
+            "https://wyvcjsumdfoamsmdzsna.supabase.co/storage/v1/object/public/categories/shopper.png"
+    ),
+    HOUSE_KEEPING(
+            "House Keeper",
+            false,
+            "https://wyvcjsumdfoamsmdzsna.supabase.co/storage/v1/object/public/categories/housekeeper.png"
+    ),
+    CARPENTER(
+            "Carpenter",
+            false,
+            "https://wyvcjsumdfoamsmdzsna.supabase.co/storage/v1/object/public/categories/carpenter.png"
+    ),
+    GUEST(
+            "Guest",
+            false,
+            "https://wyvcjsumdfoamsmdzsna.supabase.co/storage/v1/object/public/categories/guest.png"
+    ),
+    USER(
+            "User",
+            false,
+            "https://wyvcjsumdfoamsmdzsna.supabase.co/storage/v1/object/public/categories/user.png"
+    );
 
     private final String type;
+    private final boolean shouldSubscribe;
+    private final String image;
 }

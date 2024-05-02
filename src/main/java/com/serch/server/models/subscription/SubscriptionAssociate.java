@@ -1,7 +1,7 @@
 package com.serch.server.models.subscription;
 
 import com.serch.server.bases.BaseModel;
-import com.serch.server.models.account.BusinessProfile;
+import com.serch.server.models.business.BusinessProfile;
 import com.serch.server.models.account.Profile;
 import jakarta.persistence.*;
 import lombok.Getter;

@@ -39,4 +39,6 @@ public class RequestAdditionalInformation {
 
     @JsonProperty("surety_address")
     private String suretyAddress;
+
+    private RequestDevice device;
 }

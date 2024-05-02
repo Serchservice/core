@@ -27,6 +27,13 @@ public interface ReferralService {
     void create(User referral, User referredBy);
 
     /**
+     * Removes any saved record of the user
+     *
+     * @param user The user whose account is to be removed
+     */
+    void undo(User user);
+
+    /**
      * Retrieves referrals made by the currently logged-in user.
      *
      * @return An ApiResponse containing a list of referral responses.

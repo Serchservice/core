@@ -7,11 +7,15 @@ import com.serch.server.enums.auth.Role;
 import com.serch.server.exceptions.ExceptionCodes;
 import com.serch.server.exceptions.auth.AuthException;
 import com.serch.server.mappers.AuthMapper;
+import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.User;
 import com.serch.server.models.auth.incomplete.*;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.auth.incomplete.*;
 import com.serch.server.repositories.company.SpecialtyKeywordRepository;
+import com.serch.server.services.account.services.AdditionalService;
+import com.serch.server.services.account.services.ProfileService;
+import com.serch.server.services.account.services.SpecialtyService;
 import com.serch.server.services.referral.services.ReferralProgramService;
 import com.serch.server.services.auth.requests.*;
 import com.serch.server.services.auth.responses.AuthResponse;
@@ -26,8 +30,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 /**
  * Service responsible for implementing provider authentication.
  * It implements its wrapper class {@link ProviderAuthService}
@@ -37,6 +39,9 @@ import java.util.List;
  * @see AuthService
  * @see SessionService
  * @see ReferralProgramService
+ * @see AdditionalService
+ * @see SpecialtyService
+ * @see ProfileService
  * @see PasswordEncoder
  * @see UserRepository
  * @see IncompleteRepository
@@ -46,7 +51,6 @@ import java.util.List;
  * @see IncompleteCategoryRepository
  * @see SpecialtyKeywordRepository
  * @see IncompleteSpecialtyRepository
- * @see IncompleteAdditionalRepository
  */
 @Service
 @RequiredArgsConstructor
@@ -54,6 +58,9 @@ public class ProviderAuthImplementation implements ProviderAuthService {
     private final AuthService authService;
     private final SessionService sessionService;
     private final ReferralProgramService referralProgramService;
+    private final SpecialtyService specialtyService;
+    private final ProfileService profileService;
+    private final AdditionalService additionalService;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final IncompleteRepository incompleteRepository;
@@ -63,7 +70,6 @@ public class ProviderAuthImplementation implements ProviderAuthService {
     private final IncompleteCategoryRepository incompleteCategoryRepository;
     private final SpecialtyKeywordRepository specialtyKeywordRepository;
     private final IncompleteSpecialtyRepository incompleteSpecialtyRepository;
-    private final IncompleteAdditionalRepository incompleteAdditionalRepository;
 
     @Value("${application.account.limit.specialty}")
     private Integer SPECIALTY_LIMIT;
@@ -137,7 +143,7 @@ public class ProviderAuthImplementation implements ProviderAuthService {
         var incomplete = incompleteRepository.findByEmailAddress(category.getEmailAddress())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if(category.getCategory() == SerchCategory.USER) {
-            throw new AuthException("You cannot be a Serch User in the Provider platform");
+            throw new AuthException("You cannot be a Serch User in this platform");
         } else {
             if(incomplete.isEmailConfirmed()) {
                 if(incomplete.hasProfile()) {
@@ -146,9 +152,15 @@ public class ProviderAuthImplementation implements ProviderAuthService {
                                 "You already have a Serch category",
                                 ExceptionCodes.ACCESS_DENIED
                         );
+                    } else if(category.getSpecialties() != null && category.getSpecialties().size() > SPECIALTY_LIMIT) {
+                        throw new AuthException(
+                                "Specialties cannot be more than %s".formatted(SPECIALTY_LIMIT),
+                                ExceptionCodes.ACCESS_DENIED
+                        );
+                    } else {
+                        saveCategory(category, incomplete);
+                        return new ApiResponse<>("Serch Category saved successfully", HttpStatus.OK);
                     }
-                    saveCategory(category.getCategory(), incomplete);
-                    return new ApiResponse<>("Serch Category saved successfully", HttpStatus.OK);
                 } else {
                     throw new AuthException("You don't have any profile", ExceptionCodes.PROFILE_NOT_SET);
                 }
@@ -159,69 +171,46 @@ public class ProviderAuthImplementation implements ProviderAuthService {
     }
 
     @Override
-    public void saveCategory(SerchCategory category, Incomplete incomplete) {
+    public void saveCategory(RequestSerchCategory category, Incomplete incomplete) {
         IncompleteCategory incompleteCategory = new IncompleteCategory();
-        incompleteCategory.setCategory(category);
+        incompleteCategory.setCategory(category.getCategory());
         incompleteCategory.setIncomplete(incomplete);
         incompleteCategoryRepository.save(incompleteCategory);
-    }
 
-    @Override
-    public ApiResponse<String> saveSpecialties(RequestAuthSpecialty specialty) {
-        if(specialty.getSpecialties().size() > SPECIALTY_LIMIT) {
-            throw new AuthException("Providers can only add %s specialties".formatted(SPECIALTY_LIMIT));
-        } else {
-            var incomplete = incompleteRepository.findByEmailAddress(specialty.getEmailAddress())
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-            if(incomplete.isEmailConfirmed()) {
-                if(incomplete.hasProfile()) {
-                    if(incomplete.hasCategory()) {
-                        if(incomplete.hasSpecialty() && incomplete.getSpecializations().size() >= SPECIALTY_LIMIT) {
-                            throw new AuthException(
-                                    "You have reached the maximum limit for specialties",
-                                    ExceptionCodes.ACCESS_DENIED
-                            );
-                        } else {
-                            addSpecialtiesToIncompleteProfile(specialty.getSpecialties(), incomplete);
-                            return new ApiResponse<>("Specialty saved successfully", HttpStatus.OK);
-                        }
-                    } else {
-                        throw new AuthException("You don't have a Serch category", ExceptionCodes.CATEGORY_NOT_SET);
-                    }
-                } else {
-                    throw new AuthException("You don't have any profile", ExceptionCodes.PROFILE_NOT_SET);
-                }
-            } else {
-                throw new AuthException("You have not confirmed your email", ExceptionCodes.EMAIL_NOT_VERIFIED);
-            }
+        if(category.getSpecialties() != null) {
+            category.getSpecialties().forEach(id -> specialtyKeywordRepository.findById(id)
+                    .ifPresent(serviceKeyword -> {
+                        IncompleteSpecialty incompleteSpecialty = new IncompleteSpecialty();
+                        incompleteSpecialty.setService(serviceKeyword);
+                        incompleteSpecialty.setIncomplete(incomplete);
+                        incompleteSpecialtyRepository.save(incompleteSpecialty);
+                    }));
         }
     }
 
     @Override
-    public void addSpecialtiesToIncompleteProfile(List<Long> specialties, Incomplete incomplete) {
-        specialties.forEach(id -> specialtyKeywordRepository.findById(id)
-                .ifPresent(serviceKeyword -> {
-                    IncompleteSpecialty incompleteSpecialty = new IncompleteSpecialty();
-                    incompleteSpecialty.setService(serviceKeyword);
-                    incompleteSpecialty.setIncomplete(incomplete);
-                    incompleteSpecialtyRepository.save(incompleteSpecialty);
-                }));
-    }
-
-    @Override
-    public ApiResponse<String> saveAdditional(RequestAdditionalInformation request) {
+    public ApiResponse<AuthResponse> signup(RequestAdditionalInformation request) {
         var incomplete = incompleteRepository.findByEmailAddress(request.getEmailAddress())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if(incomplete.isEmailConfirmed()) {
             if(incomplete.hasProfile()) {
                 if(incomplete.hasCategory()) {
-                    if(incomplete.hasAdditional()) {
-                        throw new AuthException("You already have a additional profile", ExceptionCodes.ACCESS_DENIED);
+                    User user = authService.getUserFromIncomplete(incomplete, Role.PROVIDER);
+                    ApiResponse<Profile> response = profileService.createProviderProfile(incomplete, user);
+                    if(response.getStatus().is2xxSuccessful()) {
+                        additionalService.createAdditional(request, response.getData());
+                        specialtyService.createSpecialties(incomplete, response.getData());
+                        incompleteRepository.delete(incomplete);
+
+                        RequestSession requestSession = new RequestSession();
+                        requestSession.setMethod(AuthMethod.PASSWORD);
+                        requestSession.setUser(user);
+                        requestSession.setDevice(request.getDevice());
+
+                        return sessionService.generateSession(requestSession);
                     } else {
-                        IncompleteAdditional additional = AuthMapper.INSTANCE.additional(request);
-                        additional.setIncomplete(incomplete);
-                        incompleteAdditionalRepository.save(additional);
-                        return new ApiResponse<>("Profile saved successfully", HttpStatus.OK);
+                        profileService.undo(incomplete.getEmailAddress());
+                        return new ApiResponse<>(response.getMessage());
                     }
                 } else {
                     throw new AuthException("You don't have a Serch category", ExceptionCodes.CATEGORY_NOT_SET);
@@ -232,40 +221,5 @@ public class ProviderAuthImplementation implements ProviderAuthService {
         } else {
             throw new AuthException("You have not confirmed your email", ExceptionCodes.EMAIL_NOT_VERIFIED);
         }
-    }
-
-    @Override
-    public ApiResponse<String> checkStatus(String emailAddress) {
-        var incomplete = incompleteRepository.findByEmailAddress(emailAddress)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        if(incomplete.isEmailConfirmed()) {
-            if(incomplete.hasProfile()) {
-                if(incomplete.hasCategory()) {
-                    if(incomplete.hasAdditional()) {
-                        return new ApiResponse<>("Success", HttpStatus.OK);
-                    } else {
-                        throw new AuthException("You don't have a additional profile", ExceptionCodes.ADDITIONAL_NOT_SET);
-                    }
-                } else {
-                    throw new AuthException("You don't have a Serch category", ExceptionCodes.CATEGORY_NOT_SET);
-                }
-            } else {
-                throw new AuthException("You don't have any profile", ExceptionCodes.PROFILE_NOT_SET);
-            }
-        } else {
-            throw new AuthException("You have not confirmed your email", ExceptionCodes.EMAIL_NOT_VERIFIED);
-        }
-    }
-
-    @Override
-    public ApiResponse<AuthResponse> finishSignup(RequestAuth auth) {
-        User user = userRepository.findByEmailAddressIgnoreCase(auth.getEmailAddress())
-                .orElseThrow(() -> new AuthException("User not found"));
-        RequestSession requestSession = new RequestSession();
-        requestSession.setMethod(AuthMethod.PASSWORD);
-        requestSession.setUser(user);
-        requestSession.setDevice(auth.getDevice());
-
-        return sessionService.generateSession(requestSession);
     }
 }

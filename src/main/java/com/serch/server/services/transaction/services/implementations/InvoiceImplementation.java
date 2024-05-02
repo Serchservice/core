@@ -1,16 +1,25 @@
 package com.serch.server.services.transaction.services.implementations;
 
+import com.serch.server.enums.account.AccountStatus;
 import com.serch.server.exceptions.subscription.SubscriptionException;
-import com.serch.server.models.account.BusinessProfile;
+import com.serch.server.mappers.SubscriptionMapper;
+import com.serch.server.models.business.BusinessProfile;
+import com.serch.server.models.business.BusinessSubscription;
+import com.serch.server.models.account.Profile;
 import com.serch.server.models.subscription.Subscription;
 import com.serch.server.models.subscription.SubscriptionAssociate;
 import com.serch.server.models.subscription.SubscriptionInvoice;
-import com.serch.server.repositories.account.BusinessProfileRepository;
+import com.serch.server.repositories.business.BusinessProfileRepository;
+import com.serch.server.repositories.business.BusinessSubscriptionRepository;
 import com.serch.server.repositories.subscription.SubscriptionAssociateRepository;
 import com.serch.server.repositories.subscription.SubscriptionInvoiceRepository;
 import com.serch.server.services.transaction.services.InvoiceService;
+import com.serch.server.utils.MoneyUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * The InvoiceImplementation class implements the {@link InvoiceService} interface
@@ -29,47 +38,45 @@ public class InvoiceImplementation implements InvoiceService {
     private final SubscriptionInvoiceRepository subscriptionInvoiceRepository;
     private final BusinessProfileRepository businessProfileRepository;
     private final SubscriptionAssociateRepository subscriptionAssociateRepository;
+    private final BusinessSubscriptionRepository businessSubscriptionRepository;
 
     @Override
-    public void createInvoice(Subscription subscription, String amount, String mode, String reference) {
-        SubscriptionInvoice invoice = new SubscriptionInvoice();
-
-        if(subscription.getUser().isProfile()) {
-            invoice.setSize(1);
-        } else {
-            BusinessProfile profile = businessProfileRepository.findById(subscription.getUser().getId())
+    public void createInvoice(Subscription subscription, List<Profile> associates) {
+        SubscriptionInvoice savedInvoice = getSubscriptionInvoice(subscription);
+        if(!associates.isEmpty()) {
+            BusinessProfile business = businessProfileRepository.findById(subscription.getUser().getId())
                     .orElseThrow(() -> new SubscriptionException("Business not found"));
-            invoice.setSize(
-                    profile.getAssociates().stream()
-                            .filter(sub -> !sub.getUser().isBusinessLocked())
-                            .toList()
-                            .size()
-            );
+            associates.forEach(profile -> {
+                SubscriptionAssociate associate = new SubscriptionAssociate();
+                associate.setInvoice(savedInvoice);
+                associate.setBusiness(business);
+                associate.setProfile(profile);
+                subscriptionAssociateRepository.save(associate);
+
+                businessSubscriptionRepository.findByProfile_Id(profile.getId())
+                        .ifPresentOrElse(businessSubscription -> {
+                            businessSubscription.setStatus(AccountStatus.ACTIVE);
+                            businessSubscription.setUpdatedAt(LocalDateTime.now());
+                            businessSubscriptionRepository.save(businessSubscription);
+                        }, () -> {
+                            BusinessSubscription businessSubscription = new BusinessSubscription();
+                            businessSubscription.setBusiness(business);
+                            businessSubscription.setProfile(profile);
+                            businessSubscription.setStatus(AccountStatus.ACTIVE);
+                            businessSubscriptionRepository.save(businessSubscription);
+                        });
+            });
         }
-        invoice.setSubscription(subscription);
-        invoice.setAmount(amount);
-        invoice.setReference(reference);
-        invoice.setMode(mode);
+    }
+
+    private SubscriptionInvoice getSubscriptionInvoice(Subscription subscription) {
+        SubscriptionInvoice invoice = SubscriptionMapper.INSTANCE.invoice(subscription);
+        invoice.setAmount(MoneyUtil.formatToNaira(subscription.getAmount()));
         invoice.setPlan(
                 subscription.getChild() != null
                         ? subscription.getChild().getName()
                         : subscription.getPlan().getType().getType()
         );
-        SubscriptionInvoice savedInvoice = subscriptionInvoiceRepository.save(invoice);
-
-        if(!subscription.getUser().isProfile()) {
-            BusinessProfile business = businessProfileRepository.findById(subscription.getUser().getId())
-                    .orElseThrow(() -> new SubscriptionException("Business not found"));
-            business.getAssociates()
-                    .stream()
-                    .filter(sub -> !sub.getUser().isBusinessLocked())
-                    .forEach(profile -> {
-                        SubscriptionAssociate associate = new SubscriptionAssociate();
-                        associate.setInvoice(savedInvoice);
-                        associate.setBusiness(business);
-                        associate.setProfile(profile);
-                        subscriptionAssociateRepository.save(associate);
-                    });
-        }
+        return subscriptionInvoiceRepository.save(invoice);
     }
 }

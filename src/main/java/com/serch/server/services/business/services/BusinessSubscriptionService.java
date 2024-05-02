@@ -1,0 +1,76 @@
+package com.serch.server.services.business.services;
+
+import com.serch.server.bases.ApiResponse;
+import com.serch.server.services.business.responses.BusinessAssociateResponse;
+
+import java.util.List;
+import java.util.UUID;
+
+/**
+ * This is the wrapper class that contains the methods performed in BusinessSubscriptionService.
+ *
+ * @
+ */
+public interface BusinessSubscriptionService {
+    /**
+     * Fetches all unsubscribed business associate providers
+     *
+     * @return List of {@link BusinessAssociateResponse}
+     *
+     * @see ApiResponse
+     */
+    ApiResponse<List<BusinessAssociateResponse>> associates();
+
+    /**
+     * Fetches all subscribed business associate providers
+     *
+     * @return List of {@link BusinessAssociateResponse}
+     *
+     * @see ApiResponse
+     */
+    ApiResponse<List<BusinessAssociateResponse>> subscribed();
+
+    /**
+     * Adds an associate provider to the list of business subscriptions
+     *
+     * @param id The id of the associate provider
+     *
+     * @return List of {@link BusinessAssociateResponse}
+     *
+     * @see ApiResponse
+     */
+    ApiResponse<List<BusinessAssociateResponse>> add(UUID id);
+
+    /**
+     * Adds all associate providers to the list of business subscriptions
+     *
+     * @param ids All provider ids to be added
+     *
+     * @return List of {@link BusinessAssociateResponse}
+     *
+     * @see ApiResponse
+     */
+    ApiResponse<List<BusinessAssociateResponse>> addAll(List<UUID> ids);
+
+    /**
+     * Suspends an associate provider from business subscription
+     *
+     * @param id The id pf the associate provider
+     *
+     * @return List of {@link BusinessAssociateResponse}
+     *
+     * @see ApiResponse
+     */
+    ApiResponse<List<BusinessAssociateResponse>> suspend(UUID id);
+
+    /**
+     * Removes an associate provider from the list of business subscriptions
+     *
+     * @param id The id of the associate provider
+     *
+     * @return List of {@link BusinessAssociateResponse}
+     *
+     * @see ApiResponse
+     */
+    ApiResponse<List<BusinessAssociateResponse>> remove(UUID id);
+}

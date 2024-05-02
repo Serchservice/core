@@ -16,37 +16,25 @@ public class ProviderAuthController {
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@RequestBody RequestLogin request) {
-        var response = authService.login(request);
+        ApiResponse<AuthResponse> response = authService.login(request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @PostMapping("/profile")
     public ResponseEntity<ApiResponse<String>> saveProfile(@RequestBody RequestProviderProfile request) {
-        var response = authService.saveProfile(request);
+        ApiResponse<String> response = authService.saveProfile(request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @PostMapping("/category")
     public ResponseEntity<ApiResponse<String>> saveCategory(@RequestBody RequestSerchCategory request) {
-        var response = authService.saveCategory(request);
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
-    @PostMapping("/specialties")
-    public ResponseEntity<ApiResponse<String>> saveSpecialties(@RequestBody RequestAuthSpecialty request) {
-        var response = authService.saveSpecialties(request);
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
-    @PostMapping("/additional")
-    public ResponseEntity<ApiResponse<String>> saveAdditional(@RequestBody RequestAdditionalInformation request) {
-        var response = authService.saveAdditional(request);
+        ApiResponse<String> response = authService.saveCategory(request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponse<AuthResponse>> savePlan(@RequestBody RequestAuth auth) {
-        var response = authService.finishSignup(auth);
+    public ResponseEntity<ApiResponse<AuthResponse>> savePlan(@RequestBody RequestAdditionalInformation auth) {
+        ApiResponse<AuthResponse> response = authService.signup(auth);
         return new ResponseEntity<>(response, response.getStatus());
     }
 }

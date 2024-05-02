@@ -1,8 +1,6 @@
 package com.serch.server.mappers;
 
-import com.serch.server.models.subscription.PlanChild;
-import com.serch.server.models.subscription.PlanParent;
-import com.serch.server.models.subscription.SubscriptionAuth;
+import com.serch.server.models.subscription.*;
 import com.serch.server.services.payment.responses.PaymentAuthorization;
 import com.serch.server.services.subscription.responses.PlanChildResponse;
 import com.serch.server.services.subscription.responses.PlanParentResponse;
@@ -10,6 +8,7 @@ import com.serch.server.services.subscription.responses.SubscriptionCardResponse
 import com.serch.server.services.subscription.responses.SubscriptionResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Mappings;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
@@ -21,11 +20,20 @@ public interface SubscriptionMapper {
     @Mapping(target = "amount", source = "amount")
     PlanParentResponse response(PlanParent plan);
     PlanChildResponse response(PlanChild plan);
-    @Mapping(target = "benefits", source = "benefits", ignore = true)
-    @Mapping(target = "duration", source = "duration", ignore = true)
-    @Mapping(target = "amount", source = "amount", ignore = true)
+    @Mappings({
+            @Mapping(target = "benefits", source = "benefits", ignore = true),
+            @Mapping(target = "duration", source = "duration", ignore = true),
+            @Mapping(target = "amount", source = "amount", ignore = true),
+            @Mapping(target = "id", source = "id", ignore = true)
+    })
     SubscriptionResponse subscription(PlanParent plan);
     @Mapping(target = "code", source = "authorizationCode")
     SubscriptionAuth auth(PaymentAuthorization authorization);
     SubscriptionCardResponse response(SubscriptionAuth auth);
+    Subscription subscription(SubscriptionRequest request);
+    @Mappings({
+            @Mapping(target = "amount", source = "amount", ignore = true),
+            @Mapping(target = "plan", source = "plan", ignore = true)
+    })
+    SubscriptionInvoice invoice(Subscription subscription);
 }

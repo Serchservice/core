@@ -17,13 +17,13 @@ package com.serch.server.exceptions;
  *     <li>{@link ExceptionCodes#ASSOCIATE_PROVIDER_EMAIL} - Code for associate provider email error.</li>
  *     <li>{@link ExceptionCodes#EMAIL_NOT_VERIFIED} - Code for email not verified error.</li>
  *     <li>{@link ExceptionCodes#PROFILE_NOT_SET} - Code for profile not set error.</li>
- *     <li>{@link ExceptionCodes#ADDITIONAL_NOT_SET} - Code for additional details not set error.</li>
- *     <li>{@link ExceptionCodes#PLAN_NOT_SET} - Code for plan not set error.</li>
+ *     <li>{@link ExceptionCodes#ACCOUNT_NOT_CREATED} - Code for additional details not set error.</li>
  *     <li>{@link ExceptionCodes#CATEGORY_NOT_SET} - Code for category not set error.</li>
  *     <li>{@link ExceptionCodes#EXISTING_USER} - Code for existing user error.</li>
  *     <li>{@link ExceptionCodes#UNKNOWN} - Code for unknown error.</li>
  *     <li>{@link ExceptionCodes#EXISTING_LINK} - Code for existing link error.</li>
  *     <li>{@link ExceptionCodes#GUEST_AND_LINK_EXIST_TOGETHER} - Code for guest and link existing together error.</li>
+ *     <li>{@link ExceptionCodes#NO_SUBSCRIPTION} - Code for no subscription error.</li>
  * </ul>
  */
 public class ExceptionCodes {
@@ -38,11 +38,11 @@ public class ExceptionCodes {
     public static final String ASSOCIATE_PROVIDER_EMAIL = "S70";
     public static final String EMAIL_NOT_VERIFIED = "S80";
     public static final String PROFILE_NOT_SET = "S90";
-    public static final String ADDITIONAL_NOT_SET = "S92";
-    public static final String PLAN_NOT_SET = "S94";
+    public static final String ACCOUNT_NOT_CREATED = "S92";
     public static final String CATEGORY_NOT_SET = "S96";
     public static final String EXISTING_USER = "S100";
     public static final String UNKNOWN = "S400";
     public static final String EXISTING_LINK = "S120";
     public static final String GUEST_AND_LINK_EXIST_TOGETHER = "S122";
+    public static final String NO_SUBSCRIPTION = "S65";
 }

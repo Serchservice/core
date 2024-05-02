@@ -3,327 +3,347 @@
     {
       "name": "application.security.jwt-secret-key",
       "type": "java.lang.String",
-      "description": "This is the JWT Secret key used in the application"
+      "description": "This is the JWT Secret key used in the application.."
     },
     {
       "name": "application.security.jwt-expiration-time",
       "type": "java.lang.Long",
-      "description": "This is the expiration time for JWT in the application"
+      "description": "This is the expiration time for JWT in the application."
     },
     {
       "name": "application.security.otp-token-length",
       "type": "java.lang.Integer",
-      "description": "This is the length of the OTP Token which will be generated in the application"
+      "description": "This is the length of the OTP Token which will be generated in the application."
     },
     {
       "name": "application.security.otp-expiration-time",
       "type": "java.lang.Integer",
-      "description": "This is the expiration time for generated OTP Token"
+      "description": "This is the expiration time for generated OTP Token."
+    },
+    {
+      "name": "application.security.otp-trials",
+      "type": "java.lang.Integer",
+      "description": "This is the maximum time for otp request in a row."
     },
     {
       "name": "application.security.otp-token-characters",
       "type": "java.lang.String",
-      "description": "These are characters which will be included in the OTP being generated in the application"
+      "description": "These are characters which will be included in the OTP being generated in the application."
     },
     {
       "name": "application.security.refresh-token-length",
       "type": "java.lang.Integer",
-      "description": "This is the length of the Refresh Token which will attached to each session, generated in the application"
+      "description": "This is the length of the Refresh Token which will attached to each session, generated in the application."
     },
     {
       "name": "application.security.refresh-token-characters",
       "type": "java.lang.String",
-      "description": "These are characters which will be included in the Refresh token being generated in the application"
+      "description": "These are characters which will be included in the Refresh token being generated in the application."
+    },
+    {
+      "name": "application.supabase.api-key",
+      "type": "java.lang.String",
+      "description": "Supabase API KEY."
+    },
+    {
+      "name": "application.supabase.base-url",
+      "type": "java.lang.String",
+      "description": "Supabase BASE URL."
     },
     {
       "name": "application.account.duration",
       "type": "java.lang.Integer",
-      "description": "This is duration for any account update"
+      "description": "This is duration for any account update."
     },
     {
       "name": "application.account.limit.report",
       "type": "java.lang.Integer",
-      "description": "This is the limit to the amount of reports a user will reach before account is suspended"
+      "description": "This is the limit to the amount of reports a user will reach before account is suspended."
     },
     {
       "name": "application.account.limit.specialty",
       "type": "java.lang.Integer",
-      "description": "This is the limit to the number of specialty a provider or have"
+      "description": "This is the limit to the number of specialty a provider or have."
     },
     {
       "name": "application.account.schedule.close.limit",
       "type": "java.lang.Integer",
-      "description": "This is the limit to the number of schedules a provider can close"
+      "description": "This is the limit to the number of schedules a provider can close."
     },
     {
       "name": "application.account.schedule.close.duration",
       "type": "java.lang.Integer",
-      "description": "This is the duration expected for schedule closing"
+      "description": "This is the duration expected for schedule closing."
     },
     {
       "name": "application.account.schedule.close.charge",
       "type": "java.lang.Long",
-      "description": "This is the amount to be charged for any schedule close"
+      "description": "This is the amount to be charged for any schedule close."
     },
     {
       "name": "application.storage.name",
       "type": "java.lang.String",
-      "description": "A description for 'application.storage.name'"
+      "description": "A description for 'application.storage.name'."
     },
     {
       "name": "application.storage.api.key",
       "type": "java.lang.String",
-      "description": "A description for 'application.storage.api.key'"
+      "description": "A description for 'application.storage.api.key'."
     },
     {
       "name": "application.storage.api.secret",
       "type": "java.lang.String",
-      "description": "A description for 'application.storage.api.secret'"
+      "description": "A description for 'application.storage.api.secret'."
+    },
+    {
+      "name": "application.payment.base-url",
+      "type": "java.lang.String",
+      "description": "The Payment BASE URL."
     },
     {
       "name": "application.payment.api-key",
       "type": "java.lang.String",
-      "description": "A description for 'application.payment.api-key'"
+      "description": "A description for 'application.payment.api-key'."
     },
     {
       "name": "application.payment.trip.share.user",
       "type": "java.lang.Integer",
-      "description": "A description for 'application.payment.trip.share.user'"
+      "description": "A description for 'application.payment.trip.share.user'."
     },
     {
       "name": "application.payment.trip.share.serch",
       "type": "java.lang.Integer",
-      "description": "A description for 'application.payment.trip.share.serch'"
+      "description": "A description for 'application.payment.trip.share.serch'."
     },
     {
       "name": "application.wallet.fund-limit",
       "type": "java.lang.Long",
-      "description": "A description for 'application.wallet.fund-limit'"
+      "description": "A description for 'application.wallet.fund-limit'."
     },
     {
       "name": "application.wallet.withdraw-limit",
       "type": "java.lang.Long",
-      "description": "A description for 'application.wallet.withdraw-limit'"
+      "description": "A description for 'application.wallet.withdraw-limit'."
     },
     {
       "name": "application.map.api-key",
       "type": "java.lang.String",
-      "description": "A description for 'application.map.api-key'"
+      "description": "A description for 'application.map.api-key'."
     },
     {
       "name": "application.map.search-radius",
       "type": "java.lang.Integer",
-      "description": "A description for 'application.map.search-radius'"
+      "description": "A description for 'application.map.search-radius'."
     },
     {
       "name": "application.web.socket.topic.trip",
       "type": "java.lang.String",
-      "description": "A description for 'application.web.socket.topic.trip'"
+      "description": "A description for 'application.web.socket.topic.trip'."
     },
     {
       "name": "application.web.socket.topic.chat",
       "type": "java.lang.String",
-      "description": "A description for 'application.web.socket.topic.chat'"
+      "description": "A description for 'application.web.socket.topic.chat'."
     },
     {
       "name": "application.call.api-key",
       "type": "java.lang.String",
-      "description": "A description for 'application.call.api-key'"
+      "description": "A description for 'application.call.api-key'."
     },
     {
       "name": "application.call.tip2fix.amount",
       "type": "java.lang.Integer",
-      "description": "A description for 'application.call.tip2fix.amount'"
+      "description": "A description for 'application.call.tip2fix.amount'."
     },
     {
       "name": "application.notification.type",
       "type": "java.lang.String",
-      "description": "A description for 'application.notification.type'"
+      "description": "A description for 'application.notification.type'."
     },
     {
       "name": "application.notification.project-id",
       "type": "java.lang.String",
-      "description": "A description for 'application.notification.project-id'"
+      "description": "A description for 'application.notification.project-id'."
     },
     {
       "name": "application.notification.client.email",
       "type": "java.lang.String",
-      "description": "A description for 'application.notification.client.email'"
+      "description": "A description for 'application.notification.client.email'."
     },
     {
       "name": "application.notification.client.id",
       "type": "java.lang.String",
-      "description": "A description for 'application.notification.client.id'"
+      "description": "A description for 'application.notification.client.id'."
     },
     {
       "name": "application.notification.uri.auth",
       "type": "java.lang.String",
-      "description": "A description for 'application.notification.uri.auth'"
+      "description": "A description for 'application.notification.uri.auth'."
     },
     {
       "name": "application.notification.uri.token",
       "type": "java.lang.String",
-      "description": "A description for 'application.notification.uri.token'"
+      "description": "A description for 'application.notification.uri.token'."
     },
     {
       "name": "application.notification.x509.cert.url.auth",
       "type": "java.lang.String",
-      "description": "A description for 'application.notification.x509.cert.url.auth'"
+      "description": "A description for 'application.notification.x509.cert.url.auth'."
     },
     {
       "name": "application.notification.x509.cert.url.client",
       "type": "java.lang.String",
-      "description": "A description for 'application.notification.x509.cert.url.client'"
+      "description": "A description for 'application.notification.x509.cert.url.client'."
     },
     {
       "name": "application.notification.universe-domain",
       "type": "java.lang.String",
-      "description": "A description for 'application.notification.universe-domain'"
+      "description": "A description for 'application.notification.universe-domain'."
     },
     {
       "name": "application.notification.private.key.id",
       "type": "java.lang.String",
-      "description": "Firebase Private Key id"
+      "description": "Firebase Private Key id."
     },
     {
       "name": "application.notification.private.key.p1",
       "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 1"
+      "description": "Firebase Private Key - Part 1."
     },
     {
       "name": "application.notification.private.key.p2",
       "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 2'"
+      "description": "Firebase Private Key - Part 2'."
     },
     {
       "name": "application.notification.private.key.p3",
       "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 3'"
+      "description": "Firebase Private Key - Part 3'."
     },
     {
       "name": "application.notification.private.key.p4",
       "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 4'"
+      "description": "Firebase Private Key - Part 4'."
     },
     {
       "name": "application.notification.private.key.p5",
       "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 5'"
+      "description": "Firebase Private Key - Part 5'."
     },
     {
       "name": "application.notification.private.key.p6",
       "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 6'"
+      "description": "Firebase Private Key - Part 6'."
     },
     {
       "name": "application.notification.private.key.p7",
       "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 7'"
+      "description": "Firebase Private Key - Part 7'."
     },
     {
       "name": "application.notification.private.key.p8",
       "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 8'"
+      "description": "Firebase Private Key - Part 8'."
     },
     {
       "name": "application.notification.private.key.p9",
       "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 9'"
+      "description": "Firebase Private Key - Part 9'."
     },
     {
       "name": "application.notification.private.key.p10",
       "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 10'"
+      "description": "Firebase Private Key - Part 10'."
     },
     {
       "name": "application.notification.private.key.p11",
       "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 11'"
+      "description": "Firebase Private Key - Part 11'."
     },
     {
       "name": "application.notification.private.key.p12",
       "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 12'"
+      "description": "Firebase Private Key - Part 12'."
     },
     {
       "name": "application.notification.private.key.p13",
       "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 13'"
+      "description": "Firebase Private Key - Part 13'."
     },
     {
       "name": "application.notification.private.key.p14",
       "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 14'"
+      "description": "Firebase Private Key - Part 14'."
     },
     {
       "name": "application.notification.private.key.p15",
       "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 15'"
+      "description": "Firebase Private Key - Part 15'."
     },
     {
       "name": "application.notification.private.key.p16",
       "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 16'"
+      "description": "Firebase Private Key - Part 16'."
     },
     {
       "name": "application.notification.private.key.p17",
       "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 17'"
+      "description": "Firebase Private Key - Part 17'."
     },
     {
       "name": "application.notification.private.key.p18",
       "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 18'"
+      "description": "Firebase Private Key - Part 18'."
     },
     {
       "name": "application.notification.private.key.p19",
       "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 19'"
+      "description": "Firebase Private Key - Part 19'."
     },
     {
       "name": "application.notification.private.key.p20",
       "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 20'"
+      "description": "Firebase Private Key - Part 20'."
     },
     {
       "name": "application.notification.private.key.p21",
       "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 21'"
+      "description": "Firebase Private Key - Part 21'."
     },
     {
       "name": "application.notification.private.key.p22",
       "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 22'"
+      "description": "Firebase Private Key - Part 22'."
     },
     {
       "name": "application.notification.private.key.p23",
       "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 23'"
+      "description": "Firebase Private Key - Part 23'."
     },
     {
       "name": "application.notification.private.key.p24",
       "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 24'"
+      "description": "Firebase Private Key - Part 24'."
     },
     {
       "name": "application.notification.private.key.p25",
       "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 25'"
+      "description": "Firebase Private Key - Part 25'."
     },
     {
       "name": "application.notification.private.key.p26",
       "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 26'"
+      "description": "Firebase Private Key - Part 26'."
     },
     {
       "name": "application.notification.private.key.p27",
       "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 27'"
+      "description": "Firebase Private Key - Part 27'."
     },
     {
       "name": "application.notification.private.key.p28",
       "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 28'"
+      "description": "Firebase Private Key - Part 28.'."
     }
   ]
 }

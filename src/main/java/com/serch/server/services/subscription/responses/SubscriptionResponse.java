@@ -11,6 +11,7 @@ import java.util.List;
 @Setter
 @Builder
 public class SubscriptionResponse {
+    private String id;
     private String plan;
     private String child;
     private String description;

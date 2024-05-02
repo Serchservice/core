@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -43,24 +44,17 @@ public class Subscription extends BaseDateTime {
    @GeneratedValue(generator = "plan_id_gen")
    private String id;
 
-   @ManyToOne(fetch = FetchType.LAZY)
-   @JoinColumn(
-           name = "plan",
-           referencedColumnName = "id",
-           nullable = false,
-           columnDefinition = "TEXT",
-           foreignKey = @ForeignKey(name = "plan_id_fkey")
-   )
-   private PlanParent plan;
+   @Column(name = "amount", nullable = false)
+   private BigDecimal amount = BigDecimal.ZERO;
 
-   @ManyToOne(fetch = FetchType.LAZY)
-   @JoinColumn(
-           name = "sub_plan",
-           referencedColumnName = "id",
-           columnDefinition = "TEXT",
-           foreignKey = @ForeignKey(name = "sub_plan_id_fkey")
-   )
-   private PlanChild child;
+   @Column(nullable = false)
+   private String reference;
+
+   @Column(nullable = false)
+   private String mode = "CARD";
+
+   @Column(nullable = false)
+   private Integer size = 1;
 
    @Column(name = "status", nullable = false)
    @Enumerated(value = EnumType.STRING)
@@ -90,6 +84,25 @@ public class Subscription extends BaseDateTime {
    )
    private User user;
 
+   @ManyToOne(fetch = FetchType.LAZY)
+   @JoinColumn(
+           name = "plan",
+           referencedColumnName = "id",
+           nullable = false,
+           columnDefinition = "TEXT",
+           foreignKey = @ForeignKey(name = "plan_id_fkey")
+   )
+   private PlanParent plan;
+
+   @ManyToOne(fetch = FetchType.LAZY)
+   @JoinColumn(
+           name = "sub_plan",
+           referencedColumnName = "id",
+           columnDefinition = "TEXT",
+           foreignKey = @ForeignKey(name = "sub_plan_id_fkey")
+   )
+   private PlanChild child;
+
    @OneToMany(fetch = FetchType.LAZY, mappedBy = "subscription", cascade = CascadeType.ALL)
    private List<SubscriptionInvoice> invoices;
 
@@ -109,6 +122,15 @@ public class Subscription extends BaseDateTime {
     */
    public boolean isExpired() {
       return planStatus == PlanStatus.EXPIRED;
+   }
+
+   /**
+    * Checks if the subscription is paused.
+    *
+    * @return true if the subscription is suspended, otherwise false.
+    */
+   public boolean isPaused() {
+      return planStatus == PlanStatus.SUSPENDED;
    }
 
    /**

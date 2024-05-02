@@ -3,12 +3,10 @@ package com.serch.server.services.account.requests;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.serch.server.annotations.SerchEnum;
 import com.serch.server.enums.account.Gender;
-import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.verified.ConsentType;
 import com.serch.server.services.auth.requests.RequestPhoneInformation;
+import com.serch.server.services.auth.requests.RequestSerchCategory;
 import lombok.Data;
-
-import java.util.List;
 
 @Data
 public class AddAssociateRequest {
@@ -26,7 +24,7 @@ public class AddAssociateRequest {
 
     @SerchEnum(message = "Gender must be an enum")
     private Gender gender;
-    private List<Long> specialties;
-    private SerchCategory category;
+
+    private RequestSerchCategory category;
     private ConsentType consent;
 }

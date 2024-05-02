@@ -1,7 +1,6 @@
 package com.serch.server.services.company.controllers;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.services.company.responses.SpecialtyKeywordResponse;
 import com.serch.server.services.company.services.SpecialtyKeywordService;
 import lombok.RequiredArgsConstructor;
@@ -18,12 +17,6 @@ import java.util.List;
 @RequestMapping("/company/keyword")
 public class SpecialtyKeywordController {
     private final SpecialtyKeywordService specialtyKeywordService;
-
-    @GetMapping("/specialties")
-    public ResponseEntity<ApiResponse<List<SpecialtyKeywordResponse>>> getAllSpecialties(@RequestParam SerchCategory type) {
-        var response = specialtyKeywordService.getAllSpecialties(type);
-        return new ResponseEntity<>(response, response.getStatus());
-    }
 
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<List<SpecialtyKeywordResponse>>> searchService(@RequestParam String query) {

@@ -6,10 +6,10 @@ import com.serch.server.mappers.AccountMapper;
 import com.serch.server.mappers.AuthMapper;
 import com.serch.server.models.account.AdditionalInformation;
 import com.serch.server.models.account.Profile;
-import com.serch.server.models.auth.incomplete.Incomplete;
 import com.serch.server.repositories.account.AdditionalInformationRepository;
 import com.serch.server.services.account.responses.AdditionalInformationResponse;
 import com.serch.server.services.account.services.AdditionalService;
+import com.serch.server.services.auth.requests.RequestAdditionalInformation;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -32,8 +32,8 @@ public class AdditionalImplementation implements AdditionalService {
     private final AdditionalInformationRepository additionalInformationRepository;
 
     @Override
-    public void saveIncompleteAdditional(Incomplete incomplete, Profile profile) {
-        AdditionalInformation information = AuthMapper.INSTANCE.additional(incomplete.getAdditional());
+    public void createAdditional(RequestAdditionalInformation additional, Profile profile) {
+        AdditionalInformation information = AuthMapper.INSTANCE.additional(additional);
         information.setProfile(profile);
         additionalInformationRepository.save(information);
     }

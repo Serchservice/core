@@ -1,11 +1,15 @@
 package com.serch.server.services.subscription.services;
 
+import com.serch.server.enums.email.EmailType;
 import com.serch.server.enums.subscription.PlanStatus;
-import com.serch.server.enums.subscription.PlanType;
+import com.serch.server.models.account.Profile;
+import com.serch.server.models.business.BusinessProfile;
+import com.serch.server.models.business.BusinessSubscription;
+import com.serch.server.models.email.SendEmail;
 import com.serch.server.models.subscription.Subscription;
-import com.serch.server.models.subscription.SubscriptionAuth;
-import com.serch.server.repositories.subscription.SubscriptionAuthRepository;
+import com.serch.server.repositories.business.BusinessProfileRepository;
 import com.serch.server.repositories.subscription.SubscriptionRepository;
+import com.serch.server.services.email.services.EmailTemplateService;
 import com.serch.server.services.payment.core.PaymentService;
 import com.serch.server.services.payment.requests.PaymentChargeRequest;
 import com.serch.server.services.payment.responses.PaymentVerificationData;
@@ -14,7 +18,11 @@ import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * This is the class that implements and works on the logic for its main wrapper class.
@@ -25,32 +33,28 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 public class UpdateSubscription implements UpdateSubscriptionService {
+    private final EmailTemplateService emailTemplateService;
     private final PaymentService paymentService;
-    private final InitSubscriptionService initService;
-    private final VerifySubscriptionService verifyService;
     private final InvoiceService invoiceService;
     private final SubscriptionService subscriptionService;
     private final SubscriptionRepository subscriptionRepository;
-    private final SubscriptionAuthRepository subscriptionAuthRepository;
+    private final BusinessProfileRepository businessProfileRepository;
 
     @Override
     public void checkSubscriptions() {
         subscriptionRepository.findAll()
                 .stream()
-                .filter(subscription ->
-                        TimeUtil.isExpired(subscription.getSubscribedAt()) && subscription.getRetries() < 3
-                )
+                .filter(subscription -> TimeUtil.isExpired(subscription.getSubscribedAt()) && subscription.getRetries() < 3)
                 .toList()
                 .forEach(subscription -> {
                     subscription.setPlanStatus(PlanStatus.EXPIRED);
                     subscription.setUpdatedAt(LocalDateTime.now());
                     subscriptionRepository.save(subscription);
 
-                    if(subscription.getAuth() != null && subscription.getPlan().getType() != PlanType.FREE) {
+                    if(subscription.getAuth() != null) {
                         trySubscription(subscription);
                     } else {
-                        /// Send an email notification to the account owner about charge failure
-                        /// TODO:: Create Subscription expired email template
+                        sendEmail(subscription);
                     }
                 });
     }
@@ -63,57 +67,69 @@ public class UpdateSubscription implements UpdateSubscriptionService {
      */
     private void trySubscription(Subscription subscription) {
         try {
-            PaymentVerificationData data = chargeAndVerify(subscription);
+            if(subscription.getUser().isBusiness()) {
+                Optional<BusinessProfile> business = businessProfileRepository.findById(subscription.getUser().getId());
+                if(business.isPresent()) {
+                    List<Profile> profiles = new ArrayList<>();
+                    if(business.get().getSubscriptions().isEmpty()) {
+                        if(!business.get().getAssociates().isEmpty()) {
+                            profiles = business.get().getAssociates();
+                        }
+                    } else {
+                        profiles = business.get().getSubscriptions()
+                                .stream()
+                                .filter(s -> !s.isSuspended())
+                                .map(BusinessSubscription::getProfile).toList();
+                    }
 
-            subscription.setPlanStatus(PlanStatus.ACTIVE);
-            if(subscription.isNotSameAuth(data.getAuthorization().getSignature())) {
-                subscriptionAuthRepository.delete(subscription.getAuth());
-
-                SubscriptionAuth auth = verifyService.createAuth(subscription.getUser().getEmailAddress(), data);
-                auth.setSubscription(subscription);
-                subscriptionAuthRepository.save(auth);
+                    PaymentChargeRequest request = new PaymentChargeRequest();
+                    if(!profiles.isEmpty()) {
+                        request.setAmount(String.valueOf(Integer.parseInt(subscriptionService.getActiveAmount(subscription)) * profiles.size()));
+                        charge(subscription, request);
+                        invoiceService.createInvoice(subscription, profiles);
+                    } else {
+                        sendFailedEmailNotification(subscription);
+                    }
+                }
+            } else {
+                PaymentChargeRequest request = new PaymentChargeRequest();
+                request.setAmount(String.valueOf(Integer.parseInt(subscriptionService.getActiveAmount(subscription))));
+                charge(subscription, request);
+                invoiceService.createInvoice(subscription, List.of());
             }
-            subscription.setUpdatedAt(LocalDateTime.now());
-            subscription.setRetries(0);
-            subscription.setSubscribedAt(LocalDateTime.now());
-            subscriptionRepository.save(subscription);
-
-            invoiceService.createInvoice(subscription, String.valueOf(data.getAmount()), "CARD", data.getReference());
         } catch (Exception e) {
-            subscription.setRetries(subscription.getRetries() + 1);
-            if(subscription.getRetries() == 3) {
-                /// Send an email notification to the account owner about charge failure
-                /// TODO:: Create timed out subscription tries email template
-            }
+            sendFailedEmailNotification(subscription);
         }
     }
 
-    /**
-     * Charges and verifies the payment for a subscription.
-     * @param subscription The subscription for which the payment is charged and verified.
-     * @return The payment verification data.
-     */
-    private PaymentVerificationData chargeAndVerify(Subscription subscription) {
-        PaymentChargeRequest request = new PaymentChargeRequest();
-
-        if(subscription.getUser().isProfile()) {
-            request.setAmount(
-                    String.valueOf(
-                            Integer.parseInt(subscriptionService.getAmountFromUserActivePlan(subscription))
-                    )
-            );
-        } else {
-            request.setAmount(
-                    String.valueOf(
-                            Integer.parseInt(
-                                    subscriptionService.getAmountFromUserActivePlan(subscription)
-                            ) * initService.getBusinessSize(subscription)
-                    )
-            );
-        }
-
+    private void charge(Subscription subscription, PaymentChargeRequest request) {
         request.setEmail(subscription.getUser().getEmailAddress());
         request.setAuthorizationCode(subscription.getAuth().getCode());
-        return paymentService.charge(request);
+        PaymentVerificationData data = paymentService.charge(request);
+        subscription.setPlanStatus(PlanStatus.ACTIVE);
+        if(subscription.isNotSameAuth(data.getAuthorization().getSignature())) {
+            subscriptionService.createAuth(subscription, data);
+        }
+        subscription.setUpdatedAt(LocalDateTime.now());
+        subscription.setRetries(0);
+        subscription.setReference(data.getReference());
+        subscription.setAmount(BigDecimal.valueOf(data.getAmount()));
+        subscription.setSubscribedAt(LocalDateTime.now());
+        subscriptionRepository.save(subscription);
+    }
+
+    private void sendFailedEmailNotification(Subscription subscription) {
+        subscription.setRetries(subscription.getRetries() + 1);
+        if(subscription.getRetries() == 3) {
+            sendEmail(subscription);
+        }
+    }
+
+    private void sendEmail(Subscription subscription) {
+        SendEmail email = new SendEmail();
+        email.setTo(subscription.getUser().getEmailAddress());
+        email.setFirstName(subscription.getUser().getFirstName());
+        email.setType(EmailType.UNSUCCESSFUL_PAYMENT);
+        emailTemplateService.send(email);
     }
 }

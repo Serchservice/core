@@ -16,4 +16,11 @@ public interface TransactionService {
      * @return ApiResponse containing the list of transactions.
      */
     ApiResponse<List<TransactionResponse>> transactions();
+
+    /**
+     * Retrieves a list of subscriptions for the current user.
+     *
+     * @return ApiResponse containing the list of subscriptions.
+     */
+    ApiResponse<List<TransactionResponse>> subscriptions();
 }

@@ -5,7 +5,7 @@ import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.verified.ConsentType;
 import com.serch.server.enums.verified.VerificationStage;
 import com.serch.server.enums.verified.VerificationStatus;
-import com.serch.server.models.account.BusinessProfile;
+import com.serch.server.models.business.BusinessProfile;
 import com.serch.server.models.account.Profile;
 import jakarta.persistence.*;
 import lombok.Getter;

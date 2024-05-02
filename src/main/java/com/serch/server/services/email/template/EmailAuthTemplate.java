@@ -396,23 +396,6 @@ public class EmailAuthTemplate {
                 "  <!--[if (!mso)&(!IE)]><!--></div><!--<![endif]-->\n" +
                 "  </div>\n" +
                 "</div>\n" +
-                "<!--[if (mso)|(IE)]></td><![endif]-->\n" +
-                "      <!--[if (mso)|(IE)]></tr></table></td></tr></table><![endif]-->\n" +
-                "    </div>\n" +
-                "  </div>\n" +
-                "  </div>\n" +
-                "  \n" +
-                "\n" +
-                "\n" +
-                "\n" +
-                "\n" +
-                "    <!--[if (mso)|(IE)]></td></tr></table><![endif]-->\n" +
-                "    </td>\n" +
-                "  </tr>\n" +
-                "  </tbody>\n" +
-                "  </table>\n" +
-                "  <!--[if mso]></div><![endif]-->\n" +
-                "  <!--[if IE]></div><![endif]-->\n" +
                 "</body>\n" +
                 "\n" +
                 "</html>\n";

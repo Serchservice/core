@@ -23,14 +23,15 @@ import java.util.List;
 public class TransactionController {
     private final TransactionService service;
 
-    /**
-     * Retrieves all transactions associated with the current user.
-     *
-     * @return A ResponseEntity containing an ApiResponse with the list of transaction responses.
-     */
     @GetMapping("/all")
     public ResponseEntity<ApiResponse<List<TransactionResponse>>> transactions() {
-        var response = service.transactions();
+        ApiResponse<List<TransactionResponse>> response = service.transactions();
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @GetMapping("/subscription")
+    public ResponseEntity<ApiResponse<List<TransactionResponse>>> subscriptions() {
+        ApiResponse<List<TransactionResponse>> response = service.subscriptions();
         return new ResponseEntity<>(response, response.getStatus());
     }
 }

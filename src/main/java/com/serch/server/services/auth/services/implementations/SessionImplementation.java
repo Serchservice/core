@@ -1,18 +1,23 @@
 package com.serch.server.services.auth.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.auth.AuthLevel;
 import com.serch.server.enums.auth.AuthMethod;
 import com.serch.server.exceptions.ExceptionCodes;
 import com.serch.server.exceptions.auth.AuthException;
 import com.serch.server.exceptions.auth.SessionException;
 import com.serch.server.mappers.AuthMapper;
+import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.RefreshToken;
 import com.serch.server.models.auth.Session;
 import com.serch.server.models.auth.User;
+import com.serch.server.models.business.BusinessProfile;
+import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.auth.RefreshTokenRepository;
 import com.serch.server.repositories.auth.SessionRepository;
 import com.serch.server.repositories.auth.UserRepository;
+import com.serch.server.repositories.business.BusinessProfileRepository;
 import com.serch.server.services.auth.requests.RequestSession;
 import com.serch.server.services.auth.requests.RequestSessionToken;
 import com.serch.server.services.auth.responses.AuthResponse;
@@ -48,6 +53,8 @@ public class SessionImplementation implements SessionService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final TokenService tokenService;
     private final UserRepository userRepository;
+    private final ProfileRepository profileRepository;
+    private final BusinessProfileRepository businessProfileRepository;
 
     @Override
     public void revokeAllRefreshTokens(UUID userId) {
@@ -103,8 +110,41 @@ public class SessionImplementation implements SessionService {
         revokeAllSessions(request.getUser().getId());
         revokeAllRefreshTokens(request.getUser().getId());
 
-        Session session = sessionRepository.save(getSession(request));
         String token = tokenService.generateRefreshToken();
+        String accessToken = getAccessToken(request, token);
+        SerchCategory category = profileRepository.findById(request.getUser().getId())
+                .map(Profile::getCategory)
+                .orElse(
+                        businessProfileRepository.findById(request.getUser().getId())
+                                .map(BusinessProfile::getCategory)
+                                .orElse(SerchCategory.USER)
+                );
+        Double rating = profileRepository.findById(request.getUser().getId())
+                .map(Profile::getRating)
+                .orElse(
+                        businessProfileRepository.findById(request.getUser().getId())
+                                .map(BusinessProfile::getRating)
+                                .orElse(5.0)
+                );
+        return new ApiResponse<>(
+                "Successful",
+                AuthResponse.builder()
+                        .mfaEnabled(request.getUser().getMfaEnabled())
+                        .session(new SessionResponse(accessToken, token))
+                        .firstName(request.getUser().getFirstName())
+                        .lastName(request.getUser().getLastName())
+                        .role(request.getUser().getRole().name())
+                        .category(category.getType())
+                        .image(category.getImage())
+                        .rating(rating)
+                        .recoveryCodesEnabled(request.getUser().getRecoveryCodeEnabled())
+                        .build(),
+                HttpStatus.CREATED
+        );
+    }
+
+    private String getAccessToken(RequestSession request, String token) {
+        Session session = sessionRepository.save(getSession(request));
         RefreshToken refreshToken = refreshTokenRepository.save(getRefreshToken(request, session, token));
 
         RequestSessionToken sessionToken = new RequestSessionToken();
@@ -114,18 +154,7 @@ public class SessionImplementation implements SessionService {
         sessionToken.setId(request.getUser().getId());
         sessionToken.setRefreshId(refreshToken.getId());
 
-        String accessToken = jwtService.generateToken(sessionToken);
-        return new ApiResponse<>(
-                "Successful",
-                AuthResponse.builder()
-                        .mfaEnabled(request.getUser().getMfaEnabled())
-                        .session(new SessionResponse(accessToken, token))
-                        .firstName(request.getUser().getFirstName())
-                        .role(request.getUser().getRole().name())
-                        .recoveryCodesEnabled(request.getUser().getRecoveryCodeEnabled())
-                        .build(),
-                HttpStatus.CREATED
-        );
+        return jwtService.generateToken(sessionToken);
     }
 
     @Override
@@ -148,24 +177,8 @@ public class SessionImplementation implements SessionService {
             } else {
                 revokeAllSessions(userId);
                 revokeAllRefreshTokens(userId);
-
                 String newToken = tokenService.generateRefreshToken();
-
-                RefreshToken newRefreshToken = new RefreshToken();
-                newRefreshToken.setSession(session);
-                newRefreshToken.setUser(user);
-                newRefreshToken.setToken(newToken);
-                newRefreshToken.setParent(refreshToken);
-                refreshTokenRepository.save(newRefreshToken);
-
-                RequestSessionToken sessionToken = new RequestSessionToken();
-                sessionToken.setSessionId(session.getId());
-                sessionToken.setRole(user.getRole().name());
-                sessionToken.setEmailAddress(user.getEmailAddress());
-                sessionToken.setId(user.getId());
-                sessionToken.setRefreshId(newRefreshToken.getId());
-
-                String newAccessToken = jwtService.generateToken(sessionToken);
+                String newAccessToken = getNewAccessToken(session, user, newToken, refreshToken);
                 return new ApiResponse<>(new SessionResponse(newAccessToken, newToken));
             }
         } catch (IllegalArgumentException e) {
@@ -174,6 +187,24 @@ public class SessionImplementation implements SessionService {
                     ExceptionCodes.IMPROPER_USER_ID_FORMAT
             );
         }
+    }
+
+    private String getNewAccessToken(Session session, User user, String newToken, RefreshToken refreshToken) {
+        RefreshToken newRefreshToken = new RefreshToken();
+        newRefreshToken.setSession(session);
+        newRefreshToken.setUser(user);
+        newRefreshToken.setToken(newToken);
+        newRefreshToken.setParent(refreshToken);
+        refreshTokenRepository.save(newRefreshToken);
+
+        RequestSessionToken sessionToken = new RequestSessionToken();
+        sessionToken.setSessionId(session.getId());
+        sessionToken.setRole(user.getRole().name());
+        sessionToken.setEmailAddress(user.getEmailAddress());
+        sessionToken.setId(user.getId());
+        sessionToken.setRefreshId(newRefreshToken.getId());
+
+        return jwtService.generateToken(sessionToken);
     }
 
     @Override

@@ -66,16 +66,7 @@ public class RatingImplementation implements RatingService {
     @Override
     public ApiResponse<String> rate(RateRequest request) {
         Rating rating = new Rating();
-
-        String rater;
         String rated;
-        if(request.getGuest() == null || request.getGuest().isEmpty()) {
-            rater = String.valueOf(userUtil.getUser().getId());
-        } else {
-            rater = guestRepository.findById(request.getGuest())
-                    .orElseThrow(() -> new RatingException("Guest not found"))
-                    .getId();
-        }
 
         if(request.getIsProvider()) {
             Call call = callRepository.findById(request.getId())
@@ -96,7 +87,7 @@ public class RatingImplementation implements RatingService {
                     );
         }
 
-        rating.setRater(rater);
+        rating.setRater(getAccount(request.getGuest()));
         rating.setRated(rated);
         rating.setRating(request.getRating());
         rating.setComment(request.getComment());
@@ -111,15 +102,7 @@ public class RatingImplementation implements RatingService {
 
         Rating first = new Rating();
         Rating second = new Rating();
-
-        String rater;
-        if(request.getGuest() == null || request.getGuest().isEmpty()) {
-            rater = String.valueOf(userUtil.getUser().getId());
-        } else {
-            rater = guestRepository.findById(request.getGuest())
-                    .orElseThrow(() -> new RatingException("Guest not found"))
-                    .getId();
-        }
+        String rater = getAccount(request.getGuest());
 
         first.setRater(rater);
         first.setRated(rated(trip, request));
@@ -132,7 +115,6 @@ public class RatingImplementation implements RatingService {
         second.setRating(request.getRating() / 2.0);
         second.setComment(request.getComment());
         ratingRepository.save(second);
-
         return new ApiResponse<>("Rating saved", HttpStatus.CREATED);
     }
 
@@ -172,37 +154,57 @@ public class RatingImplementation implements RatingService {
 
     @Override
     public ApiResponse<Double> rate(RateAppRequest request) {
-        Optional<AppRating> existing = appRatingRepository.findByAccount(request.getAccount());
-        if(existing.isPresent()) {
-            existing.get().setRating(request.getRating());
-            existing.get().setUpdatedAt(LocalDateTime.now());
-            if(request.getComment() != null && !request.getComment().isEmpty()) {
-                existing.get().setComment(request.getComment());
-            }
-            appRatingRepository.save(existing.get());
-        } else {
-            String app;
-            try {
-                Role role = userRepository.findById(UUID.fromString(request.getAccount()))
-                        .orElse(new User())
-                        .getRole();
-
-                if(role == Role.ASSOCIATE_PROVIDER) {
-                    app = "Serch Provider";
-                } else if(role == Role.USER) {
-                    app = "Serch User";
-                } else {
-                    app = "Serch Business";
+        String account = getAccount(request.getAccount());
+        if(request.getRating() != null) {
+            Optional<AppRating> existing = appRatingRepository.findByAccount(account);
+            if(existing.isPresent()) {
+                existing.get().setRating(request.getRating());
+                existing.get().setUpdatedAt(LocalDateTime.now());
+                if(request.getComment() != null && !request.getComment().isEmpty()) {
+                    existing.get().setComment(request.getComment());
                 }
-            } catch (Exception e) {
-                app = "Serch User - Guest";
+                appRatingRepository.save(existing.get());
+            } else {
+                AppRating rating = RatingMapper.INSTANCE.rating(request);
+                rating.setApp(getApp(account));
+                appRatingRepository.save(rating);
             }
-
-            AppRating rating = RatingMapper.INSTANCE.rating(request);
-            rating.setApp(app);
-            appRatingRepository.save(rating);
+            return new ApiResponse<>(request.getRating());
+        } else {
+            throw new RatingException("There is no rating value");
         }
-        return new ApiResponse<>(request.getRating());
+    }
+
+    private String getAccount(String request) {
+        String account;
+        if(request == null || request.isEmpty()) {
+            account = String.valueOf(userUtil.getUser().getId());
+        } else {
+            account = guestRepository.findById(request)
+                    .orElseThrow(() -> new RatingException("Guest not found"))
+                    .getId();
+        }
+        return account;
+    }
+
+    private String getApp(String account) {
+        String app;
+        try {
+            Role role = userRepository.findById(UUID.fromString(account))
+                    .orElse(new User())
+                    .getRole();
+
+            if(role == Role.ASSOCIATE_PROVIDER) {
+                app = "Serch Provider";
+            } else if(role == Role.USER) {
+                app = "Serch User";
+            } else {
+                app = "Serch Business";
+            }
+        } catch (Exception e) {
+            app = "Serch User - Guest";
+        }
+        return app;
     }
 
     @Override
@@ -280,22 +282,12 @@ public class RatingImplementation implements RatingService {
 
     @Override
     public ApiResponse<Double> app(String account) {
-        if(account != null && !account.isEmpty()) {
-            return new ApiResponse<>(
-                    "App rating fetched",
-                    appRatingRepository.findByAccount(account)
-                            .orElse(new AppRating())
-                            .getRating(),
-                    HttpStatus.OK
-            );
-        } else {
-            return new ApiResponse<>(
-                    "App rating fetched",
-                    appRatingRepository.findByAccount(String.valueOf(userUtil.getUser().getId()))
-                            .orElse(new AppRating())
-                            .getRating(),
-                    HttpStatus.OK
-            );
-        }
+        return new ApiResponse<>(
+                "App rating fetched",
+                appRatingRepository.findByAccount(getAccount(account))
+                        .orElse(new AppRating())
+                        .getRating(),
+                HttpStatus.OK
+        );
     }
 }

@@ -35,3 +35,4 @@ build/
 ### Others
 service-account.json
 .env
+src/main/resources/application-dev.properties

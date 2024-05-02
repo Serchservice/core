@@ -8,9 +8,11 @@ package com.serch.server.enums.email;
  * <ul>
  *     <li>{@link EmailType#SIGNUP} - Represents an email for signup</li>
  *     <li>{@link EmailType#RESET} - Represents an email for password reset</li>
+ *     <li>{@link EmailType#UNSUCCESSFUL_PAYMENT} - Represents an email for unsuccessful payment</li>
  * </ul>
  */
 public enum EmailType {
     SIGNUP,
-    RESET
+    RESET,
+    UNSUCCESSFUL_PAYMENT
 }

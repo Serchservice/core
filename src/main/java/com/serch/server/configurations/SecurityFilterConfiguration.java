@@ -77,6 +77,7 @@ public class SecurityFilterConfiguration {
                         .requestMatchers(
                                 // Public endpoints
                                 "/auth/email/**",
+                                "/auth/categories",
                                 "/auth/user/**",
                                 "/auth/provider/**",
                                 "/auth/business/**",
@@ -92,7 +93,8 @@ public class SecurityFilterConfiguration {
                                 "/rating/rate/**",
                                 "/location/search/**",
                                 "/issue/lodge",
-                                "/rating/app"
+                                "/rating/app",
+                                "/country/**"
                         ).permitAll()
                         .requestMatchers(
                                 // Public endpoints for actuator and server endpoints

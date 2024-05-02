@@ -1,11 +1,11 @@
 package com.serch.server.services.referral.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.models.account.BusinessProfile;
+import com.serch.server.models.business.BusinessProfile;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.referral.Referral;
 import com.serch.server.models.auth.User;
-import com.serch.server.repositories.account.BusinessProfileRepository;
+import com.serch.server.repositories.business.BusinessProfileRepository;
 import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.referral.ReferralRepository;
 import com.serch.server.repositories.shared.SharedLinkRepository;
@@ -45,9 +45,14 @@ public class ReferralImplementation implements ReferralService {
         referralRepository.save(refer);
     }
 
+    @Override
+    public void undo(User user) {
+        referralRepository.findByReferral_Id(user.getId()).ifPresent(referralRepository::delete);
+    }
+
     private String getCount(User user, User referredBy) {
         if(referredBy.getProgram().isReferral()) {
-            return "Total Referrals: " + referralRepository.findByReferral_Id(user.getId()).size();
+            return "Total Referrals: " + referralRepository.findByReferredBy_User_EmailAddress(user.getEmailAddress()).size();
         } else if(referredBy.getProgram().isSharing()) {
             return "Total Shared: " + sharedLinkRepository.findByUserId(user.getId()).size();
         } else {

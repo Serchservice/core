@@ -4,8 +4,11 @@ import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseEntity;
 import com.serch.server.enums.account.AccountStatus;
 import com.serch.server.enums.auth.Role;
+import com.serch.server.exceptions.subscription.SubscriptionException;
+import com.serch.server.models.account.AccountSetting;
 import com.serch.server.models.auth.mfa.MFAFactor;
 import com.serch.server.models.referral.ReferralProgram;
+import com.serch.server.models.subscription.Subscription;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
@@ -110,14 +113,20 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "enabled_recovery_code", nullable = false)
     private Boolean recoveryCodeEnabled = false;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Session> sessions;
 
-    @OneToOne(mappedBy = "user")
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private MFAFactor mfaFactor;
 
-    @OneToOne(mappedBy = "user")
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private ReferralProgram program;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private AccountSetting setting;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private Subscription subscription;
 
     /**
      * Retrieves the authorities granted to the user.
@@ -272,5 +281,35 @@ public class User extends BaseEntity implements UserDetails {
      */
     public boolean isProvider() {
         return getRole() == Role.PROVIDER || getRole() == Role.ASSOCIATE_PROVIDER;
+    }
+
+    /**
+     * Checks if the user is business.
+     * Uses the {@link Role#BUSINESS} to perform check
+     *
+     * @return boolean - True or false
+     */
+    public boolean isBusiness() {
+        return getRole() == Role.BUSINESS;
+    }
+
+    /**
+     * Check if a user can continue with the request with a valid subscription
+     */
+    public void checkSubscription() {
+        if(getSubscription() != null && getSubscription().isExpired()) {
+            throw new SubscriptionException("Your subscription has expired. Cannot continue with request.");
+        }
+
+        if(getSubscription() != null && getSubscription().isPaused()) {
+            throw new SubscriptionException("You have unsubscribed. Subscribe to continue with request.");
+        }
+    }
+
+    /**
+     * Check if user has subscription
+     */
+    public boolean hasSubscription() {
+        return getSubscription() != null;
     }
 }

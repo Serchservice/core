@@ -8,7 +8,6 @@ import com.serch.server.services.company.responses.SpecialtyKeywordResponse;
 import com.serch.server.services.company.services.SpecialtyKeywordService;
 import com.serch.server.utils.MoneyUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -28,17 +27,12 @@ public class SpecialtyKeywordImplementation implements SpecialtyKeywordService {
     private final SpecialtyKeywordRepository repository;
 
     @Override
-    public ApiResponse<List<SpecialtyKeywordResponse>> getAllSpecialties(SerchCategory type) {
-        List<SpecialtyKeywordResponse> specialties = repository
+    public List<SpecialtyKeywordResponse> getAllSpecialties(SerchCategory type) {
+        return repository.findByCategory(type) == null ? List.of() : repository
                 .findByCategory(type)
                 .stream()
                 .map(this::getSpecialtyResponse)
                 .collect(Collectors.toList());
-        return new ApiResponse<>(
-                "Request successfully processed",
-                specialties,
-                HttpStatus.OK
-        );
     }
 
     @Override
@@ -64,7 +58,7 @@ public class SpecialtyKeywordImplementation implements SpecialtyKeywordService {
         List<SpecialtyKeywordResponse> keywords = new ArrayList<>();
 
         if(!result.isEmpty()) {
-            keywords = result.stream()
+            keywords = result.stream() == null ? List.of() : result.stream()
                     .map(this::getSpecialtyResponse)
                     .toList();
         }

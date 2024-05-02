@@ -41,7 +41,7 @@ public class SpecialtyImplementation implements SpecialtyService {
     private Integer SPECIALTY_LIMIT;
 
     @Override
-    public void saveIncompleteSpecialties(Incomplete incomplete, Profile profile) {
+    public void createSpecialties(Incomplete incomplete, Profile profile) {
         if(!incomplete.getSpecializations().isEmpty()) {
             incomplete.getSpecializations().forEach(specialty -> {
                 Specialty special = new Specialty();
@@ -59,7 +59,7 @@ public class SpecialtyImplementation implements SpecialtyService {
         SpecialtyKeyword keyword = specialtyKeywordRepository.findById(id)
                 .orElseThrow(() -> new AccountException("Specialty not found"));
 
-        int size = specialtyRepository.findByProfile_Id(profile.getId()).size();
+        int size = specialtyRepository.findByProfile_Id(userUtil.getUser().getId()).size();
         if(size < SPECIALTY_LIMIT) {
             Specialty special = new Specialty();
             special.setService(keyword);

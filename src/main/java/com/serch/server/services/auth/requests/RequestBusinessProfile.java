@@ -9,6 +9,9 @@ public class RequestBusinessProfile {
     private String description;
     private String address;
     private String contact;
+    private Double latitude;
+    private Double longitude;
+    private String place;
 
     @JsonProperty("email_address")
     private String emailAddress;

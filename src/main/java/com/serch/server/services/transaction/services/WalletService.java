@@ -20,6 +20,14 @@ public interface WalletService {
      * @param user The user for whom the wallet needs to be created.
      */
     void createWallet(User user);
+
+    /**
+     * Removes any saved record of the user
+     *
+     * @param user The user whose account is to be removed
+     */
+    void undo(User user);
+
     /**
      * Initiates a payment based on the provided request.
      *
@@ -27,13 +35,15 @@ public interface WalletService {
      * @return An ApiResponse containing the result of the payment initiation.
      */
     ApiResponse<String> pay(PayRequest request);
-    /**
-     * Processes a payment for a trip using the wallet balance.
-     *
-     * @param request The payment request for the trip.
-     * @return An ApiResponse containing the result of the payment.
-     */
-    ApiResponse<String> paySubscription(PayRequest request);
+
+//    /**
+//     * Processes a payment for a trip using the wallet balance.
+//     *
+//     * @param request The payment request for the trip.
+//     * @return An ApiResponse containing the result of the payment.
+//     */
+//    ApiResponse<String> paySubscription(PayRequest request);
+
     /**
      * Processes a payment for a subscription using the wallet balance.
      *
@@ -41,6 +51,7 @@ public interface WalletService {
      * @return An ApiResponse containing the result of the payment.
      */
     ApiResponse<String> payTrip(PayRequest request);
+
     /**
      * Checks if a user can pay for a trip using the wallet balance.
      *
@@ -48,6 +59,7 @@ public interface WalletService {
      * @return An ApiResponse indicating if the user can pay for the trip with the wallet balance.
      */
     ApiResponse<String> checkIfUserCanPayForTripWithWallet(String trip);
+
     /**
      * Initiates the funding of a wallet with the specified amount.
      *
@@ -55,6 +67,7 @@ public interface WalletService {
      * @return An ApiResponse containing the payment initialization data.
      */
     ApiResponse<InitializePaymentData> fundWallet(FundRequest request);
+
     /**
      * Verifies a fund transaction using the reference provided.
      *
@@ -62,6 +75,7 @@ public interface WalletService {
      * @return An ApiResponse indicating the result of the verification.
      */
     ApiResponse<String> verifyFund(String reference);
+
     /**
      * Requests a withdrawal of funds from the wallet.
      *
@@ -69,12 +83,14 @@ public interface WalletService {
      * @return An ApiResponse containing the result of the withdrawal request.
      */
     ApiResponse<String> requestWithdraw(WithdrawRequest request);
+
     /**
      * Retrieves details of the user's wallet.
      *
      * @return An ApiResponse containing the wallet details.
      */
     ApiResponse<WalletResponse> view();
+
     /**
      * Updates the wallet details based on the provided request.
      *

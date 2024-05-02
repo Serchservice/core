@@ -16,7 +16,7 @@ import com.serch.server.services.auth.responses.AuthResponse;
 import com.serch.server.services.auth.services.PasswordService;
 import com.serch.server.services.auth.services.SessionService;
 import com.serch.server.services.auth.services.TokenService;
-import com.serch.server.services.email.services.EmailAuthService;
+import com.serch.server.services.email.services.EmailTemplateService;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
@@ -36,7 +36,7 @@ import java.time.LocalDateTime;
  * @see UserRepository
  * @see AccountDeleteRepository
  * @see TokenService
- * @see EmailAuthService
+ * @see EmailTemplateService
  * @see PasswordEncoder
  * @see SessionService
  */
@@ -46,7 +46,7 @@ public class PasswordImplementation implements PasswordService {
     private final UserRepository userRepository;
     private final AccountDeleteRepository accountDeleteRepository;
     private final TokenService tokenService;
-    private final EmailAuthService emailService;
+    private final EmailTemplateService emailService;
     private final PasswordEncoder passwordEncoder;
     private final SessionService sessionService;
 

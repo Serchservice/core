@@ -31,12 +31,14 @@ public class Payment implements PaymentService {
 
     @Value("${application.payment.api-key}")
     private String TEST_SECRET_KEY;
-    private final String BASE_API_ENDPOINT = "https://api.paystack.co";
+
+    @Value("${application.payment.base-url}")
+    private String BASE_API_ENDPOINT;
 
     /**
      * Constructs and returns HTTP headers for making API requests.
      *
-     * @return HttpHeaders containing necessary headers for API requests.
+     * @return HttpHeaders containing the necessary headers for API requests.
      */
     private HttpHeaders headers() {
         HttpHeaders headers = new HttpHeaders();

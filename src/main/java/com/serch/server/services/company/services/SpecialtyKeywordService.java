@@ -19,12 +19,11 @@ public interface SpecialtyKeywordService {
      * Retrieves all specialties based on the specified category.
      *
      * @param type The category of specialties to retrieve.
-     * @return ApiResponse containing a list of SpecialtyResponse objects.
+     * @return List of SpecialtyResponse objects.
      *
-     * @see ApiResponse
      * @see SpecialtyKeywordResponse
      */
-    ApiResponse<List<SpecialtyKeywordResponse>> getAllSpecialties(SerchCategory type);
+    List<SpecialtyKeywordResponse> getAllSpecialties(SerchCategory type);
 
     /**
      * Maps a SpecialtyService object to a SpecialtyResponse object.

@@ -30,7 +30,7 @@ import java.util.List;
 @Table(schema = "subscription", name = "invoices")
 public class SubscriptionInvoice extends BaseModel {
     @Column(nullable = false)
-    private Integer size = 0;
+    private Integer size = 1;
 
     @Column(nullable = false)
     private String amount;

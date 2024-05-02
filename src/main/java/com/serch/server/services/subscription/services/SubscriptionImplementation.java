@@ -4,79 +4,399 @@ import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.auth.Role;
 import com.serch.server.enums.subscription.PlanStatus;
 import com.serch.server.enums.subscription.PlanType;
+import com.serch.server.exceptions.ExceptionCodes;
+import com.serch.server.exceptions.subscription.PlanException;
 import com.serch.server.exceptions.subscription.SubscriptionException;
 import com.serch.server.mappers.SubscriptionMapper;
+import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.User;
-import com.serch.server.models.subscription.PlanBenefit;
-import com.serch.server.models.subscription.Subscription;
-import com.serch.server.repositories.auth.UserRepository;
-import com.serch.server.repositories.subscription.SubscriptionRepository;
+import com.serch.server.models.business.BusinessProfile;
+import com.serch.server.models.business.BusinessSubscription;
+import com.serch.server.models.subscription.*;
+import com.serch.server.repositories.account.ProfileRepository;
+import com.serch.server.repositories.business.BusinessProfileRepository;
+import com.serch.server.repositories.subscription.*;
+import com.serch.server.services.payment.core.PaymentService;
+import com.serch.server.services.payment.requests.InitializePaymentRequest;
 import com.serch.server.services.payment.responses.InitializePaymentData;
-import com.serch.server.services.subscription.requests.InitSubscriptionRequest;
-import com.serch.server.services.subscription.requests.VerifySubscriptionRequest;
-import com.serch.server.services.subscription.responses.PlanParentResponse;
+import com.serch.server.services.payment.responses.PaymentVerificationData;
+import com.serch.server.services.subscription.requests.InitializeSubscriptionRequest;
 import com.serch.server.services.subscription.responses.SubscriptionCardResponse;
 import com.serch.server.services.subscription.responses.SubscriptionResponse;
+import com.serch.server.services.transaction.services.InvoiceService;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * This is the class that holds the logic and implementation for its wrapper class.
  *
  * @see SubscriptionService
+ * @see PaymentService
+ * @see InvoiceService
  */
 @Service
 @RequiredArgsConstructor
 public class SubscriptionImplementation implements SubscriptionService {
-    private final InitSubscriptionService initService;
-    private final PlanService planService;
-    private final VerifySubscriptionService verifyService;
+    private final PaymentService paymentService;
+    private final InvoiceService invoiceService;
     private final UserUtil userUtil;
-    private final UserRepository userRepository;
     private final SubscriptionRepository subscriptionRepository;
+    private final ProfileRepository profileRepository;
+    private final SubscriptionRequestRepository subscriptionRequestRepository;
+    private final SubscriptionRequestAssociateRepository subscriptionRequestAssociateRepository;
+    private final PlanParentRepository planParentRepository;
+    private final PlanChildRepository planChildRepository;
+    private final SubscriptionAuthRepository subscriptionAuthRepository;
+    private final BusinessProfileRepository businessProfileRepository;
 
     @Override
-    public ApiResponse<InitializePaymentData> initSubscription(InitSubscriptionRequest request) {
-        Optional<User> loggedInUser = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser());
+    public ApiResponse<InitializePaymentData> subscribe(InitializeSubscriptionRequest request) {
+        User user = userUtil.getUser();
+        if(user.hasSubscription() && user.getSubscription().isActive()) {
+            throw new SubscriptionException("You have an active subscription");
+        }
 
-        if(loggedInUser.isPresent()) {
-            return initService.subscribe(loggedInUser.get(), request);
+        if(user.isBusiness()) {
+            BusinessProfile business = businessProfileRepository.findById(user.getId())
+                    .orElseThrow(() -> new SubscriptionException("Business not found"));
+            List<Profile> associates;
+            if(request.getAssociates().isEmpty()) {
+                // Check onboarded associate providers
+                if(business.getSubscriptions().isEmpty()) {
+                    if(business.getAssociates().isEmpty()) {
+                        throw new SubscriptionException("Cannot subscribe until business onboards associate providers");
+                    } else {
+                        associates = business.getAssociates();
+                    }
+                } else {
+                    associates = business.getSubscriptions()
+                            .stream()
+                            .filter(s -> !s.isSuspended())
+                            .map(BusinessSubscription::getProfile).toList();
+                }
+            } else {
+                associates = profileRepository.findAllById(request.getAssociates());
+            }
+            if(associates.isEmpty()) {
+                throw new SubscriptionException("Couldn't find associate providers for your business");
+            }
+            return subscribe(associates, user, request);
         } else {
-            return initService.subscribe(request);
+            return subscribe(List.of(), user, request);
         }
     }
 
-    @Override
-    public ApiResponse<String> verifySubscription(VerifySubscriptionRequest request) {
-        Optional<User> loggedInUser = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser());
-
-        if(loggedInUser.isPresent()) {
-            return verifyService.verify(loggedInUser.get(), request.getReference());
+    private ApiResponse<InitializePaymentData> subscribe(List<Profile> profiles, User user, InitializeSubscriptionRequest request) {
+        Optional<PlanParent> parent = planParentRepository.findById(request.getPlan());
+        if(parent.isPresent()) {
+            if(parent.get().getType() == PlanType.FREE) {
+                if(user.hasSubscription() && user.getSubscription().canUseFreePlan()) {
+                    return freeSubscription(user, profiles, parent.get());
+                } else {
+                    throw new SubscriptionException(
+                            "You cannot use Serch free plan. Please activate your account with a paid plan."
+                    );
+                }
+            } else {
+                return paidSubscription(user, profiles, parent.get(), null, request.getCallbackUrl());
+            }
         } else {
-            return verifyService.verify(request);
+            Optional<PlanChild> planChild = planChildRepository.findById(request.getPlan());
+            if(planChild.isPresent()) {
+                return paidSubscription(user, profiles, planChild.get().getParent(), planChild.get(), request.getCallbackUrl());
+            } else {
+                throw new PlanException("Plan not found");
+            }
         }
+    }
+
+    /**
+     * Subscribe to free plan
+     *
+     * @param user User making the subscription
+     * @param profiles Associated providers tied to the subscription
+     * @param parent The Plan Parent
+     * @return ApiResponse of {@link InitializePaymentData}
+     *
+     * @see ApiResponse
+     */
+    private ApiResponse<InitializePaymentData> freeSubscription(User user, List<Profile> profiles, PlanParent parent) {
+        String reference = "FREE-%s".formatted(UUID.randomUUID().toString().replaceAll("-", ""));
+        request(user, profiles, parent, null, reference);
+
+        InitializePaymentData data = new InitializePaymentData();
+        data.setReference(reference);
+        return new ApiResponse<>(data);
+    }
+
+    /**
+     * Subscribe to free plan
+     *
+     * @param user User making the subscription
+     * @param profiles Associated providers tied to the subscription
+     * @param parent The Plan Parent
+     * @param planChild The Plan Child
+     * @param url The callback url to show after verification
+     * @return ApiResponse of {@link InitializePaymentData}
+     *
+     * @see ApiResponse
+     */
+    private ApiResponse<InitializePaymentData> paidSubscription(User user, List<Profile> profiles, PlanParent parent, PlanChild planChild, String url) {
+        InitializePaymentRequest payRequest = new InitializePaymentRequest();
+
+        String amount;
+        if(planChild != null) {
+            amount = planChild.getAmount();
+        } else {
+            amount = parent.getAmount();
+        }
+        int size = profiles.isEmpty() ? 1 : profiles.size();
+        payRequest.setAmount(String.valueOf(Integer.parseInt(amount) * size));
+
+        payRequest.setEmail(user.getEmailAddress());
+        payRequest.setCallbackUrl(url);
+        payRequest.setChannels(new ArrayList<>(Collections.singletonList("card")));
+        InitializePaymentData data = paymentService.initialize(payRequest);
+
+        request(user, profiles, parent, planChild, data.getReference());
+        return new ApiResponse<>(data);
+    }
+
+    /**
+     * Add associates to a subscription request to the associate request table
+     *
+     * @param user User making the subscription
+     * @param associates Associated providers tied to the subscription
+     * @param parent The Plan Parent
+     * @param child The Plan Child
+     * @param reference The reference code for subscription verification
+     */
+    private void request(User user, List<Profile> associates, PlanParent parent, PlanChild child, String reference) {
+        SubscriptionRequest request = getRequest(user, associates, parent, child, reference);
+
+        if(!associates.isEmpty()) {
+            associates.forEach(profile -> {
+                SubscriptionRequestAssociate associate = new SubscriptionRequestAssociate();
+                associate.setRequest(request);
+                associate.setProfile(profile);
+                subscriptionRequestAssociateRepository.save(associate);
+            });
+        }
+    }
+
+    /**
+     * Add the subscription request to the request table
+     *
+     * @param user User making the subscription
+     * @param associates Associated providers tied to the subscription
+     * @param parent The Plan Parent
+     * @param child The Plan Child
+     * @param reference The reference code for subscription verification
+     * @return Subscription request {@link SubscriptionRequest}
+     */
+    private SubscriptionRequest getRequest(User user, List<Profile> associates, PlanParent parent, PlanChild child, String reference) {
+        Optional<SubscriptionRequest> subRequest = subscriptionRequestRepository.findByUser_Id(user.getId());
+        subRequest.ifPresent(subscriptionRequestRepository::delete);
+
+        SubscriptionRequest subscription = new SubscriptionRequest();
+        subscription.setUser(user);
+        subscription.setParent(parent);
+        subscription.setSize(associates.isEmpty() ? 1 : associates.size());
+        subscription.setReference(reference);
+
+        if(child != null) {
+            subscription.setChild(child);
+        }
+        return subscriptionRequestRepository.save(subscription);
+    }
+
+    @Override
+    public ApiResponse<String> verify(String reference) {
+        User user = userUtil.getUser();
+        SubscriptionRequest request = subscriptionRequestRepository.findByReferenceAndUser_Id(reference, user.getId())
+                .orElseThrow(() -> new SubscriptionException("Subscription request not found"));
+
+        if(request.getParent().getType() == PlanType.FREE) {
+            return verifyFree(request, user);
+        } else {
+            return verifyPaid(request, user);
+        }
+    }
+
+    /**
+     * Verifies a free subscription request.
+     * If the user is already registered,
+     * updates the subscription details; otherwise, creates a new subscription.
+     * @param request The subscription request to be verified.
+     * @param user The user associated with the subscription request.
+     * @return An ApiResponse indicating the status of the verification process.
+     */
+    private ApiResponse<String> verifyFree(SubscriptionRequest request, User user) {
+        Optional<Subscription> existing = subscriptionRepository.findByUser_Id(user.getId());
+        if(existing.isPresent()) {
+            if(existing.get().canUseFreePlan()) {
+                existing.get().setFreePlanStatus(PlanStatus.USED);
+                Subscription updatedSubscription = updateSubscription(request, existing.get());
+                invoiceService.createInvoice(
+                        updatedSubscription,
+                        !request.getAssociates().isEmpty()
+                                ? request.getAssociates().stream().map(SubscriptionRequestAssociate::getProfile).toList()
+                                : List.of()
+                );
+                subscriptionRequestRepository.delete(request);
+                return new ApiResponse<>("Success", HttpStatus.OK);
+            } else {
+                throw new SubscriptionException("You cannot subscribe to free plan anymore");
+            }
+        } else {
+            createSubscription(request, user, null);
+            return new ApiResponse<>("Success", HttpStatus.OK);
+        }
+    }
+
+    /**
+     * Verifies a paid subscription request. If the user is already registered,
+     * updates the subscription details; otherwise, creates a new subscription.
+     * @param request The subscription request to be verified.
+     * @param user The user associated with the subscription request.
+     * @return An ApiResponse indicating the status of the verification process.
+     */
+    private ApiResponse<String> verifyPaid(SubscriptionRequest request, User user) {
+        PaymentVerificationData data = paymentService.verify(request.getReference());
+
+        Optional<Subscription> existing = subscriptionRepository.findByUser_Id(user.getId());
+        if(existing.isPresent()) {
+            Subscription updatedSubscription = updateSubscription(request, existing.get());
+            if(updatedSubscription.isNotSameAuth(data.getAuthorization().getSignature())) {
+                createAuth(updatedSubscription, data);
+            }
+            invoiceService.createInvoice(
+                    updatedSubscription,
+                    !request.getAssociates().isEmpty()
+                            ? request.getAssociates().stream().map(SubscriptionRequestAssociate::getProfile).toList()
+                            : List.of()
+            );
+            subscriptionRequestRepository.delete(request);
+        } else {
+            createSubscription(request, user, data);
+        }
+        return new ApiResponse<>("Success", HttpStatus.OK);
+    }
+
+    /// Update existing subscription
+    public Subscription updateSubscription(SubscriptionRequest request, Subscription existing) {
+        existing.setPlan(request.getParent());
+        existing.setChild(request.getChild());
+        existing.setPlanStatus(PlanStatus.ACTIVE);
+        existing.setUpdatedAt(LocalDateTime.now());
+        existing.setSubscribedAt(LocalDateTime.now());
+        existing.setReference(request.getReference());
+        existing.setMode(request.getMode());
+        existing.setSize(request.getSize());
+        existing.setRetries(0);
+        return subscriptionRepository.save(existing);
+    }
+
+    /// Create authorization record for subscription
+    @Override
+    public void createAuth(Subscription subscription, PaymentVerificationData data) {
+        subscriptionAuthRepository.delete(subscription.getAuth());
+        SubscriptionAuth auth = SubscriptionMapper.INSTANCE.auth(data.getAuthorization());
+        auth.setEmailAddress(subscription.getUser().getEmailAddress());
+        auth.setSubscription(subscription);
+        subscriptionAuthRepository.save(auth);
+    }
+
+    /**
+     * Creates a new subscription for a given user based on a subscription request.
+     * @param request The subscription request.
+     * @param user The user for whom the subscription is created.
+     * @param data The payment verification data.
+     */
+    private void createSubscription(SubscriptionRequest request, User user, PaymentVerificationData data) {
+        Subscription subscribed = getSubscription(request, user, data);
+        if(data != null) {
+            createAuth(subscribed, data);
+        }
+        invoiceService.createInvoice(
+                subscribed,
+                !request.getAssociates().isEmpty()
+                        ? request.getAssociates().stream().map(SubscriptionRequestAssociate::getProfile).toList()
+                        : List.of()
+        );
+        subscriptionRequestRepository.delete(request);
+    }
+
+    /// Prepare subscription data and return it
+    private Subscription getSubscription(SubscriptionRequest request, User user, PaymentVerificationData data) {
+        Subscription subscription = SubscriptionMapper.INSTANCE.subscription(request);
+        subscription.setPlanStatus(PlanStatus.ACTIVE);
+        subscription.setUpdatedAt(LocalDateTime.now());
+        subscription.setUser(user);
+        subscription.setSubscribedAt(LocalDateTime.now());
+        if(request.getParent().getType() == PlanType.FREE) {
+            subscription.setFreePlanStatus(PlanStatus.USED);
+        }
+        if(data != null) {
+            subscription.setAmount(BigDecimal.valueOf(data.getAmount()));
+        }
+        return subscriptionRepository.save(subscription);
     }
 
     @Override
     public ApiResponse<SubscriptionResponse> seeCurrentSubscription() {
-        Subscription subscription = subscriptionRepository.findByUser_Id(userUtil.getUser().getId())
-                .orElseThrow(() -> new SubscriptionException("Subscription not found"));
+        User user = userUtil.getUser();
+        Optional<Subscription> subscription;
+        if(user.getRole() == Role.ASSOCIATE_PROVIDER) {
+            Profile profile = profileRepository.findById(user.getId())
+                    .orElseThrow(() -> new SubscriptionException("Provider not found"));
+            subscription = subscriptionRepository.findByUser_Id(profile.getBusiness().getId());
 
-        SubscriptionResponse response = getSubscriptionResponse(subscription);
-        return new ApiResponse<>(response);
+            if(profile.getBusiness().getSubscriptions().isEmpty()) {
+                throw new SubscriptionException(
+                        "Your business organization has no active plan. Contact the admin to activate your account.",
+                        ExceptionCodes.NO_SUBSCRIPTION
+                );
+            } else if(profile.getBusiness().getSubscriptions().stream().noneMatch(sub -> sub.getProfile().isSameAs(profile.getId()))) {
+                throw new SubscriptionException(
+                        "Your business admin has not added you to the list of business subscriptions. Contact your admin.",
+                        ExceptionCodes.NO_SUBSCRIPTION
+                );
+            } else if(profile.getBusiness().getSubscriptions().stream().anyMatch(sub -> sub.getProfile().isSameAs(profile.getId()) && sub.isSuspended())) {
+                throw new SubscriptionException(
+                        "Your business admin has removed your account from the list of organization subscriptions. Contact the admin if this is an error.",
+                        ExceptionCodes.NO_SUBSCRIPTION
+                );
+            } else if(profile.getBusiness().getSubscriptions().stream().anyMatch(sub -> sub.getProfile().isSameAs(profile.getId()) && sub.isNotActive())) {
+                throw new SubscriptionException(
+                        "Your organization subscription has ended or not active. Contact your business admin.",
+                        ExceptionCodes.NO_SUBSCRIPTION
+                );
+            }
+        } else {
+            subscription = subscriptionRepository.findByUser_Id(userUtil.getUser().getId());
+        }
+
+        if(subscription.isPresent()) {
+            return new ApiResponse<>(getSubscriptionResponse(subscription.get()));
+        } else {
+            throw new SubscriptionException(
+                    "You have no subscription. Activate your account by choosing a plan",
+                    ExceptionCodes.NO_SUBSCRIPTION
+            );
+        }
     }
 
     private SubscriptionResponse getSubscriptionResponse(Subscription subscription) {
         SubscriptionResponse response = SubscriptionMapper.INSTANCE.subscription(subscription.getPlan());
-        response.setAmount(getAmountFromUserActivePlan(subscription));
+        response.setAmount(getActiveAmount(subscription));
         response.setBenefits(subscription.getPlan().getBenefits().stream().map(PlanBenefit::getBenefit).toList());
         response.setDuration(getDuration(subscription));
         response.setPlan(subscription.getPlan().getType().getType());
@@ -87,6 +407,8 @@ public class SubscriptionImplementation implements SubscriptionService {
                         subscription.getChild().getType()
                 )
         );
+        response.setIsActive(subscription.isActive());
+        response.setId(getId(subscription));
         response.setChild(getChild(subscription));
         response.setStatus(subscription.getPlanStatus().getType());
 
@@ -96,34 +418,6 @@ public class SubscriptionImplementation implements SubscriptionService {
 
         response.setCard(card);
         return response;
-    }
-
-    @Override
-    public ApiResponse<SubscriptionResponse> checkSubscription(UUID business) {
-        User user = userUtil.getUser();
-        Subscription subscription;
-        if(user.getRole() == Role.ASSOCIATE_PROVIDER) {
-            subscription = subscriptionRepository.findByUser_Id(business)
-                    .orElseThrow(() -> new SubscriptionException("Subscription not found"));
-        } else {
-            subscription = subscriptionRepository.findByUser_Id(userUtil.getUser().getId())
-                    .orElseThrow(() -> new SubscriptionException("Subscription not found"));
-        }
-
-        SubscriptionResponse data = getSubscriptionResponse(subscription);
-        if(subscription.isExpired()) {
-            throw new SubscriptionException("Your subscription has expired", data);
-        } else {
-            return new ApiResponse<>(data);
-        }
-    }
-
-    @Override
-    public String getAmountFromUserActivePlan(Subscription subscription) {
-        if (subscription.getChild() != null) {
-            return subscription.getChild().getAmount();
-        }
-        return subscription.getPlan().getAmount();
     }
 
     /**
@@ -148,24 +442,23 @@ public class SubscriptionImplementation implements SubscriptionService {
                 : subscription.getPlan().getDuration();
     }
 
-    @Override
-    public ApiResponse<List<PlanParentResponse>> getPlans() {
-        Subscription subscription = subscriptionRepository.findByUser_Id(userUtil.getUser().getId())
-                .orElse(new Subscription());
+    /**
+     * Retrieves the id of the current plan
+     * @param subscription The subscription for which to retrieve the plan id.
+     * @return The plan id of the subscription.
+     */
+    private static String getId(Subscription subscription) {
+        return subscription.getChild() != null
+                ? subscription.getChild().getId()
+                : subscription.getPlan().getId();
+    }
 
-        ApiResponse<List<PlanParentResponse>> plans = planService.getPlans();
-        if(plans.getStatus().is2xxSuccessful()) {
-            return new ApiResponse<>(
-                    "Successfully fetch plans",
-                    plans.getData()
-                            .stream()
-                            .filter(res -> res.getType() != PlanType.FREE && !subscription.canUseFreePlan())
-                            .toList(),
-                    HttpStatus.OK
-            );
-        } else {
-            throw new SubscriptionException(plans.getMessage());
+    @Override
+    public String getActiveAmount(Subscription subscription) {
+        if (subscription.getChild() != null) {
+            return subscription.getChild().getAmount();
         }
+        return subscription.getPlan().getAmount();
     }
 
     @Override

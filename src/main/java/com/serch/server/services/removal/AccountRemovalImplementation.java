@@ -3,13 +3,14 @@ package com.serch.server.services.removal;
 import com.serch.server.enums.auth.Role;
 import com.serch.server.enums.company.IssueStatus;
 import com.serch.server.models.account.AccountDelete;
-import com.serch.server.models.account.BusinessProfile;
+import com.serch.server.models.business.BusinessProfile;
 import com.serch.server.models.auth.User;
 import com.serch.server.repositories.account.*;
 import com.serch.server.repositories.auth.SessionRepository;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.auth.mfa.MFAFactorRepository;
 import com.serch.server.repositories.bookmark.BookmarkRepository;
+import com.serch.server.repositories.business.BusinessProfileRepository;
 import com.serch.server.repositories.conversation.CallRepository;
 import com.serch.server.repositories.company.IssueRepository;
 import com.serch.server.repositories.conversation.ChatMessageRepository;
@@ -109,7 +110,7 @@ public class AccountRemovalImplementation implements AccountRemovalService {
         ratingRepository.deleteAll(ratingRepository.findByRater(String.valueOf(user.getId())));
 
         /// REFERRAL
-        referralRepository.deleteAll(referralRepository.findByReferral_Id(user.getId()));
+        referralRepository.findByReferral_Id(user.getId()).ifPresent(referralRepository::delete);
         referralRepository.deleteAll(referralRepository.findByReferredBy_User_EmailAddress(user.getEmailAddress()));
         referralProgramRepository.findByUser_Id(user.getId()).ifPresent(referralProgramRepository::delete);
 

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.verified.VerificationStatus;
 import com.serch.server.services.auth.requests.RequestPhoneInformation;
+import com.serch.server.services.business.responses.BusinessInformationData;
 import com.serch.server.services.company.responses.SpecialtyKeywordResponse;
 import lombok.Builder;
 import lombok.Getter;

@@ -5,7 +5,7 @@ import com.resend.services.emails.model.SendEmailResponse;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.email.EmailType;
 import com.serch.server.models.email.SendEmail;
-import com.serch.server.services.email.services.EmailAuthService;
+import com.serch.server.services.email.services.EmailTemplateService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -28,7 +28,7 @@ class EmailControllerTest {
     private EmailController emailController;
 
     @MockBean
-    private EmailAuthService emailService;
+    private EmailTemplateService emailService;
 
     /**
      * Method under test: {@link EmailController#send(SendEmail)}

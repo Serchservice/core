@@ -4,6 +4,7 @@ import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseProfile;
 import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.auth.Role;
+import com.serch.server.models.business.BusinessProfile;
 import com.serch.server.models.certificate.Certificate;
 import com.serch.server.models.trip.Active;
 import com.serch.server.models.verified.Verification;

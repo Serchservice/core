@@ -11,7 +11,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  *
  * @author <a href="https://iamevaristus.github.com">Evaristus Adimonyemma</a>
  */
-//@EnableScheduling
+@EnableScheduling
 @SpringBootApplication
 public class ServerApplication {
 	public static void main(String[] args) {

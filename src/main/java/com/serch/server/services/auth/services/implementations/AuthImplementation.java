@@ -1,6 +1,7 @@
 package com.serch.server.services.auth.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.auth.AuthMethod;
 import com.serch.server.enums.auth.Role;
 import com.serch.server.enums.email.EmailType;
@@ -17,14 +18,19 @@ import com.serch.server.services.auth.requests.RequestEmailToken;
 import com.serch.server.services.auth.requests.RequestLogin;
 import com.serch.server.services.auth.requests.RequestSession;
 import com.serch.server.services.auth.responses.AuthResponse;
+import com.serch.server.services.auth.responses.SerchCategoryResponse;
 import com.serch.server.services.auth.services.AuthService;
 import com.serch.server.services.auth.services.SessionService;
 import com.serch.server.services.auth.services.TokenService;
-import com.serch.server.services.email.services.EmailAuthService;
+import com.serch.server.services.company.services.SpecialtyKeywordService;
+import com.serch.server.services.email.services.EmailTemplateService;
 import com.serch.server.services.referral.services.ReferralProgramService;
 import com.serch.server.utils.TimeUtil;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,7 +52,8 @@ import org.springframework.stereotype.Service;
  * @see SessionService
  * @see TokenService
  * @see AuthenticationManager
- * @see EmailAuthService
+ * @see EmailTemplateService
+ * @see SpecialtyKeywordService
  * @see ReferralProgramService
  * @see AccountDeleteRepository
  * @see AccountSettingService
@@ -59,23 +66,28 @@ public class AuthImplementation implements AuthService {
     private final UserRepository userRepository;
     private final SessionService sessionService;
     private final AccountSettingService accountSettingService;
+    private final SpecialtyKeywordService keywordService;
     private final ReferralProgramService referralProgramService;
     private final TokenService tokenService;
     private final AuthenticationManager authenticationManager;
-    private final EmailAuthService emailService;
+    private final EmailTemplateService emailService;
     private final AccountDeleteRepository accountDeleteRepository;
 
     @Value("${application.security.otp-expiration-time}")
     protected Integer OTP_EXPIRATION_TIME;
 
+    @Value("${application.security.otp-trials}")
+    protected Integer MAXIMUM_OTP_TRIALS;
+
     @Override
     public Incomplete sendOtp(String emailAddress) {
-        var user = incompleteRepository.findByEmailAddress(emailAddress);
+        Optional<Incomplete> user = incompleteRepository.findByEmailAddress(emailAddress);
         String otp = tokenService.generateOtp();
         if (user.isPresent()) {
-            if (TimeUtil.isOtpExpired(user.get().getTokenExpiresAt(), OTP_EXPIRATION_TIME)) {
+            if (TimeUtil.isOtpExpired(user.get().getTokenExpiresAt(), OTP_EXPIRATION_TIME) || user.get().getTrials() < MAXIMUM_OTP_TRIALS) {
                 user.get().setToken(passwordEncoder.encode(otp));
                 user.get().setUpdatedAt(LocalDateTime.now());
+                user.get().setTrials(user.get().getTrials() + 1);
                 user.get().setTokenExpiresAt(LocalDateTime.now().plusMinutes(OTP_EXPIRATION_TIME));
                 incompleteRepository.save(user.get());
                 sendEmail(emailAddress, otp);
@@ -87,7 +99,7 @@ public class AuthImplementation implements AuthService {
                 );
             }
         } else {
-            var saved = getIncomplete(emailAddress, otp);
+            Incomplete saved = getIncomplete(emailAddress, otp);
             sendEmail(emailAddress, otp);
             return saved;
         }
@@ -105,6 +117,7 @@ public class AuthImplementation implements AuthService {
         Incomplete incomplete = new Incomplete();
         incomplete.setEmailAddress(emailAddress);
         incomplete.setToken(passwordEncoder.encode(otp));
+        incomplete.setTrials(1);
         incomplete.setTokenExpiresAt(LocalDateTime.now().plusMinutes(OTP_EXPIRATION_TIME));
         return incompleteRepository.save(incomplete);
     }
@@ -124,7 +137,7 @@ public class AuthImplementation implements AuthService {
                 if (!incomplete.get().isEmailConfirmed()) {
                     sendOtp(email);
                     throw new AuthException(
-                            "Email not verified. Check your email",
+                            "An email was sent to your email. Use the OTP to continue with signup.",
                             ExceptionCodes.EMAIL_NOT_VERIFIED
                     );
                 } else if (!incomplete.get().hasProfile()) {
@@ -137,15 +150,10 @@ public class AuthImplementation implements AuthService {
                             "Category is not selected. Signup to pick your skill",
                             ExceptionCodes.CATEGORY_NOT_SET
                     );
-                } else if (!incomplete.get().hasAdditional()) {
-                    throw new AuthException(
-                            "Additional Information is not saved. Signup to get started",
-                            ExceptionCodes.ADDITIONAL_NOT_SET
-                    );
                 } else {
                     throw new AuthException(
-                            "You have not picked a Serch plan",
-                            ExceptionCodes.PLAN_NOT_SET
+                            "You have not finished creating your account. Finish up now",
+                            ExceptionCodes.ACCOUNT_NOT_CREATED
                     );
                 }
             } else {
@@ -190,22 +198,28 @@ public class AuthImplementation implements AuthService {
     public ApiResponse<AuthResponse> authenticate(RequestLogin request, User user) {
         authenticate(request);
 
-        RequestSession requestSession = new RequestSession();
-        requestSession.setMethod(AuthMethod.PASSWORD);
-        requestSession.setUser(user);
-        requestSession.setDevice(request.getDevice());
-        var session = sessionService.generateSession(requestSession);
-
         user.setLastSignedIn(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
         user.setPasswordRecoveryToken(null);
         user.setPasswordRecoveryExpiresAt(null);
         user.setPasswordRecoveryConfirmedAt(null);
         userRepository.save(user);
+        accountDeleteRepository.findByUser_EmailAddress(user.getEmailAddress()).ifPresent(accountDeleteRepository::delete);
 
-        accountDeleteRepository.findByUser_EmailAddress(user.getEmailAddress())
-                .ifPresent(accountDeleteRepository::delete);
-        return session;
+        RequestSession requestSession = new RequestSession();
+        requestSession.setMethod(AuthMethod.PASSWORD);
+        requestSession.setUser(user);
+        requestSession.setDevice(request.getDevice());
+        return sessionService.generateSession(requestSession);
+    }
+
+    private void authenticate(RequestLogin request) {
+        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
+                request.getEmailAddress(),
+                request.getPassword()
+        );
+        Authentication authentication = authenticationManager.authenticate(token);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
     @Override
@@ -223,12 +237,20 @@ public class AuthImplementation implements AuthService {
         return saved;
     }
 
-    private void authenticate(RequestLogin request) {
-        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-                request.getEmailAddress(),
-                request.getPassword()
-        );
-        Authentication authentication = authenticationManager.authenticate(token);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+    @Override
+    public ApiResponse<List<SerchCategoryResponse>> categories() {
+        List<SerchCategoryResponse> categories = Arrays.stream(SerchCategory.values())
+                .filter(serchCategory -> serchCategory != SerchCategory.USER && serchCategory != SerchCategory.BUSINESS && serchCategory != SerchCategory.GUEST)
+                .map(category -> {
+                    SerchCategoryResponse response = new SerchCategoryResponse();
+                    response.setCategory(category);
+                    response.setType(category.getType());
+                    response.setImage(category.getImage());
+                    response.setInformation("What skills do you have?");
+                    response.setSpecialties(keywordService.getAllSpecialties(category));
+                    return response;
+                })
+                .toList();
+        return new ApiResponse<>(categories);
     }
 }

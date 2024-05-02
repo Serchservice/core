@@ -7,7 +7,10 @@ import com.serch.server.models.auth.incomplete.Incomplete;
 import com.serch.server.services.auth.requests.RequestEmailToken;
 import com.serch.server.services.auth.requests.RequestLogin;
 import com.serch.server.services.auth.responses.AuthResponse;
+import com.serch.server.services.auth.responses.SerchCategoryResponse;
 import jakarta.validation.constraints.NotNull;
+
+import java.util.List;
 
 /**
  * Service interface for managing authentication-related operations.
@@ -72,4 +75,13 @@ public interface AuthService {
      * @see Role
      */
     User getUserFromIncomplete(Incomplete incomplete, Role role);
+
+    /**
+     * Gets all the categories in Serch
+     *
+     * @return ApiResponse list of SerchCategoryResponse
+     *
+     * @see SerchCategoryResponse
+     */
+    ApiResponse<List<SerchCategoryResponse>> categories();
 }

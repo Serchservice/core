@@ -96,23 +96,23 @@ public class ProfileImplementation implements ProfileService {
         }
     }
 
+    private Profile getProfile(RequestCreateProfile request) {
+        Profile profile = AccountMapper.INSTANCE.profile(request.getProfile());
+        profile.setUser(request.getUser());
+        profile.setCategory(request.getCategory());
+        return profileRepository.save(profile);
+    }
+
     @Override
     public ApiResponse<Profile> createProviderProfile(Incomplete incomplete, User user) {
         RequestCreateProfile createProfile = new RequestCreateProfile();
         createProfile.setUser(user);
         createProfile.setProfile(getRequestProfile(incomplete));
         createProfile.setCategory(incomplete.getCategory().getCategory());
-        createProfile.setReferredBy(incomplete.getReferredBy().getReferredBy());
-        return createProfile(createProfile);
-    }
 
-    @Override
-    public ApiResponse<Profile> createUserProfile(RequestProfile request, User user, User referral) {
-        RequestCreateProfile createProfile = new RequestCreateProfile();
-        createProfile.setUser(user);
-        createProfile.setProfile(request);
-        createProfile.setCategory(SerchCategory.USER);
-        createProfile.setReferredBy(referral);
+        if(incomplete.getReferredBy() != null) {
+            createProfile.setReferredBy(incomplete.getReferredBy().getReferredBy());
+        }
         return createProfile(createProfile);
     }
 
@@ -124,11 +124,14 @@ public class ProfileImplementation implements ProfileService {
         return profile;
     }
 
-    private Profile getProfile(RequestCreateProfile request) {
-        Profile profile = AccountMapper.INSTANCE.profile(request.getProfile());
-        profile.setUser(request.getUser());
-        profile.setCategory(request.getCategory());
-        return profileRepository.save(profile);
+    @Override
+    public ApiResponse<Profile> createUserProfile(RequestProfile request, User user, User referral) {
+        RequestCreateProfile createProfile = new RequestCreateProfile();
+        createProfile.setUser(user);
+        createProfile.setProfile(request);
+        createProfile.setCategory(SerchCategory.USER);
+        createProfile.setReferredBy(referral);
+        return createProfile(createProfile);
     }
 
     @Override
@@ -178,6 +181,18 @@ public class ProfileImplementation implements ProfileService {
         more.setIsNonExpired(user.isAccountNonExpired());
         more.setLastSignedIn(TimeUtil.formatLastSignedIn(user.getLastSignedIn()));
         return more;
+    }
+
+    @Override
+    public void undo(String emailAddress) {
+        profileRepository.findByUser_EmailAddress(emailAddress)
+                .ifPresent(profile -> {
+                    userRepository.delete(profile.getUser());
+                    phoneInformationRepository.findByUser_Id(profile.getId()).ifPresent(phoneInformationRepository::delete);
+                    referralService.undo(profile.getUser());
+                    walletService.undo(profile.getUser());
+                    profileRepository.delete(profile);
+                });
     }
 
     @Override

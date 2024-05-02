@@ -12,6 +12,9 @@ public class AuthResponse {
     @JsonProperty("first_name")
     private String firstName;
 
+    @JsonProperty("last_name")
+    private String lastName;
+
     @JsonProperty("has_mfa")
     private Boolean mfaEnabled;
 
@@ -19,5 +22,8 @@ public class AuthResponse {
     private Boolean recoveryCodesEnabled;
 
     private String role;
+    private String category;
+    private String image;
+    private Double rating;
     private SessionResponse session;
 }

@@ -20,6 +20,9 @@ public class AuthResponse {
 
     @JsonProperty("has_recovery_codes")
     private Boolean recoveryCodesEnabled;
+    
+    @JsonProperty("should_subscribe")
+    private Boolean shouldSubscribe;
 
     private String role;
     private String category;
@@ -28,6 +31,5 @@ public class AuthResponse {
     private String avatar;
     private String verification;
     private String subscription;
-    private Boolean shouldSubscribe;
     private SessionResponse session;
 }

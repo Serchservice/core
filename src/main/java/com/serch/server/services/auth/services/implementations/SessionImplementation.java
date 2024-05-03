@@ -18,6 +18,7 @@ import com.serch.server.repositories.auth.RefreshTokenRepository;
 import com.serch.server.repositories.auth.SessionRepository;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.business.BusinessProfileRepository;
+import com.serch.server.repositories.subscription.SubscriptionRepository;
 import com.serch.server.services.auth.requests.RequestSession;
 import com.serch.server.services.auth.requests.RequestSessionToken;
 import com.serch.server.services.auth.responses.AuthResponse;
@@ -55,6 +56,7 @@ public class SessionImplementation implements SessionService {
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
     private final BusinessProfileRepository businessProfileRepository;
+    private final SubscriptionRepository subscriptionRepository;
 
     @Override
     public void revokeAllRefreshTokens(UUID userId) {
@@ -133,6 +135,9 @@ public class SessionImplementation implements SessionService {
                                 .map(BusinessProfile::getRating)
                                 .orElse(5.0)
                 );
+        String subscription = subscriptionRepository.findByUser_Id(request.getUser().getId())
+                .map(sub -> sub.getPlan().getType().name())
+                .orElse("");
         return new ApiResponse<>(
                 "Successful",
                 AuthResponse.builder()
@@ -143,6 +148,9 @@ public class SessionImplementation implements SessionService {
                         .role(request.getUser().getRole().name())
                         .category(category.getType())
                         .image(category.getImage())
+                        .shouldSubscribe(category.isShouldSubscribe())
+                        .subscription(subscription)
+                        .verification("")
                         .rating(rating)
                         .avatar(avatar)
                         .recoveryCodesEnabled(request.getUser().getRecoveryCodeEnabled())

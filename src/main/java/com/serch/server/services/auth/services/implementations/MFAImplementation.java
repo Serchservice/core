@@ -14,13 +14,17 @@ import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.auth.mfa.MFAChallengeRepository;
 import com.serch.server.repositories.auth.mfa.MFAFactorRepository;
 import com.serch.server.repositories.auth.mfa.MFARecoveryCodeRepository;
+import com.serch.server.services.auth.requests.RequestDevice;
 import com.serch.server.services.auth.requests.RequestMFAChallenge;
 import com.serch.server.services.auth.requests.RequestSession;
 import com.serch.server.services.auth.responses.AuthResponse;
 import com.serch.server.services.auth.responses.MFADataResponse;
+import com.serch.server.services.auth.responses.MFARecoveryCodeResponse;
 import com.serch.server.services.auth.responses.MFAUsageResponse;
 import com.serch.server.services.auth.services.MFAService;
 import com.serch.server.services.auth.services.SessionService;
+import com.serch.server.services.auth.services.TokenService;
+import com.serch.server.utils.DatabaseUtil;
 import com.serch.server.utils.UserUtil;
 import dev.samstevens.totp.code.DefaultCodeGenerator;
 import dev.samstevens.totp.code.DefaultCodeVerifier;
@@ -28,7 +32,6 @@ import dev.samstevens.totp.code.HashingAlgorithm;
 import dev.samstevens.totp.qr.QrData;
 import dev.samstevens.totp.qr.QrGenerator;
 import dev.samstevens.totp.qr.ZxingPngQrGenerator;
-import dev.samstevens.totp.recovery.RecoveryCodeGenerator;
 import dev.samstevens.totp.secret.DefaultSecretGenerator;
 import dev.samstevens.totp.secret.SecretGenerator;
 import dev.samstevens.totp.time.SystemTimeProvider;
@@ -39,10 +42,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -55,6 +58,7 @@ import java.util.List;
  * @see MFAChallengeRepository
  * @see MFARecoveryCodeRepository
  * @see SessionService
+ * @see TokenService
  */
 @Service
 @RequiredArgsConstructor
@@ -65,6 +69,7 @@ public class MFAImplementation implements MFAService {
     private final MFAChallengeRepository mFAChallengeRepository;
     private final MFARecoveryCodeRepository mFARecoveryCodeRepository;
     private final SessionService sessionService;
+    private final TokenService tokenService;
 
     /**
      * Generates a random secret for MFA.
@@ -106,20 +111,23 @@ public class MFAImplementation implements MFAService {
      */
     protected boolean isCodeValid(String secret, String code) {
         return new DefaultCodeVerifier(
-                new DefaultCodeGenerator(HashingAlgorithm.SHA512, 6),
+                new DefaultCodeGenerator(),
                 new SystemTimeProvider()
         ).isValidCode(secret, code);
     }
 
     @Override
+    @Transactional
     public ApiResponse<MFADataResponse> getMFAData() {
         var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         if(user.getMfaEnabled()) {
             throw new AuthException("You have enabled MFA", ExceptionCodes.ACCESS_DENIED);
+        } else if(user.getMfaFactor() != null) {
+            String qrCode = generateQrCode(user.getMfaFactor().getSecret(), user.getRole());
+            return new ApiResponse<>(new MFADataResponse(user.getMfaFactor().getSecret(), qrCode));
         } else {
-            mFAFactorRepository.findByUser_Id(user.getId()).ifPresent(mFAFactorRepository::delete);
             String secret = generateSecret();
             String qrCode = generateQrCode(secret, user.getRole());
 
@@ -139,12 +147,15 @@ public class MFAImplementation implements MFAService {
         if(factor == null) {
             throw new AuthException("You have not enabled MFA", ExceptionCodes.ACCESS_DENIED);
         } else {
-            saveMFAChallenge(request, factor);
-            if(!isCodeValid(factor.getSecret(), request.getCode())) {
+            MFAChallenge challenge = saveMFAChallenge(request, factor);
+            if(isCodeValid(factor.getSecret(), request.getCode())) {
                 if(!user.getMfaEnabled()) {
                     user.setMfaEnabled(true);
                     user.setUpdatedAt(LocalDateTime.now());
                     userRepository.save(user);
+
+                    challenge.setVerifiedAt(LocalDateTime.now());
+                    mFAChallengeRepository.save(challenge);
                 }
                 return sessionResponse(request, user);
             } else {
@@ -153,10 +164,10 @@ public class MFAImplementation implements MFAService {
         }
     }
 
-    private void saveMFAChallenge(RequestMFAChallenge request, MFAFactor factor) {
+    private MFAChallenge saveMFAChallenge(RequestMFAChallenge request, MFAFactor factor) {
         MFAChallenge challenge = AuthMapper.INSTANCE.challenge(request.getDevice());
         challenge.setMfaFactor(factor);
-        mFAChallengeRepository.save(challenge);
+        return mFAChallengeRepository.save(challenge);
     }
 
     private ApiResponse<AuthResponse> sessionResponse(RequestMFAChallenge request, User user) {
@@ -177,12 +188,14 @@ public class MFAImplementation implements MFAService {
             for(var code : factor.getRecoveryCodes()) {
                 if(passwordEncoder.matches(request.getCode(), code.getCode())) {
                     if(code.getIsUsed()) {
-                        return new ApiResponse<>("Token is already used. Get another");
+                        throw new AuthException("Token is already used. Get another");
                     } else {
                         code.setIsUsed(true);
                         code.setUpdatedAt(LocalDateTime.now());
                         mFARecoveryCodeRepository.save(code);
-                        saveMFAChallenge(request, factor);
+                        MFAChallenge challenge = saveMFAChallenge(request, factor);
+                        challenge.setVerifiedAt(LocalDateTime.now());
+                        mFAChallengeRepository.save(challenge);
                         return sessionResponse(request, user);
                     }
                 }
@@ -195,25 +208,87 @@ public class MFAImplementation implements MFAService {
     }
 
     @Override
-    public ApiResponse<List<String>> getRecoveryCodes() {
+    public ApiResponse<List<MFARecoveryCodeResponse>> getRecoveryCodes() {
         var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if(user.getMfaEnabled()) {
-            if(user.getMfaFactor().getRecoveryCodes().isEmpty()) {
+            if(user.getMfaFactor().getRecoveryCodes() == null || user.getMfaFactor().getRecoveryCodes().isEmpty()) {
                 return saveRecoveryCodes(user);
             } else if(user.getMfaFactor().getRecoveryCodes().stream().allMatch(MFARecoveryCode::getIsUsed)) {
                 mFARecoveryCodeRepository.deleteAll(user.getMfaFactor().getRecoveryCodes());
                 return saveRecoveryCodes(user);
             } else {
-                throw new AuthException("MFA Recovery codes are not yet used");
+                return new ApiResponse<>(
+                        user.getMfaFactor().getRecoveryCodes()
+                                .stream()
+                                .map(code -> {
+                                    MFARecoveryCodeResponse response = AuthMapper.INSTANCE.response(code);
+                                    response.setCode(DatabaseUtil.decodeData(code.getRecovery()));
+                                    return response;
+                                })
+                                .toList()
+                );
             }
         } else {
             throw new AuthException("MFA is not enabled");
         }
     }
 
+    private List<String> generateRecoveryCodes() {
+        List<String> referralCodes = new ArrayList<>();
+
+        for (int i = 0; i < 16; i++) {
+            String code;
+            do {
+                code = tokenService.generateCode(6).toUpperCase();
+            } while (referralCodes.contains(code)); // Ensure uniqueness
+
+            referralCodes.add(code);
+        }
+        return referralCodes;
+    }
+
+    /**
+     * Saves MFA recovery codes for the user.
+     *
+     * @param user The user for whom the recovery codes are generated.
+     * @return An API response containing the saved recovery codes.
+     */
+    private ApiResponse<List<MFARecoveryCodeResponse>> saveRecoveryCodes(User user) {
+        List<String> codes = generateRecoveryCodes();
+        codes.forEach(code -> saveRecoveryCode(user, code));
+        user.setRecoveryCodeEnabled(true);
+        user.setUpdatedAt(LocalDateTime.now());
+
+        if(!user.getRecoveryCodeEnabled()) {
+            user.setRecoveryCodeEnabled(true);
+        }
+        userRepository.save(user);
+
+        return new ApiResponse<>(codes.stream().map(code -> {
+            MFARecoveryCodeResponse response = new MFARecoveryCodeResponse();
+            response.setCode(code);
+            response.setIsUsed(false);
+            return response;
+        }).toList());
+    }
+
+    /**
+     * Saves a single MFA recovery code for the user.
+     *
+     * @param user  The user for whom the recovery code is saved.
+     * @param code  The recovery code to be saved.
+     */
+    private void saveRecoveryCode(User user, String code) {
+        MFARecoveryCode recoveryCode = new MFARecoveryCode();
+        recoveryCode.setCode(passwordEncoder.encode(code));
+        recoveryCode.setRecovery(DatabaseUtil.encodeData(code));
+        recoveryCode.setFactor(user.getMfaFactor());
+        mFARecoveryCodeRepository.save(recoveryCode);
+    }
+
     @Override
-    public ApiResponse<String> disable() {
+    public ApiResponse<AuthResponse> disable(RequestDevice device) {
         var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if(user.getMfaEnabled()) {
@@ -222,7 +297,13 @@ public class MFAImplementation implements MFAService {
             user.setUpdatedAt(LocalDateTime.now());
             userRepository.save(user);
             mFAFactorRepository.delete(user.getMfaFactor());
-            return new ApiResponse<>("MFA disabled", HttpStatus.OK);
+
+            RequestSession requestSession = new RequestSession();
+            requestSession.setMethod(AuthMethod.TOKEN);
+            requestSession.setUser(user);
+            requestSession.setDevice(device);
+
+            return sessionService.generateSession(requestSession);
         } else {
             throw new AuthException("Error occurred while disabling MFA");
         }
@@ -236,6 +317,7 @@ public class MFAImplementation implements MFAService {
             user.setRecoveryCodeEnabled(false);
             user.setUpdatedAt(LocalDateTime.now());
             userRepository.save(user);
+            mFAFactorRepository.delete(user.getMfaFactor());
             return new ApiResponse<>("MFA Recovery Codes disabled", HttpStatus.OK);
         } else {
             throw new AuthException("Error occurred while disabling MFA");
@@ -267,45 +349,5 @@ public class MFAImplementation implements MFAService {
         } else {
             throw new AuthException("MFA is not enabled");
         }
-    }
-
-    /**
-     * Generates recovery codes for MFA.
-     *
-     * @return An array of generated recovery codes.
-     */
-    protected String[] generateRecoveryCodes() {
-        RecoveryCodeGenerator recoveryCodes = new RecoveryCodeGenerator();
-        return recoveryCodes.generateCodes(8);
-    }
-
-    /**
-     * Saves MFA recovery codes for the user.
-     *
-     * @param user The user for whom the recovery codes are generated.
-     * @return An API response containing the saved recovery codes.
-     */
-    private ApiResponse<List<String>> saveRecoveryCodes(User user) {
-        List<String> codes = new ArrayList<>();
-        Arrays.stream(generateRecoveryCodes()).forEach(code -> saveRecoveryCode(user, code, codes));
-        user.setRecoveryCodeEnabled(true);
-        user.setUpdatedAt(LocalDateTime.now());
-        userRepository.save(user);
-        return new ApiResponse<>("Successful request", codes, HttpStatus.OK);
-    }
-
-    /**
-     * Saves a single MFA recovery code for the user.
-     *
-     * @param user  The user for whom the recovery code is saved.
-     * @param code  The recovery code to be saved.
-     * @param codes The list to which the code will be added.
-     */
-    private void saveRecoveryCode(User user, String code, List<String> codes) {
-        MFARecoveryCode recoveryCode = new MFARecoveryCode();
-        recoveryCode.setCode(passwordEncoder.encode(code.toUpperCase()));
-        recoveryCode.setFactor(user.getMfaFactor());
-        mFARecoveryCodeRepository.save(recoveryCode);
-        codes.add(code.toUpperCase());
     }
 }

@@ -15,7 +15,6 @@ import com.serch.server.models.trip.TripAuthentication;
 import com.serch.server.models.trip.TripTime;
 import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.shared.GuestRepository;
-import com.serch.server.repositories.shared.SharedPricingRepository;
 import com.serch.server.repositories.transaction.TransactionRepository;
 import com.serch.server.repositories.transaction.WalletRepository;
 import com.serch.server.repositories.trip.TripAuthenticationRepository;
@@ -61,7 +60,6 @@ import static com.serch.server.enums.trip.TripStatus.*;
  * @see TripTimeRepository
  * @see TripAuthenticationRepository
  * @see GuestRepository
- * @see SharedPricingRepository
  * @see WalletRepository
  * @see TransactionRepository
  */
@@ -78,7 +76,6 @@ public class TripImplementation implements TripService {
     private final TripTimeRepository tripTimeRepository;
     private final TripAuthenticationRepository tripAuthenticationRepository;
     private final GuestRepository guestRepository;
-    private final SharedPricingRepository sharedPricingRepository;
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
 
@@ -130,7 +127,7 @@ public class TripImplementation implements TripService {
                 } catch (Exception e) {
                     Optional<Guest> guest = guestRepository.findById(trip.getAccount());
                     if(guest.isPresent()) {
-                        if(trip.getPricing() != null) {
+                        if(trip.getShared() != null) {
                             if(trip.getTransaction() != null && trip.getTransaction().getStatus() == SUCCESSFUL) {
                                 return acceptTrip(request, trip, profile);
                             } else {
@@ -151,11 +148,11 @@ public class TripImplementation implements TripService {
     private ApiResponse<String> payAndAcceptTrip(TripAcceptRequest request, Trip trip, Profile profile) {
         BalanceUpdateRequest update = BalanceUpdateRequest.builder()
                 .type(TransactionType.TRIP_WITHDRAW)
-                .amount(trip.getPricing().getAmount().subtract(trip.getPricing().getProvider()))
+                .amount(trip.getShared().getAmount().subtract(trip.getShared().getProvider()))
                 .user(profile.getId())
                 .build();
 
-        UUID userId = trip.getPricing().getStatus().getSharedLink().getUser().getId();
+        UUID userId = trip.getShared().getSharedLogin().getSharedLink().getUser().getId();
         Wallet sender = walletRepository.findByUser_Id(profile.getId())
                 .orElseThrow(() -> new TripException("Wallet not found"));
         String account = walletRepository.findByUser_Id(userId)
@@ -167,11 +164,11 @@ public class TripImplementation implements TripService {
 
             update.setUser(userId);
             update.setType(TransactionType.TRIP);
-            update.setAmount(trip.getPricing().getUser());
+            update.setAmount(trip.getShared().getUser());
             walletUtil.updateBalance(update);
 
-            trip.getPricing().setUpdatedAt(LocalDateTime.now());
-            sharedPricingRepository.save(trip.getPricing());
+            trip.getShared().setUpdatedAt(LocalDateTime.now());
+//            sharedPricingRepository.save(trip.getShared());
 
             Transaction transaction = new Transaction();
             transaction.setReference("S-SHARED-TRIP-%s".formatted(UUID.randomUUID().toString().substring(0, 8)));
@@ -528,10 +525,10 @@ public class TripImplementation implements TripService {
                     response.setInvitedProviderStatus(trip.getInviteStatus());
                     response.setInvitedProviderVerifiedAt(TimeUtil.formatDay(trip.getTime().getInviteVerifiedAt()));
 
-                    if(trip.getPricing() != null) {
-                        response.setSharedAmount(MoneyUtil.formatToNaira(trip.getPricing().getAmount()));
-                        response.setUserShare(MoneyUtil.formatToNaira(trip.getPricing().getUser()));
-                        response.setProviderShare(MoneyUtil.formatToNaira(trip.getPricing().getProvider()));
+                    if(trip.getShared() != null) {
+                        response.setSharedAmount(MoneyUtil.formatToNaira(trip.getShared().getAmount()));
+                        response.setUserShare(MoneyUtil.formatToNaira(trip.getShared().getUser()));
+                        response.setProviderShare(MoneyUtil.formatToNaira(trip.getShared().getProvider()));
                     }
                     return response;
                 })

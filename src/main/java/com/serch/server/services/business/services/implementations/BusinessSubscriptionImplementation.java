@@ -10,6 +10,7 @@ import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.business.BusinessProfileRepository;
 import com.serch.server.repositories.business.BusinessSubscriptionRepository;
 import com.serch.server.services.business.responses.BusinessAssociateResponse;
+import com.serch.server.services.business.services.BusinessAssociateService;
 import com.serch.server.services.business.services.BusinessSubscriptionService;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
@@ -25,58 +26,36 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class BusinessSubscriptionImplementation implements BusinessSubscriptionService {
+    private final BusinessAssociateService associateService;
     private final BusinessProfileRepository businessProfileRepository;
     private final BusinessSubscriptionRepository businessSubscriptionRepository;
     private final ProfileRepository profileRepository;
 
     @Override
-    public ApiResponse<List<BusinessAssociateResponse>> associates() {
-        BusinessProfile business = businessProfileRepository.findByUser_EmailAddress(UserUtil.getLoginUser())
-                .orElseThrow(() -> new AccountException("Business not found"));
-
-        if(!business.getAssociates().isEmpty()) {
-            return new ApiResponse<>(
-                    business.getAssociates()
-                            .stream()
-                            .sorted(Comparator.comparing(Profile::getCreatedAt))
-                            .filter(a -> business.getSubscriptions().stream().noneMatch(sub -> sub.getProfile().isSameAs(a.getId())))
-                            .map(profile -> getAssociateResponse(profile, AccountStatus.BUSINESS_DEACTIVATED))
-                            .toList()
-            );
-        } else {
-            return new ApiResponse<>("No associate providers added yet");
-        }
-    }
-
-    @Override
-    public ApiResponse<List<BusinessAssociateResponse>> subscribed() {
+    public ApiResponse<List<BusinessAssociateResponse>> subscriptions() {
         BusinessProfile business = businessProfileRepository.findByUser_EmailAddress(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AccountException("Business not found"));
 
         if(!business.getSubscriptions().isEmpty()) {
-            return new ApiResponse<>(getSubscribedList(business));
+            return new ApiResponse<>(getSubscriptionList());
         } else {
             return new ApiResponse<>("No associate providers added to subscription");
         }
     }
 
-    private List<BusinessAssociateResponse> getSubscribedList(BusinessProfile business) {
+    private List<BusinessAssociateResponse> getSubscriptionList() {
+        BusinessProfile business = businessProfileRepository.findByUser_EmailAddress(UserUtil.getLoginUser())
+                .orElseThrow(() -> new AccountException("Business not found"));
+
         return business.getSubscriptions()
                 .stream()
                 .sorted(Comparator.comparing(BusinessSubscription::getCreatedAt))
-                .map(subscription -> getAssociateResponse(subscription.getProfile(), subscription.getStatus()))
+                .map(subscription -> {
+                    BusinessAssociateResponse response = associateService.response(subscription.getProfile());
+                    response.setSubscription(subscription.getStatus());
+                    return response;
+                })
                 .toList();
-    }
-
-    private BusinessAssociateResponse getAssociateResponse(Profile profile, AccountStatus status) {
-        BusinessAssociateResponse response = new BusinessAssociateResponse();
-        response.setId(profile.getId());
-        response.setName(profile.getFullName());
-        response.setCategory(profile.getCategory().getType());
-        response.setImage(profile.getCategory().getImage());
-        response.setAvatar(profile.getAvatar());
-        response.setStatus(status);
-        return response;
     }
 
     @Override
@@ -96,7 +75,7 @@ public class BusinessSubscriptionImplementation implements BusinessSubscriptionS
                 subscription.setStatus(AccountStatus.HAS_REPORTED_ISSUES);
                 businessSubscriptionRepository.save(subscription);
 
-                return new ApiResponse<>(getSubscribedList(business));
+                return new ApiResponse<>(getSubscriptionList());
             }
         } else {
             throw new AccountException("Provider does not belong to your business");
@@ -124,7 +103,7 @@ public class BusinessSubscriptionImplementation implements BusinessSubscriptionS
                     throw new AccountException("Provider does not belong to your business");
                 }
             });
-            return new ApiResponse<>(getSubscribedList(business));
+            return new ApiResponse<>(getSubscriptionList());
         } else {
             throw new AccountException("Provider does not belong to your business");
         }
@@ -145,7 +124,7 @@ public class BusinessSubscriptionImplementation implements BusinessSubscriptionS
             businessSubscriptionRepository.save(sub);
             return new ApiResponse<>(
                     "%s subscription is suspended".formatted(provider.getFullName()),
-                    getSubscribedList(business),
+                    getSubscriptionList(),
                     HttpStatus.OK
             );
         } else {
@@ -166,7 +145,7 @@ public class BusinessSubscriptionImplementation implements BusinessSubscriptionS
             businessSubscriptionRepository.delete(sub);
             return new ApiResponse<>(
                     "%s is removed from your business subscription list".formatted(provider.getFullName()),
-                    getSubscribedList(business),
+                    getSubscriptionList(),
                     HttpStatus.OK
             );
         } else {

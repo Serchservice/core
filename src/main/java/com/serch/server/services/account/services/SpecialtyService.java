@@ -5,6 +5,8 @@ import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.incomplete.Incomplete;
 import com.serch.server.services.company.responses.SpecialtyKeywordResponse;
 
+import java.util.List;
+
 /**
  * Service interface for managing specialties and specialty keywords.
  *
@@ -43,4 +45,14 @@ public interface SpecialtyService {
      * @see ApiResponse
      */
     ApiResponse<String> delete(Long id);
+
+    /**
+     * Fetch the list of Specialties
+     *
+     * @return ApiResponse of list of {@link SpecialtyKeywordResponse}
+     *
+     * @see ApiResponse
+     * @see SpecialtyKeywordResponse
+     */
+    ApiResponse<List<SpecialtyKeywordResponse>> specials();
 }

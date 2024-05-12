@@ -8,4 +8,5 @@ public class RatingResponse {
     private Double rating;
     private String comment;
     private String category;
+    private String image;
 }

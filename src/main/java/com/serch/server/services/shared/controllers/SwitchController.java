@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 public class SwitchController {
     private final SwitchService service;
 
-    @PostMapping("/guest")
+    @PostMapping
     public ResponseEntity<ApiResponse<GuestResponse>> switchToGuest(@RequestBody SwitchRequest request) {
         ApiResponse<GuestResponse> response = service.switchToGuest(request);
         return new ResponseEntity<>(response, response.getStatus());

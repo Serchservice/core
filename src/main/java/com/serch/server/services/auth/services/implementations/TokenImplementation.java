@@ -25,12 +25,7 @@ public class TokenImplementation implements TokenService {
 
     @Override
     public String generateOtp() {
-        StringBuilder otp = new StringBuilder(Integer.parseInt(OTP_TOKEN_LENGTH));
-        for(int i = 0; i < Integer.parseInt(OTP_TOKEN_LENGTH); i++) {
-            int index = random.nextInt(OTP_TOKEN_CHARACTERS.length());
-            otp.append(OTP_TOKEN_CHARACTERS.charAt(index));
-        }
-        return otp.toString();
+        return generateCode(Integer.parseInt(OTP_TOKEN_LENGTH));
     }
 
     @Override
@@ -45,8 +40,13 @@ public class TokenImplementation implements TokenService {
 
     @Override
     public String generateRefreshToken() {
-        StringBuilder token = new StringBuilder(REFRESH_TOKEN_LENGTH);
-        for(int i = 0; i < REFRESH_TOKEN_LENGTH; i++) {
+        return generate(REFRESH_TOKEN_LENGTH);
+    }
+
+    @Override
+    public String generate(int length) {
+        StringBuilder token = new StringBuilder(length);
+        for(int i = 0; i < length; i++) {
             int index = random.nextInt(REFRESH_TOKEN_CHARACTERS.length());
             token.append(REFRESH_TOKEN_CHARACTERS.charAt(index));
         }

@@ -54,6 +54,10 @@ public class Shop extends BaseDateTime {
     private String name;
 
     @Column(columnDefinition = "TEXT", nullable = false)
+    @NotNull(message = "Shop logo cannot be null")
+    private String logo;
+
+    @Column(columnDefinition = "TEXT", nullable = false)
     @NotNull(message = "Address cannot be null")
     private String address;
 
@@ -78,14 +82,10 @@ public class Shop extends BaseDateTime {
     @SerchEnum(message = "Status must be of ProfileState")
     private ShopStatus status = ShopStatus.OPEN;
 
-    @Column(name = "place", columnDefinition = "TEXT", nullable = false)
-    @NotNull(message = "Place cannot be null")
-    private String place;
-
     @Column(name = "rating", nullable = false)
     private Double rating = 5.0;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "serch_id",
             referencedColumnName = "id",
@@ -96,6 +96,9 @@ public class Shop extends BaseDateTime {
 
     @OneToMany(mappedBy = "shop", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ShopService> services;
+
+    @OneToMany(mappedBy = "shop", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<ShopWeekday> weekdays;
 
     public boolean isUser(UUID user) {
         return getUser().getId() == user;

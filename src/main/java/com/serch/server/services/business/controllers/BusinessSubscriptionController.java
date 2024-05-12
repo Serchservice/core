@@ -19,14 +19,8 @@ public class BusinessSubscriptionController {
     private final BusinessSubscriptionService service;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<BusinessAssociateResponse>>> subscribed() {
-        ApiResponse<List<BusinessAssociateResponse>> response = service.subscribed();
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
-    @GetMapping("/associates")
-    public ResponseEntity<ApiResponse<List<BusinessAssociateResponse>>> associates() {
-        ApiResponse<List<BusinessAssociateResponse>> response = service.associates();
+    public ResponseEntity<ApiResponse<List<BusinessAssociateResponse>>> subscriptions() {
+        ApiResponse<List<BusinessAssociateResponse>> response = service.subscriptions();
         return new ResponseEntity<>(response, response.getStatus());
     }
 

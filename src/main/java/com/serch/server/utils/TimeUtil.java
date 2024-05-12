@@ -6,7 +6,6 @@ import com.serch.server.enums.subscription.SubPlanType;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.Locale;
 
 /**
@@ -131,29 +130,45 @@ public class TimeUtil {
      * @param lastSignedIn The date and time when the user was last seen.
      * @return The formatted last signed in time.
      */
-    public static String formatLastSignedIn(LocalDateTime lastSignedIn) {
-        Duration duration = Duration.between(lastSignedIn, LocalDateTime.now());
-
-        if (duration.toDays() > 0) {
-            if (duration.toDays() == 1) {
-                return "Last Signed In: 1 day ago";
-            } else {
-                return "Last Signed In: " + duration.toDays() + " days ago";
-            }
-        } else if (duration.toHours() > 0) {
-            if (duration.toHours() == 1) {
-                return "Last Signed In: 1 hour ago";
-            } else {
-                return "Last Signed In: " + duration.toHours() + " hours ago";
-            }
-        } else if (duration.toMinutes() > 0) {
-            if (duration.toMinutes() == 1) {
-                return "Last Signed In: 1 minute ago";
-            } else {
-                return "Last Signed In: " + duration.toMinutes() + " minutes ago";
-            }
+    public static String formatLastSignedIn(LocalDateTime lastSignedIn, boolean needText) {
+        if(lastSignedIn == null) {
+            return "Never";
         } else {
-            return "Online";
+            Duration duration = Duration.between(lastSignedIn, LocalDateTime.now());
+
+            if (duration.toDays() > 0) {
+                if (duration.toDays() == 1) {
+                    return needText
+                            ? "Last Signed In: 1 day ago"
+                            : "1 day ago";
+                } else {
+                    return needText
+                            ? "Last Signed In: " + duration.toDays() + " days ago"
+                            : duration.toDays() + " days ago";
+                }
+            } else if (duration.toHours() > 0) {
+                if (duration.toHours() == 1) {
+                    return needText
+                            ? "Last Signed In: 1 hour ago"
+                            : "1 hour ago";
+                } else {
+                    return needText
+                            ? "Last Signed In: " + duration.toHours() + " hours ago"
+                            : duration.toHours() + " hours ago";
+                }
+            } else if (duration.toMinutes() > 0) {
+                if (duration.toMinutes() == 1) {
+                    return needText
+                            ? "Last Signed In: 1 minute ago"
+                            : "1 minute ago";
+                } else {
+                    return needText
+                            ? "Last Signed In: " + duration.toMinutes() + " minutes ago"
+                            : duration.toMinutes() + " minutes ago";
+                }
+            } else {
+                return "Online";
+            }
         }
     }
 

@@ -11,13 +11,12 @@
 
 	<groupId>com.serch</groupId>
 	<artifactId>server</artifactId>
-	<version>${serch.version}</version>
+	<version>0.0.1</version>
 	<name>server</name>
 	<description>Backend server for Serch platform</description>
 	<url>https://www.serchservice.com</url>
 
 	<properties>
-		<serch.version>0.0.1</serch.version>
 		<java.version>17</java.version>
 		<firebase.version>9.2.0</firebase.version>
 		<springdoc.version>2.3.0</springdoc.version>

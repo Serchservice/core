@@ -21,12 +21,6 @@ public class GuestController {
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @GetMapping("/check/email")
-    public ResponseEntity<ApiResponse<String>> checkIfEmailIsConfirmed(@RequestParam String guestId) {
-        ApiResponse<String> response = service.checkIfEmailIsConfirmed(guestId);
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
     @GetMapping("/user/become")
     public ResponseEntity<ApiResponse<AuthResponse>> becomeAUser(@RequestBody GuestToUserRequest request) {
         ApiResponse<AuthResponse> response = service.becomeAUser(request);

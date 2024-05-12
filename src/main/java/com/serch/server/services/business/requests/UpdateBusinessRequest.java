@@ -1,12 +1,32 @@
 package com.serch.server.services.business.requests;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.serch.server.enums.account.Gender;
+import com.serch.server.services.auth.requests.RequestPhoneInformation;
+import com.serch.server.services.supabase.requests.FileUploadRequest;
 import lombok.Data;
-import org.springframework.web.multipart.MultipartFile;
 
 @Data
 public class UpdateBusinessRequest {
-    private MultipartFile logo;
-    private String name;
-    private String description;
-    private String address;
+    private Gender gender;
+    private FileUploadRequest upload;
+    private RequestPhoneInformation phone;
+
+    @JsonProperty("first_name")
+    private String firstName;
+
+    @JsonProperty("last_name")
+    private String lastName;
+
+    @JsonProperty("business_name")
+    private String businessName;
+
+    @JsonProperty("business_description")
+    private String businessDescription;
+
+    @JsonProperty("business_address")
+    private String businessAddress;
+
+    @JsonProperty("business_contact")
+    private String businessContact;
 }

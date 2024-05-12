@@ -89,6 +89,9 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "last_updated_at")
     private LocalDateTime lastUpdatedAt = LocalDateTime.now();
 
+    @Column(name = "profile_last_updated_at")
+    private LocalDateTime profileLastUpdatedAt = LocalDateTime.now();
+
     @Column(name = "email_confirmed_at", updatable = false, nullable = false)
     @NotNull(message = "Email Confirmation Date cannot be null")
     private LocalDateTime emailConfirmedAt;
@@ -112,6 +115,9 @@ public class User extends BaseEntity implements UserDetails {
 
     @Column(name = "enabled_recovery_code", nullable = false)
     private Boolean recoveryCodeEnabled = false;
+
+    @Column(name = "is_email_confirmed", nullable = false)
+    private Boolean isEmailConfirmed = true;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Session> sessions;

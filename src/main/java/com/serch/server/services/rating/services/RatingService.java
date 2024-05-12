@@ -1,6 +1,7 @@
 package com.serch.server.services.rating.services;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.models.rating.Rating;
 import com.serch.server.services.rating.requests.RateAppRequest;
 import com.serch.server.services.rating.requests.RateRequest;
 import com.serch.server.services.rating.responses.RatingChartResponse;
@@ -46,8 +47,9 @@ public interface RatingService {
      *
      * @see RateAppRequest
      * @see ApiResponse
+     * @see RatingResponse
      */
-    ApiResponse<Double> rate(RateAppRequest request);
+    ApiResponse<RatingResponse> rate(RateAppRequest request);
 
     /**
      * Retrieves all ratings received by the current user.
@@ -62,32 +64,37 @@ public interface RatingService {
     /**
      * Retrieves good ratings received by the current user.
      *
+     * @param id The id of the user to find its rating
+     *
      * @return A response containing a list of good rating responses.
      *
      * @see RatingResponse
      * @see ApiResponse
      */
-    ApiResponse<List<RatingResponse>> good();
+    ApiResponse<List<RatingResponse>> good(String id);
 
     /**
      * Retrieves bad ratings received by the current user.
+     *
+     * @param id The id of the user to find its rating
      *
      * @return A response containing a list of bad rating responses.
      *
      * @see RatingResponse
      * @see ApiResponse
      */
-    ApiResponse<List<RatingResponse>> bad();
+    ApiResponse<List<RatingResponse>> bad(String id);
 
     /**
      * Retrieves statistical data about ratings for the current user.
      *
+     * @param id The id of the user to find its rating
      * @return A response containing a list of rating chart responses.
      *
      * @see RatingChartResponse
      * @see ApiResponse
      */
-    ApiResponse<List<RatingChartResponse>> chart();
+    ApiResponse<List<RatingChartResponse>> chart(String id);
 
     /**
      * Retrieves the application rating for a specified account.
@@ -97,6 +104,14 @@ public interface RatingService {
      * @return A response containing the application rating.
      *
      * @see ApiResponse
+     * @see RatingResponse
      */
-    ApiResponse<Double> app(String id);
+    ApiResponse<RatingResponse> app(String id);
+
+    /**
+     * @param ratings The list of ratings
+     *
+     * @return {@link ApiResponse} of list of {@link RatingResponse}
+     */
+    ApiResponse<List<RatingResponse>> ratings(List<Rating> ratings);
 }

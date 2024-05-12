@@ -1,9 +1,12 @@
 package com.serch.server.services.business.responses;
 
 import com.serch.server.enums.account.AccountStatus;
+import com.serch.server.services.account.responses.ProfileResponse;
+import com.serch.server.services.rating.responses.RatingChartResponse;
+import com.serch.server.services.rating.responses.RatingResponse;
 import lombok.Data;
 
-import java.util.UUID;
+import java.util.List;
 
 /**
  * Carries the account response for business associates.
@@ -18,10 +21,11 @@ import java.util.UUID;
  */
 @Data
 public class BusinessAssociateResponse {
-    private String avatar;
-    private String name;
-    private String category;
-    private String image;
-    private UUID id;
+    private ProfileResponse profile;
+    private List<RatingChartResponse> chart;
+    private List<RatingResponse> good;
+    private List<RatingResponse> bad;
+    private AccountStatus subscription;
+    private Boolean verified;
     private AccountStatus status = AccountStatus.BUSINESS_DEACTIVATED;
 }

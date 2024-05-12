@@ -8,26 +8,32 @@ import com.serch.server.mappers.AccountMapper;
 import com.serch.server.mappers.AuthMapper;
 import com.serch.server.models.account.PhoneInformation;
 import com.serch.server.models.account.Profile;
+import com.serch.server.models.account.Specialty;
 import com.serch.server.models.auth.User;
 import com.serch.server.models.auth.incomplete.Incomplete;
+import com.serch.server.models.certificate.Certificate;
 import com.serch.server.repositories.account.PhoneInformationRepository;
 import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.account.SpecialtyRepository;
 import com.serch.server.repositories.auth.UserRepository;
+import com.serch.server.repositories.certificate.CertificateRepository;
 import com.serch.server.repositories.rating.RatingRepository;
 import com.serch.server.repositories.shared.SharedLinkRepository;
 import com.serch.server.repositories.shop.ShopRepository;
+import com.serch.server.repositories.trip.TripRepository;
 import com.serch.server.services.account.requests.RequestCreateProfile;
 import com.serch.server.services.account.requests.UpdateProfileRequest;
 import com.serch.server.services.account.responses.MoreProfileData;
 import com.serch.server.services.account.responses.ProfileResponse;
 import com.serch.server.services.account.services.ProfileService;
+import com.serch.server.services.auth.requests.RequestPhoneInformation;
+import com.serch.server.services.company.responses.SpecialtyKeywordResponse;
 import com.serch.server.services.referral.services.ReferralService;
 import com.serch.server.services.auth.requests.RequestProfile;
 import com.serch.server.services.company.services.SpecialtyKeywordService;
-import com.serch.server.services.storage.core.StorageService;
-import com.serch.server.services.storage.requests.UploadRequest;
+import com.serch.server.services.supabase.core.SupabaseService;
 import com.serch.server.services.transaction.services.WalletService;
+import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +49,7 @@ import java.util.List;
  * Service for managing user profiles, including creation, updating, and retrieval.
  * It implements the wrapper class {@link ProfileService}
  *
- * @see StorageService
+ * @see SupabaseService
  * @see ReferralService
  * @see WalletService
  * @see UserUtil
@@ -58,7 +64,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ProfileImplementation implements ProfileService {
-    private final StorageService storageService;
+    private final SupabaseService supabase;
     private final ReferralService referralService;
     private final WalletService walletService;
     private final SpecialtyKeywordService keywordService;
@@ -70,6 +76,8 @@ public class ProfileImplementation implements ProfileService {
     private final ShopRepository shopRepository;
     private final RatingRepository ratingRepository;
     private final SharedLinkRepository sharedLinkRepository;
+    private final TripRepository tripRepository;
+    private final CertificateRepository certificateRepository;
 
     @Value("${application.account.duration}")
     private Integer ACCOUNT_DURATION;
@@ -145,7 +153,7 @@ public class ProfileImplementation implements ProfileService {
     @Override
     public ProfileResponse profile(Profile profile) {
         ProfileResponse response = AccountMapper.INSTANCE.profile(profile);
-        response.setCertificate("");
+        response.setCertificate(certificateRepository.findByUser(profile.getId()).map(Certificate::getDocument).orElse(""));
         response.setStatus("");
         response.setVerificationStatus(VerificationStatus.NOT_VERIFIED);
 
@@ -156,30 +164,38 @@ public class ProfileImplementation implements ProfileService {
         PhoneInformation phoneInformation = phoneInformationRepository.findByUser_Id(profile.getId())
                 .orElse(new PhoneInformation());
         response.setPhoneInfo(AccountMapper.INSTANCE.phoneInformation(phoneInformation));
-
-        MoreProfileData more = moreInformation(profile.getUser());
-        more.setNumberOfShops(shopRepository.findByUser_Id(profile.getUser().getId()).size());
-        more.setNumberOfRating(ratingRepository.findByRated(String.valueOf(profile.getId())).size());
-        more.setTotalShared(sharedLinkRepository.findByUserId(profile.getId()).size());
-        more.setTotalServiceTrips(0);
-        response.setMore(more);
+        response.setMore(moreInformation(profile.getUser()));
 
         response.setSpecializations(
                 specialtyRepository.findByProfile_Id(profile.getId()).isEmpty() ? List.of() : specialtyRepository.findByProfile_Id(profile.getId())
                         .stream()
-                        .map(specialty -> keywordService.getSpecialtyResponse(specialty.getService()))
+                        .map(this::response)
                         .toList()
         );
+        response.setCategory(profile.getCategory().getType());
+        response.setImage(profile.getCategory().getImage());
+        return response;
+    }
+
+    private SpecialtyKeywordResponse response(Specialty specialty) {
+        SpecialtyKeywordResponse response = keywordService.getSpecialtyResponse(specialty.getService());
+        response.setId(specialty.getId());
         return response;
     }
 
     @Override
     public MoreProfileData moreInformation(User user) {
         MoreProfileData more = new MoreProfileData();
-        more.setIsEnabled(user.isEnabled());
-        more.setIsNonLocked(user.isAccountNonLocked());
-        more.setIsNonExpired(user.isAccountNonExpired());
-        more.setLastSignedIn(TimeUtil.formatLastSignedIn(user.getLastSignedIn()));
+        more.setNumberOfRating(ratingRepository.findByRated(String.valueOf(user.getId())).size());
+        more.setTotalShared(sharedLinkRepository.findByUserId(user.getId()).size());
+        more.setNumberOfShops(shopRepository.findByUser_Id(user.getId()).size());
+
+        if(user.isProvider()) {
+            more.setTotalServiceTrips(tripRepository.findByProviderId(user.getId()).size());
+        } else {
+            more.setTotalServiceTrips(tripRepository.findByAccount(String.valueOf(user.getId())).size());
+        }
+        more.setLastSignedIn(TimeUtil.formatLastSignedIn(user.getLastSignedIn(), false));
         return more;
     }
 
@@ -196,22 +212,28 @@ public class ProfileImplementation implements ProfileService {
     }
 
     @Override
-    public ApiResponse<String> update(UpdateProfileRequest request) {
+    public ApiResponse<ProfileResponse> update(UpdateProfileRequest request) {
         User user = userUtil.getUser();
         Profile profile = profileRepository.findById(user.getId())
                 .orElseThrow(() -> new AccountException("Profile not found"));
         if(user.isProfile()) {
-            Duration duration = Duration.between(user.getLastUpdatedAt(), LocalDateTime.now());
+            Duration duration = Duration.between(
+                    user.getProfileLastUpdatedAt() != null ? user.getProfileLastUpdatedAt() : LocalDateTime.now(),
+                    LocalDateTime.now()
+            );
             long remaining = ACCOUNT_DURATION - duration.toDays();
 
-            if(remaining < 0) {
+            if(remaining < 0 || user.getProfileLastUpdatedAt() == null) {
                 updateLastName(request, profile);
                 updateFirstName(request, profile);
-                updatePhoneInformation(request, user);
-                if(!request.getAvatar().isEmpty()) {
-                    return updateAvatar(request, profile);
+                updatePhoneInformation(request.getPhone(), user);
+                updateGender(request, profile);
+                if(!HelperUtil.isUploadEmpty(request.getUpload())) {
+                    String url = supabase.upload(request.getUpload(), UserUtil.getBucket(user.getRole()));
+                    profile.setAvatar(url);
+                    updateTimeStamps(profile.getUser(), profile);
                 }
-                return new ApiResponse<>("Update successful", HttpStatus.OK);
+                return profile();
             } else {
                 throw new AccountException("You can update your profile in the next %s days".formatted(remaining));
             }
@@ -221,25 +243,25 @@ public class ProfileImplementation implements ProfileService {
     }
 
     @Override
-    public void updatePhoneInformation(UpdateProfileRequest request, User user) {
-        if(request.getPhone() != null) {
+    public void updatePhoneInformation(RequestPhoneInformation request, User user) {
+        if(request != null) {
             phoneInformationRepository.findByUser_Id(user.getId())
                     .ifPresentOrElse(phone -> {
-                        if(!phone.getPhoneNumber().equalsIgnoreCase(request.getPhone().getPhoneNumber())) {
-                            phone.setPhoneNumber(request.getPhone().getPhoneNumber());
+                        if(!phone.getPhoneNumber().equalsIgnoreCase(request.getPhoneNumber())) {
+                            phone.setPhoneNumber(request.getPhoneNumber());
                         }
-                        if(!phone.getCountry().equalsIgnoreCase(request.getPhone().getCountry())) {
-                            phone.setCountry(request.getPhone().getCountry());
+                        if(!phone.getCountry().equalsIgnoreCase(request.getCountry())) {
+                            phone.setCountry(request.getCountry());
                         }
-                        if(!phone.getCountryCode().equalsIgnoreCase(request.getPhone().getCountryCode())) {
-                            phone.setCountryCode(request.getPhone().getCountryCode());
+                        if(!phone.getCountryCode().equalsIgnoreCase(request.getCountryCode())) {
+                            phone.setCountryCode(request.getCountryCode());
                         }
-                        if(!phone.getIsoCode().equalsIgnoreCase(request.getPhone().getIsoCode())) {
-                            phone.setIsoCode(request.getPhone().getIsoCode());
+                        if(!phone.getIsoCode().equalsIgnoreCase(request.getIsoCode())) {
+                            phone.setIsoCode(request.getIsoCode());
                         }
                         phoneInformationRepository.save(phone);
                     }, () -> {
-                        PhoneInformation phone = AccountMapper.INSTANCE.phoneInformation(request.getPhone());
+                        PhoneInformation phone = AccountMapper.INSTANCE.phoneInformation(request);
                         phone.setUser(user);
                         phoneInformationRepository.save(phone);
                     });
@@ -247,18 +269,6 @@ public class ProfileImplementation implements ProfileService {
             user.setLastUpdatedAt(LocalDateTime.now());
             userRepository.save(user);
         }
-    }
-
-    public ApiResponse<String> updateAvatar(UpdateProfileRequest request, Profile profile) {
-        UploadRequest upload = new UploadRequest();
-        upload.setFile(request.getAvatar());
-
-        ApiResponse<String> response = storageService.upload(upload);
-        if(response.getStatus().is2xxSuccessful()) {
-            profile.setAvatar(response.getData());
-            updateTimeStamps(profile.getUser(), profile);
-        }
-        return response;
     }
 
     private void updateFirstName(UpdateProfileRequest request, Profile profile) {
@@ -283,9 +293,18 @@ public class ProfileImplementation implements ProfileService {
         }
     }
 
+    private void updateGender(UpdateProfileRequest request, Profile profile) {
+        boolean canUpdateGender = request.getGender() != null
+                && profile.getGender() != request.getGender();
+        if(canUpdateGender) {
+            profile.setGender(request.getGender());
+            profile.setUpdatedAt(LocalDateTime.now());
+            profileRepository.save(profile);
+        }
+    }
+
     private void updateTimeStamps(User user, Profile profile) {
-        user.setUpdatedAt(LocalDateTime.now());
-        user.setLastUpdatedAt(LocalDateTime.now());
+        user.setProfileLastUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
 
         profile.setUpdatedAt(LocalDateTime.now());

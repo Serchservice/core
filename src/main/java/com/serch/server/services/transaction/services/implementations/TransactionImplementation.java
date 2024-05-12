@@ -160,28 +160,28 @@ public class TransactionImplementation implements TransactionService {
     private TransactionResponse createTripResponse(Transaction transaction, Wallet wallet) {
         TransactionResponse response = new TransactionResponse();
         response.setId(transaction.getId());
-        response.setAmount(MoneyUtil.formatToNaira(transaction.getTrip().getPricing().getAmount()));
-        response.setReason(
-                "Transaction for Shared Trip %s - %s".formatted(
-                        transaction.getTrip().getPricing().getStatus().getSharedLink().getLink(),
-                        transaction.getTrip().getPricing().getStatus().getId()
-                )
-        );
+        response.setAmount(MoneyUtil.formatToNaira(transaction.getTrip().getShared().getAmount()));
+//        response.setReason(
+//                "Transaction for Shared Trip %s - %s".formatted(
+//                        transaction.getTrip().getShared().getStatus().getSharedLink().getLink(),
+//                        transaction.getTrip().getShared().getStatus().getId()
+//                )
+//        );
         response.setCompletedAt(TimeUtil.formatDay(transaction.getUpdatedAt()));
         response.setStatus(transaction.getStatus());
         response.setType(transaction.getType());
         response.setIsIncoming(wallet.getId().equals(transaction.getAccount()));
         response.setTime(TimeUtil.formatTime(transaction.getCreatedAt()));
-        response.setRequestedAt(TimeUtil.formatDay(transaction.getTrip().getPricing().getCreatedAt()));
+        response.setRequestedAt(TimeUtil.formatDay(transaction.getTrip().getShared().getCreatedAt()));
         response.setCreatedAt(transaction.getCreatedAt());
         response.setName(transaction.getSender().getUser().getFullName());
         response.setReference(transaction.getReference());
-        response.setPricing(
-                guestAuthService.getSharedPricingData(
-                        transaction.getTrip().getPricing().getStatus().getSharedLink(),
-                        transaction.getTrip().getPricing()
-                )
-        );
+//        response.setPricing(
+//                guestAuthService.getSharedPricingData(
+//                        transaction.getTrip().getShared().getStatus().getSharedLink(),
+//                        transaction.getTrip().getShared()
+//                )
+//        );
         response.setMode("TRIP");
         return response;
     }

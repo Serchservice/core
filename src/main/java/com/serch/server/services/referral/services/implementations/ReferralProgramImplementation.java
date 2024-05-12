@@ -11,6 +11,7 @@ import com.serch.server.repositories.referral.ReferralProgramRepository;
 import com.serch.server.repositories.referral.ReferralRepository;
 import com.serch.server.repositories.shared.SharedLinkRepository;
 import com.serch.server.repositories.trip.TripRepository;
+import com.serch.server.services.auth.services.TokenService;
 import com.serch.server.services.referral.responses.ReferralProgramData;
 import com.serch.server.services.referral.responses.ReferralProgramResponse;
 import com.serch.server.services.referral.services.ReferralProgramService;
@@ -23,7 +24,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
  * This is the class the implements the wrapper class for the implementation of {@link ReferralProgramService}
  *
  * @see ReferralService
+ * @see TokenService
  * @see ReferralProgramRepository
  * @see ReferralRepository
  * @see SharedLinkRepository
@@ -43,51 +44,24 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class ReferralProgramImplementation implements ReferralProgramService {
     private final ReferralService referralService;
+    private final TokenService tokenService;
     private final ReferralProgramRepository referralProgramRepository;
     private final ReferralRepository referralRepository;
     private final SharedLinkRepository sharedLinkRepository;
     private final TripRepository tripRepository;
 
     /**
-     * Generates a referral code based on the user's first name, last name, and category.
-     * @param firstName The first name of the user.
-     * @param lastName The last name of the user.
-     * @param category The category of the user (USER, BUSINESS, PROVIDER).
-     * @return The generated referral code.
-     */
-    private String code(String firstName, String lastName, Role category) {
-        if(category == Role.BUSINESS) {
-            return "%sBusiness%s".formatted(firstName, UUID.randomUUID().toString().substring(0, 4)
-                    .replaceAll("-", "").replaceAll("_", "")
-            );
-        } else {
-            return (firstName.substring(0, 3) + lastName.substring(0, 3) +
-                    UUID.randomUUID().toString().substring(0, 4))
-                    .replaceAll("-", "")
-                    .replaceAll("_", "");
-        }
-    }
-
-    /**
-     * Generates a referral link based on the user's first name, last name, and category.
-     * @param firstName The first name of the user.
-     * @param lastName The last name of the user.
+     * Generates a referral link based on the user's category.
      * @param category The category of the user (USER, BUSINESS, PROVIDER).
      * @return The generated referral link.
      */
-    private String generateReferralLink(String firstName, String lastName, Role category) {
+    private String generateReferralLink(Role category) {
         if(category == Role.USER) {
-            return "https://serchservice.com/join_the_serch_user_app?ref=%s".formatted(
-                    code(firstName, lastName, category)
-            );
+            return "https://serchservice.com/join_the_serch_user_app?ref=%s".formatted(tokenService.generate(6));
         } else if(category == Role.BUSINESS) {
-            return "https://serchservice.com/join_the_serch_business_app?ref=%s".formatted(
-                    code(firstName, lastName, category)
-            );
+            return "https://serchservice.com/join_the_serch_business_app?ref=%s".formatted(tokenService.generate(6));
         } else {
-            return "https://serchservice.com/join_the_serch_provider_app?ref=%s".formatted(
-                    code(firstName, lastName, category)
-            );
+            return "https://serchservice.com/join_the_serch_provider_app?ref=%s".formatted(tokenService.generate(6));
         }
     }
 
@@ -116,7 +90,7 @@ public class ReferralProgramImplementation implements ReferralProgramService {
 
     @Override
     public void create(User user) {
-        String referralLink = generateReferralLink(user.getFirstName(), user.getLastName(), user.getRole());
+        String referralLink = generateReferralLink(user.getRole());
         ReferralReward reward = getReward();
 
         ReferralProgram program = new ReferralProgram();

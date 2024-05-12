@@ -29,6 +29,12 @@ public class AccountSetting extends BaseModel {
     @SerchEnum(message = "Gender must be an enum")
     private Gender gender = Gender.ANY;
 
+    @Column(name = "show_only_verified", columnDefinition = "BOOLEAN default false")
+    private Boolean showOnlyVerified;
+
+    @Column(name = "show_only_certified", columnDefinition = "BOOLEAN default false")
+    private Boolean showOnlyCertified;
+
     /**
      * The user associated with the deletion request.
      */

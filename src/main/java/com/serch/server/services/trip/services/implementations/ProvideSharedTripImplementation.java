@@ -5,12 +5,10 @@ import com.serch.server.enums.chat.MessageStatus;
 import com.serch.server.exceptions.others.TripException;
 import com.serch.server.mappers.TripMapper;
 import com.serch.server.models.account.Profile;
-import com.serch.server.models.shared.SharedPricing;
 import com.serch.server.models.shared.SharedStatus;
 import com.serch.server.models.trip.PriceChat;
 import com.serch.server.models.trip.PriceHaggle;
 import com.serch.server.models.trip.Trip;
-import com.serch.server.repositories.shared.SharedPricingRepository;
 import com.serch.server.repositories.shared.SharedStatusRepository;
 import com.serch.server.repositories.trip.PriceChatRepository;
 import com.serch.server.repositories.trip.PriceHaggleRepository;
@@ -42,7 +40,6 @@ import static com.serch.server.enums.trip.TripConnectionStatus.*;
  * @see PriceHaggleRepository
  * @see PriceChatRepository
  * @see TripRepository
- * @see SharedPricingRepository
  */
 @Service
 @RequiredArgsConstructor
@@ -52,7 +49,6 @@ public class ProvideSharedTripImplementation implements ProvideSharedTripService
     private final PriceHaggleRepository priceHaggleRepository;
     private final PriceChatRepository priceChatRepository;
     private final TripRepository tripRepository;
-    private final SharedPricingRepository sharedPricingRepository;
 
     @Value("${application.web.socket.topic.trip}")
     private String TRIP_TOPIC;
@@ -69,7 +65,7 @@ public class ProvideSharedTripImplementation implements ProvideSharedTripService
                 .orElseThrow(() -> new TripException("Couldn't find active link session"));
 
         PriceHaggle haggle = new PriceHaggle();
-        haggle.setAmount(sharedStatus.getSharedLink().getAmount());
+        haggle.setAmount(sharedStatus.getAmount());
         haggle.setSharedStatus(sharedStatus);
         priceHaggleRepository.save(haggle);
 
@@ -134,29 +130,29 @@ public class ProvideSharedTripImplementation implements ProvideSharedTripService
                 .orElseThrow(() -> new TripException("Couldn't find active link session"));
         PriceHaggle haggle = priceHaggleRepository.findBySharedStatus_Id(sharedStatus.getId())
                 .orElseThrow(() -> new TripException("Cannot change price without initiating conversation"));
-        Profile provider = sharedStatus.getSharedLink().getProvider();
+        Profile provider = sharedStatus.getSharedLogin().getSharedLink().getProvider();
 
         if(tripRepository.existsByStatusAndProvider(ON_TRIP, ACCEPTED, provider.getId())) {
             throw new TripException("%s is currently on a trip".formatted(provider.getFullName()));
         } else if(tripRepository.existsByStatusAndAccount(ON_TRIP, ACCEPTED, request.getGuest())) {
             throw new TripException("You have an active trip");
         } else {
-            Trip trip = new Trip();
-            trip.setAccount(request.getGuest());
-            trip.setProvider(provider);
-            trip.setAddress(TripMapper.INSTANCE.address(request.getAddress()));
-            Trip saved = tripRepository.save(trip);
-
-            BigDecimal user = MoneyUtil.getDecimal(TRIP_USER_SHARE, haggle.getAmount());
-            BigDecimal serch = MoneyUtil.getDecimal(TRIP_SERCH_SHARE, haggle.getAmount());
-
-            SharedPricing pricing = new SharedPricing();
-            pricing.setStatus(sharedStatus);
-            pricing.setTrip(saved);
-            pricing.setAmount(haggle.getAmount());
-            pricing.setUser(user);
-            pricing.setProvider(haggle.getAmount().subtract(serch.add(user)));
-            sharedPricingRepository.save(pricing);
+//            Trip trip = new Trip();
+//            trip.setAccount(request.getGuest());
+//            trip.setProvider(provider);
+//            trip.setAddress(TripMapper.INSTANCE.address(request.getAddress()));
+//            Trip saved = tripRepository.save(trip);
+//
+//            BigDecimal user = MoneyUtil.getDecimal(TRIP_USER_SHARE, haggle.getAmount());
+//            BigDecimal serch = MoneyUtil.getDecimal(TRIP_SERCH_SHARE, haggle.getAmount());
+//
+//            SharedPricing pricing = new SharedPricing();
+//            pricing.setStatus(sharedStatus);
+//            pricing.setTrip(saved);
+//            pricing.setAmount(haggle.getAmount());
+//            pricing.setUser(user);
+//            pricing.setProvider(haggle.getAmount().subtract(serch.add(user)));
+//            sharedPricingRepository.save(pricing);
             return new ApiResponse<>("Success", HttpStatus.CREATED);
         }
     }
@@ -174,7 +170,7 @@ public class ProvideSharedTripImplementation implements ProvideSharedTripService
         Trip trip = tripRepository.findByIdAndAccount(tripId, guestId)
                 .orElseThrow(() -> new TripException("Trip not found"));
 
-        tripService.updateTripWhenEnded(trip.getPricing().getAmount().intValue(), trip);
+        tripService.updateTripWhenEnded(trip.getShared().getAmount().intValue(), trip);
         return new ApiResponse<>("Trip ended", trip.getId(), HttpStatus.OK);
     }
 }

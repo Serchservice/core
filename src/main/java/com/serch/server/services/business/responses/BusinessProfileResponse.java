@@ -1,7 +1,6 @@
 package com.serch.server.services.business.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.verified.VerificationStatus;
 import com.serch.server.services.account.responses.MoreProfileData;
 import com.serch.server.services.auth.requests.RequestPhoneInformation;
@@ -17,11 +16,12 @@ public class BusinessProfileResponse {
     private String name;
     private String description;
     private String address;
+    private String contact;
     private String logo;
-    private String certificate;
     private Double rating;
     private String gender;
-    private SerchCategory category;
+    private String category;
+    private String image;
 
     @JsonProperty("first_name")
     private String firstName;
@@ -32,12 +32,6 @@ public class BusinessProfileResponse {
     @JsonProperty("email_address")
     private String emailAddress;
 
-    @JsonProperty("referral_link")
-    private String referLink;
-
-    @JsonProperty("referral_code")
-    private String referralCode;
-
     @JsonProperty("default_password")
     private String defaultPassword;
 
@@ -46,9 +40,6 @@ public class BusinessProfileResponse {
 
     @JsonProperty("verification_status")
     private VerificationStatus verificationStatus;
-
-    @JsonProperty("business_information")
-    private BusinessInformationData businessInformation;
 
     private MoreProfileData more;
 

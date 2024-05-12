@@ -80,7 +80,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             var session = sessionService.validateSession(header.substring(7));
             if(session.getStatus().is2xxSuccessful()) {
                 // If the user is not already authenticated, set up the authentication context
-                if(SecurityContextHolder.getContext().getAuthentication() == null){
+                if(SecurityContextHolder.getContext().getAuthentication() == null) {
                     UserDetails userDetails = this.userDetailsService.loadUserByUsername(session.getData());
                     UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
                             userDetails,

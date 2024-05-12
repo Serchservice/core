@@ -1,15 +1,7 @@
 package com.serch.server.utils;
 
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.client.j2se.MatrixToImageWriter;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.qrcode.QRCodeWriter;
-import lombok.SneakyThrows;
-import org.apache.commons.codec.binary.Base64;
+import com.serch.server.services.supabase.requests.FileUploadRequest;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -68,29 +60,8 @@ public class HelperUtil {
         return Math.round(R * c * 100.0) / 100.0; // Distance in kilometers rounded to two decimal places
     }
 
-    /**
-     * Generates a Base64-encoded QR code image from the given content, width, and height.
-     * @param content The content to encode in the QR code.
-     * @param width The width of the QR code image.
-     * @param height The height of the QR code image.
-     * @return The Base64-encoded string representing the QR code image.
-     */
-    @SneakyThrows
-    public static String generateQrCode(String content, Integer width, Integer height) {
-        QRCodeWriter qrCodeWriter = new QRCodeWriter();
-
-        BitMatrix bitMatrix = qrCodeWriter.encode(
-                content,
-                BarcodeFormat.QR_CODE,
-                width != null ? width : 100,
-                height != null ? height : 100
-        );
-        BufferedImage bufferedImage = MatrixToImageWriter.toBufferedImage(bitMatrix);
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        ImageIO.write(bufferedImage, "PNG", outputStream);
-        outputStream.flush();
-        byte[] imageBytes = outputStream.toByteArray();
-        return Base64.encodeBase64String(imageBytes);
+    public static boolean isUploadEmpty(FileUploadRequest request) {
+        return request == null || request.getPath().isEmpty() || request.getBytes() == null;
     }
 
     /**

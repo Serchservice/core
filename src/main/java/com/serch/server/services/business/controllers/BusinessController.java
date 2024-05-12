@@ -1,21 +1,18 @@
 package com.serch.server.services.business.controllers;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.services.account.requests.UpdateProfileRequest;
+import com.serch.server.services.business.requests.UpdateBusinessRequest;
 import com.serch.server.services.business.responses.BusinessProfileResponse;
-import com.serch.server.services.account.responses.ProfileResponse;
 import com.serch.server.services.business.services.BusinessService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('BUSINESS')")
-@RequestMapping("/business/profile")
+@RequestMapping("/profile/business")
+@PreAuthorize(value = "hasRole('BUSINESS')")
 public class BusinessController {
     private final BusinessService service;
 
@@ -25,21 +22,9 @@ public class BusinessController {
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @GetMapping("/associates")
-    public ResponseEntity<ApiResponse<List<ProfileResponse>>> associates() {
-        ApiResponse<List<ProfileResponse>> response = service.associates();
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
-    @GetMapping("/associates/subscribed")
-    public ResponseEntity<ApiResponse<List<ProfileResponse>>> subscribedAssociates() {
-        ApiResponse<List<ProfileResponse>> response = service.subscribedAssociates();
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
     @PatchMapping("/update")
-    public ResponseEntity<ApiResponse<String>> update(@RequestBody UpdateProfileRequest request) {
-        ApiResponse<String> response = service.update(request);
+    public ResponseEntity<ApiResponse<BusinessProfileResponse>> update(@RequestBody UpdateBusinessRequest request) {
+        ApiResponse<BusinessProfileResponse> response = service.update(request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 }

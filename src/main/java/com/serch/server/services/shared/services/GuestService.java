@@ -1,9 +1,12 @@
 package com.serch.server.services.shared.services;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.models.shared.Guest;
+import com.serch.server.models.shared.SharedLogin;
 import com.serch.server.services.auth.responses.AuthResponse;
 import com.serch.server.services.shared.requests.GuestToUserRequest;
 import com.serch.server.services.shared.responses.GuestActivityResponse;
+import com.serch.server.services.shared.responses.GuestResponse;
 
 /**
  * Service interface for guest-related operations.
@@ -21,14 +24,6 @@ public interface GuestService {
     ApiResponse<GuestActivityResponse> activity(String guestId, String linkId);
 
     /**
-     * Checks if the email associated with a guest is confirmed.
-     *
-     * @param guestId The ID of the guest.
-     * @return A response indicating whether the email is confirmed or not.
-     */
-    ApiResponse<String> checkIfEmailIsConfirmed(String guestId);
-
-    /**
      * Converts a guest to a user.
      *
      * @param request The request containing the information to convert a guest to a user.
@@ -38,5 +33,22 @@ public interface GuestService {
      */
     ApiResponse<AuthResponse> becomeAUser(GuestToUserRequest request);
 
+    /**
+     * Prepares the guest data
+     *
+     * @param login The SharedLink for data preparation {@link SharedLogin}
+     *
+     * @return {@link GuestResponse}
+     */
+    GuestResponse response(SharedLogin login);
+
+    /**
+     * This updates and checks if a shared link can be used again.
+     * If yes, it will change the status
+     * of the shared link accordingly
+     *
+     * @param login The SharedLogin details
+     */
+    void checkLink(SharedLogin login);
     // TODO: Add connection method here with WebSocket
 }

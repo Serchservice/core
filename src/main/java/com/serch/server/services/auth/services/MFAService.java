@@ -1,9 +1,11 @@
 package com.serch.server.services.auth.services;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.services.auth.requests.RequestDevice;
 import com.serch.server.services.auth.requests.RequestMFAChallenge;
 import com.serch.server.services.auth.responses.AuthResponse;
 import com.serch.server.services.auth.responses.MFADataResponse;
+import com.serch.server.services.auth.responses.MFARecoveryCodeResponse;
 import com.serch.server.services.auth.responses.MFAUsageResponse;
 
 import java.util.List;
@@ -55,17 +57,20 @@ public interface MFAService {
      * @return An API response containing MFA recovery codes.
      *
      * @see ApiResponse
+     * @see MFARecoveryCodeResponse
      */
-    ApiResponse<List<String>> getRecoveryCodes();
+    ApiResponse<List<MFARecoveryCodeResponse>> getRecoveryCodes();
 
     /**
      * Disables MFA for the current user.
      *
+     * @param device The device where the request is made from
      * @return An API response confirming the disablement of MFA.
      *
      * @see ApiResponse
+     * @see AuthResponse
      */
-    ApiResponse<String> disable();
+    ApiResponse<AuthResponse> disable(RequestDevice device);
 
     /**
      * Disables MFA recovery codes for the current user.

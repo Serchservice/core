@@ -94,4 +94,15 @@ public class EmailTemplateSender implements EmailTemplateService {
             case UNSUCCESSFUL_PAYMENT -> sendUnsuccessful(email.getTo(), email.getFirstName());
         };
     }
+
+    @Override
+    public void sendEmail(Email email) {
+        service.send(
+                "team@serchservice.com",
+                email.getReceiver(),
+                email.getSubject(),
+                EmailAuthTemplate.email(email),
+                true
+        );
+    }
 }

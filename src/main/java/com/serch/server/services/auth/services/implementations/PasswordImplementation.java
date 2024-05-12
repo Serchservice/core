@@ -61,7 +61,6 @@ public class PasswordImplementation implements PasswordService {
         if(TimeUtil.isOtpExpired(user.getPasswordRecoveryExpiresAt(), OTP_EXPIRATION_TIME)) {
             String otp = tokenService.generateOtp();
             user.setPasswordRecoveryToken(passwordEncoder.encode(otp));
-            user.setUpdatedAt(LocalDateTime.now());
             user.setPasswordRecoveryExpiresAt(LocalDateTime.now().plusMinutes(OTP_EXPIRATION_TIME));
             userRepository.save(user);
 
@@ -147,7 +146,7 @@ public class PasswordImplementation implements PasswordService {
                     user.setPasswordRecoveryExpiresAt(null);
                     user.setPasswordRecoveryToken(null);
                     user.setPasswordRecoveryConfirmedAt(null);
-                    user.setUpdatedAt(LocalDateTime.now());
+                    user.setLastUpdatedAt(LocalDateTime.now());
                     userRepository.save(user);
                     return new ApiResponse<>("Password successfully changed", HttpStatus.OK);
                 }
@@ -165,7 +164,7 @@ public class PasswordImplementation implements PasswordService {
                 throw new AuthException("New password cannot be same as old password");
             } else if(HelperUtil.validatePassword(request.getNewPassword())) {
                 user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-                user.setUpdatedAt(LocalDateTime.now());
+                user.setLastUpdatedAt(LocalDateTime.now());
 
                 accountDeleteRepository.findByUser_EmailAddress(UserUtil.getLoginUser())
                         .ifPresent(accountDeleteRepository::delete);

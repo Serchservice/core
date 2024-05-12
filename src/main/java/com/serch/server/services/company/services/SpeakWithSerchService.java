@@ -1,0 +1,42 @@
+package com.serch.server.services.company.services;
+
+import com.serch.server.bases.ApiResponse;
+import com.serch.server.services.company.requests.IssueRequest;
+import com.serch.server.services.company.responses.SpeakWithSerchResponse;
+
+import java.util.List;
+
+public interface SpeakWithSerchService {
+    /**
+     * Lodges an issue for a specific product.
+     *
+     * @param request The IssueRequest object containing issue details.
+     * @return ApiResponse containing a message with the issue submission status.
+     *
+     * @see ApiResponse
+     * @see IssueRequest
+     * @see SpeakWithSerchResponse
+     */
+    ApiResponse<SpeakWithSerchResponse> lodgeIssue(IssueRequest request);
+
+    /**
+     * Fetches all Speak With Serch messages
+     *
+     * @return ApiResponse containing all messages.
+     *
+     * @see ApiResponse
+     * @see SpeakWithSerchResponse
+     */
+    ApiResponse<List<SpeakWithSerchResponse>> message();
+
+    /**
+     * Marks all the message in a SpeakWithSerch record read
+     *
+     * @param ticket The SpeakWithSerch ticket
+     *
+     * @return ApiResponse of {@link SpeakWithSerchResponse} list
+     */
+    ApiResponse<List<SpeakWithSerchResponse>> markRead(String ticket);
+
+    void removeOldContents();
+}

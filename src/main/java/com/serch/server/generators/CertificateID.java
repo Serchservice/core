@@ -27,6 +27,6 @@ public class CertificateID implements IdentifierGenerator {
     public Serializable generate(
             SharedSessionContractImplementor sharedSessionContractImplementor, Object o
     ) {
-        return "SCERT-" + UUID.randomUUID().toString().toUpperCase();
+        return "SCERT-" + UUID.randomUUID().toString().substring(0, 10).toUpperCase().replaceAll("-", "");
     }
 }

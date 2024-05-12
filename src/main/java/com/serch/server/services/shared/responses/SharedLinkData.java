@@ -1,14 +1,24 @@
 package com.serch.server.services.shared.responses;
 
-import com.serch.server.enums.shared.UseStatus;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
-import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Data
 public class SharedLinkData {
-    private String id;
-    private UseStatus status;
+    @JsonProperty("link_id")
+    private String linkId;
+
     private String link;
-    private BigDecimal amount;
+    private String label;
+    private String image;
+    private String amount;
+    private String status;
+    private String category;
+    private SharedProfileData provider;
+    private SharedProfileData user;
+
+    @JsonProperty("created_at")
+    private LocalDateTime createdAt;
 }

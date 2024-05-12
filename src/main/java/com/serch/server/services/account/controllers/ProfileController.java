@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/profile")
-@PreAuthorize("hasRole('PROVIDER', 'USER', 'ASSOCIATE_PROVIDER')")
+@PreAuthorize(value = "hasRole('PROVIDER') || hasRole('USER') || hasRole('ASSOCIATE_PROVIDER')")
 public class ProfileController {
     private final ProfileService service;
 
@@ -22,9 +22,9 @@ public class ProfileController {
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @PatchMapping("/update")
-    public ResponseEntity<ApiResponse<String>> update(@RequestBody UpdateProfileRequest request) {
-        ApiResponse<String> response = service.update(request);
+    @PatchMapping(value = "/update")
+    public ResponseEntity<ApiResponse<ProfileResponse>> update(@RequestBody UpdateProfileRequest request) {
+        ApiResponse<ProfileResponse> response = service.update(request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 }

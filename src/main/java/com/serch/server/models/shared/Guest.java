@@ -12,7 +12,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
-import java.util.Set;
+import java.time.LocalDateTime;
 
 /**
  * The Guest class represents guest profiles in a sharing platform.
@@ -84,10 +84,40 @@ public class Guest extends BaseDateTime {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String platform;
 
-    @ManyToMany(mappedBy = "guests")
-    private Set<SharedLink> sharedLinks;
+    @Column(name = "token", columnDefinition = "TEXT")
+    private String token;
+
+    @Column(name = "expires_at")
+    private LocalDateTime expiresAt = null;
+
+    @Column(name = "confirmed_at")
+    private LocalDateTime confirmedAt = null;
+
+    @Column(columnDefinition = "TEXT", nullable = false)
+    private String name;
+
+    @Column(columnDefinition = "TEXT")
+    private String device = null;
+
+    @Column(name = "ip_address", columnDefinition = "TEXT")
+    private String ipAddress = null;
+
+    @Column(columnDefinition = "TEXT")
+    private String host = null;
+
+    @Column(name = "operating_system", columnDefinition = "TEXT")
+    private String operatingSystem = null;
+
+    @Column(name = "operating_system_version", columnDefinition = "TEXT")
+    private String operatingSystemVersion = null;
+
+    @Column(name = "local_host", columnDefinition = "TEXT")
+    private String localHost = null;
 
     public String getFullName() {
         return getFirstName() + " " + getLastName();
+    }
+    public boolean isEmailConfirmed() {
+        return confirmedAt != null;
     }
 }

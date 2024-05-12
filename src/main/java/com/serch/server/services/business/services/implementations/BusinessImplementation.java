@@ -1,15 +1,14 @@
 package com.serch.server.services.business.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.enums.subscription.PlanStatus;
 import com.serch.server.enums.verified.VerificationStatus;
 import com.serch.server.exceptions.account.AccountException;
 import com.serch.server.mappers.AccountMapper;
+import com.serch.server.models.account.Specialty;
 import com.serch.server.models.business.BusinessProfile;
 import com.serch.server.models.account.PhoneInformation;
 import com.serch.server.models.auth.User;
 import com.serch.server.models.auth.incomplete.Incomplete;
-import com.serch.server.models.subscription.SubscriptionInvoice;
 import com.serch.server.repositories.business.BusinessProfileRepository;
 import com.serch.server.repositories.account.PhoneInformationRepository;
 import com.serch.server.repositories.account.SpecialtyRepository;
@@ -17,20 +16,20 @@ import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.rating.RatingRepository;
 import com.serch.server.repositories.shared.SharedLinkRepository;
 import com.serch.server.repositories.shop.ShopRepository;
-import com.serch.server.repositories.subscription.SubscriptionInvoiceRepository;
-import com.serch.server.services.account.requests.UpdateProfileRequest;
+import com.serch.server.repositories.trip.TripRepository;
+import com.serch.server.services.business.requests.UpdateBusinessRequest;
 import com.serch.server.services.business.responses.BusinessProfileResponse;
 import com.serch.server.services.account.responses.MoreProfileData;
-import com.serch.server.services.account.responses.ProfileResponse;
 import com.serch.server.services.business.services.BusinessService;
 import com.serch.server.services.account.services.ProfileService;
 import com.serch.server.services.auth.requests.RequestBusinessProfile;
+import com.serch.server.services.company.responses.SpecialtyKeywordResponse;
 import com.serch.server.services.referral.services.ReferralService;
 import com.serch.server.services.auth.services.TokenService;
 import com.serch.server.services.company.services.SpecialtyKeywordService;
-import com.serch.server.services.storage.core.StorageService;
-import com.serch.server.services.storage.requests.UploadRequest;
+import com.serch.server.services.supabase.core.SupabaseService;
 import com.serch.server.services.transaction.services.WalletService;
+import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,7 +44,7 @@ import java.util.List;
  * Service for managing business profiles, including creation, updating, and retrieval.
  * It implements the wrapper class {@link BusinessService}
  *
- * @see StorageService
+ * @see SupabaseService
  * @see ReferralService
  * @see WalletService
  * @see SpecialtyKeywordService
@@ -58,7 +57,6 @@ import java.util.List;
  * @see ShopRepository
  * @see RatingRepository
  * @see SharedLinkRepository
- * @see SubscriptionInvoiceRepository
  */
 @Service
 @RequiredArgsConstructor
@@ -67,7 +65,7 @@ public class BusinessImplementation implements BusinessService {
     private final ReferralService referralService;
     private final WalletService walletService;
     private final ProfileService profileService;
-    private final StorageService storageService;
+    private final SupabaseService supabase;
     private final SpecialtyKeywordService keywordService;
     private final UserUtil userUtil;
     private final BusinessProfileRepository businessProfileRepository;
@@ -77,10 +75,10 @@ public class BusinessImplementation implements BusinessService {
     private final RatingRepository ratingRepository;
     private final SharedLinkRepository sharedLinkRepository;
     private final SpecialtyRepository specialtyRepository;
-    private final SubscriptionInvoiceRepository subscriptionInvoiceRepository;
 
     @Value("${application.account.duration}")
     private Integer ACCOUNT_DURATION;
+    private final TripRepository tripRepository;
 
     @Override
     public ApiResponse<String> createProfile(Incomplete incomplete, User user, RequestBusinessProfile profile) {
@@ -120,91 +118,90 @@ public class BusinessImplementation implements BusinessService {
     }
 
     @Override
-    public ApiResponse<List<ProfileResponse>> associates() {
-        BusinessProfile profile = businessProfileRepository.findById(userUtil.getUser().getId())
-                .orElseThrow(() -> new AccountException("Profile not found"));
-        return new ApiResponse<>(
-                "Success",
-                profile.getAssociates().isEmpty() ? List.of() : profile.getAssociates()
-                        .stream()
-                        .map(profileService::profile)
-                        .toList(),
-                HttpStatus.OK
-        );
-    }
-
-    @Override
-    public ApiResponse<List<ProfileResponse>> subscribedAssociates() {
-        SubscriptionInvoice invoice = subscriptionInvoiceRepository
-                .findBySubscription_PlanStatusAndSubscription_User_Id(PlanStatus.ACTIVE, userUtil.getUser().getId())
-                .orElse(new SubscriptionInvoice());
-
-        return new ApiResponse<>(
-                "Success",
-                invoice.getAssociates().isEmpty() ? List.of() :  invoice.getAssociates()
-                        .stream()
-                        .map(subscriptionAssociate -> profileService.profile(subscriptionAssociate.getProfile()))
-                        .toList(),
-                HttpStatus.OK
-        );
-    }
-
-    @Override
     public ApiResponse<BusinessProfileResponse> profile() {
         BusinessProfile profile = businessProfileRepository.findById(userUtil.getUser().getId())
                 .orElseThrow(() -> new AccountException("Profile not found"));
 
         BusinessProfileResponse response = AccountMapper.INSTANCE.profile(profile);
-        response.setCertificate("");
         response.setVerificationStatus(VerificationStatus.NOT_VERIFIED);
         PhoneInformation phoneInformation = phoneInformationRepository.findByUser_Id(profile.getId())
                 .orElse(new PhoneInformation());
         response.setPhoneInfo(AccountMapper.INSTANCE.phoneInformation(phoneInformation));
-        response.setBusinessInformation(AccountMapper.INSTANCE.business(profile));
         response.setSpecializations(
-                specialtyRepository.findByProfile_Business_Id(profile.getId())
+                specialtyRepository.findByProfile_Business_Id(profile.getId()) != null
+                        ? specialtyRepository.findByProfile_Business_Id(profile.getId())
                         .stream()
-                        .map(specialty -> keywordService.getSpecialtyResponse(specialty.getService()))
+                        .map(specialty -> response(specialty, specialty.getProfile().getFullName()))
                         .toList()
+                        : List.of()
         );
+        response.setCategory(profile.getCategory().getType());
+        response.setImage(profile.getCategory().getImage());
 
         MoreProfileData more = profileService.moreInformation(profile.getUser());
         more.setNumberOfRating(
-                profile.getAssociates()
+                profile.getAssociates() != null
+                        ? profile.getAssociates()
                         .stream()
                         .mapToInt(profile1 -> ratingRepository.findByRated(String.valueOf(profile1.getId())).size())
                         .sum()
+                        : 0
         );
         more.setNumberOfShops(shopRepository.findByUser_Id(profile.getUser().getId()).size());
         more.setTotalShared(
-                profile.getAssociates().stream()
+                profile.getAssociates() != null
+                        ? profile.getAssociates().stream()
                         .mapToInt(profile1 -> sharedLinkRepository.findByUserId(profile1.getId()).size())
                         .sum()
+                        : 0
         );
-        more.setTotalServiceTrips(0);
+        more.setTotalServiceTrips(
+                profile.getAssociates() != null
+                        ? profile.getAssociates().stream()
+                        .mapToInt(provider -> tripRepository.findByProviderId(provider.getId()).size())
+                        .sum()
+                        : 0
+        );
         response.setMore(more);
         return new ApiResponse<>(response);
     }
 
+    private SpecialtyKeywordResponse response(Specialty specialty, String name) {
+        SpecialtyKeywordResponse response = keywordService.getSpecialtyResponse(specialty.getService());
+        response.setId(specialty.getId());
+        response.setTimeline(name);
+        return response;
+    }
+
     @Override
-    public ApiResponse<String> update(UpdateProfileRequest request) {
+    public ApiResponse<BusinessProfileResponse> update(UpdateBusinessRequest request) {
         User user = userUtil.getUser();
         BusinessProfile profile = businessProfileRepository.findById(user.getId())
                 .orElseThrow(() -> new AccountException("Profile not found"));
         if(user.isProfile()) {
             throw new AccountException("Access denied. Cannot perform action");
         } else {
-            Duration duration = Duration.between(user.getLastUpdatedAt(), LocalDateTime.now());
+            Duration duration = Duration.between(
+                    user.getProfileLastUpdatedAt() != null ? user.getProfileLastUpdatedAt() : LocalDateTime.now(),
+                    LocalDateTime.now()
+            );
             long remaining = ACCOUNT_DURATION - duration.toDays();
 
-            if(remaining < 0) {
+            if(remaining < 0 || user.getProfileLastUpdatedAt() == null) {
                 updateLastName(request, profile);
                 updateFirstName(request, profile);
-                profileService.updatePhoneInformation(request, user);
-                if(!request.getAvatar().isEmpty()) {
-                    return updateAvatar(request, profile);
+                updateBusinessAddress(request, profile);
+                updateBusinessContact(request, profile);
+                updateBusinessName(request, profile);
+                updateBusinessDescription(request, profile);
+                updateGender(request, profile);
+                profileService.updatePhoneInformation(request.getPhone(), user);
+                if(!HelperUtil.isUploadEmpty(request.getUpload())) {
+                    String url = supabase.upload(request.getUpload(), UserUtil.getBucket(user.getRole()));
+                    profile.setAvatar(url);
+                    updateTimeStamps(profile.getUser(), profile);
                 }
-                return new ApiResponse<>("Update successful", HttpStatus.OK);
+                return profile();
             } else {
                 throw new AccountException("You can update your profile in the next %s days".formatted(remaining));
             }
@@ -223,19 +220,7 @@ public class BusinessImplementation implements BusinessService {
                 });
     }
 
-    private ApiResponse<String> updateAvatar(UpdateProfileRequest request, BusinessProfile profile) {
-        UploadRequest upload = new UploadRequest();
-        upload.setFile(request.getAvatar());
-
-        ApiResponse<String> response = storageService.upload(upload);
-        if(response.getStatus().is2xxSuccessful()) {
-            profile.setAvatar(response.getData());
-            updateTimeStamps(profile.getUser(), profile);
-        }
-        return response;
-    }
-
-    private void updateFirstName(UpdateProfileRequest request, BusinessProfile profile) {
+    private void updateFirstName(UpdateBusinessRequest request, BusinessProfile profile) {
         boolean canUpdateFirstName = request.getFirstName() != null
                 && !request.getFirstName().isEmpty()
                 && !profile.getUser().getFirstName().equalsIgnoreCase(request.getFirstName());
@@ -246,7 +231,7 @@ public class BusinessImplementation implements BusinessService {
         }
     }
 
-    private void updateLastName(UpdateProfileRequest request, BusinessProfile profile) {
+    private void updateLastName(UpdateBusinessRequest request, BusinessProfile profile) {
         boolean canUpdateLastName = request.getLastName() != null
                 && !request.getLastName().isEmpty()
                 && !profile.getUser().getLastName().equalsIgnoreCase(request.getLastName());
@@ -257,9 +242,62 @@ public class BusinessImplementation implements BusinessService {
         }
     }
 
+    private void updateGender(UpdateBusinessRequest request, BusinessProfile profile) {
+        boolean canUpdateGender = request.getGender() != null
+                && profile.getGender() != request.getGender();
+        if(canUpdateGender) {
+            profile.setGender(request.getGender());
+            profile.setUpdatedAt(LocalDateTime.now());
+            businessProfileRepository.save(profile);
+        }
+    }
+
+    private void updateBusinessName(UpdateBusinessRequest request, BusinessProfile profile) {
+        boolean canUpdateBusinessName = request.getBusinessName() != null
+                && !request.getBusinessName().isEmpty()
+                && !profile.getBusinessName().equalsIgnoreCase(request.getBusinessName());
+        if(canUpdateBusinessName) {
+            profile.setBusinessName(request.getBusinessName());
+            profile.setUpdatedAt(LocalDateTime.now());
+            businessProfileRepository.save(profile);
+        }
+    }
+
+    private void updateBusinessAddress(UpdateBusinessRequest request, BusinessProfile profile) {
+        boolean canUpdateBusinessAddress = request.getBusinessAddress() != null
+                && !request.getBusinessAddress().isEmpty()
+                && !profile.getBusinessAddress().equalsIgnoreCase(request.getBusinessAddress());
+        if(canUpdateBusinessAddress) {
+            profile.setBusinessAddress(request.getBusinessAddress());
+            profile.setUpdatedAt(LocalDateTime.now());
+            businessProfileRepository.save(profile);
+        }
+    }
+
+    private void updateBusinessContact(UpdateBusinessRequest request, BusinessProfile profile) {
+        boolean canUpdateBusinessContact = request.getBusinessContact() != null
+                && !request.getBusinessContact().isEmpty()
+                && !profile.getContact().equalsIgnoreCase(request.getBusinessContact());
+        if(canUpdateBusinessContact) {
+            profile.setContact(request.getBusinessContact());
+            profile.setUpdatedAt(LocalDateTime.now());
+            businessProfileRepository.save(profile);
+        }
+    }
+
+    private void updateBusinessDescription(UpdateBusinessRequest request, BusinessProfile profile) {
+        boolean canUpdateBusinessDescription = request.getBusinessDescription() != null
+                && !request.getBusinessDescription().isEmpty()
+                && !profile.getBusinessDescription().equalsIgnoreCase(request.getBusinessDescription());
+        if(canUpdateBusinessDescription) {
+            profile.setBusinessDescription(request.getBusinessDescription());
+            profile.setUpdatedAt(LocalDateTime.now());
+            businessProfileRepository.save(profile);
+        }
+    }
+
     private void updateTimeStamps(User user, BusinessProfile profile) {
-        user.setUpdatedAt(LocalDateTime.now());
-        user.setLastUpdatedAt(LocalDateTime.now());
+        user.setProfileLastUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
 
         profile.setUpdatedAt(LocalDateTime.now());

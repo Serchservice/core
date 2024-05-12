@@ -8,6 +8,7 @@ import com.serch.server.services.account.requests.RequestCreateProfile;
 import com.serch.server.services.account.requests.UpdateProfileRequest;
 import com.serch.server.services.account.responses.MoreProfileData;
 import com.serch.server.services.account.responses.ProfileResponse;
+import com.serch.server.services.auth.requests.RequestPhoneInformation;
 import com.serch.server.services.auth.requests.RequestProfile;
 
 /**
@@ -84,16 +85,17 @@ public interface ProfileService {
      *
      * @see ApiResponse
      * @see UpdateProfileRequest
+     * @see ProfileResponse
      */
-    ApiResponse<String> update(UpdateProfileRequest request);
+    ApiResponse<ProfileResponse> update(UpdateProfileRequest request);
 
     /**
      * Update the phone information of the logged-in user.
      *
-     * @param request The {@link UpdateProfileRequest} for the update
+     * @param request The {@link RequestPhoneInformation} for the update
      * @param user The {@link User} making the update
      */
-    void updatePhoneInformation(UpdateProfileRequest request, User user);
+    void updatePhoneInformation(RequestPhoneInformation request, User user);
 
     /**
      * This prepares more profile information of the logged-in user

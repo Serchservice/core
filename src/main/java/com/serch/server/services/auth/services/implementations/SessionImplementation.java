@@ -248,7 +248,6 @@ public class SessionImplementation implements SessionService {
 
                 if(user.getId().equals(userId) && jwtService.isTokenIssuedBySerch(token) && (!session.getRevoked() && !refreshToken.getRevoked())) {
                     user.setLastSignedIn(LocalDateTime.now());
-                    user.setUpdatedAt(LocalDateTime.now());
                     userRepository.save(user);
                     return new ApiResponse<>("Token is valid", email, HttpStatus.OK);
                 } else {

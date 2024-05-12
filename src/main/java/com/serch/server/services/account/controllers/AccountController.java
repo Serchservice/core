@@ -8,11 +8,11 @@ import com.serch.server.services.account.services.AccountDeleteService;
 import com.serch.server.services.account.services.AccountReportService;
 import com.serch.server.services.account.services.AccountService;
 import com.serch.server.services.account.services.AdditionalService;
-import com.serch.server.services.shared.requests.SwitchRequest;
-import com.serch.server.services.shared.responses.GuestResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,8 +24,8 @@ public class AccountController {
     private final AccountService accountService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<AccountResponse>> accounts() {
-        ApiResponse<AccountResponse> response = accountService.accounts();
+    public ResponseEntity<ApiResponse<List<AccountResponse>>> accounts() {
+        ApiResponse<List<AccountResponse>> response = accountService.accounts();
         return new ResponseEntity<>(response, response.getStatus());
     }
 
@@ -41,9 +41,9 @@ public class AccountController {
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @PostMapping("/switch")
-    public ResponseEntity<ApiResponse<GuestResponse>> switchToGuest(@RequestBody SwitchRequest request) {
-        ApiResponse<GuestResponse> response = accountService.switchToGuest(request);
+    @GetMapping("/password")
+    public ResponseEntity<ApiResponse<String>> lastPasswordUpdateAt() {
+        ApiResponse<String> response = accountService.lastPasswordUpdateAt();
         return new ResponseEntity<>(response, response.getStatus());
     }
 

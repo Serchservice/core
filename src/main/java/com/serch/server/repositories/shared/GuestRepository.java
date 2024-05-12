@@ -12,10 +12,7 @@ import java.util.Optional;
 
 public interface GuestRepository extends JpaRepository<Guest, String> {
     Optional<Guest> findByEmailAddressIgnoreCase(@NonNull String emailAddress);
-    Optional<Guest> findByIdAndSharedLinks_Id(@NonNull String id, @NonNull String id1);
-    @Query("SELECT DISTINCT g FROM Guest g " +
-            "INNER JOIN g.sharedLinks sl " +
-            "WHERE sl.createdAt < :oneYearAgo " +
-            "AND NOT EXISTS (SELECT 1 FROM SharedLink sl2 WHERE sl2.createdAt > :oneYearAgo AND g MEMBER OF sl2.guests)")
-    List<Guest> findGuestsWithLastSharedTripOneYearAgo(@Param("oneYearAgo") LocalDateTime oneYearAgo);
+    @Query("SELECT sl.guest FROM SharedLogin sl " +
+            "WHERE sl.createdAt <= :oneYearAgo")
+    List<Guest> findGuestsWithLastTripOneYearAgo(@Param("oneYearAgo") LocalDateTime oneYearAgo);
 }

@@ -1,14 +1,29 @@
 package com.serch.server.services.shared.responses;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
 public class GuestResponse {
-    private SharedLinkData data;
-    private GuestProfileData profile;
-    private SharedProfileData provider;
-    private SharedProfileData user;
-    private List<SharedPricingData> pricing;
+    private String id;
+    private String gender;
+    private String avatar;
+
+    @JsonProperty("email_address")
+    private String emailAddress;
+
+    @JsonProperty("first_name")
+    private String firstName;
+
+    @JsonProperty("last_name")
+    private String lastName;
+
+    @JsonProperty("joined_at")
+    private String joinedAt;
+
+    private Boolean confirmed;
+    private SharedLinkData link;
+    private List<SharedStatusData> statuses;
 }

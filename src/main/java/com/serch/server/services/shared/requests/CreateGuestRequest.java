@@ -3,8 +3,9 @@ package com.serch.server.services.shared.requests;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.serch.server.annotations.SerchEnum;
 import com.serch.server.enums.account.Gender;
+import com.serch.server.services.auth.requests.RequestDevice;
+import com.serch.server.services.supabase.requests.FileUploadRequest;
 import lombok.Data;
-import org.springframework.web.multipart.MultipartFile;
 
 @Data
 public class CreateGuestRequest {
@@ -23,7 +24,10 @@ public class CreateGuestRequest {
     @SerchEnum(message = "Gender must be an enum")
     private Gender gender;
 
+    private FileUploadRequest upload;
     private String link;
-    private MultipartFile avatar;
-    private String platform;
+
+    @JsonProperty("link_id")
+    private String linkId;
+    private RequestDevice device;
 }

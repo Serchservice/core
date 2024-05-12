@@ -19,13 +19,4 @@ public class MoreProfileData {
 
     @JsonProperty("total_shared")
     private Integer totalShared;
-
-    @JsonProperty("is_enabled")
-    private Boolean isEnabled;
-
-    @JsonProperty("is_non_locked")
-    private Boolean isNonLocked;
-
-    @JsonProperty("is_non_expired")
-    private Boolean isNonExpired;
 }

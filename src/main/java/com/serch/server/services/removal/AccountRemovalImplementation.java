@@ -11,8 +11,8 @@ import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.auth.mfa.MFAFactorRepository;
 import com.serch.server.repositories.bookmark.BookmarkRepository;
 import com.serch.server.repositories.business.BusinessProfileRepository;
+import com.serch.server.repositories.company.SpeakWithSerchRepository;
 import com.serch.server.repositories.conversation.CallRepository;
-import com.serch.server.repositories.company.IssueRepository;
 import com.serch.server.repositories.conversation.ChatMessageRepository;
 import com.serch.server.repositories.conversation.ChatRoomRepository;
 import com.serch.server.repositories.rating.RatingRepository;
@@ -48,7 +48,6 @@ public class AccountRemovalImplementation implements AccountRemovalService {
     private final SessionRepository sessionRepository;
     private final UserRepository userRepository;
     private final BookmarkRepository bookmarkRepository;
-    private final IssueRepository issueRepository;
     private final CallRepository callRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final ChatRoomRepository chatRoomRepository;
@@ -63,6 +62,7 @@ public class AccountRemovalImplementation implements AccountRemovalService {
     private final ActiveRepository activeRepository;
     private final TripRepository tripRepository;
     private final SubscriptionAssociateRepository subscriptionAssociateRepository;
+    private final SpeakWithSerchRepository speakWithSerchRepository;
 
     @Override
     public void remove() {
@@ -102,7 +102,7 @@ public class AccountRemovalImplementation implements AccountRemovalService {
         /// OTHERS
         /// TODO::: Add Conversation Models and Certificate, Verified
         bookmarkRepository.deleteAll(bookmarkRepository.findByUserId(user.getId()));
-        issueRepository.deleteAll(issueRepository.findByUser_Id(user.getId()));
+        speakWithSerchRepository.deleteAll(speakWithSerchRepository.findByUser_Id(user.getId()));
         callRepository.deleteAll(callRepository.findByUserId(user.getId()));
         chatMessageRepository.deleteAll(chatMessageRepository.findByUserId(user.getId()));
         chatRoomRepository.deleteAll(chatRoomRepository.findByUserId(user.getId()));

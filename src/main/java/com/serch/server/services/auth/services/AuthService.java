@@ -84,4 +84,12 @@ public interface AuthService {
      * @see SerchCategoryResponse
      */
     ApiResponse<List<SerchCategoryResponse>> categories();
+
+    /**
+     * Send signup email
+     *
+     * @param emailAddress The emailAddress receiving the mail
+     * @param otp The OTP
+     */
+    void sendEmail(String emailAddress, String otp);
 }

@@ -30,12 +30,13 @@ public interface AccountMapper {
     RequestProviderProfile profile(AddAssociateRequest request);
     AdditionalInformationResponse additional(AdditionalInformation additionalInformation);
     @Mappings({
-            @Mapping(target = "certificate", source = "certificate", ignore = true),
+            @Mapping(target = "category", source = "category", ignore = true),
             @Mapping(target = "id", source = "id")
     })
     ProfileResponse profile(Profile profile);
     @Mappings({
             @Mapping(target = "id", source = "id"),
+            @Mapping(target = "category", source = "category", ignore = true),
             @Mapping(target = "name", source = "businessName"),
             @Mapping(target = "description", source = "businessDescription"),
             @Mapping(target = "address", source = "businessAddress"),

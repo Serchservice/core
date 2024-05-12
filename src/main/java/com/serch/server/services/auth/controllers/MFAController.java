@@ -1,9 +1,11 @@
 package com.serch.server.services.auth.controllers;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.services.auth.requests.RequestDevice;
 import com.serch.server.services.auth.requests.RequestMFAChallenge;
 import com.serch.server.services.auth.responses.AuthResponse;
 import com.serch.server.services.auth.responses.MFADataResponse;
+import com.serch.server.services.auth.responses.MFARecoveryCodeResponse;
 import com.serch.server.services.auth.responses.MFAUsageResponse;
 import com.serch.server.services.auth.services.MFAService;
 import lombok.RequiredArgsConstructor;
@@ -31,14 +33,14 @@ public class MFAController {
     }
 
     @GetMapping("/recovery/codes")
-    public ResponseEntity<ApiResponse<List<String>>> getRecoveryCodes() {
+    public ResponseEntity<ApiResponse<List<MFARecoveryCodeResponse>>> getRecoveryCodes() {
         var response = mfaService.getRecoveryCodes();
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @DeleteMapping("/disable")
-    public ResponseEntity<ApiResponse<String>> disable() {
-        var response = mfaService.disable();
+    public ResponseEntity<ApiResponse<AuthResponse>> disable(@RequestBody RequestDevice device) {
+        var response = mfaService.disable(device);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

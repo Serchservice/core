@@ -96,8 +96,13 @@ public class BookmarkImplementation implements BookmarkService {
                         );
                         response.setLastSignedIn(
                                 userUtil.getUser().isUser(bookmark.getUser().getId())
-                                        ? TimeUtil.formatLastSignedIn(bookmark.getProvider().getUser().getLastSignedIn())
-                                        : TimeUtil.formatLastSignedIn(bookmark.getUser().getUser().getLastSignedIn())
+                                        ? TimeUtil.formatLastSignedIn(bookmark.getProvider().getUser().getLastSignedIn(), true)
+                                        : TimeUtil.formatLastSignedIn(bookmark.getUser().getUser().getLastSignedIn(), true)
+                        );
+                        response.setUser(
+                                userUtil.getUser().isUser(bookmark.getUser().getId())
+                                        ? bookmark.getProvider().getUser().getId()
+                                        : bookmark.getUser().getUser().getId()
                         );
                         return response;
                     })

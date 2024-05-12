@@ -215,7 +215,7 @@ public class EmailAuthTemplate {
                 "  <div class=\"v-text-align v-line-height\" style=\"font-size: 14px; color: #4b4a4a; line-height: 190%; text-align: left; word-wrap: break-word;\">\n" +
                 "    <p style=\"font-size: 14px; line-height: 190%;\"><span style=\"font-size: 18px; line-height: 34.2px; font-family: Cabin, sans-serif;\"><strong><span style=\"line-height: 34.2px; font-size: 18px;\">" + template.getGreeting() + ",</span></strong></span></p>\n" +
                 "<p style=\"font-size: 14px; line-height: 190%;\"><span style=\"font-size: 16px; line-height: 30.4px; font-family: Cabin, sans-serif;\">" + template.getContent() + "</span></p>\n" +
-                (template.getOtp().isEmpty()
+                (template.getOtp().isEmpty() || template.getHasLink()
                         ? ""
                         : """
                         <p style="font-size: 14px; line-height: 190%;"> </p>
@@ -260,7 +260,10 @@ public class EmailAuthTemplate {
                         "      <td class=\"v-container-padding-padding\" style=\"overflow-wrap:break-word;word-break:break-word;padding:10px;font-family:'Montserrat',sans-serif;\" align=\"left\">\n" +
                         "        \n" +
                         "  <div class=\"v-text-align v-line-height\" style=\"font-family: 'Cabin',sans-serif; font-size: 30px; font-weight: 700; line-height: 140%; text-align: center; word-wrap: break-word;\">\n" +
-                        "    <p style=\"line-height: 140%;\">" + template.getOtp() + "</p>\n" +
+                        (template.getHasLink()
+                                ? "    <a href=" + template.getLink() + " style=\"line-height: 140%; font-size: 12px;\">" + template.getOtp() + "</a>\n"
+                                : "    <p style=\"line-height: 140%;\">" + template.getOtp() + "</p>\n"
+                        ) +
                         "  </div>\n" +
                         "\n" +
                         "      </td>\n" +

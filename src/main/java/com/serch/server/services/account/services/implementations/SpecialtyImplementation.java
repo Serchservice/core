@@ -1,13 +1,16 @@
 package com.serch.server.services.account.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.exceptions.account.AccountException;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.account.Specialty;
 import com.serch.server.models.auth.incomplete.Incomplete;
+import com.serch.server.models.business.BusinessProfile;
 import com.serch.server.models.company.SpecialtyKeyword;
 import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.account.SpecialtyRepository;
+import com.serch.server.repositories.business.BusinessProfileRepository;
 import com.serch.server.repositories.company.SpecialtyKeywordRepository;
 import com.serch.server.services.account.services.SpecialtyService;
 import com.serch.server.services.company.responses.SpecialtyKeywordResponse;
@@ -17,6 +20,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * Service class for managing specialties and specialty keywords.
@@ -36,6 +41,7 @@ public class SpecialtyImplementation implements SpecialtyService {
     private final SpecialtyRepository specialtyRepository;
     private final ProfileRepository profileRepository;
     private final SpecialtyKeywordRepository specialtyKeywordRepository;
+    private final BusinessProfileRepository businessProfileRepository;
 
     @Value("${application.account.limit.specialty}")
     private Integer SPECIALTY_LIMIT;
@@ -83,5 +89,17 @@ public class SpecialtyImplementation implements SpecialtyService {
                     throw new AccountException("An error occurred while performing action");
                 });
         return new ApiResponse<>("Successfully deleted", HttpStatus.OK);
+    }
+
+    @Override
+    public ApiResponse<List<SpecialtyKeywordResponse>> specials() {
+        SerchCategory category = profileRepository.findById(userUtil.getUser().getId())
+                .map(Profile::getCategory)
+                .orElse(
+                        businessProfileRepository.findById(userUtil.getUser().getId())
+                                .map(BusinessProfile::getCategory)
+                                .orElse(SerchCategory.GUEST)
+                );
+        return new ApiResponse<>(keywordService.getAllSpecialties(category));
     }
 }

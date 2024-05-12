@@ -11,7 +11,6 @@ import org.hibernate.validator.constraints.URL;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Set;
 
 /**
  * The SharedLink class represents a shared link in a sharing platform.
@@ -72,25 +71,6 @@ public class SharedLink extends BaseDateTime {
     )
     private Profile provider;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "shared_link_guest",
-            joinColumns = @JoinColumn(
-                    name = "shared_link_id",
-                    nullable = false,
-                    referencedColumnName = "id",
-                    foreignKey = @ForeignKey(name = "guest_shared_link_id_fkey")
-            ),
-            schema = "sharing",
-            inverseJoinColumns = @JoinColumn(
-                    name = "guest_id",
-                    nullable = false,
-                    referencedColumnName = "id",
-                    foreignKey = @ForeignKey(name = "guest_id_fkey")
-            )
-    )
-    private Set<Guest> guests;
-
     @OneToMany(mappedBy = "sharedLink", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<SharedStatus> statuses;
+    private List<SharedLogin> logins;
 }

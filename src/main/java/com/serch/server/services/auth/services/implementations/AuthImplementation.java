@@ -113,7 +113,8 @@ public class AuthImplementation implements AuthService {
         }
     }
 
-    private void sendEmail(String emailAddress, String otp) {
+    @Override
+    public void sendEmail(String emailAddress, String otp) {
         SendEmail email = new SendEmail();
         email.setContent(otp);
         email.setType(EmailType.SIGNUP);
@@ -134,11 +135,17 @@ public class AuthImplementation implements AuthService {
     public ApiResponse<String> checkEmail(String email) {
         var user = userRepository.findByEmailAddressIgnoreCase(email);
         if (user.isPresent()) {
+            if(user.get().getRole() == Role.ASSOCIATE_PROVIDER && !user.get().getIsEmailConfirmed()) {
+                throw new AuthException(
+                        "Finish signup for associate provider. Check your email inbox or notify your admin",
+                        ExceptionCodes.ASSOCIATE_PROVIDER_EMAIL
+                );
+            }
             return new ApiResponse<>(
                     "Login with email and password",
                     user.get().getFirstName(),
-                    HttpStatus.OK)
-                    ;
+                    HttpStatus.OK
+            );
         } else {
             var incomplete = incompleteRepository.findByEmailAddress(email);
             if (incomplete.isPresent()) {
@@ -188,13 +195,6 @@ public class AuthImplementation implements AuthService {
                 incomplete.setTokenConfirmedAt(LocalDateTime.now());
                 incomplete.setUpdatedAt(LocalDateTime.now());
                 incompleteRepository.save(incomplete);
-
-                if (incomplete.getRole() == Role.ASSOCIATE_PROVIDER) {
-                    throw new AuthException(
-                            "Finish signup for associate provider",
-                            ExceptionCodes.ASSOCIATE_PROVIDER_EMAIL
-                    );
-                }
                 return new ApiResponse<>("OTP confirmed", HttpStatus.OK);
             } else {
                 throw new AuthException("Incorrect token", ExceptionCodes.INCORRECT_TOKEN);
@@ -207,7 +207,6 @@ public class AuthImplementation implements AuthService {
         authenticate(request);
 
         user.setLastSignedIn(LocalDateTime.now());
-        user.setUpdatedAt(LocalDateTime.now());
         user.setPasswordRecoveryToken(null);
         user.setPasswordRecoveryExpiresAt(null);
         user.setPasswordRecoveryConfirmedAt(null);

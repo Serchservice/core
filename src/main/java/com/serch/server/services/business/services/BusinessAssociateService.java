@@ -1,10 +1,13 @@
 package com.serch.server.services.business.services;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.models.account.Profile;
 import com.serch.server.services.account.requests.AddAssociateRequest;
 import com.serch.server.services.business.controllers.BusinessAssociateController;
+import com.serch.server.services.business.responses.BusinessAssociateResponse;
 import com.serch.server.services.business.services.implementations.BusinessAssociateImplementation;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -18,38 +21,83 @@ public interface BusinessAssociateService {
     /**
      * Adds a provider as an associate to the business.
      * @param request The request containing information about the provider to be added.
-     * @return ApiResponse indicating the success or failure of the operation.
+     * @return ApiResponse of list {@link BusinessAssociateResponse}
      *
      * @see ApiResponse
      * @see AddAssociateRequest
      */
-    ApiResponse<String> add(AddAssociateRequest request);
+    ApiResponse<List<BusinessAssociateResponse>> add(AddAssociateRequest request);
+
+    /**
+     * Resend an email invite
+     *
+     * @param id The associate provider id
+     *
+     * @return {@link ApiResponse}
+     */
+    ApiResponse<String> resendInvite(UUID id);
 
     /**
      * Deletes a provider associated with the business.
      * @param id The ID of the provider to be deleted.
-     * @return ApiResponse indicating the success or failure of the operation.
+     * @return ApiResponse of list {@link BusinessAssociateResponse}
      *
      * @see ApiResponse
      */
-    ApiResponse<String> delete(UUID id);
+    ApiResponse<List<BusinessAssociateResponse>> delete(UUID id);
 
     /**
      * Deactivates a provider associated with the business.
      * @param id The ID of the provider to be deactivated.
-     * @return ApiResponse indicating the success or failure of the operation.
+     * @return ApiResponse of {@link BusinessAssociateResponse}
      *
      * @see ApiResponse
      */
-    ApiResponse<String> deactivate(UUID id);
+    ApiResponse<BusinessAssociateResponse> deactivate(UUID id);
 
     /**
      * Activates a previously deactivated provider associated with the business.
      * @param id The ID of the provider to be activated.
-     * @return ApiResponse indicating the success or failure of the operation.
+     * @return ApiResponse of {@link BusinessAssociateResponse}
      *
      * @see ApiResponse
      */
-    ApiResponse<String> activate(UUID id);
+    ApiResponse<BusinessAssociateResponse> activate(UUID id);
+
+    /**
+     * Fetches the list of business associates that belongs to the business
+     *
+     * @return ApiResponse of list {@link BusinessAssociateResponse}
+     *
+     * @see ApiResponse
+     */
+    ApiResponse<List<BusinessAssociateResponse>> all();
+
+    /**
+     * Fetches the list of subscribed business associates that belongs to the business
+     *
+     * @return ApiResponse of list {@link BusinessAssociateResponse}
+     *
+     * @see ApiResponse
+     */
+    ApiResponse<List<BusinessAssociateResponse>> subscribed();
+
+    /**
+     * Fetches the list of deactivated business associates that belongs to the business
+     *
+     * @return ApiResponse of list {@link BusinessAssociateResponse}
+     *
+     * @see ApiResponse
+     */
+    ApiResponse<List<BusinessAssociateResponse>> deactivated();
+
+    /**
+     * Builds the profile of an associate provider
+     *
+     * @param profile The profile of the provider {@link Profile}
+     *
+     * @return {@link BusinessAssociateResponse}
+     */
+    BusinessAssociateResponse response(Profile profile);
 }
 

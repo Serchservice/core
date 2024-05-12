@@ -13,22 +13,13 @@ import java.util.UUID;
  */
 public interface BusinessSubscriptionService {
     /**
-     * Fetches all unsubscribed business associate providers
+     * Fetches the list of associates a business wants to subscribe for
      *
      * @return List of {@link BusinessAssociateResponse}
      *
      * @see ApiResponse
      */
-    ApiResponse<List<BusinessAssociateResponse>> associates();
-
-    /**
-     * Fetches all subscribed business associate providers
-     *
-     * @return List of {@link BusinessAssociateResponse}
-     *
-     * @see ApiResponse
-     */
-    ApiResponse<List<BusinessAssociateResponse>> subscribed();
+    ApiResponse<List<BusinessAssociateResponse>> subscriptions();
 
     /**
      * Adds an associate provider to the list of business subscriptions

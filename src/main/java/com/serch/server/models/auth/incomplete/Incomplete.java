@@ -1,7 +1,6 @@
 package com.serch.server.models.auth.incomplete;
 
 import com.serch.server.bases.BaseModel;
-import com.serch.server.models.business.BusinessProfile;
 import com.serch.server.enums.auth.Role;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -22,8 +21,6 @@ import java.util.List;
  *     <li>{@link IncompletePhoneInformation} - The phone information associated with the incomplete registration.</li>
  *     <li>{@link IncompleteCategory} - The category information associated with the incomplete registration.</li>
  *     <li>{@link IncompleteSpecialty} - The specialty information associated with the incomplete registration.</li>
- *     <li>{@link IncompleteAdditional} - The additional information associated with the incomplete registration.</li>
- *     <li>{@link BusinessProfile} - The business profile associated with the incomplete registration.</li>
  * </ul>
  * Constraints:
  * <ul>
@@ -34,7 +31,6 @@ import java.util.List;
  *     <li>{@link Incomplete#isEmailConfirmed()} - Checks if the email is confirmed.</li>
  *     <li>{@link Incomplete#hasProfile()} - Checks if the registration has a profile associated with it.</li>
  *     <li>{@link Incomplete#hasCategory()} - Checks if the registration has a category associated with it.</li>
- *     <li>{@link Incomplete#hasAdditional()} - Checks if the registration has additional information associated with it.</li>
  * </ul>
  * @see BaseModel
  */
@@ -83,14 +79,6 @@ public class Incomplete extends BaseModel {
 
     @OneToMany(mappedBy = "incomplete", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private List<IncompleteSpecialty> specializations;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "business_id",
-            referencedColumnName = "serch_id",
-            foreignKey = @ForeignKey(name = "incomplete_business_id_fkey")
-    )
-    private BusinessProfile business = null;
 
     public boolean isEmailConfirmed() {
         return tokenConfirmedAt != null;

@@ -19,8 +19,8 @@ public class RatingController {
     private final RatingService service;
 
     @GetMapping("/app")
-    public ResponseEntity<ApiResponse<Double>> app(@RequestParam(required = false) String id) {
-        ApiResponse<Double> response = service.app(id);
+    public ResponseEntity<ApiResponse<RatingResponse>> app(@RequestParam(required = false) String id) {
+        ApiResponse<RatingResponse> response = service.app(id);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
@@ -32,19 +32,19 @@ public class RatingController {
 
     @GetMapping("/all/bad")
     public ResponseEntity<ApiResponse<List<RatingResponse>>> bad() {
-        ApiResponse<List<RatingResponse>> response = service.bad();
+        ApiResponse<List<RatingResponse>> response = service.bad(null);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @GetMapping("/all/good")
     public ResponseEntity<ApiResponse<List<RatingResponse>>> good() {
-        ApiResponse<List<RatingResponse>> response = service.good();
+        ApiResponse<List<RatingResponse>> response = service.good(null);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @GetMapping("/chart")
     public ResponseEntity<ApiResponse<List<RatingChartResponse>>> chart() {
-        ApiResponse<List<RatingChartResponse>> response = service.chart();
+        ApiResponse<List<RatingChartResponse>> response = service.chart(null);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
@@ -61,8 +61,8 @@ public class RatingController {
     }
 
     @PostMapping("/rate/app")
-    public ResponseEntity<ApiResponse<Double>> rate(@RequestBody RateAppRequest request) {
-        ApiResponse<Double> response = service.rate(request);
+    public ResponseEntity<ApiResponse<RatingResponse>> rate(@RequestBody RateAppRequest request) {
+        ApiResponse<RatingResponse> response = service.rate(request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 }

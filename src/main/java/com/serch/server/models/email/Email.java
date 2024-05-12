@@ -20,4 +20,8 @@ public class Email {
     private String imageHeader;
     private boolean isCentered;
     private String emailAddress;
+    private String link;
+    private String receiver;
+    private String subject;
+    private Boolean hasLink = false;
 }

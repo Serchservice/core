@@ -3,13 +3,10 @@ package com.serch.server.services.business.services;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.models.auth.User;
 import com.serch.server.models.auth.incomplete.Incomplete;
-import com.serch.server.services.account.requests.UpdateProfileRequest;
+import com.serch.server.services.business.requests.UpdateBusinessRequest;
 import com.serch.server.services.business.responses.BusinessProfileResponse;
-import com.serch.server.services.account.responses.ProfileResponse;
 import com.serch.server.services.auth.requests.RequestBusinessProfile;
 import com.serch.server.services.business.services.implementations.BusinessImplementation;
-
-import java.util.List;
 
 /**
  * Service interface for managing business profiles, including creation, updating, and retrieval.
@@ -33,26 +30,6 @@ public interface BusinessService {
     ApiResponse<String> createProfile(Incomplete incomplete, User user, RequestBusinessProfile profile);
 
     /**
-     * Retrieves profiles of associates with the business.
-     *
-     * @return An ApiResponse containing a list of associate profiles.
-     *
-     * @see ProfileResponse
-     * @see ApiResponse
-     */
-    ApiResponse<List<ProfileResponse>> associates();
-
-    /**
-     * Retrieves profiles of subscribed associates with the business.
-     *
-     * @return An ApiResponse containing a list of associate profiles.
-     *
-     * @see ProfileResponse
-     * @see ApiResponse
-     */
-    ApiResponse<List<ProfileResponse>> subscribedAssociates();
-
-    /**
      * Retrieves the business profile of the logged-in user.
      *
      * @return An ApiResponse containing the business profile.
@@ -69,9 +46,10 @@ public interface BusinessService {
      * @return An ApiResponse indicating the success of the update.
      *
      * @see ApiResponse
-     * @see UpdateProfileRequest
+     * @see UpdateBusinessRequest
+     * @see BusinessProfileResponse
      */
-    ApiResponse<String> update(UpdateProfileRequest request);
+    ApiResponse<BusinessProfileResponse> update(UpdateBusinessRequest request);
 
     /**
      * Delete/Remove the saved details of the user

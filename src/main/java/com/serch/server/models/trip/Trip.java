@@ -5,7 +5,7 @@ import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.trip.TripConnectionStatus;
 import com.serch.server.generators.TripID;
 import com.serch.server.models.account.Profile;
-import com.serch.server.models.shared.SharedPricing;
+import com.serch.server.models.shared.SharedStatus;
 import com.serch.server.models.transaction.Transaction;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -28,7 +28,7 @@ import org.hibernate.annotations.GenericGenerator;
  * <ul>
  *     <li>One-to-one with {@link TripAuthentication} representing trip authentication details.</li>
  *     <li>One-to-one with {@link TripTime} representing trip time details.</li>
- *     <li>One-to-one with {@link SharedPricing} representing shared pricing details of the trip.</li>
+ *     <li>One-to-one with {@link SharedStatus} representing shared status details of the trip.</li>
  *     <li>One-to-one with {@link Transaction} representing transaction details associated with the trip.</li>
  *     <li>One-to-one with {@link Address} representing the address location of the user.</li>
  *     <li>Many-to-one with {@link Profile} representing the service provider of the trip.</li>
@@ -85,7 +85,7 @@ public class Trip extends BaseDateTime {
     private Address address;
 
     @OneToOne(mappedBy = "trip")
-    private SharedPricing pricing;
+    private SharedStatus shared;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(

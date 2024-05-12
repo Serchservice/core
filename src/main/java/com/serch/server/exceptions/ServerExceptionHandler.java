@@ -130,8 +130,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  *     <li>{@link ServerExceptionHandler#handleShopException(ShopException)} -
  *     Handles exception involved with shop services. {@link ShopException}
  *     </li>
- *     <li>{@link ServerExceptionHandler#handleStorageException(StorageException)} -
- *     Handles exception involved with storage services. {@link StorageException}
+ *     <li>{@link ServerExceptionHandler#handleStorageException(SupabaseException)} -
+ *     Handles exception involved with storage services. {@link SupabaseException}
  *     </li>
  *     <li>{@link ServerExceptionHandler#handleSharedException(SharedException)} -
  *     Handles exception involved with shared services. {@link SharedException}
@@ -226,6 +226,14 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(ChatRoomException.class)
     public ApiResponse<String> handleChatRoomException(ChatRoomException exception) {
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage());
+        response.setData(exception.getLocalizedMessage());
+        return response;
+    }
+
+    @ExceptionHandler(CertificateException.class)
+    public ApiResponse<String> handleCertificateException(CertificateException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
@@ -404,8 +412,8 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
         return response;
     }
 
-    @ExceptionHandler(StorageException.class)
-    public ApiResponse<String> handleStorageException(StorageException exception) {
+    @ExceptionHandler(SupabaseException.class)
+    public ApiResponse<String> handleStorageException(SupabaseException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
         response.setData(exception.getLocalizedMessage());

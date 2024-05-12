@@ -83,6 +83,7 @@ public class SecurityFilterConfiguration {
                                 "/auth/business/**",
                                 "/auth/password/reset/**",
                                 "/auth/session/**",
+                                "/auth/associate/**",
                                 "/referral/program/verify/**",
                                 "/company/**",
                                 "/plan/**",
@@ -94,7 +95,8 @@ public class SecurityFilterConfiguration {
                                 "/location/search/**",
                                 "/issue/lodge",
                                 "/rating/app",
-                                "/country/**"
+                                "/country/**",
+                                "/certificate/verify"
                         ).permitAll()
                         .requestMatchers(
                                 // Public endpoints for actuator and server endpoints
@@ -136,7 +138,7 @@ public class SecurityFilterConfiguration {
                         .requestMatchers(
                                 // Endpoints requiring PROVIDER or USER roles
                                 "/account/delete"
-                        ).hasAnyRole(PROVIDER.name(), USER.name())
+                        ).hasAnyRole(PROVIDER.name(), USER.name(), BUSINESS.name())
                         .requestMatchers(
                                 // Endpoints requiring PROVIDER, USER and ASSOCIATE_PROVIDER roles
                                 "/schedule/decline",
@@ -149,6 +151,11 @@ public class SecurityFilterConfiguration {
                                 "/trip/invite",
                                 "/trip/invite/cancel"
                         ).hasAnyRole(ASSOCIATE_PROVIDER.name(), PROVIDER.name())
+                        .requestMatchers(
+                                // Endpoints requiring BUSINESS role
+                                "/subscription/business/**",
+                                "/profile/business/**"
+                        ).hasAnyRole(BUSINESS.name())
                         .requestMatchers(
                                 // Endpoints requiring PROVIDER, USER and ASSOCIATE_PROVIDER roles
                                 "/account/switch",
@@ -173,11 +180,6 @@ public class SecurityFilterConfiguration {
                                 "/subscription",
                                 "/wallet/pay/subscription"
                         ).hasAnyRole(PROVIDER.name(), BUSINESS.name())
-                        .requestMatchers(
-                                // Endpoints requiring BUSINESS role
-                                "/business/associate/**",
-                                "/business/profiles/**"
-                        ).hasAnyRole(BUSINESS.name())
                         .requestMatchers(
                                 // Endpoints requiring PROVIDER, BUSINESS and ASSOCIATE_PROVIDER roles
                                 "/subscription/check"

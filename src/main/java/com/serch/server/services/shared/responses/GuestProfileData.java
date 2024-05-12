@@ -1,23 +1,21 @@
 package com.serch.server.services.shared.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.serch.server.enums.account.Gender;
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 public class GuestProfileData {
-    @JsonProperty("email_address")
-    private String emailAddress;
-
-    @JsonProperty("first_name")
-    private String firstName;
-
-    @JsonProperty("last_name")
-    private String lastName;
-
-    @JsonProperty("fcm_token")
-    private String fcmToken;
-
-    private String gender;
     private String id;
+    private Gender gender;
     private String avatar;
+    private String name;
+    private String status;
+
+    @JsonProperty("joined_at")
+    private String joinedAt;
+
+    private List<SharedStatusData> statuses;
 }

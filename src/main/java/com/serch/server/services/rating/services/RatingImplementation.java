@@ -30,7 +30,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -153,7 +155,7 @@ public class RatingImplementation implements RatingService {
     }
 
     @Override
-    public ApiResponse<Double> rate(RateAppRequest request) {
+    public ApiResponse<RatingResponse> rate(RateAppRequest request) {
         String account = getAccount(request.getAccount());
         if(request.getRating() != null) {
             Optional<AppRating> existing = appRatingRepository.findByAccount(account);
@@ -167,24 +169,28 @@ public class RatingImplementation implements RatingService {
             } else {
                 AppRating rating = RatingMapper.INSTANCE.rating(request);
                 rating.setApp(getApp(account));
+                rating.setComment(request.getComment());
+                rating.setAccount(account);
                 appRatingRepository.save(rating);
             }
-            return new ApiResponse<>(request.getRating());
+
+            RatingResponse response = new RatingResponse();
+            response.setRating(request.getRating());
+            response.setComment(request.getComment());
+            return new ApiResponse<>(response);
         } else {
             throw new RatingException("There is no rating value");
         }
     }
 
     private String getAccount(String request) {
-        String account;
         if(request == null || request.isEmpty()) {
-            account = String.valueOf(userUtil.getUser().getId());
+            return String.valueOf(userUtil.getUser().getId());
         } else {
-            account = guestRepository.findById(request)
+            return guestRepository.findById(request)
                     .orElseThrow(() -> new RatingException("Guest not found"))
                     .getId();
         }
-        return account;
     }
 
     private String getApp(String account) {
@@ -210,13 +216,14 @@ public class RatingImplementation implements RatingService {
     @Override
     public ApiResponse<List<RatingResponse>> view() {
         List<Rating> ratings = ratingRepository.findByRated(String.valueOf(userUtil.getUser().getId()));
-        return getRatingResponseList(ratings);
+        return ratings(ratings);
     }
 
     private RatingResponse getRatingResponse(Rating rating) {
         RatingResponse response = RatingMapper.INSTANCE.response(rating);
         response.setName(getName(rating));
-        response.setCategory(getCategory(rating));
+        response.setCategory(getCategory(rating).getType());
+        response.setImage(getCategory(rating).getImage());
         return response;
     }
 
@@ -234,29 +241,25 @@ public class RatingImplementation implements RatingService {
         }
     }
 
-    private String getCategory(Rating rating) {
-        Optional<Guest> guest = guestRepository.findById(rating.getRater());
-        if(guest.isPresent()) {
-            return "Guest";
-        } else {
-            try {
-                return profileRepository.findById(UUID.fromString(rating.getRater()))
-                        .map(Profile::getCategory)
-                        .orElse(SerchCategory.USER)
-                        .getType();
-            } catch (Exception e) {
-                return "";
-            }
+    private SerchCategory getCategory(Rating rating) {
+        try {
+            return profileRepository.findById(UUID.fromString(rating.getRater()))
+                    .map(Profile::getCategory)
+                    .orElse(SerchCategory.USER);
+        } catch (Exception e) {
+            return SerchCategory.GUEST;
         }
     }
 
     @Override
-    public ApiResponse<List<RatingResponse>> good() {
-        List<Rating> ratings = ratingRepository.findGood(String.valueOf(userUtil.getUser().getId()));
-        return getRatingResponseList(ratings);
+    public ApiResponse<List<RatingResponse>> good(String id) {
+        String user = id == null ? String.valueOf(userUtil.getUser().getId()) : id;
+        List<Rating> ratings = ratingRepository.findGood(user);
+        return ratings(ratings);
     }
 
-    private ApiResponse<List<RatingResponse>> getRatingResponseList(List<Rating> ratings) {
+    @Override
+    public ApiResponse<List<RatingResponse>> ratings(List<Rating> ratings) {
         List<RatingResponse> list = new ArrayList<>();
 
         if(!ratings.isEmpty()) {
@@ -269,25 +272,56 @@ public class RatingImplementation implements RatingService {
     }
 
     @Override
-    public ApiResponse<List<RatingResponse>> bad() {
-        List<Rating> ratings = ratingRepository.findBad(String.valueOf(userUtil.getUser().getId()));
-        return getRatingResponseList(ratings);
+    public ApiResponse<List<RatingResponse>> bad(String id) {
+        String user = id == null ? String.valueOf(userUtil.getUser().getId()) : id;
+        List<Rating> ratings = ratingRepository.findBad(user);
+        return ratings(ratings);
     }
 
     @Override
-    public ApiResponse<List<RatingChartResponse>> chart() {
-        List<RatingChartResponse> list = ratingRepository.chart(String.valueOf(userUtil.getUser().getId()));
-        return new ApiResponse<>(list);
+    public ApiResponse<List<RatingChartResponse>> chart(String id) {
+        String user = id == null ? String.valueOf(userUtil.getUser().getId()) : id;
+        List<Object[]> resultList = ratingRepository.chart(user);
+
+        Map<String, RatingChartResponse> responseMap = new LinkedHashMap<>();
+
+        // Populate the map with default values for current month, last month, and the month before that
+        LocalDate currentDate = LocalDate.now();
+        for (int i = 0; i >= -2; i--) {
+            LocalDate date = currentDate.plusMonths(i);
+            String monthName = date.format(DateTimeFormatter.ofPattern("MMM"));
+            responseMap.put(monthName, new RatingChartResponse(monthName, 0.0, 0.0, 0.0, 0.0));
+        }
+
+        // Update the map with actual data
+        for (Object[] result : resultList) {
+            String month = (String) result[0];
+            Double bad = (Double) result[1];
+            Double good = (Double) result[2];
+            Double average = (Double) result[3];
+            Double total = (Double) result[4];
+
+            // Apply threshold constraints
+            bad = Math.min(Math.max(bad, 0.0), 5.0);
+            good = Math.min(Math.max(good, 0.0), 5.0);
+            average = Math.min(Math.max(average, 0.0), 5.0);
+            total = Math.min(Math.max(total, 0.0), 5.0);
+
+            responseMap.put(month, new RatingChartResponse(month, bad, good, average, total));
+        }
+
+        // Convert the map values to a list
+        List<RatingChartResponse> chartResponses = new ArrayList<>(responseMap.values());
+        return new ApiResponse<>(chartResponses);
     }
 
     @Override
-    public ApiResponse<Double> app(String account) {
-        return new ApiResponse<>(
-                "App rating fetched",
-                appRatingRepository.findByAccount(getAccount(account))
-                        .orElse(new AppRating())
-                        .getRating(),
-                HttpStatus.OK
-        );
+    public ApiResponse<RatingResponse> app(String account) {
+        AppRating rating = appRatingRepository.findByAccount(getAccount(account))
+                .orElse(new AppRating());
+        RatingResponse response = new RatingResponse();
+        response.setRating(rating.getRating());
+        response.setComment(rating.getComment());
+        return new ApiResponse<>("App rating fetched", response, HttpStatus.OK);
     }
 }

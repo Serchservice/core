@@ -2,29 +2,33 @@ package com.serch.server.services.shop.services;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.shop.ShopStatus;
+import com.serch.server.enums.shop.Weekday;
 import com.serch.server.enums.subscription.PlanStatus;
 import com.serch.server.exceptions.others.ShopException;
 import com.serch.server.mappers.ShopMapper;
-import com.serch.server.models.auth.User;
 import com.serch.server.models.shop.Shop;
 import com.serch.server.models.shop.ShopService;
+import com.serch.server.models.shop.ShopWeekday;
 import com.serch.server.repositories.shop.ShopRepository;
 import com.serch.server.repositories.shop.ShopServiceRepository;
-import com.serch.server.services.shop.requests.AddShopServiceRequest;
+import com.serch.server.repositories.shop.ShopWeekdayRepository;
 import com.serch.server.services.shop.requests.CreateShopRequest;
-import com.serch.server.services.shop.requests.RemoveShopServiceRequest;
 import com.serch.server.services.shop.requests.UpdateShopRequest;
+import com.serch.server.services.shop.requests.ShopWeekdayRequest;
 import com.serch.server.services.shop.responses.SearchShopResponse;
 import com.serch.server.services.shop.responses.ShopResponse;
+import com.serch.server.services.shop.responses.ShopServiceResponse;
+import com.serch.server.services.shop.responses.ShopWeekdayResponse;
+import com.serch.server.services.supabase.core.SupabaseService;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
@@ -37,217 +41,276 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ShopImplementation implements ShopServices {
+    private final SupabaseService supabaseService;
     private final UserUtil userUtil;
     private final ShopRepository shopRepository;
     private final ShopServiceRepository shopServiceRepository;
+    private final ShopWeekdayRepository shopWeekdayRepository;
+
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("h:mma");
+
+    private static LocalTime toTime(String timeString) {
+        return LocalTime.parse(timeString.toUpperCase(), TIME_FORMATTER);
+    }
+
+    private static String toString(LocalTime time) {
+        return time.format(TIME_FORMATTER);
+    }
+
+    private ShopResponse response(Shop shop) {
+        ShopResponse response = ShopMapper.INSTANCE.shop(shop);
+        response.setOpen(shop.getStatus() == ShopStatus.OPEN);
+        response.setCategory(shop.getCategory().getType());
+        response.setImage(shop.getCategory().getImage());
+        if(shop.getWeekdays() != null && !shop.getWeekdays().isEmpty()) {
+            response.setWeekdays(shop.getWeekdays().stream().map(this::response).toList());
+            DayOfWeek currentDay = LocalDateTime.now().getDayOfWeek();
+            shopWeekdayRepository.findByDayAndShop_Id(Weekday.valueOf(currentDay.name()), shop.getId())
+                    .ifPresent(weekday -> response.setCurrent(response(weekday)));
+        }
+        if(shop.getServices() != null && !shop.getServices().isEmpty()) {
+            response.setServices(shop.getServices().stream().map(this::response).toList());
+        }
+        return response;
+    }
+
+    private ShopServiceResponse response(ShopService service) {
+        return ShopServiceResponse.builder()
+                .service(service.getService())
+                .id(service.getId())
+                .build();
+    }
+
+    private ShopWeekdayResponse response(ShopWeekday weekday) {
+        return ShopWeekdayResponse.builder()
+                .day(weekday.getDay().getDay())
+                .closing(toString(weekday.getClosing()))
+                .opening(toString(weekday.getOpening()))
+                .id(weekday.getId())
+                .open(weekday.getShop().getStatus() == ShopStatus.OPEN)
+                .build();
+    }
+
+    private ApiResponse<ShopResponse> getUpdatedShopResponse(String shopId) {
+        Shop updatedShop = shopRepository.findByIdAndUser_Id(shopId, userUtil.getUser().getId())
+                .orElseThrow(() -> new ShopException("Shop not found"));
+        return new ApiResponse<>(response(updatedShop));
+    }
 
     @Override
     public ApiResponse<List<ShopResponse>> createShop(CreateShopRequest request) {
-        User user = userUtil.getUser();
-
-        Shop shop = ShopMapper.INSTANCE.shop(request);
-        shop.setUser(user);
-        Shop savedShop = shopRepository.save(shop);
-
-        if(!request.getServices().isEmpty()) {
-            request.getServices()
-                    .stream()
-                    .map(s -> {
-                        ShopService service = new ShopService();
-                        service.setShop(savedShop);
-                        service.setService(s);
-                        return service;
-                    }).forEach(shopServiceRepository::save);
+        if(HelperUtil.isUploadEmpty(request.getUpload())) {
+            throw new ShopException("Shop logo or image is needed");
+        } else {
+            String logo = supabaseService.upload(request.getUpload(), "shops");
+            Shop newShop = ShopMapper.INSTANCE.shop(request);
+            newShop.setUser(userUtil.getUser());
+            newShop.setLogo(logo);
+            Shop shop = shopRepository.save(newShop);
+            if(request.getServices() != null && !request.getServices().isEmpty()) {
+                request.getServices()
+                        .stream()
+                        .map(s -> {
+                            ShopService service = new ShopService();
+                            service.setShop(shop);
+                            service.setService(s);
+                            return service;
+                        }).forEach(shopServiceRepository::save);
+            }
+            if(request.getWeekdays() != null && !request.getWeekdays().isEmpty()) {
+                request.getWeekdays()
+                        .stream()
+                        .map(s -> {
+                            ShopWeekday weekday = new ShopWeekday();
+                            weekday.setShop(shop);
+                            weekday.setClosing(toTime(s.getClosing()));
+                            weekday.setOpening(toTime(s.getOpening()));
+                            weekday.setDay(s.getDay());
+                            return weekday;
+                        }).forEach(shopWeekdayRepository::save);
+            }
         }
 
-        return getShopResponse(user);
-    }
-
-    private ApiResponse<List<ShopResponse>> getShopResponse(User user) {
-        return new ApiResponse<>(
-                "Success",
-                shopRepository.findByUser_Id(user.getId()).isEmpty() ? List.of() : shopRepository.findByUser_Id(user.getId())
-                        .stream()
-                        .sorted(Comparator.comparing(Shop::getCreatedAt))
-                        .map(s -> {
-                            ShopResponse response = ShopMapper.INSTANCE.shop(s);
-                            response.setServices(s.getServices()
-                                    .stream()
-                                    .map(ShopMapper.INSTANCE::service)
-                                    .toList()
-                            );
-                            return response;
-                        })
-                        .toList(),
-                HttpStatus.OK
-        );
+        return fetchShops();
     }
 
     @Override
-    public ApiResponse<List<ShopResponse>> updateShop(UpdateShopRequest request) {
-        Shop shop = shopRepository.findById(request.getShopId())
+    public ApiResponse<ShopResponse> createWeekday(String shopId, ShopWeekdayRequest request) {
+        Shop shop = shopRepository.findByIdAndUser_Id(shopId, userUtil.getUser().getId())
+                .orElseThrow(() -> new ShopException("Shop not found"));
+        ShopWeekday weekday = new ShopWeekday();
+        weekday.setShop(shop);
+        weekday.setClosing(toTime(request.getClosing()));
+        weekday.setOpening(toTime(request.getOpening()));
+        weekday.setDay(request.getDay());
+        shopWeekdayRepository.save(weekday);
+
+        return getUpdatedShopResponse(shopId);
+    }
+
+    @Override
+    public ApiResponse<ShopResponse> createService(String shopId, String service) {
+        Shop shop = shopRepository.findByIdAndUser_Id(shopId, userUtil.getUser().getId())
+                .orElseThrow(() -> new ShopException("Shop not found"));
+        ShopService newService = new ShopService();
+        newService.setShop(shop);
+        newService.setService(service);
+        shopServiceRepository.save(newService);
+
+        return getUpdatedShopResponse(shopId);
+    }
+
+    @Override
+    public ApiResponse<ShopResponse> updateShop(UpdateShopRequest request) {
+        Shop shop = shopRepository.findByIdAndUser_Id(request.getShop(), userUtil.getUser().getId())
                 .orElseThrow(() -> new ShopException("Shop not found"));
 
-        if(shop.isUser(userUtil.getUser().getId())) {
-            if(shop.getStatus() == ShopStatus.SUSPENDED) {
-                throw new ShopException("Cannot update a suspended shop. Contact support");
-            } else {
-                if(!shop.getName().equalsIgnoreCase(request.getName())) {
-                    shop.setName(request.getName());
-                }
-                if(!shop.getAddress().equalsIgnoreCase(request.getAddress())) {
-                    shop.setAddress(request.getAddress());
-                }
-                if(!shop.getPlace().equalsIgnoreCase(request.getPlace())) {
-                    shop.setPlace(request.getPlace());
-                }
-                if(!shop.getPhoneNumber().equalsIgnoreCase(request.getPhoneNumber())) {
-                    shop.setPhoneNumber(request.getPhoneNumber());
-                }
-                if(!shop.getLatitude().equals(request.getLatitude())) {
-                    shop.setLatitude(request.getLatitude());
-                }
-                if(!shop.getLongitude().equals(request.getLongitude())) {
-                    shop.setLongitude(request.getLongitude());
-                }
-                if(shop.getCategory() != request.getCategory()) {
-                    shop.setCategory(request.getCategory());
-                }
-                shop.setUpdatedAt(LocalDateTime.now());
-                shopRepository.save(shop);
-                return fetchShops();
-            }
-        } else {
-            throw new ShopException("Shop does not belong to user");
+        if(!shop.getName().equalsIgnoreCase(request.getName())) {
+            shop.setName(request.getName());
         }
+        if(!shop.getAddress().equalsIgnoreCase(request.getAddress())) {
+            shop.setAddress(request.getAddress());
+        }
+        if(!shop.getPhoneNumber().equalsIgnoreCase(request.getPhoneNumber())) {
+            shop.setPhoneNumber(request.getPhoneNumber());
+        }
+        if(shop.getCategory() != request.getCategory()) {
+            shop.setCategory(request.getCategory());
+        }
+        if(!shop.getLatitude().equals(request.getLatitude())) {
+            shop.setLatitude(request.getLatitude());
+        }
+        if(!shop.getLongitude().equals(request.getLongitude())) {
+            shop.setLongitude(request.getLongitude());
+        }
+        shop.setUpdatedAt(LocalDateTime.now());
+        shopRepository.save(shop);
+        return getUpdatedShopResponse(request.getShop());
+    }
+
+    @Override
+    public ApiResponse<ShopResponse> updateWeekday(Long id, String shopId, ShopWeekdayRequest request) {
+        ShopWeekday weekday = shopWeekdayRepository.findByIdAndShop_Id(id, shopId)
+                .orElseThrow(() -> new ShopException("Weekday not found"));
+        if(!weekday.getClosing().equals(toTime(request.getClosing()))) {
+            weekday.setClosing(toTime(request.getClosing()));
+        }
+        if(!weekday.getOpening().equals(toTime(request.getOpening()))) {
+            weekday.setOpening(toTime(request.getOpening()));
+        }
+        weekday.setUpdatedAt(LocalDateTime.now());
+        shopWeekdayRepository.save(weekday);
+        return getUpdatedShopResponse(shopId);
+    }
+
+    @Override
+    public ApiResponse<ShopResponse> updateService(Long id, String shopId, String service) {
+        ShopService shopService = shopServiceRepository.findByIdAndShop_Id(id, shopId)
+                .orElseThrow(() -> new ShopException("Service not found"));
+        if(!shopService.getService().equalsIgnoreCase(service)) {
+            shopService.setService(service);
+            shopService.setUpdatedAt(LocalDateTime.now());
+            shopServiceRepository.save(shopService);
+        }
+        return getUpdatedShopResponse(shopId);
     }
 
     @Override
     public ApiResponse<List<ShopResponse>> fetchShops() {
-        return getShopResponse(userUtil.getUser());
-    }
-
-    @Override
-    public ApiResponse<String> removeService(RemoveShopServiceRequest request) {
-        ShopService shop = shopServiceRepository.findByIdAndShop_Id(request.getId(), request.getShop())
-                .orElseThrow(() -> new ShopException("Shop not found"));
-
-        if(shop.getShop().isUser(userUtil.getUser().getId())) {
-            if(shop.getShop().getStatus() == ShopStatus.SUSPENDED) {
-                throw new ShopException("Cannot update a suspended shop. Contact support");
-            }
-
-            shopServiceRepository.delete(shop);
-            return new ApiResponse<>("Service removed successfully", HttpStatus.OK);
-        } else {
-            throw new ShopException("Shop does not belong to user");
-        }
-    }
-
-    @Override
-    public ApiResponse<String> addService(AddShopServiceRequest request) {
-        Shop shop = shopRepository.findById(request.getShop())
-                .orElseThrow(() -> new ShopException("Shop not found"));
-        if(shop.isUser(userUtil.getUser().getId())) {
-            if(shop.getStatus() == ShopStatus.SUSPENDED) {
-                throw new ShopException("Cannot update a suspended shop. Contact support");
-            }
-
-            ShopService service = new ShopService();
-            service.setShop(shop);
-            service.setService(request.getService());
-            shopServiceRepository.save(service);
-
-            return new ApiResponse<>("Service successfully added", HttpStatus.OK);
-        } else {
-            throw new ShopException("Shop does not belong to you");
-        }
-    }
-
-    @Override
-    public ApiResponse<String> changeStatus(String shopId) {
-        Shop shop = shopRepository.findById(shopId)
-                .orElseThrow(() -> new ShopException("Shop not found"));
-        if(shop.isUser(userUtil.getUser().getId())) {
-            if(shop.getStatus() == ShopStatus.SUSPENDED) {
-                throw new ShopException("Cannot update a suspended shop. Contact support");
-            }
-
-            if(shop.getStatus() == ShopStatus.OPEN) {
-                shop.setStatus(ShopStatus.CLOSED);
-                shop.setUpdatedAt(LocalDateTime.now());
-                shopRepository.save(shop);
-
-                return new ApiResponse<>(
-                        "%s is now closed for business".formatted(shop.getName()),
-                        HttpStatus.OK
-                );
-            } else {
-                shop.setStatus(ShopStatus.OPEN);
-                shop.setUpdatedAt(LocalDateTime.now());
-                shopRepository.save(shop);
-
-                return new ApiResponse<>(
-                        "%s is now open for business".formatted(shop.getName()),
-                        HttpStatus.OK
-                );
-            }
-        } else {
-            throw new ShopException("Shop does not belong to user");
-        }
-    }
-
-    @Override
-    public ApiResponse<String> markAllOpen() {
         List<Shop> shops = shopRepository.findByUser_Id(userUtil.getUser().getId());
-        if(shops.isEmpty()) {
-            throw new ShopException("You have no shops");
-        } else {
+        List<ShopResponse> list = shops == null || shops.isEmpty() ? List.of() : shops
+                .stream()
+                .map(this::response)
+                .toList();
+        return new ApiResponse<>(list);
+    }
+
+    @Override
+    public ApiResponse<ShopResponse> removeService(Long id, String shopId) {
+        shopServiceRepository.findByIdAndShop_Id(id, shopId).ifPresent(shopServiceRepository::delete);
+        return getUpdatedShopResponse(shopId);
+    }
+
+    @Override
+    public ApiResponse<List<ShopResponse>> removeShop(String shopId) {
+        shopRepository.findByIdAndUser_Id(shopId, userUtil.getUser().getId()).ifPresent(shopRepository::delete);
+        return fetchShops();
+    }
+
+    @Override
+    public ApiResponse<ShopResponse> removeWeekday(Long id, String shopId) {
+        shopWeekdayRepository.findByIdAndShop_Id(id, shopId).ifPresent(shopWeekdayRepository::delete);
+        return getUpdatedShopResponse(shopId);
+    }
+
+    @Override
+    public ApiResponse<ShopResponse> changeStatus(String shopId, ShopStatus status) {
+        Shop shop = shopRepository.findByIdAndUser_Id(shopId, userUtil.getUser().getId())
+                .orElseThrow(() -> new ShopException("Shop not found"));
+        shop.setStatus(status);
+        shop.setUpdatedAt(LocalDateTime.now());
+        shopRepository.save(shop);
+        return getUpdatedShopResponse(shopId);
+    }
+
+    @Override
+    public ApiResponse<List<ShopResponse>> changeAllStatus() {
+        List<Shop> shops = shopRepository.findByUser_Id(userUtil.getUser().getId());
+        if(shops != null && !shops.isEmpty()) {
             shops.stream().filter(shop -> shop.getStatus() != ShopStatus.SUSPENDED).peek(shop -> {
-                shop.setStatus(ShopStatus.OPEN);
+                if(shop.getStatus() == ShopStatus.OPEN) {
+                    shop.setStatus(ShopStatus.CLOSED);
+                } else if(shop.getStatus() == ShopStatus.CLOSED) {
+                    shop.setStatus(ShopStatus.OPEN);
+                }
                 shop.setUpdatedAt(LocalDateTime.now());
             }).forEach(shopRepository::save);
-            return new ApiResponse<>("Shops are now open for business", HttpStatus.OK);
-        }
-    }
-
-    @Override
-    public ApiResponse<String> markAllClosed() {
-        List<Shop> shops = shopRepository.findByUser_Id(userUtil.getUser().getId());
-        if(shops.isEmpty()) {
-            throw new ShopException("You have no shops");
+            return fetchShops();
         } else {
-            shops.stream().filter(shop -> shop.getStatus() != ShopStatus.SUSPENDED).peek(shop -> {
-                shop.setStatus(ShopStatus.CLOSED);
-                shop.setUpdatedAt(LocalDateTime.now());
-            }).forEach(shopRepository::save);
-            return new ApiResponse<>("Shops are now open for business", HttpStatus.OK);
+            throw new ShopException("You have no shops");
         }
     }
 
     @Override
     public ApiResponse<List<SearchShopResponse>> drive(String query, String category, Double longitude, Double latitude, Double radius) {
-        List<Shop> listOfShops = new ArrayList<>();
+        List<Shop> listOfShops;
         if(query != null && !query.isEmpty()) {
-            listOfShops = shopRepository.findByServiceAndLocation(
-                    latitude, longitude, query, radius, PlanStatus.ACTIVE.name()
-            );
+            listOfShops = shopRepository.findByServiceAndLocation(latitude, longitude, query, radius, PlanStatus.ACTIVE.name());
         } else {
-            listOfShops = shopRepository.findByCategoryAndLocation(
-                    latitude, longitude, category, radius, PlanStatus.ACTIVE.name()
-            );
+            listOfShops = shopRepository.findByCategoryAndLocation(latitude, longitude, category, radius, PlanStatus.ACTIVE.name());
         }
 
         return new ApiResponse<>(
-                listOfShops.stream()
+                listOfShops != null && !listOfShops.isEmpty() ? listOfShops.stream()
                         .map(shop -> {
-                            SearchShopResponse response = ShopMapper.INSTANCE.search(shop);
-
+                            SearchShopResponse response = new SearchShopResponse();
                             double distance = HelperUtil.getDistance(latitude, longitude, shop.getLatitude(), shop.getLongitude());
                             response.setDistance(distance + " km");
+                            response.setShop(response(shop));
+                            response.setId(shop.getUser().getId());
                             return response;
                         })
                         .toList()
+                        : List.of()
         );
+    }
+
+    @Override
+    public void openOrCloseShops() {
+        List<Shop> openingShops = shopRepository.findShopsWithCurrentOpeningTimeAndDay(LocalDateTime.now().getDayOfWeek());
+        if(openingShops != null && !openingShops.isEmpty()) {
+            openingShops.forEach(shop -> {
+                shop.setStatus(ShopStatus.OPEN);
+                shopRepository.save(shop);
+            });
+        }
+
+        List<Shop> closingShops = shopRepository.findShopsWithCurrentClosingTimeAndDay(LocalDateTime.now().getDayOfWeek());
+        if(closingShops != null && !closingShops.isEmpty()) {
+            closingShops.forEach(shop -> {
+                shop.setStatus(ShopStatus.CLOSED);
+                shopRepository.save(shop);
+            });
+        }
     }
 }

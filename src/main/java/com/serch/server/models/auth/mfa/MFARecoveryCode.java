@@ -29,6 +29,9 @@ public class MFARecoveryCode extends BaseModel {
     @Column(name = "code", nullable = false, columnDefinition = "TEXT")
     private String code;
 
+    @Column(name = "recovery", nullable = false, columnDefinition = "TEXT")
+    private String recovery;
+
     @Column(name = "is_used", nullable = false)
     private Boolean isUsed = false;
 

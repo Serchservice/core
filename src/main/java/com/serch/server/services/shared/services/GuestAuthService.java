@@ -1,14 +1,11 @@
 package com.serch.server.services.shared.services;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.models.shared.Guest;
-import com.serch.server.models.shared.SharedLink;
-import com.serch.server.models.shared.SharedPricing;
+import com.serch.server.services.shared.requests.CreateGuestFromUserRequest;
 import com.serch.server.services.shared.requests.CreateGuestRequest;
 import com.serch.server.services.shared.requests.VerifyEmailRequest;
-import com.serch.server.services.shared.responses.GuestAuthResponse;
 import com.serch.server.services.shared.responses.GuestResponse;
-import com.serch.server.services.shared.responses.SharedPricingData;
+import com.serch.server.services.shared.responses.SharedLinkData;
 
 /**
  * Service interface for guest authentication operations.
@@ -21,20 +18,10 @@ public interface GuestAuthService {
      *
      * @param link The authentication link to verify.
      * @return A response containing the verification result.
-     */
-    ApiResponse<GuestAuthResponse> verifyLink(String link);
-
-    /**
-     * Generates a guest response.
      *
-     * @param link  The shared link associated with the guest.
-     * @param guest The guest information.
-     * @return The generated guest response.
-     *
-     * @see SharedLink
-     * @see Guest
+     * @see SharedLinkData
      */
-    GuestResponse response(SharedLink link, Guest guest);
+    ApiResponse<SharedLinkData> verifyLink(String link);
 
     /**
      * Requests verification of an email address.
@@ -53,38 +40,9 @@ public interface GuestAuthService {
      * @return A response indicating the success or failure of the verification process.
      *
      * @see VerifyEmailRequest
+     * @see GuestResponse
      */
-    ApiResponse<String> verifyEmailWithToken(VerifyEmailRequest request);
-
-    /**
-     * Requests confirmation of an existing email identity.
-     *
-     * @param request The request containing the email address to confirm.
-     * @return A response indicating the success or failure of the request.
-     *
-     * @see VerifyEmailRequest
-     */
-    ApiResponse<String> askToConfirmExistingEmailIdentity(VerifyEmailRequest request);
-
-    /**
-     * Confirms an existing email identity using a token.
-     *
-     * @param request The request containing the email address and token for confirmation.
-     * @return A response indicating the success or failure of the confirmation process.
-     *
-     * @see VerifyEmailRequest
-     */
-    ApiResponse<String> confirmExistingEmailIdentityWithToken(VerifyEmailRequest request);
-
-    /**
-     * Creates a guest account.
-     *
-     * @param request The request containing the guest account information.
-     * @return A response containing the created guest account information.
-     *
-     * @see CreateGuestRequest
-     */
-    ApiResponse<GuestResponse> create(CreateGuestRequest request);
+    ApiResponse<GuestResponse> verifyEmailWithToken(VerifyEmailRequest request);
 
     /**
      * Logs in a guest user.
@@ -97,44 +55,22 @@ public interface GuestAuthService {
     ApiResponse<GuestResponse> login(VerifyEmailRequest request);
 
     /**
+     * Creates a guest account.
+     *
+     * @param request The request containing the guest account information.
+     * @return A response containing the created guest account information.
+     *
+     * @see CreateGuestRequest
+     */
+    ApiResponse<GuestResponse> create(CreateGuestRequest request);
+
+    /**
      * Creates a guest account from an existing user.
      *
      * @param request The request containing the information to create the guest account.
      * @return A response containing the created guest account information.
      *
-     * @see CreateGuestRequest
+     * @see CreateGuestFromUserRequest
      */
-    ApiResponse<GuestResponse> createFromExistingUser(CreateGuestRequest request);
-
-    /**
-     * Adds a guest account to a shared link.
-     *
-     * @param request The request containing the guest account information.
-     * @return A response containing the updated shared link information.
-     *
-     * @see CreateGuestRequest
-     */
-    ApiResponse<GuestResponse> addGuestAccountToLink(CreateGuestRequest request);
-
-    /**
-     * Retrieves shared pricing data associated with a shared link.
-     *
-     * @param link    The shared link.
-     * @param pricing The shared pricing information.
-     * @return The shared pricing data.
-     *
-     * @see SharedLink
-     * @see SharedPricing
-     */
-    SharedPricingData getSharedPricingData(SharedLink link, SharedPricing pricing);
-
-    /**
-     * This updates and checks if a shared link can be used again.
-     * If yes, it will change the status
-     * of the shared link accordingly
-     *
-     * @param link The {@link SharedLink} to make the check
-     * @param guest The profile id of the guest
-     */
-    void checkLink(SharedLink link, String guest);
+    ApiResponse<GuestResponse> createFromExistingUser(CreateGuestFromUserRequest request);
 }

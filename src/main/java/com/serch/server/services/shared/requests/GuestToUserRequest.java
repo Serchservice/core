@@ -9,7 +9,8 @@ import lombok.Data;
 public class GuestToUserRequest {
     private String guestId;
     private String password;
-    private String platform;
+    @JsonProperty("link_id")
+    private String linkId;
     @JsonProperty(value = "phone_information")
     RequestPhoneInformation phoneInformation;
     private RequestDevice device;

@@ -2,12 +2,24 @@ package com.serch.server.services.auth.services;
 
 import com.serch.server.services.auth.requests.RequestSessionToken;
 
+import java.util.Map;
+
 /**
  * Service interface for managing JWT (JSON Web Token) operations.
  *
  * @see com.serch.server.services.auth.services.implementations.JwtImplementation
  */
 public interface JwtService {
+
+    /**
+     * Generates a JWT token based on the provided data.
+     *
+     * @param data The data for the token.
+     * @return The generated JWT token.
+     *
+     * @see RequestSessionToken
+     */
+    String generateToken(Map<String, Object> data, String subject);
 
     /**
      * Generates a JWT token based on the provided session token request.

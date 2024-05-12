@@ -34,6 +34,6 @@ public class AppRating extends BaseModel {
     @Column(nullable = false)
     private String app;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String account;
 }

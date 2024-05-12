@@ -1,13 +1,15 @@
 package com.serch.server.services.shared.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.enums.call.CallStatus;
 import com.serch.server.exceptions.others.SharedException;
 import com.serch.server.models.auth.User;
-import com.serch.server.models.shared.Guest;
-import com.serch.server.models.shared.SharedLink;
+import com.serch.server.models.conversation.Call;
+import com.serch.server.models.shared.SharedLogin;
 import com.serch.server.repositories.auth.UserRepository;
+import com.serch.server.repositories.conversation.CallRepository;
 import com.serch.server.repositories.shared.GuestRepository;
-import com.serch.server.repositories.shared.SharedLinkRepository;
+import com.serch.server.repositories.shared.SharedLoginRepository;
 import com.serch.server.repositories.trip.TripRepository;
 import com.serch.server.services.auth.requests.RequestProfile;
 import com.serch.server.services.auth.responses.AuthResponse;
@@ -15,13 +17,14 @@ import com.serch.server.services.auth.services.UserAuthService;
 import com.serch.server.services.shared.requests.SwitchRequest;
 import com.serch.server.services.shared.responses.GuestResponse;
 import com.serch.server.services.shared.services.GuestAuthService;
+import com.serch.server.services.shared.services.GuestService;
 import com.serch.server.services.shared.services.SwitchService;
+import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
+import java.util.List;
+import java.util.Optional;
 
 import static com.serch.server.enums.trip.TripConnectionStatus.ACCEPTED;
 import static com.serch.server.enums.trip.TripConnectionStatus.ON_TRIP;
@@ -31,7 +34,6 @@ import static com.serch.server.enums.trip.TripConnectionStatus.ON_TRIP;
  *
  * @see GuestAuthService
  * @see UserAuthService
- * @see PasswordEncoder
  * @see GuestRepository
  * @see UserRepository
  * @see TripRepository
@@ -39,63 +41,50 @@ import static com.serch.server.enums.trip.TripConnectionStatus.ON_TRIP;
 @Service
 @RequiredArgsConstructor
 public class SwitchImplementation implements SwitchService {
-    private final GuestAuthService authService;
+    private final GuestService guestService;
     private final UserAuthService userAuthService;
-    private final PasswordEncoder passwordEncoder;
     private final GuestRepository guestRepository;
     private final UserRepository userRepository;
     private final TripRepository tripRepository;
-    private final SharedLinkRepository sharedLinkRepository;
+    private final SharedLoginRepository sharedLoginRepository;
+    private final CallRepository callRepository;
 
     @Override
     public ApiResponse<GuestResponse> switchToGuest(SwitchRequest request) {
-        Guest guest = guestRepository.findByIdAndSharedLinks_Id(request.getTo(), request.getLinkId())
+        SharedLogin login = sharedLoginRepository.findBySharedLink_IdAndGuest_Id(request.getLinkId(), request.getId())
                 .orElseThrow(() -> new SharedException("Couldn't find the account you want to switch to"));
-        SharedLink sharedLink = sharedLinkRepository.findById(request.getLinkId())
-                .orElseThrow(() -> new SharedException("Link not found"));
-
-        if(guest.getSharedLinks().stream().anyMatch(link -> link.getId().equals(request.getLinkId()))) {
-            checkRequest(request);
-            authService.checkLink(sharedLink, guest.getId());
-            return new ApiResponse<>(
-                    "Can switch account",
-                    authService.response(
-                            guest.getSharedLinks()
-                                    .stream()
-                                    .filter(link -> link.getId().equals(request.getLinkId()))
-                                    .toList()
-                                    .get(0),
-                            guest
-                    ),
-                    HttpStatus.OK
-            );
-        } else {
-            throw new SharedException("Guest is not attached to link");
+        Optional<User> user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser());
+        if(user.isPresent()) {
+            if(tripRepository.existsByStatusAndAccount(ACCEPTED, ON_TRIP, String.valueOf(user.get().getId()))) {
+                throw new SharedException("Can't switch account when you are on a trip");
+            } else {
+                List<Call> calls = callRepository.findByUserId(user.get().getId());
+                if(calls.stream().anyMatch(call ->
+                        call.getStatus() == CallStatus.ON_CALL || call.getStatus() == CallStatus.RINGING
+                                || call.getStatus() == CallStatus.CALLING
+                )) {
+                    throw new SharedException("Can't switch account when you are on a call");
+                }
+            }
         }
+        checkRequest(request);
+        guestService.checkLink(login);
+        return new ApiResponse<>(guestService.response(login));
     }
 
     @Override
     public ApiResponse<AuthResponse> switchToUser(SwitchRequest request) {
-        try {
-            UUID uuid = UUID.fromString(request.getTo());
-            User user = userRepository.findById(uuid)
-                    .orElseThrow(() -> new SharedException("Couldn't find the account you want to switch to"));
+        User user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
+                .orElseThrow(() -> new SharedException("Sign in as user to be able to switch easily"));
 
-            if(passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-                checkRequest(request);
-                RequestProfile profile = new RequestProfile();
-                profile.setDevice(request.getDevice());
-                return userAuthService.getAuthResponse(profile, user);
-            } else {
-                throw new SharedException("Incorrect password details");
-            }
-        } catch (Exception e) {
-            throw new SharedException(e.getMessage());
-        }
+        checkRequest(request);
+        RequestProfile profile = new RequestProfile();
+        profile.setDevice(request.getDevice());
+        return userAuthService.getAuthResponse(profile, user);
     }
 
     private void checkRequest(SwitchRequest request) {
-        String id = guestRepository.findById(request.getActive())
+        String id = guestRepository.findById(request.getId())
                 .orElseThrow(() -> new SharedException("Guest not found"))
                 .getId();
 

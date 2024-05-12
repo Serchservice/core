@@ -57,6 +57,7 @@ public class Session extends BaseDevice {
     @JoinColumn(
             name = "user_id",
             referencedColumnName = "id",
+            nullable = false,
             foreignKey = @ForeignKey(name = "user_session_fkey")
     )
     @ToString.Exclude

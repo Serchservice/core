@@ -8,6 +8,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class IssueRequest {
-    private String id;
+    private String ticket;
     private String comment;
 }

@@ -52,12 +52,6 @@ public class Profile extends BaseProfile {
     private SerchCategory category;
 
     /**
-     * The certificate associated with the profile.
-     */
-    @OneToOne(mappedBy = "profile")
-    private Certificate certificate;
-
-    /**
      * The verification status associated with the profile.
      */
     @OneToOne(mappedBy = "profile", cascade = CascadeType.ALL)
@@ -122,6 +116,6 @@ public class Profile extends BaseProfile {
      * @return True if the profile is the same as the specified user, otherwise false.
      */
     public boolean isSameAs(UUID user) {
-        return getId() != null && getId() == user;
+        return getId() != null && getId().equals(user);
     }
 }

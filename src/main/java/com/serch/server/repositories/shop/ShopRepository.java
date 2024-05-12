@@ -6,7 +6,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.lang.NonNull;
 
+import java.time.DayOfWeek;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface ShopRepository extends JpaRepository<Shop, String> {
@@ -131,4 +133,13 @@ public interface ShopRepository extends JpaRepository<Shop, String> {
             @Param("radius") Double radius,
             @Param("planStatus") String planStatus
     );
+    Optional<Shop> findByIdAndUser_Id(@NonNull String id, @NonNull UUID id1);
+    @Query("SELECT s FROM Shop s JOIN s.weekdays w " +
+            "WHERE s.status != 'SUSPENDED' AND s.status != 'OPEN' AND w.day = :currentDay " +
+            "AND w.opening = CURRENT_TIME")
+    List<Shop> findShopsWithCurrentOpeningTimeAndDay(DayOfWeek currentDay);
+    @Query("SELECT s FROM Shop s JOIN s.weekdays w " +
+            "WHERE s.status != 'SUSPENDED' AND s.status != 'CLOSED' AND w.day = :currentDay " +
+            "AND w.closing = CURRENT_TIME")
+    List<Shop> findShopsWithCurrentClosingTimeAndDay(DayOfWeek currentDay);
 }

@@ -1,7 +1,6 @@
 package com.serch.server.services.account.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.verified.VerificationStatus;
 import com.serch.server.services.auth.requests.RequestPhoneInformation;
 import com.serch.server.services.business.responses.BusinessInformationData;
@@ -18,7 +17,8 @@ import java.util.UUID;
 @Builder
 public class ProfileResponse {
     private UUID id;
-    private SerchCategory category;
+    private String category;
+    private String image;
     private String gender;
     private String status;
     private String avatar;
@@ -33,12 +33,6 @@ public class ProfileResponse {
 
     @JsonProperty("email_address")
     private String emailAddress;
-
-    @JsonProperty("referral_link")
-    private String referLink;
-
-    @JsonProperty("referral_code")
-    private String referralCode;
 
     @JsonProperty("phone_info")
     private RequestPhoneInformation phoneInfo;

@@ -65,6 +65,18 @@ public class JwtImplementation implements JwtService {
     }
 
     @Override
+    public String generateToken(Map<String, Object> data, String subject) {
+        return Jwts
+                .builder()
+                .setClaims(data)
+                .setSubject(subject)
+                .setIssuer("Serch")
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    @Override
     public String generateToken(RequestSessionToken request) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", request.getRole());

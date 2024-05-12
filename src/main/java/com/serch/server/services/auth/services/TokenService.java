@@ -15,7 +15,7 @@ public interface TokenService {
     String generateOtp();
 
     /**
-     * Generates a code of specified length.
+     * Generates a code of specified length. Uses numbers
      *
      * @param length The length of the code to generate.
      * @return The generated code.
@@ -28,4 +28,12 @@ public interface TokenService {
      * @return The generated refresh token.
      */
     String generateRefreshToken();
+
+    /**
+     * Generates a code of specified length. Uses characters and numbers
+     *
+     * @param length The length of the code to generate.
+     * @return The generated code.
+     */
+    String generate(int length);
 }

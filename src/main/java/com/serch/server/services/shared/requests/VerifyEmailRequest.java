@@ -8,6 +8,9 @@ public class VerifyEmailRequest {
     private String token;
     private String link;
 
+    @JsonProperty("link_id")
+    private String linkId;
+
     @JsonProperty("email_address")
     private String emailAddress;
 }

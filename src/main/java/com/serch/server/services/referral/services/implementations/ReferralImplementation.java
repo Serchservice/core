@@ -56,7 +56,7 @@ public class ReferralImplementation implements ReferralService {
         } else if(referredBy.getProgram().isSharing()) {
             return "Total Shared: " + sharedLinkRepository.findByUserId(user.getId()).size();
         } else {
-            return "";
+            return "No referral program";
         }
     }
 
@@ -80,6 +80,7 @@ public class ReferralImplementation implements ReferralService {
                         ReferralData data = new ReferralData();
                         data.setInfo(getCount(referral.getReferral(), referral.getReferredBy().getUser()));
                         data.setLabel("Joined Serch Platform: " + TimeUtil.formatDay(referral.getReferral().getCreatedAt()));
+                        response.setData(data);
                         return response;
                     })
                     .toList();

@@ -1,4 +1,4 @@
-package com.serch.server.services.auth.responses;
+package com.serch.server.services.category;
 
 import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.services.company.responses.SpecialtyKeywordResponse;

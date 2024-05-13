@@ -21,12 +21,12 @@ public interface ScheduleRepository extends JpaRepository<Schedule, String> {
             " or s.provider.business.id = :userId)" +
             "and s.createdAt >= CURRENT_DATE order by s.updatedAt desc"
     )
-    List<Schedule> today(UUID user);
+    List<Schedule> today(UUID userId);
     @Query("SELECT s from Schedule s where (s.user.id = :userId OR s.provider.id = :userId" +
             " or s.provider.business.id = :userId)" +
             " order by s.updatedAt desc"
     )
-    List<Schedule> schedules(UUID user);
+    List<Schedule> schedules(UUID userId);
     List<Schedule> findByCreatedAtBetween(LocalDateTime createdAt, LocalDateTime createdAt2);
     List<Schedule> findByStatusAndCreatedAtBefore(@NonNull ScheduleStatus status, @NonNull LocalDateTime createdAt);
 

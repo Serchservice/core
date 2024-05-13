@@ -77,7 +77,7 @@ public class SecurityFilterConfiguration {
                         .requestMatchers(
                                 // Public endpoints
                                 "/auth/email/**",
-                                "/auth/categories",
+                                "/category/**",
                                 "/auth/user/**",
                                 "/auth/provider/**",
                                 "/auth/business/**",
@@ -143,8 +143,8 @@ public class SecurityFilterConfiguration {
                                 // Endpoints requiring PROVIDER, USER and ASSOCIATE_PROVIDER roles
                                 "/schedule/decline",
                                 "/schedule/accept",
-                                "/providers/active/status",
-                                "providers/active/toggle",
+                                "/active/status",
+                                "/active/toggle",
                                 "/trip/accept",
                                 "/trip/cancel",
                                 "/trip/arrival/announce",

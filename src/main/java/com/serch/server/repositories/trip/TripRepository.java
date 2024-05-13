@@ -2,6 +2,7 @@ package com.serch.server.repositories.trip;
 
 import com.serch.server.enums.trip.TripConnectionStatus;
 import com.serch.server.models.trip.Trip;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -37,28 +38,18 @@ public interface TripRepository extends JpaRepository<Trip, String> {
     Optional<Trip> findByIdAndProviderId(@NonNull String trip, @NonNull UUID id);
     @Query("select t from Trip t where t.account = ?1 or (t.invitedProvider.id = ?2 or t.provider.id = ?2)")
     List<Trip> findByAccount(@NonNull String account, @NonNull UUID id);
-    @Query("SELECT t from Trip t where (" +
-            "t.account = :userId " +
-            ") and (" +
-            "t.status = :status " +
-            " or t.inviteStatus = :status" +
-            ")" +
-            "order by t.updatedAt desc"
+    @Query("SELECT t from Trip t where (t.account = :userId ) and (t.status = :status or t.inviteStatus = :status)" +
+            "AND FUNCTION('DATE',t.updatedAt) = FUNCTION('CURRENT_DATE') order by t.updatedAt desc"
     )
     List<Trip> todayTrips(@Param("userId") String userId, TripConnectionStatus status);
     @Query(
             "SELECT t from Trip t where (t.provider.id = :userId OR t.provider.business.id = :userId) " +
-            "and (t.status = :status) order by t.updatedAt desc"
+            "and (t.status = :status) AND FUNCTION('DATE',t.updatedAt) = FUNCTION('CURRENT_DATE') order by t.updatedAt desc"
     )
     List<Trip> todayTrips(@Param("userId")UUID userId, TripConnectionStatus status);
     @Query("SELECT t from Trip t where (" +
-            "t.invitedProvider.id = :userId " +
-            "OR t.invitedProvider.business.id = :userId " +
-            ") and (" +
-            "t.status = :status " +
-            " or t.inviteStatus = :status" +
-            ")" +
-            "order by t.updatedAt desc"
+            "t.invitedProvider.id = :userId OR t.invitedProvider.business.id = :userId) and (" +
+            "t.status = :status or t.inviteStatus = :status) AND FUNCTION('DATE',t.updatedAt) = FUNCTION('CURRENT_DATE') order by t.updatedAt desc"
     )
     List<Trip> todaySharedTrips(@Param("userId") UUID userId, TripConnectionStatus status);
     @Query("SELECT COUNT(t) FROM Trip t WHERE cast(t.provider.id as string ) IN (SELECT cast(r2.referral.id as string) FROM Referral r2 WHERE r2.referredBy.user.id = :referredBy) OR cast(t.provider.business.id as string) IN (SELECT cast(r2.referral.id as string) FROM Referral r2 WHERE r2.referredBy.user.id = :referredBy) OR t.account IN (SELECT cast(r2.referral.id as string) FROM Referral r2 WHERE r2.referredBy.user.id = :referredBy) AND t.status = 'COMPLETED' ")
@@ -70,4 +61,6 @@ public interface TripRepository extends JpaRepository<Trip, String> {
     List<Trip> findByProviderId(@NonNull UUID id);
     @Query("select t from Trip t where t.account = ?1")
     List<Trip> findByAccount(@NonNull String account);
+    @Query("SELECT t FROM Trip t JOIN t.provider p GROUP BY t.id, t.cancelReason, t.inviteCancelReason, t.account, t.canShare, t.status, t.inviteStatus, t.amount, t.time, t.authentication, t.transaction, t.address, t.shared, t.invitedProvider, t.provider ORDER BY COUNT(p.category) DESC")
+    List<Trip> findPopularCategories(Pageable pageable);
 }

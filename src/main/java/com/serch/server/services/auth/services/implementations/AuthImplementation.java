@@ -1,7 +1,6 @@
 package com.serch.server.services.auth.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.auth.AuthMethod;
 import com.serch.server.enums.auth.Role;
 import com.serch.server.enums.email.EmailType;
@@ -18,7 +17,6 @@ import com.serch.server.services.auth.requests.RequestEmailToken;
 import com.serch.server.services.auth.requests.RequestLogin;
 import com.serch.server.services.auth.requests.RequestSession;
 import com.serch.server.services.auth.responses.AuthResponse;
-import com.serch.server.services.auth.responses.SerchCategoryResponse;
 import com.serch.server.services.auth.services.AuthService;
 import com.serch.server.services.auth.services.SessionService;
 import com.serch.server.services.auth.services.TokenService;
@@ -28,8 +26,6 @@ import com.serch.server.services.referral.services.ReferralProgramService;
 import com.serch.server.utils.TimeUtil;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
@@ -66,7 +62,6 @@ public class AuthImplementation implements AuthService {
     private final UserRepository userRepository;
     private final SessionService sessionService;
     private final AccountSettingService accountSettingService;
-    private final SpecialtyKeywordService keywordService;
     private final ReferralProgramService referralProgramService;
     private final TokenService tokenService;
     private final AuthenticationManager authenticationManager;
@@ -80,7 +75,7 @@ public class AuthImplementation implements AuthService {
     protected Integer MAXIMUM_OTP_TRIALS;
 
     @Override
-    public Incomplete sendOtp(String emailAddress) {
+    public void sendOtp(String emailAddress) {
         Optional<Incomplete> user = incompleteRepository.findByEmailAddress(emailAddress);
         String otp = tokenService.generateOtp();
         if (user.isPresent()) {
@@ -91,7 +86,6 @@ public class AuthImplementation implements AuthService {
                 user.get().setTokenExpiresAt(LocalDateTime.now().plusMinutes(OTP_EXPIRATION_TIME));
                 incompleteRepository.save(user.get());
                 sendEmail(emailAddress, otp);
-                return user.get();
             } else if(TimeUtil.isOtpExpired(user.get().getTokenExpiresAt(), OTP_EXPIRATION_TIME)) {
                 user.get().setToken(passwordEncoder.encode(otp));
                 user.get().setUpdatedAt(LocalDateTime.now());
@@ -99,7 +93,6 @@ public class AuthImplementation implements AuthService {
                 user.get().setTokenExpiresAt(LocalDateTime.now().plusMinutes(OTP_EXPIRATION_TIME));
                 incompleteRepository.save(user.get());
                 sendEmail(emailAddress, otp);
-                return user.get();
             } else {
                 throw new AuthException(
                         "You can request a new token in %s".formatted(TimeUtil.formatFutureTime(user.get().getTokenExpiresAt())),
@@ -108,8 +101,8 @@ public class AuthImplementation implements AuthService {
             }
         } else {
             Incomplete saved = getIncomplete(emailAddress, otp);
+            incompleteRepository.save(saved);
             sendEmail(emailAddress, otp);
-            return saved;
         }
     }
 
@@ -242,22 +235,5 @@ public class AuthImplementation implements AuthService {
         referralProgramService.create(saved);
         accountSettingService.create(saved);
         return saved;
-    }
-
-    @Override
-    public ApiResponse<List<SerchCategoryResponse>> categories() {
-        List<SerchCategoryResponse> categories = Arrays.stream(SerchCategory.values())
-                .filter(serchCategory -> serchCategory != SerchCategory.USER && serchCategory != SerchCategory.BUSINESS && serchCategory != SerchCategory.GUEST)
-                .map(category -> {
-                    SerchCategoryResponse response = new SerchCategoryResponse();
-                    response.setCategory(category);
-                    response.setType(category.getType());
-                    response.setImage(category.getImage());
-                    response.setInformation("What skills do you have?");
-                    response.setSpecialties(keywordService.getAllSpecialties(category));
-                    return response;
-                })
-                .toList();
-        return new ApiResponse<>(categories);
     }
 }

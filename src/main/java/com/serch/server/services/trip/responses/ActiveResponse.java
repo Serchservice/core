@@ -18,6 +18,8 @@ public class ActiveResponse {
     private String avatar;
     private String distance;
     private Double rating;
+    private String image;
+    private String category;
     private TripStatus status;
 
     @JsonProperty("verification_status")

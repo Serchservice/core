@@ -30,6 +30,13 @@ public interface ActiveService {
     ApiResponse<TripStatus> fetchStatus();
 
     /**
+     * Fetches the list of active providers for a business
+     *
+     * @return An ApiResponse containing the list of {@link ActiveResponse}
+     */
+    ApiResponse<List<ActiveResponse>> activeList();
+
+    /**
      * Toggles the trip status of the specified user.
      *
      * @param user    The user whose trip status will be toggled.

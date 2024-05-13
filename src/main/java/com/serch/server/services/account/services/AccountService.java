@@ -2,6 +2,7 @@ package com.serch.server.services.account.services;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.services.account.responses.AccountResponse;
+import com.serch.server.services.account.responses.DashboardResponse;
 
 import java.util.List;
 
@@ -27,4 +28,18 @@ public interface AccountService {
      * @return ApiResponse of String
      */
     ApiResponse<String> lastPasswordUpdateAt();
+
+    /**
+     * Fetches the dashboard details for the logged-in user
+     *
+     * @return {@link ApiResponse} of {@link DashboardResponse}
+     */
+    ApiResponse<DashboardResponse> dashboard();
+
+    /**
+     * Fetches the dashboard response of all business associates
+     *
+     * @return {@link ApiResponse} of list {@link DashboardResponse}
+     */
+    ApiResponse<List<DashboardResponse>> dashboards();
 }

@@ -7,25 +7,28 @@ import com.serch.server.services.trip.responses.ActiveResponse;
 import com.serch.server.services.trip.services.ActiveService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/providers/active")
 @RequiredArgsConstructor
+@RequestMapping("/active")
 public class ActiveController {
     private final ActiveService service;
 
     @GetMapping("/status")
+    @PreAuthorize("hasRole('PROVIDER') || hasRole('ASSOCIATE_PROVIDER')")
     public ResponseEntity<ApiResponse<TripStatus>> status() {
         ApiResponse<TripStatus> response = service.fetchStatus();
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @GetMapping("/toggle")
-    public ResponseEntity<ApiResponse<TripStatus>> toggle(@RequestBody OnlineRequest request) {
-        ApiResponse<TripStatus> response = service.toggleStatus(request);
+    @GetMapping("/status/all")
+    @PreAuthorize("hasRole('BUSINESS')")
+    public ResponseEntity<ApiResponse<List<ActiveResponse>>> statusAll() {
+        ApiResponse<List<ActiveResponse>> response = service.activeList();
         return new ResponseEntity<>(response, response.getStatus());
     }
 
@@ -46,6 +49,13 @@ public class ActiveController {
             @RequestParam(required = false) Double radius
     ) {
         ApiResponse<ActiveResponse> response = service.auto(query, category, lng, lat, radius);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @PatchMapping("/toggle")
+    @PreAuthorize("hasRole('PROVIDER') || hasRole('ASSOCIATE_PROVIDER')")
+    public ResponseEntity<ApiResponse<TripStatus>> toggle(@RequestBody OnlineRequest request) {
+        ApiResponse<TripStatus> response = service.toggleStatus(request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 }

@@ -25,6 +25,17 @@ public class MoneyUtil {
         return result.replace("\u00A0", "");
     }
 
+    public static BigDecimal parseFromNaira(String nairaAmount) {
+        if(nairaAmount != null && !nairaAmount.isEmpty()) {
+            // Remove the naira symbol and any commas from the string
+            String cleanAmount = nairaAmount.replaceAll("[^\\d.]", "");
+            // Parse the cleaned string as a BigDecimal
+            return new BigDecimal(cleanAmount);
+        } else {
+            return BigDecimal.ZERO;
+        }
+    }
+
     /**
      * Generates a list of options based on the given amount with dynamic intervals.
      * @param amount The base amount to generate options from.

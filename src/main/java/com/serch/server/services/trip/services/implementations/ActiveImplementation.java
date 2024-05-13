@@ -4,12 +4,15 @@ import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.subscription.PlanStatus;
 import com.serch.server.enums.trip.TripStatus;
+import com.serch.server.exceptions.account.AccountException;
 import com.serch.server.exceptions.others.TripException;
 import com.serch.server.mappers.TripMapper;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.User;
+import com.serch.server.models.business.BusinessProfile;
 import com.serch.server.models.trip.Active;
 import com.serch.server.repositories.account.ProfileRepository;
+import com.serch.server.repositories.business.BusinessProfileRepository;
 import com.serch.server.repositories.trip.ActiveRepository;
 import com.serch.server.services.trip.requests.OnlineRequest;
 import com.serch.server.services.trip.responses.ActiveResponse;
@@ -43,6 +46,7 @@ public class ActiveImplementation implements ActiveService {
     private final UserUtil userUtil;
     private final ActiveRepository activeRepository;
     private final ProfileRepository profileRepository;
+    private final BusinessProfileRepository businessProfileRepository;
 
     @Value("${application.map.search-radius}")
     private String MAP_SEARCH_RADIUS;
@@ -113,6 +117,31 @@ public class ActiveImplementation implements ActiveService {
                         .orElse(TripStatus.OFFLINE),
                 HttpStatus.OK
         );
+    }
+
+    @Override
+    public ApiResponse<List<ActiveResponse>> activeList() {
+        BusinessProfile business = businessProfileRepository.findById(userUtil.getUser().getId())
+                .orElseThrow(() -> new AccountException("Access denied"));
+        if(business.getAssociates() != null && !business.getAssociates().isEmpty()) {
+            List<ActiveResponse> list = business.getAssociates()
+                    .stream()
+                    .map(profile -> {
+                        Active active = activeRepository.findByProfile_Id(profile.getId())
+                                .orElse(null);
+                        ActiveResponse response = new ActiveResponse();
+                        response.setName(profile.getFullName());
+                        response.setAvatar(profile.getAvatar());
+                        response.setStatus(active != null ? active.getTripStatus() : TripStatus.OFFLINE);
+                        response.setCategory(profile.getCategory().getType());
+                        response.setImage(profile.getCategory().getImage());
+                        return response;
+                    })
+                    .toList();
+            return new ApiResponse<>(list);
+        } else {
+            return new ApiResponse<>(List.of());
+        }
     }
 
     @Override

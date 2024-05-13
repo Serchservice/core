@@ -5,7 +5,9 @@ import lombok.Data;
 
 @Data
 @Builder
-public class ActivityResponse {
+public class DashboardResponse {
+    private String name;
+    private String avatar;
     private String earning;
     private String trip;
     private String schedule;

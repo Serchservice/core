@@ -6,33 +6,44 @@ import com.serch.server.enums.transaction.TransactionStatus;
 import com.serch.server.enums.transaction.TransactionType;
 import com.serch.server.exceptions.transaction.WalletException;
 import com.serch.server.mappers.TransactionMapper;
+import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.User;
 import com.serch.server.models.conversation.Call;
+import com.serch.server.models.schedule.Schedule;
 import com.serch.server.models.transaction.Transaction;
 import com.serch.server.models.transaction.Wallet;
+import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.conversation.CallRepository;
+import com.serch.server.repositories.schedule.ScheduleRepository;
 import com.serch.server.repositories.transaction.TransactionRepository;
 import com.serch.server.repositories.transaction.WalletRepository;
 import com.serch.server.services.payment.core.PaymentService;
 import com.serch.server.services.payment.requests.InitializePaymentRequest;
 import com.serch.server.services.payment.responses.InitializePaymentData;
-import com.serch.server.services.payment.responses.PaymentVerificationData;
 import com.serch.server.services.transaction.requests.*;
-import com.serch.server.services.transaction.responses.WalletResponse;
+import com.serch.server.services.transaction.responses.*;
 import com.serch.server.services.transaction.services.WalletService;
+import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.MoneyUtil;
+import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
-import com.serch.server.utils.WalletUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Optional;
-import java.util.UUID;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * The WalletImplementation class provides implementation for managing user wallets and transactions.
@@ -47,23 +58,26 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class WalletImplementation implements WalletService {
     private final PaymentService paymentService;
-    private final WalletUtil util;
     private final UserUtil userUtil;
     private final WalletRepository walletRepository;
-    private final CallRepository callRepository;
     private final TransactionRepository transactionRepository;
+    private final ScheduleRepository scheduleRepository;
+    private final ProfileRepository profileRepository;
+    private final CallRepository callRepository;
 
     @Value("${application.wallet.fund-limit}")
     private Integer FUND_LIMIT;
-    @Value("${application.call.tip2fix.amount}")
-    private Integer TIP2FIX_AMOUNT;
     @Value("${application.wallet.withdraw-limit}")
     private Integer WITHDRAW_LIMIT;
+    @Value("${application.call.tip2fix.amount}")
+    private Integer TIP2FIX_AMOUNT;
+
+    private static final Integer PAYDAY = 3;
 
     @Override
-    public void createWallet(User user) {
+    public void create(User user) {
         if(walletRepository.existsByUser_Id(user.getId())) {
-            throw new WalletException("User already owns a wallet");
+            return;
         }
 
         if(user.getRole() != Role.ASSOCIATE_PROVIDER) {
@@ -80,194 +94,122 @@ public class WalletImplementation implements WalletService {
         walletRepository.findByUser_Id(user.getId()).ifPresent(walletRepository::delete);
     }
 
-    private static String generateReference() {
-        return "STR_%s".formatted(UUID.randomUUID().toString().substring(0, 8));
-    }
-
     @Override
-    public ApiResponse<String> pay(PayRequest request) {
-        if(request.getType() == TransactionType.T2F) {
-            return payTip2Fix(request);
-        } else if(request.getType() == TransactionType.TRIP) {
-            return payTrip(request);
-        } else {
-            return new ApiResponse<>("Error");
-        }
-    }
-
-    private ApiResponse<String> payTip2Fix(PayRequest request) {
-        Optional<Call> call = callRepository.findById(request.getEvent());
-        if(call.isPresent()) {
-            Optional<Wallet> sender = walletRepository.findByUser_Id(call.get().getCaller().getId());
-            if(sender.isPresent()) {
-                BalanceUpdateRequest senderUpdate = BalanceUpdateRequest.builder()
-                        .type(TransactionType.T2F)
-                        .user(call.get().getCaller().getId())
-                        .amount(BigDecimal.valueOf(TIP2FIX_AMOUNT))
-                        .build();
-                BalanceUpdateRequest receiverUpdate = BalanceUpdateRequest.builder()
-                        .type(TransactionType.T2F)
-                        .user(call.get().getCalled().getId())
-                        .amount(BigDecimal.valueOf(TIP2FIX_AMOUNT))
-                        .build();
-
-                if(call.get().getCalled().getUser().getRole() == Role.ASSOCIATE_PROVIDER) {
-                    Optional<Wallet> wallet = walletRepository.findByUser_Id(call.get().getCalled().getBusiness().getId());
-                    if(wallet.isPresent()) {
-                        receiverUpdate.setUser(call.get().getCalled().getBusiness().getId());
-                        Transaction transaction = processTip2Fix(
-                                sender.get(), call.get(), senderUpdate,
-                                receiverUpdate, wallet.get()
-                        );
-                        transaction.setAssociate(call.get().getCalled());
-                        transactionRepository.save(transaction);
-                    } else {
-                        return new ApiResponse<>("Recipient not found");
-                    }
-                } else {
-                    Optional<Wallet> wallet = walletRepository.findByUser_Id(call.get().getCalled().getId());
-                    if(wallet.isPresent()) {
-                        Transaction transaction = processTip2Fix(
-                                sender.get(), call.get(), senderUpdate,
-                                receiverUpdate, wallet.get()
-                        );
-                        transactionRepository.save(transaction);
-                    } else {
-                        return new ApiResponse<>("Recipient not found");
-                    }
-                }
-            } else {
-                return new ApiResponse<>("Caller not found");
-            }
-        } else {
-            return new ApiResponse<>("Call not found");
-        }
-        return new ApiResponse<>("Payment successful", HttpStatus.OK);
-    }
-
-    private Transaction processTip2Fix(
-            Wallet sender, Call call, BalanceUpdateRequest senderUpdate,
-            BalanceUpdateRequest receiverUpdate, Wallet receiver
-    ) {
-        util.updateBalance(senderUpdate);
-        util.updateBalance(receiverUpdate);
-
-        Transaction transaction = new Transaction();
-        transaction.setAmount(BigDecimal.valueOf(TIP2FIX_AMOUNT));
-        transaction.setType(TransactionType.T2F);
-        transaction.setVerified(true);
-        transaction.setStatus(TransactionStatus.SUCCESSFUL);
-        transaction.setAccount(receiver.getId());
-        transaction.setSender(sender);
-        transaction.setCall(call);
-        transaction.setReference(generateReference());
-        return transaction;
-    }
-
-    @Override
-    public ApiResponse<String> payTrip(PayRequest request) {
-        log.error("Pay trip in wallet implementation is yet to be implemented");
-        throw new WalletException("Unimplemented error");
-    }
-
-    @Override
-    public ApiResponse<String> checkIfUserCanPayForTripWithWallet(String trip) {
-        return null;
-    }
-
-    @Override
-    public ApiResponse<InitializePaymentData> fundWallet(FundRequest request) {
+    public ApiResponse<InitializePaymentData> fund(FundWalletRequest request) {
         Wallet wallet = walletRepository.findByUser_Id(userUtil.getUser().getId())
                 .orElseThrow(() -> new WalletException("User wallet not found"));
         if(request.getAmount() >= FUND_LIMIT) {
-            InitializePaymentRequest paymentRequest = new InitializePaymentRequest();
-            paymentRequest.setAmount(String.valueOf(request.getAmount()));
-            paymentRequest.setEmail(wallet.getUser().getEmailAddress());
-            paymentRequest.setCallbackUrl(request.getCallbackUrl());
-            InitializePaymentData data = paymentService.initialize(paymentRequest);
-
-            Transaction transaction = new Transaction();
-            transaction.setAmount(BigDecimal.valueOf(request.getAmount()));
-            transaction.setType(TransactionType.FUNDING);
-            transaction.setVerified(false);
-            transaction.setStatus(TransactionStatus.PENDING);
-            transaction.setAccount(wallet.getId());
-            transaction.setSender(wallet);
-            transaction.setReference(data.getReference());
-            transactionRepository.save(transaction);
-
+            InitializePaymentData data = initializePayment(request, wallet);
+            saveCreditTransaction(request, wallet, data);
             return new ApiResponse<>(data);
         } else {
-            throw new WalletException("You can only fund %s above".formatted(FUND_LIMIT));
+            throw new WalletException("You can only fund with %s above".formatted(MoneyUtil.formatToNaira(BigDecimal.valueOf(FUND_LIMIT))));
         }
     }
 
+    private void saveCreditTransaction(FundWalletRequest request, Wallet wallet, InitializePaymentData data) {
+        Transaction transaction = new Transaction();
+        transaction.setAmount(BigDecimal.valueOf(request.getAmount()));
+        transaction.setType(TransactionType.FUNDING);
+        transaction.setVerified(false);
+        transaction.setStatus(TransactionStatus.PENDING);
+        transaction.setAccount(wallet.getId());
+        transaction.setMode("CARD");
+        transaction.setSender(String.valueOf(userUtil.getUser().getId()));
+        transaction.setReference(data.getReference());
+        transactionRepository.save(transaction);
+    }
+
+    private InitializePaymentData initializePayment(FundWalletRequest request, Wallet wallet) {
+        InitializePaymentRequest paymentRequest = new InitializePaymentRequest();
+        paymentRequest.setAmount(String.valueOf(request.getAmount()));
+        paymentRequest.setEmail(wallet.getUser().getEmailAddress());
+        paymentRequest.setCallbackUrl(request.getCallbackUrl());
+        return paymentService.initialize(paymentRequest);
+    }
+
     @Override
-    public ApiResponse<String> verifyFund(String reference) {
+    public ApiResponse<WalletResponse> verify(String reference) {
         Transaction transaction = transactionRepository.findByReference(reference)
                 .orElseThrow(() -> new WalletException("Transaction not found"));
 
-        if(transaction.getStatus() == TransactionStatus.SUCCESSFUL) {
-            throw new WalletException("Transaction is already verified");
-        } else {
-            PaymentVerificationData data = paymentService.verify(transaction.getReference());
-            if(data.getStatus().equalsIgnoreCase("success")) {
-                BalanceUpdateRequest update = BalanceUpdateRequest.builder()
-                        .type(TransactionType.FUNDING)
-                        .user(transaction.getSender().getUser().getId())
-                        .amount(transaction.getAmount())
-                        .build();
-                util.updateBalance(update);
-
-                transaction.setStatus(TransactionStatus.SUCCESSFUL);
-                transaction.setVerified(true);
-                transaction.setUpdatedAt(LocalDateTime.now());
-                transactionRepository.save(transaction);
-
-                return new ApiResponse<>("Verified", HttpStatus.OK);
+        if(UUID.fromString(transaction.getSender()).equals(userUtil.getUser().getId())) {
+            if(transaction.getStatus() == TransactionStatus.SUCCESSFUL) {
+                throw new WalletException("Transaction is already verified");
             } else {
-                transaction.setStatus(TransactionStatus.FAILED);
-                transaction.setVerified(false);
-                transaction.setReason(data.getMessage());
-                transaction.setUpdatedAt(LocalDateTime.now());
-                transactionRepository.save(transaction);
+                try {
+                    paymentService.verify(transaction.getReference());
+                    creditWallet(transaction.getAmount());
+                    transaction.setStatus(TransactionStatus.SUCCESSFUL);
+                    transaction.setVerified(true);
+                    transaction.setUpdatedAt(LocalDateTime.now());
+                    transactionRepository.save(transaction);
 
-                return new ApiResponse<>("Not Verified", HttpStatus.OK);
+                    return view();
+                } catch (Exception e) {
+                    transaction.setStatus(TransactionStatus.FAILED);
+                    transaction.setVerified(false);
+                    transaction.setReason("Error in verification");
+                    transaction.setUpdatedAt(LocalDateTime.now());
+                    transactionRepository.save(transaction);
+
+                    throw new WalletException("Couldn't verify transaction. Try again or contact support");
+                }
             }
+        } else {
+            throw new WalletException("Access denied. You cannot verify this transaction");
         }
     }
 
+    private void creditWallet(BigDecimal amount) {
+        walletRepository.findByUser_Id(userUtil.getUser().getId())
+                .ifPresent(wallet -> {
+                    wallet.setDeposit(wallet.getDeposit().add(amount));
+                    wallet.setUpdatedAt(LocalDateTime.now());
+                    walletRepository.save(wallet);
+                });
+    }
+
     @Override
-    public ApiResponse<String> requestWithdraw(WithdrawRequest request) {
+    public ApiResponse<String> withdraw(WithdrawRequest request) {
         Wallet wallet = walletRepository.findByUser_Id(userUtil.getUser().getId())
                 .orElseThrow(() -> new WalletException("User wallet not found"));
         if(request.getAmount() >= WITHDRAW_LIMIT) {
-            if(util.isBalanceSufficient(
-                    BalanceUpdateRequest.builder()
-                            .amount(BigDecimal.valueOf(request.getAmount()))
-                            .user(wallet.getUser().getId())
-                            .type(TransactionType.WITHDRAW)
-                            .build()
-            )) {
-                Transaction transaction = new Transaction();
-                transaction.setSender(wallet);
-                transaction.setType(TransactionType.WITHDRAW);
-                transaction.setAccount(wallet.getAccountName() + " - " + wallet.getAccountNumber());
-                transaction.setAmount(BigDecimal.valueOf(request.getAmount()));
-                transaction.setReference(generateReference());
-                transaction.setStatus(TransactionStatus.PENDING);
-                transaction.setVerified(false);
-                transactionRepository.save(transaction);
-                return new ApiResponse<>(
-                        "Withdrawal request is being processed. Expect payment in 3 working days",
-                        HttpStatus.CREATED
-                );
+            /// Check if the money in the user's balance is sufficient for withdraws
+            if(wallet.getBalance().compareTo(BigDecimal.valueOf(request.getAmount())) > 0) {
+                if(wallet.hasBank()) {
+                    saveDebitTransaction(BigDecimal.valueOf(request.getAmount()), wallet);
+                    return new ApiResponse<>(
+                            "Withdrawal request is being processed. Expect payment in %s working days".formatted(PAYDAY),
+                            HttpStatus.CREATED
+                    );
+                } else {
+                    throw new WalletException("You cannot request for withdrawal without a bank account");
+                }
             } else {
                 throw new WalletException("Insufficient balance");
             }
         } else {
-            throw new WalletException("You can only withdraw %s above".formatted(WITHDRAW_LIMIT));
+            throw new WalletException("You can only withdraw %s above".formatted(MoneyUtil.formatToNaira(BigDecimal.valueOf(WITHDRAW_LIMIT))));
         }
+    }
+
+    private void saveDebitTransaction(BigDecimal amount, Wallet wallet) {
+        Transaction transaction = new Transaction();
+        transaction.setSender(String.valueOf(userUtil.getUser().getId()));
+        transaction.setType(TransactionType.WITHDRAW);
+        transaction.setAccount(wallet.getAccountName() + " - " + wallet.getAccountNumber());
+        transaction.setAmount(amount);
+        transaction.setReference(HelperUtil.generateReference("STR"));
+        transaction.setStatus(TransactionStatus.PENDING);
+        transaction.setMode("SERCH");
+        transaction.setVerified(false);
+        transactionRepository.save(transaction);
+
+        wallet.setUncleared(wallet.getUncleared().add(transaction.getAmount()));
+        wallet.setBalance(wallet.getBalance().subtract(transaction.getAmount()));
+        wallet.setUpdatedAt(LocalDateTime.now());
+        walletRepository.save(wallet);
     }
 
     @Override
@@ -278,7 +220,18 @@ public class WalletImplementation implements WalletService {
         WalletResponse response = TransactionMapper.INSTANCE.wallet(wallet);
         response.setBalance(MoneyUtil.formatToNaira(wallet.getBalance()));
         response.setDeposit(MoneyUtil.formatToNaira(wallet.getDeposit()));
+        response.setUncleared(MoneyUtil.formatToNaira(wallet.getUncleared()));
+        response.setPayout(MoneyUtil.formatToNaira(wallet.getPayout()));
+        response.setWallet(wallet(wallet.getId()));
         return new ApiResponse<>(response);
+    }
+
+    private String wallet(String wallet) {
+        if(wallet.length() >= 4) {
+            return "Serch Wallet - %s".formatted(wallet.substring(wallet.length() - 4));
+        } else {
+            return "Serch Wallet - %s".formatted(wallet);
+        }
     }
 
     @Override
@@ -295,7 +248,437 @@ public class WalletImplementation implements WalletService {
         if(request.getBankName() != null && !request.getBankName().isEmpty()) {
             wallet.setBankName(request.getBankName());
         }
+        if(request.getPayday() != null && !request.getPayday().equals(wallet.getPayday())) {
+            if(request.getPayday() < 3) {
+                throw new WalletException("Due to our transfer policy, you cannot set your paydays to anything less than %s days".formatted(PAYDAY));
+            } else {
+                wallet.setPayday(request.getPayday());
+            }
+        }
+        if(request.getPayout() != null && !BigDecimal.valueOf(request.getPayout()).equals(wallet.getPayout())) {
+            if(request.getPayout() >= WITHDRAW_LIMIT) {
+                wallet.setPayout(BigDecimal.valueOf(request.getPayout()));
+            } else {
+                throw new WalletException("Your payout amount must be %s above".formatted(MoneyUtil.formatToNaira(BigDecimal.valueOf(WITHDRAW_LIMIT))));
+            }
+        }
+        if(request.getPayoutOnPayday() != null && !request.getPayoutOnPayday().equals(wallet.getPayoutOnPayday())) {
+            wallet.setPayoutOnPayday(request.getPayoutOnPayday());
+        }
+        wallet.setUpdatedAt(LocalDateTime.now());
         walletRepository.save(wallet);
         return new ApiResponse<>("Wallet updated", HttpStatus.OK);
+    }
+
+    @Override
+    public void processTip2FixCallPayment(String channel, UUID sender, Profile receiver) {
+        UUID recipientId = receiver.getId();
+        if(receiver.isAssociate()) {
+            recipientId = receiver.getBusiness().getId();
+        }
+
+        Transaction transaction = getTip2FixTransaction(sender, recipientId, channel);
+        walletRepository.findByUser_Id(sender).ifPresentOrElse(wallet -> {
+            wallet.setBalance(wallet.getBalance().subtract(transaction.getAmount()));
+            wallet.setUpdatedAt(LocalDateTime.now());
+            walletRepository.save(wallet);
+        }, () -> {
+            throw new WalletException("Couldn't process Tip2Fix payment. Try again");
+        });
+        walletRepository.findByUser_Id(recipientId).ifPresentOrElse(wallet -> {
+            wallet.setBalance(wallet.getBalance().add(transaction.getAmount()));
+            wallet.setUpdatedAt(LocalDateTime.now());
+            walletRepository.save(wallet);
+        }, () -> {
+            throw new WalletException("Couldn't process Tip2Fix payment. Try again");
+        });
+
+        transaction.setUpdatedAt(LocalDateTime.now());
+        transaction.setVerified(true);
+        transaction.setStatus(TransactionStatus.SUCCESSFUL);
+        transactionRepository.save(transaction);
+    }
+
+    private Transaction getTip2FixTransaction(UUID sender, UUID recipientId, String channel) {
+        Transaction transaction = new Transaction();
+        transaction.setSender(String.valueOf(sender));
+        transaction.setType(TransactionType.TIP2FIX);
+        transaction.setAccount(String.valueOf(recipientId));
+        transaction.setAmount(BigDecimal.valueOf(TIP2FIX_AMOUNT));
+        transaction.setReference(HelperUtil.generateReference("ST2F"));
+        transaction.setStatus(TransactionStatus.PENDING);
+        transaction.setMode("SERCH");
+        transaction.setVerified(false);
+        transaction.setEvent(channel);
+        return transactionRepository.save(transaction);
+    }
+
+    @Override
+    public void checkBalanceForTip2Fix(UUID caller) {
+        Wallet wallet = walletRepository.findByUser_Id(caller)
+                .orElseThrow(() -> new WalletException("You need to have a Serch wallet to place T2F calls"));
+        if(wallet.getDeposit().add(wallet.getBalance()).compareTo(BigDecimal.valueOf(TIP2FIX_AMOUNT)) > 0) {
+            throw new WalletException("Insufficient balance to start tip2fix. Tip2Fix is charged at ₦%s".formatted(TIP2FIX_AMOUNT));
+        }
+    }
+
+    @Override
+    public ApiResponse<List<TransactionGroupResponse>> transactions() {
+        List<Transaction> transactions = transactionRepository.findBySenderOrReceiver(String.valueOf(userUtil.getUser().getId()));
+        if(transactions == null || transactions.isEmpty()) {
+            return new ApiResponse<>(List.of());
+        } else {
+            return response(transactions);
+        }
+    }
+
+    @Override
+    public ApiResponse<List<TransactionGroupResponse>> recent() {
+        Pageable pageable = PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Transaction> page = transactionRepository.findRecentBySenderOrReceiver(String.valueOf(userUtil.getUser().getId()), pageable);
+        if(page == null || page.getTotalElements() == 0) {
+            return new ApiResponse<>(List.of());
+        } else {
+            return response(page.stream().toList());
+        }
+    }
+
+    private ApiResponse<List<TransactionGroupResponse>> response(List<Transaction> transactions) {
+        List<TransactionGroupResponse> list = new ArrayList<>();
+        Map<LocalDate, List<Transaction>> map = transactions.stream()
+                .collect(Collectors.groupingBy(transaction -> transaction.getCreatedAt().toLocalDate()));
+        map.forEach((date, transactionList) -> {
+            TransactionGroupResponse group = new TransactionGroupResponse();
+            group.setLabel(TimeUtil.formatChatLabel(LocalDateTime.of(date, LocalTime.now())));
+            List<TransactionResponse> response = transactionList.stream()
+                    .sorted(Comparator.comparing(Transaction::getCreatedAt).reversed())
+                    .map(this::response).toList();
+            group.setTransactions(response);
+            list.add(group);
+        });
+        return new ApiResponse<>(list);
+    }
+
+    private TransactionResponse response(Transaction transaction) {
+        return switch (transaction.getType()) {
+            case FUNDING -> prepareFundingTransactionResponse(transaction);
+            case WITHDRAW -> prepareWithdrawTransactionResponse(transaction);
+            case SCHEDULE -> prepareScheduleTransactionResponse(transaction);
+            case TIP2FIX -> prepareTip2FixTransactionResponse(transaction);
+            case TRIP -> new TransactionResponse();
+            case TRIP_WITHDRAW -> new TransactionResponse();
+        };
+    }
+
+    private TransactionResponse prepareFundingTransactionResponse(Transaction transaction) {
+        TransactionResponse response = new TransactionResponse();
+        response.setIsIncoming(true);
+        response.setLabel(TimeUtil.formatDay(transaction.getCreatedAt()));
+        response.setType(transaction.getType());
+        response.setStatus(transaction.getStatus());
+        response.setAmount(MoneyUtil.formatToNaira(transaction.getAmount()));
+        response.setRecipient("Your %s".formatted(
+                walletRepository.findById(transaction.getAccount())
+                        .map(wallet -> wallet(wallet.getId()))
+                        .orElse("Wallet")
+        ));
+
+        TransactionData data = TransactionMapper.INSTANCE.data(transaction);
+        data.setHeader("Transaction %s".formatted(transaction.getStatus().getType()));
+        data.setDescription("Your deposit of %s to your Serch wallet %s".formatted(
+                MoneyUtil.formatToNaira(transaction.getAmount()),
+                transaction.getStatus().getSentence()
+        ));
+        data.setDate(TimeUtil.formatDay(transaction.getCreatedAt()));
+        data.setUpdatedAt(TimeUtil.formatDay(transaction.getUpdatedAt()));
+        response.setData(data);
+        return response;
+    }
+
+    private TransactionResponse prepareWithdrawTransactionResponse(Transaction transaction) {
+        TransactionResponse response = new TransactionResponse();
+        response.setIsIncoming(false);
+        response.setLabel(TimeUtil.formatDay(transaction.getCreatedAt()));
+        response.setType(transaction.getType());
+        response.setStatus(transaction.getStatus());
+        response.setAmount(MoneyUtil.formatToNaira(transaction.getAmount()));
+        response.setRecipient(transaction.getAccount());
+
+        TransactionData data = TransactionMapper.INSTANCE.data(transaction);
+        data.setHeader("Transaction %s".formatted(transaction.getStatus().getType()));
+        data.setDescription("Your debit of %s from your Serch wallet %s".formatted(
+                MoneyUtil.formatToNaira(transaction.getAmount()),
+                transaction.getStatus().getSentence()
+        ));
+        data.setDate(TimeUtil.formatDay(transaction.getCreatedAt()));
+        data.setUpdatedAt(TimeUtil.formatDay(transaction.getUpdatedAt()));
+        response.setData(data);
+        return response;
+    }
+
+    private TransactionResponse prepareScheduleTransactionResponse(Transaction transaction) {
+        boolean isIncoming = String.valueOf(userUtil.getUser().getId()).equals(transaction.getAccount());
+        TransactionResponse response = getResponse(transaction, isIncoming);
+
+        TransactionData data = TransactionMapper.INSTANCE.data(transaction);
+        data.setHeader("Transaction %s".formatted(transaction.getStatus().getType()));
+        data.setDescription(prepareScheduleDescription(transaction, isIncoming));
+        data.setDate(TimeUtil.formatDay(transaction.getCreatedAt()));
+        data.setUpdatedAt(TimeUtil.formatDay(transaction.getUpdatedAt()));
+        response.setData(data);
+
+        if(userUtil.getUser().isBusiness()) {
+            addAssociateData(scheduleRepository.findById(transaction.getEvent()).map(Schedule::getProvider), response);
+        }
+        return response;
+    }
+
+    private TransactionResponse getResponse(Transaction transaction, boolean isIncoming) {
+        String account = walletRepository.findByUser_Id(UUID.fromString(transaction.getAccount()))
+                .map(wallet -> wallet(wallet.getId()))
+                .orElse("Wallet");
+
+        TransactionResponse response = new TransactionResponse();
+        response.setIsIncoming(isIncoming);
+        response.setLabel(TimeUtil.formatDay(transaction.getCreatedAt()));
+        response.setType(transaction.getType());
+        response.setStatus(transaction.getStatus());
+        response.setAmount(MoneyUtil.formatToNaira(transaction.getAmount()));
+        response.setRecipient(isIncoming ? String.format("Your %s", account) : String.format(account));
+        return response;
+    }
+
+    private String prepareScheduleDescription(Transaction transaction, boolean isIncoming) {
+        if(isIncoming) {
+            if(transaction.getVerified() && transaction.getStatus() == TransactionStatus.SUCCESSFUL) {
+                return String.format(
+                        "%s was sent to your wallet because %s closed schedule %s with %s for %s on %s, late",
+                        MoneyUtil.formatToNaira(transaction.getAmount()),
+                        scheduleRepository.findById(transaction.getEvent()).map(schedule ->
+                                profileRepository.findById(schedule.getClosedBy()).map(Profile::getFullName).orElse("someone")
+                        ).orElse("someone"),
+                        scheduleRepository.findById(transaction.getEvent()).map(Schedule::getId).orElse(""),
+                        getScheduleParticipant(transaction),
+                        scheduleRepository.findById(transaction.getEvent()).map(Schedule::getTime).orElse(""),
+                        scheduleRepository.findById(transaction.getEvent()).map(schedule -> TimeUtil.formatDay(schedule.getCreatedAt())).orElse("")
+                );
+            } else {
+                return String.format(
+                        "%s will be sent to your wallet because %s closed schedule %s with %s for %s on %s, late",
+                        MoneyUtil.formatToNaira(transaction.getAmount()),
+                        scheduleRepository.findById(transaction.getEvent()).map(schedule ->
+                                profileRepository.findById(schedule.getClosedBy()).map(Profile::getFullName).orElse("someone")
+                        ).orElse("someone"),
+                        scheduleRepository.findById(transaction.getEvent()).map(Schedule::getId).orElse(""),
+                        getScheduleParticipant(transaction),
+                        scheduleRepository.findById(transaction.getEvent()).map(Schedule::getTime).orElse(""),
+                        scheduleRepository.findById(transaction.getEvent()).map(schedule -> TimeUtil.formatDay(schedule.getCreatedAt())).orElse("")
+                );
+            }
+        } else {
+            if(transaction.getVerified() && transaction.getStatus() == TransactionStatus.SUCCESSFUL) {
+                return String.format(
+                        "%s was debited from your wallet because %s closed schedule %s with %s for %s on %s, late",
+                        MoneyUtil.formatToNaira(transaction.getAmount()),
+                        getScheduleParticipant(transaction),
+                        scheduleRepository.findById(transaction.getEvent()).map(Schedule::getId).orElse(""),
+                        scheduleRepository.findById(transaction.getEvent()).map(schedule ->
+                                profileRepository.findById(schedule.getClosedBy()).map(Profile::getFullName).orElse("someone")
+                        ).orElse("someone"),
+                        scheduleRepository.findById(transaction.getEvent()).map(Schedule::getTime).orElse(""),
+                        scheduleRepository.findById(transaction.getEvent()).map(schedule -> TimeUtil.formatDay(schedule.getCreatedAt())).orElse("")
+                );
+            } else {
+                return String.format(
+                        "%s will be debited from your wallet because %s closed schedule %s with %s for %s on %s, late",
+                        MoneyUtil.formatToNaira(transaction.getAmount()),
+                        getScheduleParticipant(transaction),
+                        scheduleRepository.findById(transaction.getEvent()).map(Schedule::getId).orElse(""),
+                        scheduleRepository.findById(transaction.getEvent()).map(schedule ->
+                                profileRepository.findById(schedule.getClosedBy()).map(Profile::getFullName).orElse("someone")
+                        ).orElse("someone"),
+                        scheduleRepository.findById(transaction.getEvent()).map(Schedule::getTime).orElse(""),
+                        scheduleRepository.findById(transaction.getEvent()).map(schedule -> TimeUtil.formatDay(schedule.getCreatedAt())).orElse("")
+                );
+            }
+        }
+    }
+
+    private String getScheduleParticipant(Transaction transaction) {
+        return scheduleRepository.findById(transaction.getEvent()).map(schedule -> {
+            /// If user is the same person that closed the schedule
+            if(schedule.getUser().isSameAs(schedule.getClosedBy()) ) {
+                /// If the logged-in user is same as the provider
+                if(schedule.getProvider().isSameAs(userUtil.getUser().getId())) {
+                    return "you";
+                } else {
+                    return profileRepository.findById(schedule.getProvider().getId()).map(Profile::getFullName).orElse("someone");
+                }
+            } else {
+                /// If the logged-in user is same as the user
+                if(schedule.getUser().isSameAs(userUtil.getUser().getId())) {
+                    return "you";
+                } else {
+                    return profileRepository.findById(schedule.getUser().getId()).map(Profile::getFullName).orElse("someone");
+                }
+            }
+        }).orElse("someone");
+    }
+
+    private void addAssociateData(Optional<Profile> associate, TransactionResponse response) {
+        associate.ifPresent(profile -> response.setAssociate(AssociateTransactionData.builder()
+                .avatar(profile.getAvatar())
+                .name(profile.getFullName())
+                .category(profile.getCategory().getType())
+                .rating(profile.getRating())
+                .image(profile.getCategory().getImage())
+                .build()
+        ));
+    }
+
+    private TransactionResponse prepareTip2FixTransactionResponse(Transaction transaction) {
+        boolean isIncoming = userUtil.getUser().getRole() != Role.USER;
+        TransactionResponse response = getResponse(transaction, isIncoming);
+
+        TransactionData data = TransactionMapper.INSTANCE.data(transaction);
+        data.setHeader("Transaction %s".formatted(transaction.getStatus().getType()));
+        data.setDescription(prepareCallDescription(transaction, isIncoming));
+        data.setDate(TimeUtil.formatDay(transaction.getCreatedAt()));
+        data.setUpdatedAt(TimeUtil.formatDay(transaction.getUpdatedAt()));
+        response.setData(data);
+
+        if(userUtil.getUser().isBusiness()) {
+            addAssociateData(callRepository.findById(transaction.getEvent()).map(Call::getCalled), response);
+        }
+        return response;
+    }
+
+    private String prepareCallDescription(Transaction transaction, boolean isIncoming) {
+        if(isIncoming) {
+            if(transaction.getVerified() && transaction.getStatus() == TransactionStatus.SUCCESSFUL) {
+                return String.format(
+                        "%s was sent to your wallet because %s had a Tip2Fix session %s with %s",
+                        MoneyUtil.formatToNaira(transaction.getAmount()),
+                        callRepository.findById(transaction.getEvent())
+                                .map(call -> call.getCaller().getFullName()).orElse("someone"),
+                        callRepository.findById(transaction.getEvent()).map(Call::getChannel).orElse(""),
+                        callRepository.findById(transaction.getEvent())
+                                .map(call -> call.getCalled().getFullName()).orElse("someone")
+                );
+            } else {
+                return String.format(
+                        "%s will be sent to your wallet because %s had a Tip2Fix session %s with %s",
+                        MoneyUtil.formatToNaira(transaction.getAmount()),
+                        callRepository.findById(transaction.getEvent())
+                                .map(call -> call.getCaller().getFullName()).orElse("someone"),
+                        callRepository.findById(transaction.getEvent()).map(Call::getChannel).orElse(""),
+                        callRepository.findById(transaction.getEvent())
+                                .map(call -> call.getCalled().getFullName()).orElse("someone")
+
+                );
+            }
+        } else {
+            if(transaction.getVerified() && transaction.getStatus() == TransactionStatus.SUCCESSFUL) {
+                return String.format(
+                        "%s was debited from your wallet because you had a Tip2Fix session %s with %s",
+                        MoneyUtil.formatToNaira(transaction.getAmount()),
+                        callRepository.findById(transaction.getEvent()).map(Call::getChannel).orElse(""),
+                        callRepository.findById(transaction.getEvent())
+                                .map(call -> call.getCalled().getFullName()).orElse("someone")
+                );
+            } else {
+                return String.format(
+                        "%s will be debited from your wallet because you had a Tip2Fix session %s with %s",
+                        MoneyUtil.formatToNaira(transaction.getAmount()),
+                        callRepository.findById(transaction.getEvent()).map(Call::getChannel).orElse(""),
+                        callRepository.findById(transaction.getEvent())
+                                .map(call -> call.getCalled().getFullName()).orElse("someone")
+
+                );
+            }
+        }
+    }
+
+//    private static TransactionResponse createResponse(Transaction transaction, Wallet wallet) {
+//        TransactionResponse response = new TransactionResponse();
+//        response.setId(transaction.getId());
+//        response.setAmount(MoneyUtil.formatToNaira(transaction.getAmount()));
+//        response.setReason(transaction.getReason());
+//        response.setCompletedAt(TimeUtil.formatDay(transaction.getUpdatedAt()));
+//        response.setStatus(transaction.getStatus());
+//        response.setType(transaction.getType());
+//        response.setIsIncoming(transaction.getType() == TransactionType.FUNDING);
+//        response.setTime(TimeUtil.formatTime(transaction.getCreatedAt()));
+//        response.setRequestedAt(TimeUtil.formatDay(transaction.getCreatedAt()));
+//        response.setCreatedAt(transaction.getCreatedAt());
+//        response.setName(transaction.getSender().getUser().getFullName());
+//        response.setReference(transaction.getReference());
+//
+//        if(transaction.getAssociate() != null) {
+//            response.setAssociates(List.of(
+//                    AssociateTransactionData.builder()
+//                            .name(transaction.getAssociate().getFullName())
+//                            .category(transaction.getAssociate().getCategory().getType())
+//                            .rating(transaction.getAssociate().getRating())
+//                            .avatar(transaction.getAssociate().getAvatar())
+//                            .build()
+//            ));
+//        }
+//        response.setMode("WALLET");
+//        return response;
+//    }
+//
+//    private TransactionResponse createTripResponse(Transaction transaction, Wallet wallet) {
+//        TransactionResponse response = new TransactionResponse();
+//        response.setId(transaction.getId());
+//        response.setAmount(MoneyUtil.formatToNaira(transaction.getTrip().getShared().getAmount()));
+////        response.setReason(
+////                "Transaction for Shared Trip %s - %s".formatted(
+////                        transaction.getTrip().getShared().getStatus().getSharedLink().getLink(),
+////                        transaction.getTrip().getShared().getStatus().getId()
+////                )
+////        );
+//        response.setCompletedAt(TimeUtil.formatDay(transaction.getUpdatedAt()));
+//        response.setStatus(transaction.getStatus());
+//        response.setType(transaction.getType());
+//        response.setIsIncoming(wallet.getId().equals(transaction.getAccount()));
+//        response.setTime(TimeUtil.formatTime(transaction.getCreatedAt()));
+//        response.setRequestedAt(TimeUtil.formatDay(transaction.getTrip().getShared().getCreatedAt()));
+//        response.setCreatedAt(transaction.getCreatedAt());
+//        response.setName(transaction.getSender().getUser().getFullName());
+//        response.setReference(transaction.getReference());
+////        response.setPricing(
+////                guestAuthService.getSharedPricingData(
+////                        transaction.getTrip().getShared().getStatus().getSharedLink(),
+////                        transaction.getTrip().getShared()
+////                )
+////        );
+//        response.setMode("TRIP");
+//        return response;
+//    }
+
+    @Override
+    public void processPaydays() {
+        List<Wallet> wallets = walletRepository.findAll();
+        if(!wallets.isEmpty()) {
+            LocalDate today = LocalDate.now();
+            wallets.forEach(wallet -> {
+                if(wallet.getPayoutOnPayday()) {
+                    if(isPayday(wallet, today)) {
+                        if(wallet.getBalance().compareTo(wallet.getPayout()) > 0) {
+                            if(wallet.hasBank()) {
+                                saveDebitTransaction(wallet.getPayout(), wallet);
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    private boolean isPayday(Wallet wallet, LocalDate today) {
+        long daysSinceLastPayday = ChronoUnit.DAYS.between(wallet.getLastPayday(), today);
+        long daysToNextPayday = wallet.getPayday() - (daysSinceLastPayday % wallet.getPayday());
+        return daysToNextPayday <= PAYDAY;
     }
 }

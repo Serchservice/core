@@ -3,9 +3,13 @@ package com.serch.server.utils;
 import com.serch.server.enums.subscription.PlanType;
 import com.serch.server.enums.subscription.SubPlanType;
 
+import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -215,15 +219,37 @@ public class TimeUtil {
             LocalDateTime currentDateTime = LocalDateTime.now();
 
             if (dateTime.toLocalDate().equals(currentDateTime.toLocalDate())) {
-                return "Today";
+                return "Today, %s".formatted(formatTime(dateTime));
             } else if (dateTime.toLocalDate().equals(currentDateTime.minusDays(1).toLocalDate())) {
-                return "Yesterday";
+                return "Yesterday, %s".formatted(formatTime(dateTime));
             } else {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy");
                 return dateTime.format(formatter);
             }
         } else {
             return "";
+        }
+    }
+
+    public static String formatChatLabel(LocalDateTime date) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime today = now.truncatedTo(ChronoUnit.DAYS);
+        LocalDateTime yesterday = today.minusDays(1);
+        LocalDateTime lastWeek = today.minusDays(7);
+
+        if (date.truncatedTo(ChronoUnit.DAYS).isEqual(today)) {
+            return "Today";
+        } else if (date.truncatedTo(ChronoUnit.DAYS).isEqual(yesterday)) {
+            return "Yesterday";
+        } else if (date.isAfter(lastWeek)) {
+            List<String> weekdayNames = Arrays.asList(
+                    "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+            );
+            DayOfWeek dayOfWeek = date.getDayOfWeek();
+            return weekdayNames.get(dayOfWeek.getValue() - 1);
+        } else {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE MMMM d, yyyy");
+            return date.format(formatter);
         }
     }
 
@@ -242,7 +268,7 @@ public class TimeUtil {
         }
     }
 
-    public static String log(LocalDateTime date) {
+    public static String log() {
         LocalDateTime dateTime = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(
                 "d MMMM, yyyy (EEEE) - h:mma",

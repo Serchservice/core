@@ -3,7 +3,6 @@ package com.serch.server.services.business.services.implementations;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.account.AccountStatus;
 import com.serch.server.enums.auth.Role;
-import com.serch.server.enums.subscription.PlanStatus;
 import com.serch.server.enums.verified.ConsentType;
 import com.serch.server.exceptions.account.AccountException;
 import com.serch.server.mappers.AccountMapper;
@@ -14,9 +13,8 @@ import com.serch.server.models.business.BusinessProfile;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.User;
 import com.serch.server.models.auth.incomplete.Incomplete;
+import com.serch.server.models.business.BusinessSubscription;
 import com.serch.server.models.email.Email;
-import com.serch.server.models.subscription.SubscriptionAssociate;
-import com.serch.server.models.subscription.SubscriptionInvoice;
 import com.serch.server.repositories.account.PhoneInformationRepository;
 import com.serch.server.repositories.account.SpecialtyRepository;
 import com.serch.server.repositories.auth.PendingRepository;
@@ -24,8 +22,7 @@ import com.serch.server.repositories.business.BusinessProfileRepository;
 import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.auth.incomplete.IncompleteRepository;
-import com.serch.server.repositories.company.SpecialtyKeywordRepository;
-import com.serch.server.repositories.subscription.SubscriptionInvoiceRepository;
+import com.serch.server.repositories.business.BusinessSubscriptionRepository;
 import com.serch.server.services.account.requests.AddAssociateRequest;
 import com.serch.server.services.account.services.AccountDeleteService;
 import com.serch.server.services.account.services.ProfileService;
@@ -79,11 +76,10 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
     private final UserRepository userRepository;
     private final IncompleteRepository incompleteRepository;
     private final ProfileRepository profileRepository;
-    private final SubscriptionInvoiceRepository subscriptionInvoiceRepository;
     private final PhoneInformationRepository phoneInformationRepository;
-    private final SpecialtyKeywordRepository specialtyKeywordRepository;
     private final SpecialtyRepository specialtyRepository;
     private final PendingRepository pendingRepository;
+    private final BusinessSubscriptionRepository businessSubscriptionRepository;
 
     @Override
     public BusinessAssociateResponse response(Profile profile) {
@@ -94,6 +90,11 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
         response.setProfile(profileService.profile(profile));
         response.setStatus(profile.getUser().getAccountStatus());
         response.setVerified(profile.getUser().getIsEmailConfirmed());
+        response.setSubscription(
+                businessSubscriptionRepository.findByProfile_Id(profile.getId())
+                        .map(BusinessSubscription::getStatus)
+                        .orElse(AccountStatus.DEACTIVATED)
+        );
         return response;
     }
 
@@ -224,12 +225,12 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
 
     private void saveAssociateSpecialties(AddAssociateRequest request, Profile profile) {
         if(!request.getSpecialties().isEmpty()) {
-            request.getSpecialties().forEach(id -> specialtyKeywordRepository.findById(id).ifPresent(serviceKeyword -> {
+            request.getSpecialties().forEach(serviceKeyword -> {
                 Specialty special = new Specialty();
-                special.setService(serviceKeyword);
+                special.setSpecialty(serviceKeyword);
                 special.setProfile(profile);
                 specialtyRepository.save(special);
-            }));
+            });
         }
     }
 
@@ -329,44 +330,5 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
     @Override
     public ApiResponse<List<BusinessAssociateResponse>> all() {
         return new ApiResponse<>(associates());
-    }
-
-    @Override
-    public ApiResponse<List<BusinessAssociateResponse>> subscribed() {
-        BusinessProfile business = businessProfileRepository.findById(util.getUser().getId())
-                .orElseThrow(() -> new AccountException("Business not found"));
-        Optional<SubscriptionInvoice> invoice = subscriptionInvoiceRepository
-                .findBySubscription_PlanStatusAndSubscription_User_Id(PlanStatus.ACTIVE, business.getId());
-        if(invoice.isPresent()) {
-            if(invoice.get().getAssociates() == null || invoice.get().getAssociates().isEmpty()) {
-                return new ApiResponse<>(List.of());
-            } else {
-                return new ApiResponse<>(
-                        invoice.get().getAssociates().stream()
-                                .sorted(Comparator.comparing(SubscriptionAssociate::getCreatedAt))
-                                .map(associate -> response(associate.getProfile()))
-                                .toList()
-                );
-            }
-        } else {
-            return new ApiResponse<>(List.of());
-        }
-    }
-
-    @Override
-    public ApiResponse<List<BusinessAssociateResponse>> deactivated() {
-        BusinessProfile business = businessProfileRepository.findById(util.getUser().getId())
-                .orElseThrow(() -> new AccountException("Business not found"));
-        if(business.getAssociates() == null || business.getAssociates().isEmpty()) {
-            return new ApiResponse<>(List.of());
-        } else {
-            return new ApiResponse<>(
-                    business.getAssociates().stream()
-                            .filter(profile -> profile.getUser().getAccountStatus() == AccountStatus.BUSINESS_DEACTIVATED)
-                            .sorted(Comparator.comparing(Profile::getUpdatedAt))
-                            .map(this::response)
-                            .toList()
-            );
-        }
     }
 }

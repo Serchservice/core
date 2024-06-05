@@ -1,7 +1,8 @@
 package com.serch.server.services.category;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.serch.server.enums.account.SerchCategory;
-import com.serch.server.services.company.responses.SpecialtyKeywordResponse;
+import com.serch.server.services.account.responses.SpecialtyResponse;
 import lombok.Data;
 
 import java.util.List;
@@ -12,5 +13,10 @@ public class SerchCategoryResponse {
     private String image;
     private SerchCategory category;
     private String information;
-    private List<SpecialtyKeywordResponse> specialties;
+
+    @JsonProperty("can_drive")
+    private Boolean canDrive;
+
+    @JsonProperty("can_search_skill")
+    private Boolean canSearchSkill;
 }

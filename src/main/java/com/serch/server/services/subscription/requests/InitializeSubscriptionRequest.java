@@ -5,9 +5,6 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
-import java.util.UUID;
-
 @Data
 @Getter
 @Setter
@@ -17,6 +14,4 @@ public class InitializeSubscriptionRequest {
 
     @JsonProperty("callback_url")
     private String callbackUrl;
-
-    private List<UUID> associates;
 }

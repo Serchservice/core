@@ -23,20 +23,20 @@ import java.util.Set;
 @Getter
 @RequiredArgsConstructor
 public enum PlanType {
-    FREE(Collections.emptySet(), "Serch Free"),
-    PAYU(Collections.emptySet(), "Serch Pay-As-You-Use"),
+    FREE(Collections.emptySet(), "Free"),
+    PAYU(Collections.emptySet(), "Pay-As-You-Use"),
     ALL_DAY(Set.of(
             SubPlanType.DAILY,
             SubPlanType.WEEKLY,
             SubPlanType.MONTHLY,
             SubPlanType.QUARTERLY
-    ), "Serch AllDay"),
+    ), "AllDay"),
     PREMIUM(Set.of(
             SubPlanType.DAILY,
             SubPlanType.WEEKLY,
             SubPlanType.MONTHLY,
             SubPlanType.QUARTERLY
-    ), "Serch Premium");
+    ), "Premium");
 
     private final Set<SubPlanType> plans;
     private final String type;

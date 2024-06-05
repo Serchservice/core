@@ -66,6 +66,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) {
+        System.out.println(request.getRequestURL());
         // Extract JWT token from the Authorization header
         String header = request.getHeader("Authorization");
 

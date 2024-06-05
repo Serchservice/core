@@ -104,7 +104,7 @@ public class AccountRemovalImplementation implements AccountRemovalService {
         bookmarkRepository.deleteAll(bookmarkRepository.findByUserId(user.getId()));
         speakWithSerchRepository.deleteAll(speakWithSerchRepository.findByUser_Id(user.getId()));
         callRepository.deleteAll(callRepository.findByUserId(user.getId()));
-        chatMessageRepository.deleteAll(chatMessageRepository.findByUserId(user.getId()));
+        chatMessageRepository.deleteAll(chatMessageRepository.findBySender(user.getId()));
         chatRoomRepository.deleteAll(chatRoomRepository.findByUserId(user.getId()));
         ratingRepository.deleteAll(ratingRepository.findByRated(String.valueOf(user.getId())));
         ratingRepository.deleteAll(ratingRepository.findByRater(String.valueOf(user.getId())));
@@ -119,7 +119,7 @@ public class AccountRemovalImplementation implements AccountRemovalService {
 
         shopRepository.deleteAll(shopRepository.findByUser_Id(user.getId()));
         subscriptionRepository.findByUser_Id(user.getId()).ifPresent(subscriptionRepository::delete);
-        transactionRepository.deleteAll(transactionRepository.findBySender_User_Id(user.getId()));
+//        transactionRepository.deleteAll(transactionRepository.findBySender_User_Id(user.getId()));
         transactionRepository.deleteAll(transactionRepository.findByAccount(String.valueOf(user.getId())));
         walletRepository.findByUser_Id(user.getId()).ifPresent(walletRepository::delete);
         activeRepository.findByProfile_Id(user.getId()).ifPresent(activeRepository::delete);

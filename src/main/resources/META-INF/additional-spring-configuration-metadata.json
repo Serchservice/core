@@ -344,6 +344,16 @@
       "name": "application.notification.private.key.p28",
       "type": "java.lang.String",
       "description": "Firebase Private Key - Part 28.'."
+    },
+    {
+      "name": "application.call.api-certificate",
+      "type": "java.lang.String",
+      "description": "The Agora app certificate."
+    },
+    {
+      "name": "application.call.token.expiration",
+      "type": "java.lang.Integer",
+      "description": "The Agora token generated expiration time."
     }
   ]
 }

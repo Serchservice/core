@@ -35,28 +35,39 @@ public class LocationImplementation implements LocationService {
         return "https://maps.googleapis.com/maps/api/place%s".formatted(destination);
     }
 
+    private String TOMTOM(String query) {
+        return "https://api.mapbox.com/search/searchbox/v1/suggest?q=%s&access_token=%s&session_token=%s".formatted(
+                query,
+                "pk.eyJ1Ijoic2VyY2hzZXJ2aWNlIiwiYSI6ImNsdzFyaThscTBjOWkya3BoZjQ2MGt0Y3oifQ.vWOpJccJaH3QkvXDiwRzyg",
+                UUID.randomUUID()
+        );
+    }
+
     @Override
     public ApiResponse<List<Prediction>> predictions(String address) {
-        var response = rest.getForEntity(
-                MAP_BASE_URL("/autocomplete/json?input=%s&key=%s&sessiontoken=%s"
-                        .formatted(address, API_KEY, UUID.randomUUID())
-                ),
-                PredictionListResponse.class
-        );
+        var response = rest.getForEntity(TOMTOM(address), Object.class).getBody();
         System.out.println(response);
-        List<Prediction> predictions = new ArrayList<>();
-        if(response.getStatusCode().is2xxSuccessful()) {
-            if(ObjectUtils.isNotEmpty(Objects.requireNonNull(response.getBody()).getPredictions())) {
-                for (var prediction : response.getBody().getPredictions()) {
-                    extracted(prediction, predictions);
-                }
-                return new ApiResponse<>(predictions);
-            } else {
-                throw new MapException("Couldn't find location");
-            }
-        } else {
-            throw new MapException("An error occurred while looking for location");
-        }
+        return new ApiResponse<>(List.of());
+//        var response = rest.getForEntity(
+//                MAP_BASE_URL("/autocomplete/json?input=%s&key=%s&sessiontoken=%s"
+//                        .formatted(address, API_KEY, UUID.randomUUID())
+//                ),
+//                PredictionListResponse.class
+//        );
+//        System.out.println(response);
+//        List<Prediction> predictions = new ArrayList<>();
+//        if(response.getStatusCode().is2xxSuccessful()) {
+//            if(ObjectUtils.isNotEmpty(Objects.requireNonNull(response.getBody()).getPredictions())) {
+//                for (var prediction : response.getBody().getPredictions()) {
+//                    extracted(prediction, predictions);
+//                }
+//                return new ApiResponse<>(predictions);
+//            } else {
+//                throw new MapException("Couldn't find location");
+//            }
+//        } else {
+//            throw new MapException("An error occurred while looking for location");
+//        }
     }
 
     private static void extracted(PredictionListResponse.PlacePrediction prediction, List<Prediction> predictions) {

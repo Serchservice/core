@@ -12,19 +12,19 @@ import lombok.RequiredArgsConstructor;
  *     <li>{@link TransactionType#TIP2FIX} - Represents a Tip2Fix transaction</li>
  *     <li>{@link TransactionType#TRIP} - Represents a Service Trip transaction</li>
  *     <li>{@link TransactionType#WITHDRAW} - Represents a Withdrawal transaction</li>
- *     <li>{@link TransactionType#T2F} - Represents a Tip2Fix transaction</li>
  *     <li>{@link TransactionType#FUNDING} - Represents a Fund transaction</li>
+ *     <li>{@link TransactionType#SCHEDULE} - Represents a Schedule transaction</li>
  *     <li>{@link TransactionType#TRIP_WITHDRAW} - Represents a trip withdrawal transaction</li>
  * </ul>
  */
 @Getter
 @RequiredArgsConstructor
 public enum TransactionType {
+    FUNDING("Fund"),
+    WITHDRAW("Withdrawal"),
+    SCHEDULE("Schedule"),
     TIP2FIX("Tip2Fix"),
     TRIP("Service Trip"),
-    WITHDRAW("Withdrawal"),
-    T2F("Tip2Fix"),
-    FUNDING("Fund"),
     TRIP_WITHDRAW("Trip Withdrawal");
 
     private final String type;

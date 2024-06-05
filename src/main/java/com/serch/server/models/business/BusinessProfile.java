@@ -111,7 +111,7 @@ public class BusinessProfile extends BaseProfile {
     private List<Profile> associates;
 
     /**
-     * The list of subscriptions associated with the business's associates.
+     * The list of associates added for business subscription
      */
     @OneToMany(mappedBy = "business", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<BusinessSubscription> subscriptions;

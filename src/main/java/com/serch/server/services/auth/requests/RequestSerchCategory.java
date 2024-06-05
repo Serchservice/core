@@ -13,5 +13,5 @@ import java.util.List;
 public class RequestSerchCategory {
     private SerchCategory category;
     private String emailAddress;
-    private List<Long> specialties;
+    private List<String> specialties;
 }

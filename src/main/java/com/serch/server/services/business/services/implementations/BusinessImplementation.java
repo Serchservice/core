@@ -4,7 +4,6 @@ import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.verified.VerificationStatus;
 import com.serch.server.exceptions.account.AccountException;
 import com.serch.server.mappers.AccountMapper;
-import com.serch.server.models.account.Specialty;
 import com.serch.server.models.business.BusinessProfile;
 import com.serch.server.models.account.PhoneInformation;
 import com.serch.server.models.auth.User;
@@ -17,16 +16,15 @@ import com.serch.server.repositories.rating.RatingRepository;
 import com.serch.server.repositories.shared.SharedLinkRepository;
 import com.serch.server.repositories.shop.ShopRepository;
 import com.serch.server.repositories.trip.TripRepository;
+import com.serch.server.services.account.services.SpecialtyService;
 import com.serch.server.services.business.requests.UpdateBusinessRequest;
 import com.serch.server.services.business.responses.BusinessProfileResponse;
 import com.serch.server.services.account.responses.MoreProfileData;
 import com.serch.server.services.business.services.BusinessService;
 import com.serch.server.services.account.services.ProfileService;
 import com.serch.server.services.auth.requests.RequestBusinessProfile;
-import com.serch.server.services.company.responses.SpecialtyKeywordResponse;
 import com.serch.server.services.referral.services.ReferralService;
 import com.serch.server.services.auth.services.TokenService;
-import com.serch.server.services.company.services.SpecialtyKeywordService;
 import com.serch.server.services.supabase.core.SupabaseService;
 import com.serch.server.services.transaction.services.WalletService;
 import com.serch.server.utils.HelperUtil;
@@ -47,7 +45,7 @@ import java.util.List;
  * @see SupabaseService
  * @see ReferralService
  * @see WalletService
- * @see SpecialtyKeywordService
+ * @see SpecialtyService
  * @see TokenService
  * @see UserUtil
  * @see BusinessProfileRepository
@@ -66,7 +64,7 @@ public class BusinessImplementation implements BusinessService {
     private final WalletService walletService;
     private final ProfileService profileService;
     private final SupabaseService supabase;
-    private final SpecialtyKeywordService keywordService;
+    private final SpecialtyService specialtyService;
     private final UserUtil userUtil;
     private final BusinessProfileRepository businessProfileRepository;
     private final PhoneInformationRepository phoneInformationRepository;
@@ -87,7 +85,7 @@ public class BusinessImplementation implements BusinessService {
         if(incomplete.getReferredBy() != null) {
             referralService.create(user, incomplete.getReferredBy().getReferredBy());
         }
-        walletService.createWallet(businessProfile.getUser());
+        walletService.create(businessProfile.getUser());
         return new ApiResponse<>("Success", HttpStatus.OK);
     }
 
@@ -131,7 +129,7 @@ public class BusinessImplementation implements BusinessService {
                 specialtyRepository.findByProfile_Business_Id(profile.getId()) != null
                         ? specialtyRepository.findByProfile_Business_Id(profile.getId())
                         .stream()
-                        .map(specialty -> response(specialty, specialty.getProfile().getFullName()))
+                        .map(specialtyService::response)
                         .toList()
                         : List.of()
         );
@@ -166,13 +164,6 @@ public class BusinessImplementation implements BusinessService {
         return new ApiResponse<>(response);
     }
 
-    private SpecialtyKeywordResponse response(Specialty specialty, String name) {
-        SpecialtyKeywordResponse response = keywordService.getSpecialtyResponse(specialty.getService());
-        response.setId(specialty.getId());
-        response.setTimeline(name);
-        return response;
-    }
-
     @Override
     public ApiResponse<BusinessProfileResponse> update(UpdateBusinessRequest request) {
         User user = userUtil.getUser();
@@ -180,32 +171,35 @@ public class BusinessImplementation implements BusinessService {
                 .orElseThrow(() -> new AccountException("Profile not found"));
         if(user.isProfile()) {
             throw new AccountException("Access denied. Cannot perform action");
+        } else if(user.getProfileLastUpdatedAt() == null) {
+            return getBusinessUpdateResponse(request, user, profile);
         } else {
-            Duration duration = Duration.between(
-                    user.getProfileLastUpdatedAt() != null ? user.getProfileLastUpdatedAt() : LocalDateTime.now(),
-                    LocalDateTime.now()
-            );
+            Duration duration = Duration.between(user.getProfileLastUpdatedAt(), LocalDateTime.now());
             long remaining = ACCOUNT_DURATION - duration.toDays();
 
-            if(remaining < 0 || user.getProfileLastUpdatedAt() == null) {
-                updateLastName(request, profile);
-                updateFirstName(request, profile);
-                updateBusinessAddress(request, profile);
-                updateBusinessContact(request, profile);
-                updateBusinessName(request, profile);
-                updateBusinessDescription(request, profile);
-                updateGender(request, profile);
-                profileService.updatePhoneInformation(request.getPhone(), user);
-                if(!HelperUtil.isUploadEmpty(request.getUpload())) {
-                    String url = supabase.upload(request.getUpload(), UserUtil.getBucket(user.getRole()));
-                    profile.setAvatar(url);
-                    updateTimeStamps(profile.getUser(), profile);
-                }
-                return profile();
+            if(remaining < 0) {
+                return getBusinessUpdateResponse(request, user, profile);
             } else {
                 throw new AccountException("You can update your profile in the next %s days".formatted(remaining));
             }
         }
+    }
+
+    public ApiResponse<BusinessProfileResponse> getBusinessUpdateResponse(UpdateBusinessRequest request, User user, BusinessProfile profile) {
+        updateLastName(request, profile);
+        updateFirstName(request, profile);
+        updateBusinessAddress(request, profile);
+        updateBusinessContact(request, profile);
+        updateBusinessName(request, profile);
+        updateBusinessDescription(request, profile);
+        updateGender(request, profile);
+        profileService.updatePhoneInformation(request.getPhone(), user);
+        if(!HelperUtil.isUploadEmpty(request.getUpload())) {
+            String url = supabase.upload(request.getUpload(), UserUtil.getBucket(user.getRole()));
+            profile.setAvatar(url);
+            updateTimeStamps(profile.getUser(), profile);
+        }
+        return profile();
     }
 
     @Override

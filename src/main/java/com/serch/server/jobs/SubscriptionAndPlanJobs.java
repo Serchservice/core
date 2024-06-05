@@ -7,8 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import java.time.LocalDateTime;
-
 /**
  * This class configured scheduled cron jobs for executing periodic tasks in the application.
  * It is annotated with @Configuration to indicate that it defines application beans.
@@ -54,7 +52,7 @@ public class SubscriptionAndPlanJobs {
      */
     @Scheduled(cron = "0 0 0 * * ?")
     public void updateSubscriptions() {
-        log.info("Performing scheduled task for checkSubscriptions in %s on %s".formatted(UpdateSubscriptionService.class, TimeUtil.log(LocalDateTime.now())));
+//        log.info("Performing scheduled task for checkSubscriptions in %s on %s".formatted(UpdateSubscriptionService.class, TimeUtil.log()));
         updateSubscriptionService.checkSubscriptions();
     }
 }

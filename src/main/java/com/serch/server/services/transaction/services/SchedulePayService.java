@@ -1,6 +1,5 @@
 package com.serch.server.services.transaction.services;
 
-import com.serch.server.bases.ApiResponse;
 import com.serch.server.models.schedule.Schedule;
 
 /**
@@ -13,9 +12,9 @@ public interface SchedulePayService {
      * @param schedule The schedule to be closed.
      * @return ApiResponse indicating the success or failure of the charge operation.
      */
-    ApiResponse<Boolean> charge(Schedule schedule);
+    boolean charge(Schedule schedule);
     /**
      * Processes scheduled payments.
      */
-    void pay();
+    void processPayments();
 }

@@ -45,16 +45,19 @@ import java.math.BigDecimal;
 @Table(schema = "conversation", name = "calls")
 public class Call extends BaseDateTime {
     @Id
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false, columnDefinition = "TEXT", updatable = false)
     @GenericGenerator(name = "call_gen", type = CallID.class)
     @GeneratedValue(generator = "call_gen")
     private String channel;
 
-    @Column(name = "duration", columnDefinition = "TEXT")
-    private String duration = null;
+    @Column(name = "duration", columnDefinition = "TEXT", nullable = false)
+    private String duration = "00:00:00";
 
     @Column(name = "session_count", nullable = false)
     private Integer sessionCount = 0;
+
+    @Column(name = "retries", nullable = false)
+    private Integer retries = 0;
 
     @Column(name = "type", nullable = false)
     @Enumerated(value = EnumType.STRING)
@@ -66,8 +69,8 @@ public class Call extends BaseDateTime {
     @SerchEnum(message = "CallStatus must be an enum")
     private CallStatus status = CallStatus.CALLING;
 
-    @Column(name = "amount_spent")
-    private BigDecimal amount;
+    @Column(name = "amount_spent", nullable = false)
+    private BigDecimal amount = BigDecimal.ZERO;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(

@@ -12,7 +12,6 @@ import com.serch.server.models.auth.User;
 import com.serch.server.models.auth.incomplete.*;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.auth.incomplete.*;
-import com.serch.server.repositories.company.SpecialtyKeywordRepository;
 import com.serch.server.services.account.services.AdditionalService;
 import com.serch.server.services.account.services.ProfileService;
 import com.serch.server.services.account.services.SpecialtyService;
@@ -49,7 +48,6 @@ import org.springframework.stereotype.Service;
  * @see IncompleteProfileRepository
  * @see IncompletePhoneInformationRepository
  * @see IncompleteCategoryRepository
- * @see SpecialtyKeywordRepository
  * @see IncompleteSpecialtyRepository
  */
 @Service
@@ -68,7 +66,6 @@ public class ProviderAuthImplementation implements ProviderAuthService {
     private final IncompleteProfileRepository incompleteProfileRepository;
     private final IncompletePhoneInformationRepository incompletePhoneInformationRepository;
     private final IncompleteCategoryRepository incompleteCategoryRepository;
-    private final SpecialtyKeywordRepository specialtyKeywordRepository;
     private final IncompleteSpecialtyRepository incompleteSpecialtyRepository;
 
     @Value("${application.account.limit.specialty}")
@@ -178,13 +175,12 @@ public class ProviderAuthImplementation implements ProviderAuthService {
         incompleteCategoryRepository.save(incompleteCategory);
 
         if(category.getSpecialties() != null) {
-            category.getSpecialties().forEach(id -> specialtyKeywordRepository.findById(id)
-                    .ifPresent(serviceKeyword -> {
-                        IncompleteSpecialty incompleteSpecialty = new IncompleteSpecialty();
-                        incompleteSpecialty.setService(serviceKeyword);
-                        incompleteSpecialty.setIncomplete(incomplete);
-                        incompleteSpecialtyRepository.save(incompleteSpecialty);
-                    }));
+            category.getSpecialties().forEach(keyword -> {
+                IncompleteSpecialty incompleteSpecialty = new IncompleteSpecialty();
+                incompleteSpecialty.setSpecialty(keyword);
+                incompleteSpecialty.setIncomplete(incomplete);
+                incompleteSpecialtyRepository.save(incompleteSpecialty);
+            });
         }
     }
 

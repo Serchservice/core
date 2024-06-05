@@ -28,6 +28,6 @@ public class AddAssociateRequest {
     private Gender gender;
 
     private SerchCategory category;
-    private List<Long> specialties;
+    private List<String> specialties;
     private ConsentType consent;
 }

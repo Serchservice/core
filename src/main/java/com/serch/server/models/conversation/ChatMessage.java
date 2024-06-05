@@ -13,20 +13,13 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
+import java.util.UUID;
+
 /**
  * The ChatMessage class represents a chat message entity in the system.
  * It stores information about chat messages, including the message content, status, type, state, duration, file size, file caption,
  * navigate, whether it's a search message, and the associated chat room, sender, receiver, and replied message.
  * <p></p>
- * Annotations:
- * <ul>
- *     <li>{@link Column}</li>
- *     <li>{@link Enumerated}</li>
- *     <li>{@link OneToOne}</li>
- *     <li>{@link JoinColumn}</li>
- *     <li>{@link Entity}</li>
- *     <li>{@link Table}</li>
- * </ul>
  * Relationships:
  * <ul>
  *     <li>{@link ChatRoom} - The chat room associated with the chat message.</li>
@@ -45,7 +38,7 @@ import org.hibernate.annotations.GenericGenerator;
 @Table(schema = "conversation", name = "chat_messages")
 public class ChatMessage extends BaseDateTime {
     @Id
-    @Column(name = "id", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "id", nullable = false, columnDefinition = "TEXT", unique = true, updatable = false)
     @GenericGenerator(name = "message_id_gen", type = MessageID.class)
     @GeneratedValue(generator = "message_id_gen")
     private String id;
@@ -59,7 +52,7 @@ public class ChatMessage extends BaseDateTime {
     @SerchEnum(message = "MessageStatus must be an enum")
     private MessageStatus status = MessageStatus.SENT;
 
-    @Column(name = "type", nullable = false)
+    @Column(name = "type", nullable = false, updatable = false)
     @Enumerated(value = EnumType.STRING)
     @SerchEnum(message = "MessageType must be an enum")
     private MessageType type = MessageType.TEXT;
@@ -75,19 +68,14 @@ public class ChatMessage extends BaseDateTime {
     @Column(name = "file_size", columnDefinition = "TEXT")
     private String fileSize = null;
 
-    @Column(name = "file_caption", columnDefinition = "TEXT")
-    private String fileCaption = null;
-
-    @Column(name = "navigate", columnDefinition = "TEXT")
-    private String navigate = null;
-
-    @Column(name = "is_serch", nullable = false)
-    private Boolean isSerch = false;
+    @Column(name = "sender", nullable = false, updatable = false)
+    private UUID sender;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "replied_message_id",
             referencedColumnName = "id",
+            updatable = false,
             foreignKey = @ForeignKey(name = "replied_message_id_fkey")
     )
     private ChatMessage replied = null;
@@ -97,25 +85,8 @@ public class ChatMessage extends BaseDateTime {
             name = "room_id",
             referencedColumnName = "id",
             nullable = false,
+            updatable = false,
             foreignKey = @ForeignKey(name = "room_id_fkey")
     )
     private ChatRoom chatRoom;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "sender_id",
-            referencedColumnName = "serch_id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "sender_id_fkey")
-    )
-    private Profile sender;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "receiver_id",
-            referencedColumnName = "serch_id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "receiver_id_fkey")
-    )
-    private Profile receiver;
 }

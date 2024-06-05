@@ -9,7 +9,7 @@ import java.util.UUID;
 /**
  * This is the wrapper class that contains the methods performed in BusinessSubscriptionService.
  *
- * @
+ * @see com.serch.server.services.business.services.implementations.BusinessSubscriptionImplementation
  */
 public interface BusinessSubscriptionService {
     /**
@@ -35,13 +35,11 @@ public interface BusinessSubscriptionService {
     /**
      * Adds all associate providers to the list of business subscriptions
      *
-     * @param ids All provider ids to be added
-     *
      * @return List of {@link BusinessAssociateResponse}
      *
      * @see ApiResponse
      */
-    ApiResponse<List<BusinessAssociateResponse>> addAll(List<UUID> ids);
+    ApiResponse<List<BusinessAssociateResponse>> addAll();
 
     /**
      * Suspends an associate provider from business subscription

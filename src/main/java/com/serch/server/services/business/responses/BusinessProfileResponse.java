@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.serch.server.enums.verified.VerificationStatus;
 import com.serch.server.services.account.responses.MoreProfileData;
 import com.serch.server.services.auth.requests.RequestPhoneInformation;
-import com.serch.server.services.company.responses.SpecialtyKeywordResponse;
+import com.serch.server.services.account.responses.SpecialtyResponse;
 import lombok.Data;
 
 import java.util.List;
@@ -43,5 +43,5 @@ public class BusinessProfileResponse {
 
     private MoreProfileData more;
 
-    private List<SpecialtyKeywordResponse> specializations;
+    private List<SpecialtyResponse> specializations;
 }

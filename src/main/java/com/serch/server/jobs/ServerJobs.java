@@ -1,13 +1,12 @@
 package com.serch.server.jobs;
 
-import com.serch.server.services.shop.services.ShopServices;
+import com.serch.server.services.conversation.services.CallService;
+import com.serch.server.services.shop.services.ShopService;
 import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.Scheduled;
-
-import java.time.LocalDateTime;
 
 /**
  * This class configured scheduled cron jobs for executing periodic tasks in the application.
@@ -40,17 +39,24 @@ import java.time.LocalDateTime;
  * For example, to run at 4:30 AM every day, you would use @Scheduled(cron = "0 30 4 * * ?").
  * <p></p>
  * @see org.springframework.context.annotation.Configuration
- * @see ShopServices
+ * @see ShopService
  */
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
 public class ServerJobs {
-    private final ShopServices shopService;
+    private final ShopService shopService;
+    private final CallService callService;
 
     @Scheduled(cron = "0 * * * * *") // Runs every minute
     public void updateShops() {
-        log.info("Running schedule task for updateShops in %s on %s".formatted(ShopServices.class, TimeUtil.log(LocalDateTime.now())));
+//        log.info("Running schedule task for updateShops in %s on %s".formatted(ShopService.class, TimeUtil.log()));
         shopService.openOrCloseShops();
+    }
+
+    @Scheduled(cron = "0 0 0 * * *") // Runs every minute
+    public void closeRingingCalls() {
+//        log.info("Running schedule task for closeRingingCalls in %s on %s".formatted(CallService.class, TimeUtil.log()));
+        callService.closeRingingCalls();
     }
 }

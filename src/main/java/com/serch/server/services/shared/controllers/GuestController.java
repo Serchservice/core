@@ -26,4 +26,10 @@ public class GuestController {
         ApiResponse<AuthResponse> response = service.becomeAUser(request);
         return new ResponseEntity<>(response, response.getStatus());
     }
+
+    @PatchMapping("/fcm/update")
+    public ResponseEntity<ApiResponse<String>> updateFcmToken(@RequestParam String token, @RequestParam String guest) {
+        ApiResponse<String> response = service.updateFcmToken(token, guest);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
 }

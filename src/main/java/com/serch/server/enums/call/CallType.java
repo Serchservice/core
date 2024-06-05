@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum CallType {
     VOICE("Voice"),
+    VIDEO("Video"),
     T2F("T2F"),
     NONE("None");
 

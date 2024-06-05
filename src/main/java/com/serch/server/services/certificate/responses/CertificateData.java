@@ -12,4 +12,6 @@ public class CertificateData {
     private String signature;
     private String issueDate;
     private String name;
+    private String category;
+    private String image;
 }

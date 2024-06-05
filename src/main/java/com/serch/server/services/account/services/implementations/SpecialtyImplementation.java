@@ -1,20 +1,14 @@
 package com.serch.server.services.account.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.exceptions.account.AccountException;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.account.Specialty;
 import com.serch.server.models.auth.incomplete.Incomplete;
-import com.serch.server.models.business.BusinessProfile;
-import com.serch.server.models.company.SpecialtyKeyword;
 import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.account.SpecialtyRepository;
-import com.serch.server.repositories.business.BusinessProfileRepository;
-import com.serch.server.repositories.company.SpecialtyKeywordRepository;
 import com.serch.server.services.account.services.SpecialtyService;
-import com.serch.server.services.company.responses.SpecialtyKeywordResponse;
-import com.serch.server.services.company.services.SpecialtyKeywordService;
+import com.serch.server.services.account.responses.SpecialtyResponse;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,20 +22,15 @@ import java.util.List;
  * It implements its wrapper class {@link SpecialtyService}
  *
  * @see SpecialtyRepository
- * @see SpecialtyKeywordRepository
- * @see SpecialtyKeywordService
  * @see ProfileRepository
  * @see UserUtil
  */
 @Service
 @RequiredArgsConstructor
 public class SpecialtyImplementation implements SpecialtyService {
-    private final SpecialtyKeywordService keywordService;
     private final UserUtil userUtil;
     private final SpecialtyRepository specialtyRepository;
     private final ProfileRepository profileRepository;
-    private final SpecialtyKeywordRepository specialtyKeywordRepository;
-    private final BusinessProfileRepository businessProfileRepository;
 
     @Value("${application.account.limit.specialty}")
     private Integer SPECIALTY_LIMIT;
@@ -51,7 +40,7 @@ public class SpecialtyImplementation implements SpecialtyService {
         if(!incomplete.getSpecializations().isEmpty()) {
             incomplete.getSpecializations().forEach(specialty -> {
                 Specialty special = new Specialty();
-                special.setService(specialty.getService());
+                special.setSpecialty(specialty.getSpecialty());
                 special.setProfile(profile);
                 specialtyRepository.save(special);
             });
@@ -59,22 +48,20 @@ public class SpecialtyImplementation implements SpecialtyService {
     }
 
     @Override
-    public ApiResponse<SpecialtyKeywordResponse> add(Long id) {
+    public ApiResponse<SpecialtyResponse> add(String specialty) {
         Profile profile = profileRepository.findById(userUtil.getUser().getId())
                 .orElseThrow(() -> new AccountException("Profile not found"));
-        SpecialtyKeyword keyword = specialtyKeywordRepository.findById(id)
-                .orElseThrow(() -> new AccountException("Specialty not found"));
 
         int size = specialtyRepository.findByProfile_Id(userUtil.getUser().getId()).size();
         if(size < SPECIALTY_LIMIT) {
             Specialty special = new Specialty();
-            special.setService(keyword);
+            special.setSpecialty(specialty);
             special.setProfile(profile);
             specialtyRepository.save(special);
 
             return new ApiResponse<>(
                     "Specialty added. Remaining %s".formatted(SPECIALTY_LIMIT - size),
-                    keywordService.getSpecialtyResponse(keyword),
+                    response(special),
                     HttpStatus.CREATED
             );
         } else {
@@ -92,14 +79,23 @@ public class SpecialtyImplementation implements SpecialtyService {
     }
 
     @Override
-    public ApiResponse<List<SpecialtyKeywordResponse>> specials() {
-        SerchCategory category = profileRepository.findById(userUtil.getUser().getId())
-                .map(Profile::getCategory)
-                .orElse(
-                        businessProfileRepository.findById(userUtil.getUser().getId())
-                                .map(BusinessProfile::getCategory)
-                                .orElse(SerchCategory.GUEST)
-                );
-        return new ApiResponse<>(keywordService.getAllSpecialties(category));
+    public SpecialtyResponse response(Specialty specialty) {
+        return SpecialtyResponse.builder()
+                .id(specialty.getId())
+                .avatar(specialty.getProfile().getAvatar())
+                .category(specialty.getProfile().getCategory().getType())
+                .special(specialty.getSpecialty())
+                .image(specialty.getProfile().getCategory().getImage())
+                .build();
+    }
+
+    @Override
+    public ApiResponse<List<SpecialtyResponse>> search(String query) {
+        List<Specialty> specialties = specialtyRepository.fullTextSearch(query);
+        if(specialties != null && !specialties.isEmpty()) {
+            return new ApiResponse<>(specialties.stream().map(this::response).toList());
+        } else {
+            return new ApiResponse<>(List.of());
+        }
     }
 }

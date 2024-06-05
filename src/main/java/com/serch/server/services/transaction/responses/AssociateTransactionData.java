@@ -10,4 +10,5 @@ public class AssociateTransactionData {
     private String category;
     private Double rating;
     private String avatar;
+    private String image;
 }

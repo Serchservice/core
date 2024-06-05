@@ -74,24 +74,6 @@ public interface BusinessAssociateService {
     ApiResponse<List<BusinessAssociateResponse>> all();
 
     /**
-     * Fetches the list of subscribed business associates that belongs to the business
-     *
-     * @return ApiResponse of list {@link BusinessAssociateResponse}
-     *
-     * @see ApiResponse
-     */
-    ApiResponse<List<BusinessAssociateResponse>> subscribed();
-
-    /**
-     * Fetches the list of deactivated business associates that belongs to the business
-     *
-     * @return ApiResponse of list {@link BusinessAssociateResponse}
-     *
-     * @see ApiResponse
-     */
-    ApiResponse<List<BusinessAssociateResponse>> deactivated();
-
-    /**
      * Builds the profile of an associate provider
      *
      * @param profile The profile of the provider {@link Profile}

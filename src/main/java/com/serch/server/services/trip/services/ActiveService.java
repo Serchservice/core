@@ -48,38 +48,4 @@ public interface ActiveService {
      * @see OnlineRequest
      */
     void toggle(User user, TripStatus status, OnlineRequest request);
-
-    /**
-     * Searches for active providers based on the provided query and location parameters.
-     *
-     * @param query     The search query.
-     * @param category  The category of the providers to search for.
-     * @param longitude The longitude coordinate.
-     * @param latitude  The latitude coordinate.
-     * @param radius    The search radius.
-     * @return An ApiResponse containing a list of ActiveResponse objects.
-     *
-     * @see ApiResponse
-     * @see ActiveResponse
-     */
-    ApiResponse<List<ActiveResponse>> search(
-            String query, String category, Double longitude, Double latitude, Double radius
-    );
-
-    /**
-     * Automatically finds the best match provider based on the provided query and location parameters.
-     *
-     * @param query     The search query.
-     * @param category  The category of the providers to search for.
-     * @param longitude The longitude coordinate.
-     * @param latitude  The latitude coordinate.
-     * @param radius    The search radius.
-     * @return An ApiResponse containing the best match ActiveResponse object.
-     *
-     * @see ApiResponse
-     * @see ActiveResponse
-     */
-    ApiResponse<ActiveResponse> auto(
-            String query, String category, Double longitude, Double latitude, Double radius
-    );
 }

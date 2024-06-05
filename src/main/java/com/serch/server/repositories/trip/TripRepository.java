@@ -61,6 +61,6 @@ public interface TripRepository extends JpaRepository<Trip, String> {
     List<Trip> findByProviderId(@NonNull UUID id);
     @Query("select t from Trip t where t.account = ?1")
     List<Trip> findByAccount(@NonNull String account);
-    @Query("SELECT t FROM Trip t JOIN t.provider p GROUP BY t.id, t.cancelReason, t.inviteCancelReason, t.account, t.canShare, t.status, t.inviteStatus, t.amount, t.time, t.authentication, t.transaction, t.address, t.shared, t.invitedProvider, t.provider ORDER BY COUNT(p.category) DESC")
+    @Query("SELECT t FROM Trip t JOIN t.provider p GROUP BY t.id, t.cancelReason, t.inviteCancelReason, t.account, t.canShare, t.status, t.inviteStatus, t.amount, t.time, t.authentication, t.address, t.shared, t.invitedProvider, t.provider ORDER BY COUNT(p.category) DESC")
     List<Trip> findPopularCategories(Pageable pageable);
 }

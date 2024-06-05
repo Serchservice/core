@@ -17,9 +17,10 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum TransactionStatus {
-    PENDING("Pending"),
-    SUCCESSFUL("Successful"),
-    FAILED("Failed");
+    PENDING("Pending", "is pending"),
+    SUCCESSFUL("Successful", "was successful"),
+    FAILED("Failed", "failed");
 
     private final String type;
+    private final String sentence;
 }

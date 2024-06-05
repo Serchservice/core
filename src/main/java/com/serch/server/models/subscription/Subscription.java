@@ -59,12 +59,12 @@ public class Subscription extends BaseDateTime {
    @Column(name = "status", nullable = false)
    @Enumerated(value = EnumType.STRING)
    @SerchEnum(message = "PlanType must be an enum")
-   private PlanStatus planStatus = PlanStatus.ACTIVE;
+   private PlanStatus status = PlanStatus.ACTIVE;
 
    @Column(name = "free_status", nullable = false)
    @Enumerated(value = EnumType.STRING)
    @SerchEnum(message = "PlanType must be an enum")
-   private PlanStatus freePlanStatus = PlanStatus.NOT_USED;
+   private PlanStatus freeStatus = PlanStatus.NOT_USED;
 
    @Column(name = "subscribed_at", nullable = false)
    private LocalDateTime subscribedAt = LocalDateTime.now();
@@ -112,7 +112,7 @@ public class Subscription extends BaseDateTime {
     * @return true if the subscription is active, otherwise false.
     */
    public boolean isActive() {
-      return planStatus == PlanStatus.ACTIVE;
+      return status == PlanStatus.ACTIVE;
    }
 
    /**
@@ -121,7 +121,7 @@ public class Subscription extends BaseDateTime {
     * @return true if the subscription is expired, otherwise false.
     */
    public boolean isExpired() {
-      return planStatus == PlanStatus.EXPIRED;
+      return status == PlanStatus.EXPIRED;
    }
 
    /**
@@ -130,7 +130,7 @@ public class Subscription extends BaseDateTime {
     * @return true if the subscription is suspended, otherwise false.
     */
    public boolean isPaused() {
-      return planStatus == PlanStatus.SUSPENDED;
+      return status == PlanStatus.SUSPENDED;
    }
 
    /**
@@ -149,6 +149,6 @@ public class Subscription extends BaseDateTime {
     * @return true if the free plan can be used, otherwise false.
     */
    public boolean canUseFreePlan() {
-      return freePlanStatus == PlanStatus.NOT_USED;
+      return freeStatus == PlanStatus.NOT_USED;
    }
 }

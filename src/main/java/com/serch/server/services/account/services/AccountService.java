@@ -42,4 +42,13 @@ public interface AccountService {
      * @return {@link ApiResponse} of list {@link DashboardResponse}
      */
     ApiResponse<List<DashboardResponse>> dashboards();
+
+    /**
+     * Update the FCM token of the logged-in user
+     *
+     * @param token The new fcm token
+     *
+     * @return {@link ApiResponse} of Success or failure
+     */
+    ApiResponse<String> updateFcmToken(String token);
 }

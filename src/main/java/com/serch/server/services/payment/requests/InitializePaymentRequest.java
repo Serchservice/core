@@ -1,5 +1,6 @@
 package com.serch.server.services.payment.requests;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.Getter;
@@ -27,6 +28,7 @@ public class InitializePaymentRequest {
     @JsonProperty("split_code")
     private String splitCode;
 
+    @JsonIgnore
     public InitializePaymentRequest validate() {
         int updatedAmount = Integer.parseInt(getAmount());
         setAmount(String.valueOf(updatedAmount * 100));

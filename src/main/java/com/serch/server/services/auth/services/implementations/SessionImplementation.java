@@ -148,11 +148,12 @@ public class SessionImplementation implements SessionService {
                         .role(request.getUser().getRole().name())
                         .category(category.getType())
                         .image(category.getImage())
-                        .shouldSubscribe(category.isShouldSubscribe())
+                        .shouldSubscribe(category.getShouldSubscribe())
                         .subscription(subscription)
                         .verification("")
                         .rating(rating)
                         .avatar(avatar)
+                        .id(request.getUser().getId())
                         .recoveryCodesEnabled(request.getUser().getRecoveryCodeEnabled())
                         .build(),
                 HttpStatus.CREATED

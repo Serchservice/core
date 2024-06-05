@@ -28,6 +28,7 @@ import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -120,6 +121,16 @@ public class GuestImplementation implements GuestService {
             );
         }
         return response;
+    }
+
+    @Override
+    public ApiResponse<String> updateFcmToken(String token, String guest) {
+        guestRepository.findById(guest)
+                .ifPresent(profile -> {
+                    profile.setFcmToken(token);
+                    guestRepository.save(profile);
+                });
+        return new ApiResponse<>("Successfully updated FCM token", HttpStatus.OK);
     }
 
     @Override

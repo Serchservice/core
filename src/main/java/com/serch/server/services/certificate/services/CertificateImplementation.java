@@ -7,6 +7,7 @@ import com.google.zxing.qrcode.QRCodeWriter;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.bases.BaseProfile;
 import com.serch.server.enums.account.Gender;
+import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.company.IssueStatus;
 import com.serch.server.exceptions.others.CertificateException;
 import com.serch.server.models.account.Profile;
@@ -141,16 +142,21 @@ public class CertificateImplementation implements CertificateService {
         return new ApiResponse<>(response);
     }
 
+    private boolean isThirtyDaysAfter(LocalDateTime createdAt) {
+        // Check if the current date and time is 30 days or more after the creation date
+        return LocalDateTime.now().isAfter(createdAt.plusDays(30)) || LocalDateTime.now().isEqual(createdAt.plusDays(30));
+    }
+
     private Map<String, Boolean> instruction(User user, Certificate certificate) {
         Map<String, Boolean> instruction = new HashMap<>();
         if(certificate != null) {
             instruction.put(
                     "Generate a new certificate after 30 days of current generated certificate",
-                    certificate.getCreatedAt().minusDays(30).isEqual(LocalDateTime.now())
+                    isThirtyDaysAfter(certificate.getCreatedAt())
             );
             instruction.put(
                     "Run your account without being reported by any user",
-                    !accountReportRepository.findByAccount(String.valueOf(user.getId())).isEmpty()
+                    accountReportRepository.findByAccount(String.valueOf(user.getId())).isEmpty()
                             && accountReportRepository.findByAccount(String.valueOf(user.getId())).stream().noneMatch(report -> report.getStatus() == IssueStatus.RESOLVED)
             );
         } else {
@@ -192,13 +198,13 @@ public class CertificateImplementation implements CertificateService {
     }
 
     private String secret(User user) {
-        Map<String, Object> data = new HashMap<>();
-        data.put("role", user.getRole().name());
-        data.put("status", user.getAccountStatus().name());
-        data.put("first_name", user.getFirstName());
-        data.put("last_name", user.getLastName());
-        data.put("id", user.getId());
-        return jwtService.generateToken(data, user.getEmailAddress());
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", user.getRole().name());
+        claims.put("status", user.getAccountStatus().name());
+        claims.put("first_name", user.getFirstName());
+        claims.put("last_name", user.getLastName());
+        claims.put("id", user.getId());
+        return jwtService.generateToken(claims, user.getEmailAddress());
     }
 
     private String generateHeader() {
@@ -327,6 +333,13 @@ public class CertificateImplementation implements CertificateService {
                                     .map(BusinessProfile::getBusinessName)
                                     .orElse("")
                     );
+            SerchCategory category = profileRepository.findById(certificate.getUser())
+                    .map(Profile::getCategory)
+                    .orElse(
+                            businessProfileRepository.findById(certificate.getUser())
+                                    .map(BusinessProfile::getCategory)
+                                    .orElse(SerchCategory.BUSINESS)
+                    );
             List<Rating> ratings = ratingRepository.findGood(String.valueOf(certificate.getUser()));
 
             VerifyCertificateResponse response = new VerifyCertificateResponse();
@@ -338,6 +351,8 @@ public class CertificateImplementation implements CertificateService {
             data.setQrCode(certificate.getCode());
             data.setId(certificate.getId());
             data.setName(name);
+            data.setCategory(category.getType());
+            data.setImage(category.getImage());
             data.setSignature(supabaseService.buildUrl("/storage/v1/object/public/certificate/ceo-sign.png"));
             data.setIssueDate(date(certificate.getUpdatedAt()));
             response.setData(data);

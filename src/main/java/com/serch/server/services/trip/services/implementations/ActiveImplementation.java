@@ -1,8 +1,6 @@
 package com.serch.server.services.trip.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.enums.account.SerchCategory;
-import com.serch.server.enums.subscription.PlanStatus;
 import com.serch.server.enums.trip.TripStatus;
 import com.serch.server.exceptions.account.AccountException;
 import com.serch.server.exceptions.others.TripException;
@@ -18,10 +16,8 @@ import com.serch.server.services.trip.requests.OnlineRequest;
 import com.serch.server.services.trip.responses.ActiveResponse;
 import com.serch.server.services.trip.services.ActiveSearchService;
 import com.serch.server.services.trip.services.ActiveService;
-import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -42,14 +38,10 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class ActiveImplementation implements ActiveService {
-    private final ActiveSearchService service;
     private final UserUtil userUtil;
     private final ActiveRepository activeRepository;
     private final ProfileRepository profileRepository;
     private final BusinessProfileRepository businessProfileRepository;
-
-    @Value("${application.map.search-radius}")
-    private String MAP_SEARCH_RADIUS;
 
     @Override
     public ApiResponse<TripStatus> toggleStatus(OnlineRequest request) {
@@ -159,62 +151,5 @@ public class ActiveImplementation implements ActiveService {
                             active.setProfile(profile);
                             activeRepository.save(active);
                         }));
-    }
-
-    private SerchCategory category(String category) {
-        if(category.equalsIgnoreCase(SerchCategory.MECHANIC.getType())) {
-            return SerchCategory.MECHANIC;
-        } else if(category.equalsIgnoreCase(SerchCategory.CARPENTER.getType())) {
-            return SerchCategory.CARPENTER;
-        } else if(category.equalsIgnoreCase(SerchCategory.PLUMBER.getType())) {
-            return SerchCategory.PLUMBER;
-        } else if(category.equalsIgnoreCase(SerchCategory.ELECTRICIAN.getType())) {
-            return SerchCategory.ELECTRICIAN;
-        } else {
-            return SerchCategory.USER;
-        }
-    }
-
-    @Override
-    public ApiResponse<List<ActiveResponse>> search(String query, String category, Double longitude, Double latitude, Double radius) {
-        double searchRadius = radius == null ? Double.parseDouble(MAP_SEARCH_RADIUS) : radius;
-
-        return switch (query.toLowerCase()) {
-            case "active" -> service.searchByCategory(category(category), longitude, latitude, searchRadius);
-            case "free" -> service.searchByFree(category(category), longitude, latitude, searchRadius);
-            case "rating" -> service.searchByRating(category(category), longitude, latitude, searchRadius);
-            case "verified" -> service.searchByVerified(category(category), longitude, latitude, searchRadius);
-            default -> service.searchBySpecialty(query, longitude, latitude, searchRadius);
-        };
-    }
-
-    @Override
-    public ApiResponse<ActiveResponse> auto(String query, String category, Double longitude, Double latitude, Double radius) {
-        double searchRadius = radius == null ? Double.parseDouble(MAP_SEARCH_RADIUS) : radius;
-        Active provider;
-
-        if(query != null && !query.isEmpty()) {
-            provider = activeRepository.findBestMatchWithQuery(
-                    latitude, longitude, query, searchRadius, PlanStatus.ACTIVE.name()
-            );
-        } else {
-            provider = activeRepository.findBestMatchWithCategory(
-                    latitude, longitude, category(category).name(), searchRadius, PlanStatus.ACTIVE.name()
-            );
-        }
-
-        if(provider != null) {
-            return new ApiResponse<>(service.response(
-                    provider.getProfile(),
-                    provider.getTripStatus(),
-                    HelperUtil.getDistance(
-                            latitude, longitude,
-                            provider.getLatitude(),
-                            provider.getLongitude()
-                    )
-            ));
-        } else {
-            throw new TripException("No provider found");
-        }
     }
 }

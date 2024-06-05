@@ -9,19 +9,12 @@ import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.time.LocalDate;
 
 /**
  * The Wallet class represents a user's wallet in the account schema.
  * It stores information such as account number, account name, bank name, deposit, balance, and uncleared amount.
  * <p></p>
- * Annotations:
- * <ul>
- *     <li>{@link Getter}</li>
- *     <li>{@link Setter}</li>
- *     <li>{@link Entity}</li>
- *     <li>{@link Table}</li>
- * </ul>
  * Relationships:
  * <ul>
  *     <li>One-to-one with {@link User} representing the user who owns the wallet.</li>
@@ -57,6 +50,18 @@ public class Wallet extends BaseDateTime {
     @Column(name = "uncleared", nullable = false)
     private BigDecimal uncleared = BigDecimal.ZERO;
 
+    @Column(nullable = false)
+    private Integer payday = 3;
+
+    @Column(nullable = false, name = "payout_on_payday")
+    private Boolean payoutOnPayday = true;
+
+    @Column(name = "payout", nullable = false)
+    private BigDecimal payout = BigDecimal.ZERO;
+
+    @Column(name = "last_payday", nullable = false)
+    private LocalDate lastPayday = LocalDate.now();
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "user_id",
@@ -66,6 +71,9 @@ public class Wallet extends BaseDateTime {
     )
     private User user;
 
-    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Transaction> transactions;
+    public boolean hasBank() {
+        return getAccountName() != null && !getAccountName().isEmpty()
+                && getBankName() != null && !getBankName().isEmpty()
+                && getAccountNumber() != null && !getAccountNumber().isEmpty();
+    }
 }

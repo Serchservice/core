@@ -16,7 +16,7 @@ public class PlanChildResponse {
     private String id;
     private SubPlanType type;
     private String name;
-    private Integer amount;
+    private String amount;
     private String discount;
     private String tag;
 }

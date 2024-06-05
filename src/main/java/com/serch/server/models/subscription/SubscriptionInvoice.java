@@ -1,6 +1,8 @@
 package com.serch.server.models.subscription;
 
+import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseModel;
+import com.serch.server.enums.subscription.PlanStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -29,25 +31,32 @@ import java.util.List;
 @Entity
 @Table(schema = "subscription", name = "invoices")
 public class SubscriptionInvoice extends BaseModel {
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     private Integer size = 1;
 
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     private String amount;
 
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     private String plan;
 
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     private String mode;
 
+    @Column(nullable = false, updatable = false)
     private String reference;
+
+    @Column(nullable = false)
+    @Enumerated(value = EnumType.STRING)
+    @SerchEnum(message = "PlanType must be an enum")
+    private PlanStatus status = PlanStatus.ACTIVE;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
-            name = "subscription_id",
+            name = "subscription",
             referencedColumnName = "id",
             nullable = false,
+            updatable = false,
             foreignKey = @ForeignKey(name = "subscription_invoice_id_fkey")
     )
     private Subscription subscription;

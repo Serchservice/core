@@ -26,6 +26,7 @@ import io.jsonwebtoken.security.SignatureException;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.UnexpectedTypeException;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -35,6 +36,8 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
@@ -215,12 +218,21 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Slf4j
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
+    private final SimpMessagingTemplate simpMessagingTemplate;
+
     @ExceptionHandler(ChatException.class)
+    @MessageExceptionHandler(ChatException.class)
     public ApiResponse<String> handleChatException(ChatException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
+        simpMessagingTemplate.convertAndSendToUser(
+                exception.getUser(),
+                "/queue/errors",
+                exception.getMessage()
+        );
         return response;
     }
 
@@ -650,6 +662,16 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
         log.error(exception.getMessage());
         return new ApiResponse<>(
                 "Invalid data format",
+                ExceptionCodes.IMPROPER_USER_ID_FORMAT,
+                HttpStatus.NOT_ACCEPTABLE
+        );
+    }
+
+    @ExceptionHandler(AssertionError.class)
+    public ApiResponse<String> handleAssertionError(AssertionError exception){
+        log.error(exception.getMessage());
+        return new ApiResponse<>(
+                exception.getMessage(),
                 ExceptionCodes.IMPROPER_USER_ID_FORMAT,
                 HttpStatus.NOT_ACCEPTABLE
         );

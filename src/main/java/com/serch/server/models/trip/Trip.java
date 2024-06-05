@@ -79,9 +79,6 @@ public class Trip extends BaseDateTime {
     private TripAuthentication authentication;
 
     @OneToOne(mappedBy = "trip", cascade = CascadeType.ALL)
-    private Transaction transaction;
-
-    @OneToOne(mappedBy = "trip", cascade = CascadeType.ALL)
     private Address address;
 
     @OneToOne(mappedBy = "trip")

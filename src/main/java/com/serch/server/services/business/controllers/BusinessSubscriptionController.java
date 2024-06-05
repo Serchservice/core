@@ -13,8 +13,8 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/business/subscription")
 @PreAuthorize("hasRole('BUSINESS')")
+@RequestMapping("/business/subscription")
 public class BusinessSubscriptionController {
     private final BusinessSubscriptionService service;
 
@@ -24,15 +24,15 @@ public class BusinessSubscriptionController {
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @PatchMapping("/add/{id}")
-    public ResponseEntity<ApiResponse<List<BusinessAssociateResponse>>> add(@PathVariable("id") UUID id) {
-        ApiResponse<List<BusinessAssociateResponse>> response = service.add(id);
+    @GetMapping("/add/all")
+    public ResponseEntity<ApiResponse<List<BusinessAssociateResponse>>> addAll() {
+        ApiResponse<List<BusinessAssociateResponse>> response = service.addAll();
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @PatchMapping("/add/all")
-    public ResponseEntity<ApiResponse<List<BusinessAssociateResponse>>> addAll(@RequestBody List<UUID> ids) {
-        ApiResponse<List<BusinessAssociateResponse>> response = service.addAll(ids);
+    @PatchMapping("/add/{id}")
+    public ResponseEntity<ApiResponse<List<BusinessAssociateResponse>>> add(@PathVariable("id") UUID id) {
+        ApiResponse<List<BusinessAssociateResponse>> response = service.add(id);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

@@ -169,6 +169,12 @@
 			<artifactId>totp</artifactId>
 			<version>1.7.1</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/io.agora/authentication -->
+		<dependency>
+			<groupId>io.agora</groupId>
+			<artifactId>authentication</artifactId>
+			<version>2.0.0.2-ci-test</version>
+		</dependency>
 	</dependencies>
 
 	<build>

@@ -2,7 +2,6 @@ package com.serch.server.services.account.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.schedule.ScheduleStatus;
-import com.serch.server.enums.transaction.TransactionStatus;
 import com.serch.server.exceptions.account.AccountException;
 import com.serch.server.models.auth.User;
 import com.serch.server.models.business.BusinessProfile;
@@ -63,6 +62,7 @@ public class AccountImplementation implements AccountService {
     private final SharedService sharedService;
     private final GuestRepository guestRepository;
     private final BusinessProfileRepository businessProfileRepository;
+    private final ProfileRepository profileRepository;
 
     @Override
     public ApiResponse<List<AccountResponse>> accounts() {
@@ -85,7 +85,7 @@ public class AccountImplementation implements AccountService {
 
     private String todaySchedules(UUID id) {
         return String.valueOf(
-                scheduleRepository.today(id)
+                scheduleRepository.active(id)
                         .stream()
                         .filter(schedule -> schedule.getStatus() == ScheduleStatus.ACCEPTED)
                         .filter(schedule -> schedule.getCreatedAt().isBefore(LocalDateTime.now().plusDays(1)))
@@ -97,7 +97,7 @@ public class AccountImplementation implements AccountService {
     private String todayEarnings(UUID id) {
         return MoneyUtil.formatToNaira(
                 transactionRepository.totalToday(
-                        String.valueOf(id), TransactionStatus.SUCCESSFUL,
+                        String.valueOf(id),
                         LocalDateTime.of(LocalDate.now(), LocalTime.MIN),
                         LocalDateTime.of(LocalDate.now(), LocalTime.MAX)
                 )
@@ -191,6 +191,19 @@ public class AccountImplementation implements AccountService {
                 .name("Cumulative")
                 .build()
         ));
+    }
+
+    @Override
+    public ApiResponse<String> updateFcmToken(String token) {
+        profileRepository.findById(userUtil.getUser().getId()).ifPresentOrElse(profile -> {
+            profile.setFcmToken(token);
+            profileRepository.save(profile);
+            }, () -> businessProfileRepository.findById(userUtil.getUser().getId()).ifPresent(business -> {
+                business.setFcmToken(token);
+                businessProfileRepository.save(business);
+            })
+        );
+        return new ApiResponse<>("Successfully updated FCM token", HttpStatus.OK);
     }
 
     private double parseDouble(String value) {

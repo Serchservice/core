@@ -10,4 +10,5 @@ public class StartCallResponse {
     private String app;
     private CallStatus status;
     private String channel;
+    private String auth;
 }

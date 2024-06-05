@@ -3,6 +3,8 @@ package com.serch.server.services.auth.responses;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 @Builder
@@ -24,6 +26,7 @@ public class AuthResponse {
     @JsonProperty("should_subscribe")
     private Boolean shouldSubscribe;
 
+    private UUID id;
     private String role;
     private String category;
     private String image;

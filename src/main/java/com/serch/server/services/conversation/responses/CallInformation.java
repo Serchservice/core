@@ -10,6 +10,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class CallInformation {
+    private String channel;
     private String label;
     private String duration;
     private Boolean outgoing;

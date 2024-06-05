@@ -11,4 +11,10 @@ public class WalletUpdateRequest {
     private String accountName;
     @JsonProperty("bank_name")
     private String bankName;
+
+    private Integer payday;
+    private Integer payout;
+
+    @JsonProperty("payout_on_payday")
+    private Boolean payoutOnPayday;
 }

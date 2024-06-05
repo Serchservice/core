@@ -11,6 +11,7 @@ import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * The ChatRoom class represents a chat room entity in the system.
@@ -40,7 +41,7 @@ import java.util.List;
 @Table(schema = "conversation", name = "chat_rooms")
 public class ChatRoom extends BaseDateTime {
     @Id
-    @Column(name = "id", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "id", nullable = false, columnDefinition = "TEXT", updatable = false, unique = true)
     @GenericGenerator(name = "room_id_gen", type = ChatRoomID.class)
     @GeneratedValue(generator = "room_id_gen")
     private String id;
@@ -53,21 +54,9 @@ public class ChatRoom extends BaseDateTime {
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ChatMessage> messages;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "creator",
-            referencedColumnName = "serch_id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "creator_id_fkey")
-    )
-    private Profile creator;
+    @Column(name = "creator", nullable = false, updatable = false)
+    private UUID creator;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "roommate",
-            referencedColumnName = "serch_id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "roommate_id_fkey")
-    )
-    private Profile roommate;
+    @Column(name = "roommate", nullable = false, updatable = false)
+    private UUID roommate;
 }

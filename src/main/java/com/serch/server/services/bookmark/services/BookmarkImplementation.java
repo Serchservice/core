@@ -47,8 +47,8 @@ public class BookmarkImplementation implements BookmarkService {
             Bookmark bookmark = new Bookmark();
             bookmark.setUser(user);
             bookmark.setProvider(provider);
-            bookmarkRepository.save(bookmark);
-            return new ApiResponse<>("Bookmark added", HttpStatus.CREATED);
+            Bookmark saved = bookmarkRepository.save(bookmark);
+            return new ApiResponse<>("Bookmark added", saved.getBookmarkId(), HttpStatus.CREATED);
         }
     }
 

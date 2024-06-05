@@ -2,13 +2,10 @@ package com.serch.server.jobs;
 
 import com.serch.server.services.schedule.services.ScheduleService;
 import com.serch.server.services.transaction.services.SchedulePayService;
-import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.Scheduled;
-
-import java.time.LocalDateTime;
 
 /**
  * This class configured scheduled cron jobs for executing periodic tasks in the application.
@@ -61,8 +58,8 @@ public class ScheduleJobs {
      */
     @Scheduled(cron = "* * */1 * * ?")
     public void payScheduleUnclearedDebts() {
-        log.info("Running schedule task for pay method in %s on %s".formatted(SchedulePayService.class, TimeUtil.log(LocalDateTime.now())));
-        schedulePayService.pay();
+//        log.info("Running schedule task for pay method in %s on %s".formatted(SchedulePayService.class, TimeUtil.log()));
+        schedulePayService.processPayments();
     }
 
     /**
@@ -72,21 +69,18 @@ public class ScheduleJobs {
      */
     @Scheduled(cron = "0 0 * * * ?")
     public void notifySchedulerAndScheduledWhenItIsTimeForTheSchedule() {
-        log.info("Running schedule task for notifySchedules method in %s on %s".formatted(ScheduleService.class, TimeUtil.log(LocalDateTime.now())));
+//        log.info("Running schedule task for notifySchedules method in %s on %s".formatted(ScheduleService.class, TimeUtil.log()));
         scheduleService.notifySchedules();
     }
 
     /**
      * Closes any schedule not created for the current day and is still pending.
      * <p></p>
-     * This runs every minute because the first * denotes every second, the second * denotes every minute,
-     * and *\1 in the third position denotes every hour.
-     * <p></p>
-     * So, it effectively means "every minute of every hour, every day."
+     * This runs every 1 hour 30 minutes = 90 minutes = 5400 seconds = 5400000 milliseconds
      */
-    @Scheduled(cron = "* * */1 * * ?")
+    @Scheduled(fixedRate = 5400000)
     public void closeAnyScheduleThatIsNotCreatedForTheCurrentDayAndStillPending() {
-        log.info("Running schedule task for closePastUnaccepted method in %s on %s".formatted(ScheduleService.class, TimeUtil.log(LocalDateTime.now())));
+//        log.info("Running schedule task for closePastUnaccepted method in %s on %s".formatted(ScheduleService.class, TimeUtil.log()));
         scheduleService.closePastUnaccepted();
     }
 }

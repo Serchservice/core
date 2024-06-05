@@ -128,15 +128,16 @@ public class TripImplementation implements TripService {
                     Optional<Guest> guest = guestRepository.findById(trip.getAccount());
                     if(guest.isPresent()) {
                         if(trip.getShared() != null) {
-                            if(trip.getTransaction() != null && trip.getTransaction().getStatus() == SUCCESSFUL) {
-                                return acceptTrip(request, trip, profile);
-                            } else {
-                                return payAndAcceptTrip(request, trip, profile);
-                            }
+//                            if(trip.getTransaction() != null && trip.getTransaction().getStatus() == SUCCESSFUL) {
+//                                return acceptTrip(request, trip, profile);
+//                            } else {
+//                                return payAndAcceptTrip(request, trip, profile);
+//                            }
                         } else {
                             throw new TripException("Cannot accept trip till you pay the required commission");
                         }
                     }
+                    return payAndAcceptTrip(request, trip, profile);
                 }
             }
         } else {
@@ -172,10 +173,10 @@ public class TripImplementation implements TripService {
 
             Transaction transaction = new Transaction();
             transaction.setReference("S-SHARED-TRIP-%s".formatted(UUID.randomUUID().toString().substring(0, 8)));
-            transaction.setTrip(trip);
+//            transaction.setTrip(trip);
             transaction.setVerified(true);
             transaction.setStatus(SUCCESSFUL);
-            transaction.setSender(sender);
+//            transaction.setSender(sender);
             transaction.setAccount(account);
             transaction.setType(TransactionType.TRIP);
             transactionRepository.save(transaction);

@@ -14,18 +14,12 @@ import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 /**
  * The Transaction class represents a financial transaction in the platform schema.
  * It stores information such as amount, reference, account, status, type, and error reason.
  * <p></p>
- * Annotations:
- * <ul>
- *     <li>{@link Getter}</li>
- *     <li>{@link Setter}</li>
- *     <li>{@link Entity}</li>
- *     <li>{@link Table}</li>
- * </ul>
  * Relationships:
  * <ul>
  *     <li>One-to-one with {@link Trip} as the associated trip.</li>
@@ -40,19 +34,31 @@ import java.math.BigDecimal;
 @Table(schema = "platform", name = "transactions")
 public class Transaction extends BaseDateTime {
     @Id
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false, columnDefinition = "TEXT", updatable = false)
     @GenericGenerator(name = "transaction_gen", type = TransactionID.class)
     @GeneratedValue(generator = "transaction_gen")
     private String id;
 
-    @Column(name = "amount", nullable = false)
+    @Column(name = "amount", nullable = false, updatable = false)
     private BigDecimal amount;
 
-    @Column(unique = true, nullable = false, columnDefinition = "TEXT")
+    @Column(unique = true, nullable = false, columnDefinition = "TEXT", updatable = false)
     private String reference;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false, columnDefinition = "TEXT", updatable = false)
     private String account;
+
+    @Column(nullable = false, columnDefinition = "TEXT", updatable = false)
+    private String mode = "WALLET";
+
+    @Column(nullable = false, columnDefinition = "TEXT", updatable = false)
+    private String sender;
+
+    @Column(columnDefinition = "TEXT", updatable = false)
+    private UUID associate;
+
+    @Column(columnDefinition = "TEXT", updatable = false)
+    private String event;
 
     @Column(nullable = false)
     private Boolean verified = false;
@@ -62,44 +68,11 @@ public class Transaction extends BaseDateTime {
     @SerchEnum(message = "Transaction Status must be an enum")
     private TransactionStatus status = TransactionStatus.PENDING;
 
-    @Column(name = "type", nullable = false)
+    @Column(name = "type", nullable = false, updatable = false)
     @Enumerated(value = EnumType.STRING)
     @SerchEnum(message = "Transaction Type must be an enum")
     private TransactionType type = TransactionType.WITHDRAW;
 
     @Column(name = "error_reason", columnDefinition = "TEXT")
     private String reason;
-
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(
-            name = "trip_id",
-            referencedColumnName = "id",
-            foreignKey = @ForeignKey(name = "trip_id_fkey")
-    )
-    private Trip trip;
-
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(
-            name = "call_id",
-            referencedColumnName = "channel",
-            foreignKey = @ForeignKey(name = "call_id_fkey")
-    )
-    private Call call;
-
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(
-            name = "associate_id",
-            referencedColumnName = "serch_id",
-            foreignKey = @ForeignKey(name = "associate_id_fkey")
-    )
-    private Profile associate;
-
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(
-            name = "sender_id",
-            referencedColumnName = "id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "sender_id_fkey")
-    )
-    private Wallet sender;
 }

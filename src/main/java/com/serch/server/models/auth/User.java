@@ -90,7 +90,7 @@ public class User extends BaseEntity implements UserDetails {
     private LocalDateTime lastUpdatedAt = LocalDateTime.now();
 
     @Column(name = "profile_last_updated_at")
-    private LocalDateTime profileLastUpdatedAt = LocalDateTime.now();
+    private LocalDateTime profileLastUpdatedAt;
 
     @Column(name = "email_confirmed_at", updatable = false, nullable = false)
     @NotNull(message = "Email Confirmation Date cannot be null")
@@ -224,7 +224,7 @@ public class User extends BaseEntity implements UserDetails {
      * @return true if the user matches the ID, otherwise false
      */
     public boolean isUser(UUID id) {
-        return getId() == id;
+        return getId().equals(id);
     }
 
     /**

@@ -1,9 +1,11 @@
 package com.serch.server.services.subscription.services;
 
+import com.serch.server.services.subscription.services.implementations.UpdateSubscriptionImplementation;
+
 /**
  * This is the wrapper class for UpdateSubscription implementation
  *
- * @see UpdateSubscription
+ * @see UpdateSubscriptionImplementation
  */
 public interface UpdateSubscriptionService {
     /**

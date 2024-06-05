@@ -22,7 +22,7 @@ public class UserUtil {
      * Retrieves the username of the currently logged-in user.
      * @return The username of the logged-in user.
      */
-    public static String getLoginUser (){
+    public static String getLoginUser () {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         if (principal instanceof UserDetails) {

@@ -20,7 +20,6 @@ import com.serch.server.services.auth.responses.AuthResponse;
 import com.serch.server.services.auth.services.AuthService;
 import com.serch.server.services.auth.services.SessionService;
 import com.serch.server.services.auth.services.TokenService;
-import com.serch.server.services.company.services.SpecialtyKeywordService;
 import com.serch.server.services.email.services.EmailTemplateService;
 import com.serch.server.services.referral.services.ReferralProgramService;
 import com.serch.server.utils.TimeUtil;

@@ -43,6 +43,16 @@ public interface GuestService {
     GuestResponse response(SharedLogin login);
 
     /**
+     * Update the FCM token of the logged-in user
+     *
+     * @param token The new fcm token
+     * @param guest The guest id
+     *
+     * @return {@link ApiResponse} of Success or failure
+     */
+    ApiResponse<String> updateFcmToken(String token, String guest);
+
+    /**
      * This updates and checks if a shared link can be used again.
      * If yes, it will change the status
      * of the shared link accordingly

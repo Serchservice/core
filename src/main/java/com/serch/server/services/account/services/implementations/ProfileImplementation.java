@@ -8,7 +8,6 @@ import com.serch.server.mappers.AccountMapper;
 import com.serch.server.mappers.AuthMapper;
 import com.serch.server.models.account.PhoneInformation;
 import com.serch.server.models.account.Profile;
-import com.serch.server.models.account.Specialty;
 import com.serch.server.models.auth.User;
 import com.serch.server.models.auth.incomplete.Incomplete;
 import com.serch.server.models.certificate.Certificate;
@@ -26,11 +25,10 @@ import com.serch.server.services.account.requests.UpdateProfileRequest;
 import com.serch.server.services.account.responses.MoreProfileData;
 import com.serch.server.services.account.responses.ProfileResponse;
 import com.serch.server.services.account.services.ProfileService;
+import com.serch.server.services.account.services.SpecialtyService;
 import com.serch.server.services.auth.requests.RequestPhoneInformation;
-import com.serch.server.services.company.responses.SpecialtyKeywordResponse;
 import com.serch.server.services.referral.services.ReferralService;
 import com.serch.server.services.auth.requests.RequestProfile;
-import com.serch.server.services.company.services.SpecialtyKeywordService;
 import com.serch.server.services.supabase.core.SupabaseService;
 import com.serch.server.services.transaction.services.WalletService;
 import com.serch.server.utils.HelperUtil;
@@ -67,7 +65,7 @@ public class ProfileImplementation implements ProfileService {
     private final SupabaseService supabase;
     private final ReferralService referralService;
     private final WalletService walletService;
-    private final SpecialtyKeywordService keywordService;
+    private final SpecialtyService specialtyService;
     private final UserUtil userUtil;
     private final ProfileRepository profileRepository;
     private final PhoneInformationRepository phoneInformationRepository;
@@ -99,7 +97,7 @@ public class ProfileImplementation implements ProfileService {
                 referralService.create(request.getUser(), request.getReferredBy());
             }
 
-            walletService.createWallet(profile.getUser());
+            walletService.create(profile.getUser());
             return new ApiResponse<>("Profile successfully saved", profile, HttpStatus.CREATED);
         }
     }
@@ -169,17 +167,11 @@ public class ProfileImplementation implements ProfileService {
         response.setSpecializations(
                 specialtyRepository.findByProfile_Id(profile.getId()).isEmpty() ? List.of() : specialtyRepository.findByProfile_Id(profile.getId())
                         .stream()
-                        .map(this::response)
+                        .map(specialtyService::response)
                         .toList()
         );
         response.setCategory(profile.getCategory().getType());
         response.setImage(profile.getCategory().getImage());
-        return response;
-    }
-
-    private SpecialtyKeywordResponse response(Specialty specialty) {
-        SpecialtyKeywordResponse response = keywordService.getSpecialtyResponse(specialty.getService());
-        response.setId(specialty.getId());
         return response;
     }
 
@@ -217,29 +209,34 @@ public class ProfileImplementation implements ProfileService {
         Profile profile = profileRepository.findById(user.getId())
                 .orElseThrow(() -> new AccountException("Profile not found"));
         if(user.isProfile()) {
-            Duration duration = Duration.between(
-                    user.getProfileLastUpdatedAt() != null ? user.getProfileLastUpdatedAt() : LocalDateTime.now(),
-                    LocalDateTime.now()
-            );
-            long remaining = ACCOUNT_DURATION - duration.toDays();
-
-            if(remaining < 0 || user.getProfileLastUpdatedAt() == null) {
-                updateLastName(request, profile);
-                updateFirstName(request, profile);
-                updatePhoneInformation(request.getPhone(), user);
-                updateGender(request, profile);
-                if(!HelperUtil.isUploadEmpty(request.getUpload())) {
-                    String url = supabase.upload(request.getUpload(), UserUtil.getBucket(user.getRole()));
-                    profile.setAvatar(url);
-                    updateTimeStamps(profile.getUser(), profile);
-                }
-                return profile();
+            if(user.getProfileLastUpdatedAt() == null) {
+                return getProfileUpdateResponse(request, user, profile);
             } else {
-                throw new AccountException("You can update your profile in the next %s days".formatted(remaining));
+                Duration duration = Duration.between(user.getProfileLastUpdatedAt(), LocalDateTime.now());
+                long remaining = ACCOUNT_DURATION - duration.toDays();
+
+                if(remaining < 0) {
+                    return getProfileUpdateResponse(request, user, profile);
+                } else {
+                    throw new AccountException("You can update your profile in the next %s days".formatted(remaining));
+                }
             }
         } else {
             throw new AccountException("Access denied. Cannot perform action");
         }
+    }
+
+    public ApiResponse<ProfileResponse> getProfileUpdateResponse(UpdateProfileRequest request, User user, Profile profile) {
+        updateLastName(request, profile);
+        updateFirstName(request, profile);
+        updatePhoneInformation(request.getPhone(), user);
+        updateGender(request, profile);
+        if(!HelperUtil.isUploadEmpty(request.getUpload())) {
+            String url = supabase.upload(request.getUpload(), UserUtil.getBucket(user.getRole()));
+            profile.setAvatar(url);
+            updateTimeStamps(profile.getUser(), profile);
+        }
+        return profile();
     }
 
     @Override

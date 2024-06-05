@@ -2,10 +2,10 @@ package com.serch.server.services.category.services;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.account.SerchCategory;
+import com.serch.server.mappers.CompanyMapper;
 import com.serch.server.models.trip.Trip;
 import com.serch.server.repositories.trip.TripRepository;
 import com.serch.server.services.category.SerchCategoryResponse;
-import com.serch.server.services.company.services.SpecialtyKeywordService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,7 +17,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class CategoryImplementation implements CategoryService {
-    private final SpecialtyKeywordService keywordService;
     private final TripRepository tripRepository;
 
     @Override
@@ -25,18 +24,16 @@ public class CategoryImplementation implements CategoryService {
         return new ApiResponse<>(getSerchCategoryResponses());
     }
 
+    private SerchCategoryResponse response(SerchCategory category) {
+        SerchCategoryResponse response = CompanyMapper.INSTANCE.response(category);
+        response.setCategory(category);
+        return response;
+    }
+
     private List<SerchCategoryResponse> getSerchCategoryResponses() {
         return Arrays.stream(SerchCategory.values())
                 .filter(serchCategory -> serchCategory != SerchCategory.USER && serchCategory != SerchCategory.BUSINESS && serchCategory != SerchCategory.GUEST)
-                .map(category -> {
-                    SerchCategoryResponse response = new SerchCategoryResponse();
-                    response.setCategory(category);
-                    response.setType(category.getType());
-                    response.setImage(category.getImage());
-                    response.setInformation("What skills do you have?");
-                    response.setSpecialties(keywordService.getAllSpecialties(category));
-                    return response;
-                })
+                .map(this::response)
                 .toList();
     }
 
@@ -46,15 +43,7 @@ public class CategoryImplementation implements CategoryService {
 
         List<Trip> trips = tripRepository.findPopularCategories(pageable);
         List<SerchCategoryResponse> categories = trips != null && !trips.isEmpty()
-                ? trips.stream().map(trip -> {
-                    SerchCategoryResponse response = new SerchCategoryResponse();
-                    response.setCategory(trip.getProvider().getCategory());
-                    response.setType(trip.getProvider().getCategory().getType());
-                    response.setImage(trip.getProvider().getCategory().getImage());
-                    response.setInformation("What skills do you have?");
-                    response.setSpecialties(keywordService.getAllSpecialties(trip.getProvider().getCategory()));
-                    return response;
-                }).toList()
+                ? trips.stream().map(trip -> response(trip.getProvider().getCategory())).toList()
                 : getSerchCategoryResponses().size() > 3
                 ? getSerchCategoryResponses().subList(0, 3)
                 : getSerchCategoryResponses();

@@ -41,7 +41,7 @@ public class SubscriptionAuth extends BaseEntity {
     @Column(nullable = false, columnDefinition = "TEXT", name = "exp_year")
     private String expYear;
 
-    @Column(nullable = false, columnDefinition = "TEXT", name = "email_address")
+    @Column(nullable = false, columnDefinition = "TEXT", name = "email_address", updatable = false)
     private String emailAddress;
 
     @Column(nullable = false, columnDefinition = "TEXT")
@@ -56,13 +56,13 @@ public class SubscriptionAuth extends BaseEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String signature;
 
-    @Column(nullable = false, columnDefinition = "TEXT", name = "country_code")
+    @Column(columnDefinition = "TEXT", name = "country_code")
     private String countryCode;
 
     @Column(nullable = false)
     private Boolean reusable = false;
 
-    @Column(nullable = false, columnDefinition = "TEXT", name = "account_name")
+    @Column(columnDefinition = "TEXT", name = "account_name")
     private String accountName;
 
     @OneToOne(fetch = FetchType.LAZY)
@@ -70,6 +70,7 @@ public class SubscriptionAuth extends BaseEntity {
             name = "subscription_id",
             referencedColumnName = "id",
             nullable = false,
+            updatable = false,
             foreignKey = @ForeignKey(name = "subscription_id_fkey")
     )
     private Subscription subscription;

@@ -22,7 +22,7 @@ public class HelperUtil {
                 .toLowerCase()
                 .replaceAll("-", "")
                 .replaceAll("_", "");
-        return "https://serchservice.com/request_serch_services?shared_by=%s".formatted(code);
+        return "https://serchservice.com/service/request?shared_by=%s".formatted(code);
     }
 
     /**
@@ -64,20 +64,7 @@ public class HelperUtil {
         return request == null || request.getPath().isEmpty() || request.getBytes() == null;
     }
 
-    /**
-     * Formats a file size in bytes to a human-readable format (e.g., KB, MB, GB).
-     * @param fileSizeInBytes The size of the file in bytes.
-     * @return The formatted file size string.
-     */
-    public static String formatFileSize(long fileSizeInBytes) {
-        if (fileSizeInBytes < 1024) {
-            return fileSizeInBytes + " B";
-        } else if (fileSizeInBytes < 1024 * 1024) {
-            return String.format("%.2f KB", fileSizeInBytes / 1024.0);
-        } else if (fileSizeInBytes < 1024 * 1024 * 1024) {
-            return String.format("%.2f MB", fileSizeInBytes / (1024.0 * 1024));
-        } else {
-            return String.format("%.2f GB", fileSizeInBytes / (1024.0 * 1024 * 1024));
-        }
+    public static String generateReference(String prefix) {
+        return "%s%s".formatted(prefix, UUID.randomUUID().toString().substring(0, 8));
     }
 }

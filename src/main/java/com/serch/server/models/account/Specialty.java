@@ -1,7 +1,6 @@
 package com.serch.server.models.account;
 
 import com.serch.server.bases.BaseModel;
-import com.serch.server.models.company.SpecialtyKeyword;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,7 +12,6 @@ import lombok.Setter;
  * <p></p>
  * Relationships:
  * <ol>
- *     <li>{@link SpecialtyKeyword} - Many to one</li>
  *     <li>{@link Profile} - Many to one</li>
  * </ol>
  *
@@ -26,17 +24,8 @@ import lombok.Setter;
 @Entity
 @Table(schema = "account", name = "specializations")
 public class Specialty extends BaseModel {
-    /**
-     * The specialty keyword associated with the profile.
-     */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "service_id",
-            referencedColumnName = "id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "special_service_id_fkey")
-    )
-    private SpecialtyKeyword service;
+    @Column(nullable = false, updatable = false, columnDefinition = "TEXT default ''")
+    private String specialty;
 
     /**
      * The profile associated with the specialty.

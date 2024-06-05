@@ -9,8 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import java.time.LocalDateTime;
-
 /**
  * The ServerCronJobs class configured scheduled cron jobs for executing periodic tasks in the application.
  * It is annotated with @Configuration to indicate that it defines application beans.
@@ -60,7 +58,7 @@ public class AccountRemovalJobs {
      */
     @Scheduled(cron = "0 0 0 * * ?")
     public void removeIncompleteAccountsCreatedOneYearAgoFromCurrentYear() {
-        log.info("Running scheduled task for remove in %s on %s".formatted(IncompleteRemovalService.class, TimeUtil.log(LocalDateTime.now())));
+//        log.info("Running scheduled task for remove in %s on %s".formatted(IncompleteRemovalService.class, TimeUtil.log()));
         incompleteRemovalService.remove();
     }
 
@@ -70,7 +68,7 @@ public class AccountRemovalJobs {
      */
     @Scheduled(cron = "0 0 0 * * ?")
     public void removeGuestsWithLessThanAYearActiveTrip() {
-        log.info("Running scheduled task for remove in %s on %s".formatted(GuestRemovalService.class, TimeUtil.log(LocalDateTime.now())));
+//        log.info("Running scheduled task for remove in %s on %s".formatted(GuestRemovalService.class, TimeUtil.log()));
         guestRemovalService.remove();
     }
 
@@ -80,7 +78,7 @@ public class AccountRemovalJobs {
      */
     @Scheduled(cron = "0 0 0 * * ?")
     public void removeAccountsAfter5YearsOfDeletionRequestGranted() {
-        log.info("Running scheduled task for remove in %s on %s".formatted(AccountRemovalService.class, TimeUtil.log(LocalDateTime.now())));
+//        log.info("Running scheduled task for remove in %s on %s".formatted(AccountRemovalService.class, TimeUtil.log()));
         accountRemovalService.remove();
     }
 }

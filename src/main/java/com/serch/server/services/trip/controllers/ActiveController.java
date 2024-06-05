@@ -32,26 +32,6 @@ public class ActiveController {
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<ApiResponse<List<ActiveResponse>>> searchProviders(
-            @RequestParam String category, @RequestParam String query,
-            @RequestParam Double lng, @RequestParam Double lat,
-            @RequestParam(required = false) Double radius
-    ) {
-        ApiResponse<List<ActiveResponse>> response = service.search(query, category, lng, lat, radius);
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
-    @GetMapping("/search/auto")
-    public ResponseEntity<ApiResponse<ActiveResponse>> autoConnect(
-            @RequestParam String category, @RequestParam(required = false) String query,
-            @RequestParam Double lng, @RequestParam Double lat,
-            @RequestParam(required = false) Double radius
-    ) {
-        ApiResponse<ActiveResponse> response = service.auto(query, category, lng, lat, radius);
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
     @PatchMapping("/toggle")
     @PreAuthorize("hasRole('PROVIDER') || hasRole('ASSOCIATE_PROVIDER')")
     public ResponseEntity<ApiResponse<TripStatus>> toggle(@RequestBody OnlineRequest request) {

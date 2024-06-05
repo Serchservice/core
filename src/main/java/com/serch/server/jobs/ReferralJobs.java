@@ -7,8 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import java.time.LocalDateTime;
-
 /**
  * The ReferralJobs class configured scheduled cron jobs for executing periodic tasks in the application.
  * It is annotated with @Configuration to indicate that it defines application beans.
@@ -54,7 +52,7 @@ public class ReferralJobs {
      */
     @Scheduled(cron = "0 0 0 * * ?")
     public void performReferralChecks() {
-        log.info("Running scheduled task for performChecks in %s on %s".formatted(ReferralProgramService.class, TimeUtil.log(LocalDateTime.now())));
+//        log.info("Running scheduled task for performChecks in %s on %s".formatted(ReferralProgramService.class, TimeUtil.log()));
         referralProgramService.performChecks();
     }
 }

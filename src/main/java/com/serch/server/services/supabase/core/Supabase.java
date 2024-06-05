@@ -82,18 +82,25 @@ public class Supabase implements SupabaseService {
 
             HttpEntity<byte[]> entity = new HttpEntity<>(request.getBytes(), headers);
             String endpoint = buildUrl(String.format("/storage/v1/object/%s/%s", bucket, filename));
-            System.out.println(endpoint);
             try {
                 ResponseEntity<Object> response = rest.exchange(endpoint, HttpMethod.POST, entity, Object.class);
-                System.out.println(response);
                 if(response.getStatusCode().is2xxSuccessful()) {
                     return buildUrl(String.format("/storage/v1/object/public/%s/%s", bucket, filename));
                 } else {
                     throw new SupabaseException("Couldn't upload file");
                 }
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-                throw new SupabaseException("Operation timed out. Try again later");
+            } catch (Exception ignored) {
+                try {
+                    ResponseEntity<Object> response = rest.exchange(endpoint, HttpMethod.PUT, entity, Object.class);
+                    if(response.getStatusCode().is2xxSuccessful()) {
+                        return buildUrl(String.format("/storage/v1/object/public/%s/%s", bucket, filename));
+                    } else {
+                        throw new SupabaseException("Couldn't upload file");
+                    }
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                    throw new SupabaseException("Operation timed out. Try again later");
+                }
             }
         }
     }

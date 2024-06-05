@@ -2,15 +2,17 @@ package com.serch.server.services.transaction.controllers;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.services.payment.responses.InitializePaymentData;
-import com.serch.server.services.transaction.requests.FundRequest;
-import com.serch.server.services.transaction.requests.PayRequest;
+import com.serch.server.services.transaction.requests.FundWalletRequest;
 import com.serch.server.services.transaction.requests.WalletUpdateRequest;
 import com.serch.server.services.transaction.requests.WithdrawRequest;
+import com.serch.server.services.transaction.responses.TransactionGroupResponse;
 import com.serch.server.services.transaction.responses.WalletResponse;
 import com.serch.server.services.transaction.services.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,43 +22,43 @@ public class WalletController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<WalletResponse>> view() {
-        var response = service.view();
+        ApiResponse<WalletResponse> response = service.view();
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @GetMapping("/transactions")
+    public ResponseEntity<ApiResponse<List<TransactionGroupResponse>>> transactions() {
+        ApiResponse<List<TransactionGroupResponse>> response = service.transactions();
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @GetMapping("/recent")
+    public ResponseEntity<ApiResponse<List<TransactionGroupResponse>>> recent() {
+        ApiResponse<List<TransactionGroupResponse>> response = service.recent();
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @GetMapping("/fund/verify")
-    public ResponseEntity<ApiResponse<String>> verifyFund(@RequestParam String reference) {
-        ApiResponse<String> response = service.verifyFund(reference);
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
-    @GetMapping("/pay/trip/check")
-    public ResponseEntity<ApiResponse<String>> checkIfUserCanPayForTripWithWallet(@RequestParam String trip) {
-        ApiResponse<String> response = service.checkIfUserCanPayForTripWithWallet(trip);
+    public ResponseEntity<ApiResponse<WalletResponse>> verify(@RequestParam String reference) {
+        ApiResponse<WalletResponse> response = service.verify(reference);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @PostMapping("/fund")
-    public ResponseEntity<ApiResponse<InitializePaymentData>> fundWallet(@RequestBody FundRequest request) {
-        ApiResponse<InitializePaymentData> response = service.fundWallet(request);
+    public ResponseEntity<ApiResponse<InitializePaymentData>> fundWallet(@RequestBody FundWalletRequest request) {
+        ApiResponse<InitializePaymentData> response = service.fund(request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @PostMapping("/pay/trip")
-    public ResponseEntity<ApiResponse<String>> payTrip(@RequestBody PayRequest request) {
-        ApiResponse<String> response = service.payTrip(request);
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
-    @PostMapping("/pay/withdraw")
+    @PostMapping("/withdraw")
     public ResponseEntity<ApiResponse<String>> requestWithdraw(@RequestBody WithdrawRequest request) {
-        ApiResponse<String> response = service.requestWithdraw(request);
+        ApiResponse<String> response = service.withdraw(request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @PostMapping("/update")
     public ResponseEntity<ApiResponse<String>> updateWallet(@RequestBody WalletUpdateRequest request) {
-        var response = service.update(request);
+        ApiResponse<String> response = service.update(request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 }

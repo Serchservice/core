@@ -1,11 +1,13 @@
 package com.serch.server.configurations;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.serch.server.repositories.auth.UserRepository;
+import com.serch.server.utils.ServerUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -18,9 +20,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * The ServerConfiguration class configured various beans and settings related to server operations.
@@ -104,28 +103,20 @@ public class ServerConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(
-                "*",
-                "http://localhost:3000"
-        ));
-        configuration.setAllowedMethods(Arrays.asList(
-                HttpMethod.GET.name(),
-                HttpMethod.POST.name(),
-                HttpMethod.PATCH.name(),
-                HttpMethod.DELETE.name()
-        ));
-        configuration.setAllowCredentials(true);
-        configuration.setAllowedHeaders(List.of(
-                "X-CSRF-TOKEN",
-                HttpHeaders.AUTHORIZATION,
-                HttpHeaders.ACCEPT,
-                HttpHeaders.CONTENT_TYPE
-        ));
-        configuration.setAllowedOriginPatterns(List.of(
-                "/**"
-        ));
+        configuration.setAllowedOrigins(ServerUtil.PRODUCTION);
+        configuration.setAllowedOriginPatterns(ServerUtil.DEVELOPMENT);
+        configuration.setAllowedMethods(ServerUtil.METHODS);
+        configuration.setAllowedHeaders(ServerUtil.HEADERS);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();
+        builder.modulesToInstall(new JavaTimeModule());
+        builder.simpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        return builder.build();
     }
 }

@@ -8,8 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import java.time.LocalDateTime;
-
 /**
  * Handles Complaint and SpeakWithSerch deletion for old records
  */
@@ -27,7 +25,7 @@ public class CompanyJobs {
      */
     @Scheduled(cron = "0 0 0 * * ?")
     public void removeComplaints() {
-        log.info("Running scheduled task for remove in %s on %s".formatted(ComplaintService.class, TimeUtil.log(LocalDateTime.now())));
+//        log.info("Running scheduled task for remove in %s on %s".formatted(ComplaintService.class, TimeUtil.log()));
         complaintService.removeOldContents();
     }
 
@@ -38,7 +36,7 @@ public class CompanyJobs {
      */
     @Scheduled(cron = "0 0 0 * * ?")
     public void removeSpeakWithSerch() {
-        log.info("Running scheduled task for remove in %s on %s".formatted(SpeakWithSerchService.class, TimeUtil.log(LocalDateTime.now())));
+//        log.info("Running scheduled task for remove in %s on %s".formatted(SpeakWithSerchService.class, TimeUtil.log()));
         serchService.removeOldContents();
     }
 }

@@ -47,15 +47,15 @@ public class BusinessSubscriptionImplementation implements BusinessSubscriptionS
         BusinessProfile business = businessProfileRepository.findByUser_EmailAddress(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AccountException("Business not found"));
 
-        return business.getSubscriptions()
-                .stream()
-                .sorted(Comparator.comparing(BusinessSubscription::getCreatedAt))
-                .map(subscription -> {
-                    BusinessAssociateResponse response = associateService.response(subscription.getProfile());
-                    response.setSubscription(subscription.getStatus());
-                    return response;
-                })
-                .toList();
+        if(business.getSubscriptions() != null && !business.getSubscriptions().isEmpty()) {
+            return business.getSubscriptions()
+                    .stream()
+                    .sorted(Comparator.comparing(BusinessSubscription::getCreatedAt))
+                    .map(subscription -> associateService.response(subscription.getProfile()))
+                    .toList();
+        } else {
+            return List.of();
+        }
     }
 
     @Override
@@ -67,7 +67,21 @@ public class BusinessSubscriptionImplementation implements BusinessSubscriptionS
         if(provider.belongsToBusiness(business.getId())) {
             Optional<BusinessSubscription> sub = businessSubscriptionRepository.findByProfile_Id(id);
             if(sub.isPresent()) {
-                return new ApiResponse<>("Provider is in your subscription list");
+                if(sub.get().getStatus() == AccountStatus.SUSPENDED) {
+                    sub.get().setStatus(AccountStatus.ACTIVE);
+                    sub.get().setUpdatedAt(LocalDateTime.now());
+                    businessSubscriptionRepository.save(sub.get());
+                    return new ApiResponse<>(
+                            "%s subscription is activated".formatted(provider.getFullName()),
+                            getSubscriptionList(),
+                            HttpStatus.OK
+                    );
+                }
+                return new ApiResponse<>(
+                        "Provider is in your subscription list",
+                        getSubscriptionList(),
+                        HttpStatus.OK
+                );
             } else {
                 BusinessSubscription subscription = new BusinessSubscription();
                 subscription.setProfile(provider);
@@ -75,7 +89,11 @@ public class BusinessSubscriptionImplementation implements BusinessSubscriptionS
                 subscription.setStatus(AccountStatus.HAS_REPORTED_ISSUES);
                 businessSubscriptionRepository.save(subscription);
 
-                return new ApiResponse<>(getSubscriptionList());
+                return new ApiResponse<>(
+                        "%s added. This account will be activated on your next charge".formatted(provider.getFullName()),
+                        getSubscriptionList(),
+                        HttpStatus.OK
+                );
             }
         } else {
             throw new AccountException("Provider does not belong to your business");
@@ -83,29 +101,27 @@ public class BusinessSubscriptionImplementation implements BusinessSubscriptionS
     }
 
     @Override
-    public ApiResponse<List<BusinessAssociateResponse>> addAll(List<UUID> ids) {
+    public ApiResponse<List<BusinessAssociateResponse>> addAll() {
         BusinessProfile business = businessProfileRepository.findByUser_EmailAddress(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AccountException("Business not found"));
-        List<Profile> providers = profileRepository.findAllById(ids);
-
-        if(!providers.isEmpty()) {
-            providers.forEach(provider -> {
-                if(provider.belongsToBusiness(business.getId())) {
-                    Optional<BusinessSubscription> sub = businessSubscriptionRepository.findByProfile_Id(provider.getId());
-                    if(sub.isEmpty()) {
-                        BusinessSubscription subscription = new BusinessSubscription();
-                        subscription.setProfile(provider);
-                        subscription.setBusiness(business);
-                        subscription.setStatus(AccountStatus.HAS_REPORTED_ISSUES);
-                        businessSubscriptionRepository.save(subscription);
-                    }
-                } else {
-                    throw new AccountException("Provider does not belong to your business");
+        if(business.getAssociates() != null && !business.getAssociates().isEmpty()) {
+            business.getAssociates().forEach(provider -> {
+                Optional<BusinessSubscription> sub = businessSubscriptionRepository.findByProfile_Id(provider.getId());
+                if(sub.isEmpty()) {
+                    BusinessSubscription subscription = new BusinessSubscription();
+                    subscription.setProfile(provider);
+                    subscription.setBusiness(business);
+                    subscription.setStatus(AccountStatus.HAS_REPORTED_ISSUES);
+                    businessSubscriptionRepository.save(subscription);
                 }
             });
-            return new ApiResponse<>(getSubscriptionList());
+            return new ApiResponse<>(
+                    "Providers added to subscription list. They will be activated on your next charge",
+                    getSubscriptionList(),
+                    HttpStatus.OK
+            );
         } else {
-            throw new AccountException("Provider does not belong to your business");
+            throw new AccountException("You do not have any associate provider");
         }
     }
 
@@ -123,7 +139,7 @@ public class BusinessSubscriptionImplementation implements BusinessSubscriptionS
             sub.setUpdatedAt(LocalDateTime.now());
             businessSubscriptionRepository.save(sub);
             return new ApiResponse<>(
-                    "%s subscription is suspended".formatted(provider.getFullName()),
+                    "%s subscription is suspended. If you have an active subscription, this will take effect after it expires.".formatted(provider.getFullName()),
                     getSubscriptionList(),
                     HttpStatus.OK
             );

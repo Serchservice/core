@@ -33,7 +33,7 @@ import java.util.UUID;
  * Relationships:
  * <ul>
  *     <li>One-to-one with {@link User} as the user.</li>
- *     <li>One-to-many with {@link ShopService} as the services.</li>
+ *     <li>One-to-many with {@link ShopSpecialty} as the services.</li>
  * </ul>
  */
 @Getter
@@ -95,7 +95,7 @@ public class Shop extends BaseDateTime {
     private User user;
 
     @OneToMany(mappedBy = "shop", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<ShopService> services;
+    private List<ShopSpecialty> services;
 
     @OneToMany(mappedBy = "shop", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ShopWeekday> weekdays;

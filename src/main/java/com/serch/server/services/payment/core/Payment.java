@@ -8,13 +8,10 @@ import com.serch.server.services.payment.responses.InitializePaymentData;
 import com.serch.server.services.payment.responses.PaymentVerificationResponse;
 import com.serch.server.services.payment.responses.PaymentVerificationData;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.Objects;
 
 /**
  * Service class implementing PaymentService interface, providing functionality
@@ -31,7 +28,6 @@ public class Payment implements PaymentService {
 
     @Value("${application.payment.api-key}")
     private String TEST_SECRET_KEY;
-
     @Value("${application.payment.base-url}")
     private String BASE_API_ENDPOINT;
 
@@ -51,17 +47,14 @@ public class Payment implements PaymentService {
     public InitializePaymentData initialize(InitializePaymentRequest request) {
         InitializePaymentRequest payment = request.validate();
         HttpEntity<InitializePaymentRequest> entity = new HttpEntity<>(payment, headers());
-        String endpoint = BASE_API_ENDPOINT + "/initialize";
+        String endpoint = BASE_API_ENDPOINT + "/transaction/initialize";
         ResponseEntity<InitializePaymentResponse> response = rest.postForEntity(endpoint, entity, InitializePaymentResponse.class);
 
         System.out.println("Initialize Method in Payment - " + response.getBody());
         if(response.getStatusCode().is2xxSuccessful()) {
             InitializePaymentResponse body = response.getBody();
-            if(Objects.requireNonNull(body).getStatus() && ObjectUtils.isEmpty(body.getData())) {
-                return body.getData();
-            } else {
-                throw new PaymentException(Objects.requireNonNull(body).getMessage());
-            }
+            assert body != null : "Couldn't initialize payment";
+            return body.getData();
         }
         throw new PaymentException("Error processing verification. Check your internet and try again.");
     }
@@ -69,7 +62,7 @@ public class Payment implements PaymentService {
     @Override
     public PaymentVerificationData verify(String reference) {
         HttpEntity<Object> entity = new HttpEntity<>(headers());
-        String endpoint = BASE_API_ENDPOINT + "/verify/" + reference;
+        String endpoint = BASE_API_ENDPOINT + "/transaction/verify/" + reference;
         ResponseEntity<PaymentVerificationResponse> response = rest.exchange(endpoint, HttpMethod.GET, entity, PaymentVerificationResponse.class);
 
         System.out.println("Verify Method in Payment - " + response.getBody());
@@ -90,10 +83,11 @@ public class Payment implements PaymentService {
     private static PaymentVerificationData getPaymentVerificationData(ResponseEntity<PaymentVerificationResponse> response) {
         if(response.getStatusCode().is2xxSuccessful()) {
             PaymentVerificationResponse body = response.getBody();
-            if(Objects.requireNonNull(body).getStatus() && ObjectUtils.isEmpty(body.getData()) && body.getData().getStatus().equalsIgnoreCase("success")) {
+            assert body != null : "Couldn't verify payment";
+            if(body.getData().getStatus().equalsIgnoreCase("success")) {
                 return body.getData();
             } else {
-                throw new PaymentException(Objects.requireNonNull(body).getMessage());
+                throw new PaymentException("Couldn't verify your transaction. Try again");
             }
         }
         throw new PaymentException("Error processing verification. Check your internet and try again.");

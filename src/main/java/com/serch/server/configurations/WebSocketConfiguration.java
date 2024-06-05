@@ -1,10 +1,13 @@
 package com.serch.server.configurations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.serch.server.utils.ServerUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.converter.DefaultContentTypeResolver;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
@@ -22,18 +25,22 @@ import java.util.List;
  * @see org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker
  */
 @Configuration
+@RequiredArgsConstructor
 @EnableWebSocketMessageBroker
 public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer {
+    private final WebSocketInterceptor interceptor;
+    private final ObjectMapper objectMapper;
+
     /**
-     * Registers STOMP endpoints for WebSocket communication.
+     * Register STOMP endpoints for WebSocket communication.
      *
      * @param registry The StompEndpointRegistry for registering endpoints.
      */
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws:serch.app")
-                .setAllowedOrigins("*", "http://localhost:3000")
-                .setAllowedOriginPatterns("/**")
+        registry.addEndpoint("/ws:chat", "/ws:serch", "/ws:trip", "/ws", "/ws:call")
+                .setAllowedOrigins(ServerUtil.PRODUCTION.toArray(new String[0]))
+                .setAllowedOriginPatterns(ServerUtil.DEVELOPMENT.toArray(new String[0]))
                 .withSockJS();
     }
 
@@ -48,7 +55,7 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
         DefaultContentTypeResolver resolver = new DefaultContentTypeResolver();
         resolver.setDefaultMimeType(MimeTypeUtils.APPLICATION_JSON);
         MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
-        converter.setObjectMapper(new ObjectMapper());
+        converter.setObjectMapper(objectMapper);
         converter.setContentTypeResolver(resolver);
         messageConverters.add(converter);
         return false;
@@ -61,8 +68,13 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
      */
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/serch");
-        registry.setApplicationDestinationPrefixes("/serch.app");
-        registry.setUserDestinationPrefix("/serch");
+        registry.enableSimpleBroker("/room", "/topic");
+        registry.setApplicationDestinationPrefixes("/app");
+        registry.setUserDestinationPrefix("/user");
+    }
+
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        registration.interceptors(interceptor);
     }
 }

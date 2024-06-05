@@ -25,18 +25,6 @@ public class BusinessAssociateController {
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @GetMapping("/all/subscribed")
-    public ResponseEntity<ApiResponse<List<BusinessAssociateResponse>>> subscribed() {
-        ApiResponse<List<BusinessAssociateResponse>> response = service.subscribed();
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
-    @GetMapping("/all/deactivated")
-    public ResponseEntity<ApiResponse<List<BusinessAssociateResponse>>> deactivated() {
-        ApiResponse<List<BusinessAssociateResponse>> response = service.deactivated();
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
     @GetMapping("/resend")
     public ResponseEntity<ApiResponse<String>> add(@RequestParam UUID id) {
         ApiResponse<String> response = service.resendInvite(id);

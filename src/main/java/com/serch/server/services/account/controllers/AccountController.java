@@ -23,11 +23,11 @@ public class AccountController {
     private final AccountDeleteService deleteService;
     private final AccountReportService reportService;
     private final AdditionalService additionalService;
-    private final AccountService accountService;
+    private final AccountService service;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<AccountResponse>>> accounts() {
-        ApiResponse<List<AccountResponse>> response = accountService.accounts();
+        ApiResponse<List<AccountResponse>> response = service.accounts();
         return new ResponseEntity<>(response, response.getStatus());
     }
 
@@ -46,7 +46,21 @@ public class AccountController {
 
     @GetMapping("/password")
     public ResponseEntity<ApiResponse<String>> lastPasswordUpdateAt() {
-        ApiResponse<String> response = accountService.lastPasswordUpdateAt();
+        ApiResponse<String> response = service.lastPasswordUpdateAt();
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @GetMapping("/dashboard")
+    @PreAuthorize(value = "hasRole('PROVIDER') || hasRole('USER') || hasRole('ASSOCIATE_PROVIDER')")
+    public ResponseEntity<ApiResponse<DashboardResponse>> dashboard() {
+        ApiResponse<DashboardResponse> response = service.dashboard();
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @GetMapping("/dashboard/business")
+    @PreAuthorize(value = "hasRole('BUSINESS')")
+    public ResponseEntity<ApiResponse<List<DashboardResponse>>> dashboardBusiness() {
+        ApiResponse<List<DashboardResponse>> response = service.dashboards();
         return new ResponseEntity<>(response, response.getStatus());
     }
 
@@ -56,17 +70,9 @@ public class AccountController {
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @GetMapping("/dashboard")
-    @PreAuthorize(value = "hasRole('PROVIDER') || hasRole('USER') || hasRole('ASSOCIATE_PROVIDER')")
-    public ResponseEntity<ApiResponse<DashboardResponse>> dashboard() {
-        ApiResponse<DashboardResponse> response = accountService.dashboard();
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
-    @GetMapping("/dashboard/business")
-    @PreAuthorize(value = "hasRole('BUSINESS')")
-    public ResponseEntity<ApiResponse<List<DashboardResponse>>> dashboardBusiness() {
-        ApiResponse<List<DashboardResponse>> response = accountService.dashboards();
+    @PatchMapping("/fcm/update")
+    public ResponseEntity<ApiResponse<String>> updateFcmToken(@RequestParam String token) {
+        ApiResponse<String> response = service.updateFcmToken(token);
         return new ResponseEntity<>(response, response.getStatus());
     }
 }

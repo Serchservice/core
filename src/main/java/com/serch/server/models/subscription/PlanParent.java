@@ -54,7 +54,7 @@ public class PlanParent extends BaseDateTime {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String duration;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String amount;
 
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

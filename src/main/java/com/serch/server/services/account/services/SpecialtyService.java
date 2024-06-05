@@ -2,8 +2,9 @@ package com.serch.server.services.account.services;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.models.account.Profile;
+import com.serch.server.models.account.Specialty;
 import com.serch.server.models.auth.incomplete.Incomplete;
-import com.serch.server.services.company.responses.SpecialtyKeywordResponse;
+import com.serch.server.services.account.responses.SpecialtyResponse;
 
 import java.util.List;
 
@@ -28,13 +29,13 @@ public interface SpecialtyService {
     /**
      * Adds a specialty keyword to a user's profile.
      *
-     * @param id The ID of the specialty keyword to add.
+     * @param specialty The specialty keyword to add.
      * @return An ApiResponse containing information about the added specialty.
      *
      * @see ApiResponse
-     * @see SpecialtyKeywordResponse
+     * @see SpecialtyResponse
      */
-    ApiResponse<SpecialtyKeywordResponse> add(Long id);
+    ApiResponse<SpecialtyResponse> add(String specialty);
 
     /**
      * Deletes a specialty from a user's profile.
@@ -47,12 +48,20 @@ public interface SpecialtyService {
     ApiResponse<String> delete(Long id);
 
     /**
-     * Fetch the list of Specialties
+     * Prepares the specialty response for the given specialty
      *
-     * @return ApiResponse of list of {@link SpecialtyKeywordResponse}
+     * @param specialty The specialty to prepare the response from
      *
-     * @see ApiResponse
-     * @see SpecialtyKeywordResponse
+     * @return {@link SpecialtyResponse}
      */
-    ApiResponse<List<SpecialtyKeywordResponse>> specials();
+    SpecialtyResponse response(Specialty specialty);
+
+    /**
+     * Search for a skill or category
+     *
+     * @param query The skill or category being searched for
+     *
+     * @return {@link ApiResponse} list of {@link SpecialtyResponse}
+     */
+    ApiResponse<List<SpecialtyResponse>> search(String query);
 }

@@ -3,6 +3,7 @@ package com.serch.server.services.schedule.services;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.services.schedule.requests.ScheduleDeclineRequest;
 import com.serch.server.services.schedule.requests.ScheduleRequest;
+import com.serch.server.services.schedule.responses.ScheduleGroupResponse;
 import com.serch.server.services.schedule.responses.ScheduleResponse;
 import com.serch.server.services.schedule.responses.ScheduleTimeResponse;
 
@@ -26,8 +27,9 @@ public interface ScheduleService {
      * @return A response indicating the status of the scheduling operation.
      *
      * @see ScheduleRequest
+     * @see ScheduleResponse
      */
-    ApiResponse<String> request(ScheduleRequest request);
+    ApiResponse<ScheduleResponse> schedule(ScheduleRequest request);
 
     /**
      * Accepts a scheduled appointment identified by its ID.
@@ -84,16 +86,16 @@ public interface ScheduleService {
      *
      * @see ScheduleResponse
      */
-    ApiResponse<List<ScheduleResponse>> today();
+    ApiResponse<List<ScheduleResponse>> active();
 
     /**
      * Retrieves a list of all scheduled appointments for the user.
      *
      * @return A response containing a list of all scheduled appointments for the user.
      *
-     * @see ScheduleResponse
+     * @see ScheduleGroupResponse
      */
-    ApiResponse<List<ScheduleResponse>> schedules();
+    ApiResponse<List<ScheduleGroupResponse>> schedules();
 
     /**
      * Retrieves available time slots for scheduling appointments with a specific provider.

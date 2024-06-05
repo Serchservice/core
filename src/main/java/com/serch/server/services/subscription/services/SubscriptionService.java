@@ -1,11 +1,16 @@
 package com.serch.server.services.subscription.services;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.models.account.Profile;
 import com.serch.server.models.subscription.Subscription;
 import com.serch.server.services.payment.responses.InitializePaymentData;
 import com.serch.server.services.payment.responses.PaymentVerificationData;
 import com.serch.server.services.subscription.requests.InitializeSubscriptionRequest;
-import com.serch.server.services.subscription.responses.SubscriptionResponse;
+import com.serch.server.services.subscription.responses.CurrentSubscriptionResponse;
+import com.serch.server.services.subscription.responses.SubscriptionInvoiceResponse;
+import com.serch.server.services.subscription.services.implementations.SubscriptionImplementation;
+
+import java.util.List;
 
 /**
  * This is the wrapper class for SubscriptionImplementation.
@@ -40,7 +45,7 @@ public interface SubscriptionService {
      * Retrieves details of the current subscription of the logged-in user.
      * @return An API response containing details of the current subscription.
      */
-    ApiResponse<SubscriptionResponse> seeCurrentSubscription();
+    ApiResponse<CurrentSubscriptionResponse> seeCurrentSubscription();
 
     /**
      * Unsubscribes the logged-in user from the current subscription.
@@ -66,4 +71,26 @@ public interface SubscriptionService {
      * @see PaymentVerificationData
      */
     void createAuth(Subscription subscription, PaymentVerificationData data);
+
+    /**
+     * Checks if the logged-in user has subscription active (If the account should subscribe)
+     * before performing any action
+     */
+    void checkSubscription();
+
+    /**
+     * Creates a subscription invoice based on the subscription details.
+     * @param subscription The subscription for which the invoice is created.
+     * @param associates The list of associates tied to the subscription
+     *
+     * @see Subscription
+     */
+    void createInvoice(Subscription subscription, List<Profile> associates);
+
+    /**
+     * This fetches the list of subscription invoices
+     *
+     * @return {@link ApiResponse} list of {@link SubscriptionInvoiceResponse}
+     */
+    ApiResponse<List<SubscriptionInvoiceResponse>> invoices();
 }

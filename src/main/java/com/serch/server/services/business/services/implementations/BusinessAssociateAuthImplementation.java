@@ -42,33 +42,29 @@ public class BusinessAssociateAuthImplementation implements BusinessAssociateAut
 
     @Override
     public ApiResponse<VerifiedInviteResponse> verifyLink(String token) {
-        try {
-            UUID businessId = UUID.fromString(jwtService.getItemFromToken(token, "business"));
-            UUID userId = UUID.fromString(jwtService.getItemFromToken(token, "user"));
-            Role role = Role.valueOf(jwtService.getItemFromToken(token, "role"));
+        UUID businessId = UUID.fromString(jwtService.getItemFromToken(token, "business"));
+        UUID userId = UUID.fromString(jwtService.getItemFromToken(token, "user"));
+        Role role = Role.valueOf(jwtService.getItemFromToken(token, "role"));
 
-            businessProfileRepository.findById(businessId)
-                    .orElseThrow(() -> new AccountException("Business not found"));
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new AccountException("User not found"));
+        businessProfileRepository.findById(businessId)
+                .orElseThrow(() -> new AccountException("Business not found"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AccountException("User not found"));
 
-            Pending pending = pendingRepository.findByUser_Id(userId)
-                    .orElseThrow(() -> new AccountException("Account not found"));
+        Pending pending = pendingRepository.findByUser_Id(userId)
+                .orElseThrow(() -> new AccountException("Account not found"));
 
-            if(jwtService.isTokenIssuedBySerch(token) && role == Role.ASSOCIATE_PROVIDER) {
-                String scope = tokenService.generate(30);
-                pending.setScope(DatabaseUtil.encodeData(scope));
-                pendingRepository.save(pending);
+        if(jwtService.isTokenIssuedBySerch(token) && role == Role.ASSOCIATE_PROVIDER) {
+            String scope = tokenService.generate(30);
+            pending.setScope(DatabaseUtil.encodeData(scope));
+            pendingRepository.save(pending);
 
-                VerifiedInviteResponse response = new VerifiedInviteResponse();
-                response.setScope(scope);
-                response.setName(user.getFirstName());
-                response.setEmailAddress(user.getEmailAddress());
-                return new ApiResponse<>(response);
-            } else {
-                throw new AccountException("Access denied. Incorrect or corrupt link");
-            }
-        } catch (Exception e) {
+            VerifiedInviteResponse response = new VerifiedInviteResponse();
+            response.setScope(scope);
+            response.setName(user.getFirstName());
+            response.setEmailAddress(user.getEmailAddress());
+            return new ApiResponse<>(response);
+        } else {
             throw new AccountException("Access denied. Incorrect or corrupt link");
         }
     }

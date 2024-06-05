@@ -2,7 +2,7 @@ package com.serch.server.services.account.controllers;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.services.account.services.SpecialtyService;
-import com.serch.server.services.company.responses.SpecialtyKeywordResponse;
+import com.serch.server.services.account.responses.SpecialtyResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -13,23 +13,25 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/specialty")
-@PreAuthorize(value = "hasRole('PROVIDER') || hasRole('ASSOCIATE_PROVIDER')")
 public class SpecialtyController {
     private final SpecialtyService service;
 
-    @GetMapping("/keywords")
-    public ResponseEntity<ApiResponse<List<SpecialtyKeywordResponse>>> specials() {
-        ApiResponse<List<SpecialtyKeywordResponse>> response = service.specials();
+    @GetMapping("/search")
+    @PreAuthorize(value = "hasRole('PROVIDER') || hasRole('ASSOCIATE_PROVIDER') || hasRole('USER')")
+    public ResponseEntity<ApiResponse<List<SpecialtyResponse>>> search(@RequestParam String query) {
+        ApiResponse<List<SpecialtyResponse>> response = service.search(query);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @PatchMapping("/add")
-    public ResponseEntity<ApiResponse<SpecialtyKeywordResponse>> add(@RequestParam Long id) {
-        ApiResponse<SpecialtyKeywordResponse> response = service.add(id);
+    @PreAuthorize(value = "hasRole('PROVIDER') || hasRole('ASSOCIATE_PROVIDER')")
+    public ResponseEntity<ApiResponse<SpecialtyResponse>> add(@RequestParam String specialty) {
+        ApiResponse<SpecialtyResponse> response = service.add(specialty);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize(value = "hasRole('PROVIDER') || hasRole('ASSOCIATE_PROVIDER')")
     public ResponseEntity<ApiResponse<String>> delete(@RequestParam Long id) {
         ApiResponse<String> response = service.delete(id);
         return new ResponseEntity<>(response, response.getStatus());

@@ -16,13 +16,6 @@ import java.util.UUID;
  * The Schedule class represents scheduled events between providers and users.
  * It stores information about the status, time, decline reason, closing details, and associated users.
  * <p></p>
- * Annotations:
- * <ul>
- *     <li>{@link Getter}</li>
- *     <li>{@link Setter}</li>
- *     <li>{@link Entity}</li>
- *     <li>{@link Table}</li>
- * </ul>
  * Relationships:
  * <ul>
  *     <li>{@link Profile} - The user associated with the schedule.</li>
@@ -63,9 +56,6 @@ public class Schedule extends BaseDateTime {
 
     @Column(name = "closed_on_time", columnDefinition = "TEXT", nullable = false)
     private Boolean closedOnTime = true;
-
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "schedule")
-    private SchedulePayment payment;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(

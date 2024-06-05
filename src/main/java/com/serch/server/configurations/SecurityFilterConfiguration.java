@@ -96,7 +96,11 @@ public class SecurityFilterConfiguration {
                                 "/issue/lodge",
                                 "/rating/app",
                                 "/country/**",
-                                "/certificate/verify"
+                                "/certificate/verify",
+                                "/verification/status",
+                                "/call/rtc/**",
+                                "/ws:serch/**",
+                                "/ws:trip/**"
                         ).permitAll()
                         .requestMatchers(
                                 // Public endpoints for actuator and server endpoints
@@ -177,12 +181,11 @@ public class SecurityFilterConfiguration {
                                 "/shop/update",
                                 "/subscription/all",
                                 "/subscription/unsubscribe",
-                                "/subscription",
                                 "/wallet/pay/subscription"
                         ).hasAnyRole(PROVIDER.name(), BUSINESS.name())
                         .requestMatchers(
                                 // Endpoints requiring PROVIDER, BUSINESS and ASSOCIATE_PROVIDER roles
-                                "/subscription/check"
+                                "/subscription"
                         ).hasAnyRole(ASSOCIATE_PROVIDER.name(), PROVIDER.name(), BUSINESS.name())
                         .requestMatchers(
                                 // Endpoints requiring PROVIDER, BUSINESS and USER roles

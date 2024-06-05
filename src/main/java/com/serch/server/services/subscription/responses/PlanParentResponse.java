@@ -2,7 +2,6 @@ package com.serch.server.services.subscription.responses;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.serch.server.enums.subscription.PlanType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,7 +13,7 @@ import java.util.ArrayList;
 @JsonIgnoreProperties(allowGetters = true, allowSetters = true, ignoreUnknown = true)
 public class PlanParentResponse {
     private String id;
-    private PlanType type;
+    private String type;
     private String description;
     private String image;
     private String color;

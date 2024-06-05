@@ -1,6 +1,5 @@
 package com.serch.server.utils;
 
-import com.serch.server.enums.auth.Role;
 import com.serch.server.enums.transaction.TransactionType;
 import com.serch.server.models.transaction.Wallet;
 import com.serch.server.repositories.transaction.WalletRepository;
@@ -45,12 +44,6 @@ public class WalletUtil {
                 .ifPresent(wallet -> {
                     if(request.getType() == TransactionType.WITHDRAW) {
                         wallet.setBalance(wallet.getBalance().subtract(request.getAmount()));
-                    } else if(request.getType() == TransactionType.T2F) {
-                        if(wallet.getUser().getRole() == Role.USER) {
-                            updateBalance(request, wallet);
-                        } else {
-                            wallet.setBalance(wallet.getBalance().add(request.getAmount()));
-                        }
                     } else if (request.getType() == TransactionType.TRIP) {
                         wallet.setBalance(wallet.getBalance().add(request.getAmount()));
                     } else if (request.getType() == TransactionType.TRIP_WITHDRAW) {

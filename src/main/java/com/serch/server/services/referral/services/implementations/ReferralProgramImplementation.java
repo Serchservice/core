@@ -57,11 +57,11 @@ public class ReferralProgramImplementation implements ReferralProgramService {
      */
     private String generateReferralLink(Role category) {
         if(category == Role.USER) {
-            return "https://serchservice.com/join_the_serch_user_app?ref=%s".formatted(tokenService.generate(6));
+            return "https://serchservice.com/app/join/user?ref=%s".formatted(tokenService.generate(6));
         } else if(category == Role.BUSINESS) {
-            return "https://serchservice.com/join_the_serch_business_app?ref=%s".formatted(tokenService.generate(6));
+            return "https://serchservice.com/app/join/business?ref=%s".formatted(tokenService.generate(6));
         } else {
-            return "https://serchservice.com/join_the_serch_provider_app?ref=%s".formatted(tokenService.generate(6));
+            return "https://serchservice.com/app/join/provider?ref=%s".formatted(tokenService.generate(6));
         }
     }
 

@@ -28,17 +28,6 @@ public interface RatingService {
     ApiResponse<String> rate(RateRequest request);
 
     /**
-     * Shares a rating for a trip, splitting the rating into two separate ones.
-     *
-     * @param request The rating request containing necessary information.
-     * @return A response indicating the status of the sharing operation.
-     *
-     * @see RateRequest
-     * @see ApiResponse
-     */
-    ApiResponse<String> share(RateRequest request);
-
-    /**
      * Rates the application based on the provided rating and account.
      * Updates the existing rating if one exists for the account.
      *

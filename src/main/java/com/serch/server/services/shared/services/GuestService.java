@@ -1,11 +1,10 @@
 package com.serch.server.services.shared.services;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.models.shared.Guest;
 import com.serch.server.models.shared.SharedLogin;
 import com.serch.server.services.auth.responses.AuthResponse;
 import com.serch.server.services.shared.requests.GuestToUserRequest;
-import com.serch.server.services.shared.responses.GuestActivityResponse;
+import com.serch.server.services.shared.requests.SwitchRequest;
 import com.serch.server.services.shared.responses.GuestResponse;
 
 /**
@@ -15,15 +14,6 @@ import com.serch.server.services.shared.responses.GuestResponse;
  */
 public interface GuestService {
     /**
-     * Retrieves guest activity information.
-     *
-     * @param guestId The ID of the guest.
-     * @param linkId  The ID of the link associated with the guest.
-     * @return A response containing the guest activity information.
-     */
-    ApiResponse<GuestActivityResponse> activity(String guestId, String linkId);
-
-    /**
      * Converts a guest to a user.
      *
      * @param request The request containing the information to convert a guest to a user.
@@ -32,6 +22,13 @@ public interface GuestService {
      * @see GuestToUserRequest
      */
     ApiResponse<AuthResponse> becomeAUser(GuestToUserRequest request);
+
+    /**
+     * Refresh guest data intermittently
+     *
+     * @param request The {@link SwitchRequest} data containing core values needed to update guest data
+     */
+    void refresh(SwitchRequest request);
 
     /**
      * Prepares the guest data
@@ -51,14 +48,4 @@ public interface GuestService {
      * @return {@link ApiResponse} of Success or failure
      */
     ApiResponse<String> updateFcmToken(String token, String guest);
-
-    /**
-     * This updates and checks if a shared link can be used again.
-     * If yes, it will change the status
-     * of the shared link accordingly
-     *
-     * @param login The SharedLogin details
-     */
-    void checkLink(SharedLogin login);
-    // TODO: Add connection method here with WebSocket
 }

@@ -23,8 +23,12 @@ public class SessionController {
     }
 
     @GetMapping("/validate")
-    public ResponseEntity<ApiResponse<String>> validateSession(@RequestParam String token) {
-        ApiResponse<String> response = sessionService.validateSession(token);
+    public ResponseEntity<ApiResponse<String>> validateSession(
+            @RequestParam String token,
+            @RequestParam String country,
+            @RequestParam String state
+    ) {
+        ApiResponse<String> response = sessionService.validateSession(token, state, country);
         return new ResponseEntity<>(response, response.getStatus());
     }
 }

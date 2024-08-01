@@ -17,10 +17,11 @@ import com.serch.server.services.auth.requests.RequestEmailToken;
 import com.serch.server.services.auth.requests.RequestLogin;
 import com.serch.server.services.auth.requests.RequestSession;
 import com.serch.server.services.auth.responses.AuthResponse;
+import com.serch.server.services.auth.services.AccountStatusTrackerService;
 import com.serch.server.services.auth.services.AuthService;
 import com.serch.server.services.auth.services.SessionService;
 import com.serch.server.services.auth.services.TokenService;
-import com.serch.server.services.email.services.EmailTemplateService;
+import com.serch.server.core.email.services.EmailTemplateService;
 import com.serch.server.services.referral.services.ReferralProgramService;
 import com.serch.server.utils.TimeUtil;
 import jakarta.validation.constraints.NotNull;
@@ -48,7 +49,6 @@ import org.springframework.stereotype.Service;
  * @see TokenService
  * @see AuthenticationManager
  * @see EmailTemplateService
- * @see SpecialtyKeywordService
  * @see ReferralProgramService
  * @see AccountDeleteRepository
  * @see AccountSettingService
@@ -60,6 +60,7 @@ public class AuthImplementation implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final SessionService sessionService;
+    private final AccountStatusTrackerService trackerService;
     private final AccountSettingService accountSettingService;
     private final ReferralProgramService referralProgramService;
     private final TokenService tokenService;
@@ -196,9 +197,20 @@ public class AuthImplementation implements AuthService {
 
     @Override
     public ApiResponse<AuthResponse> authenticate(RequestLogin request, User user) {
-        authenticate(request);
+        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
+                request.getEmailAddress(),
+                request.getPassword()
+        );
+        Authentication authentication = authenticationManager.authenticate(token);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        return getAuthResponse(request, user);
+    }
 
+    @Override
+    public ApiResponse<AuthResponse> getAuthResponse(RequestLogin request, User user) {
         user.setLastSignedIn(LocalDateTime.now());
+        user.setCountry(request.getCountry());
+        user.setState(request.getState());
         user.setPasswordRecoveryToken(null);
         user.setPasswordRecoveryExpiresAt(null);
         user.setPasswordRecoveryConfirmedAt(null);
@@ -212,17 +224,16 @@ public class AuthImplementation implements AuthService {
         return sessionService.generateSession(requestSession);
     }
 
-    private void authenticate(RequestLogin request) {
-        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-                request.getEmailAddress(),
-                request.getPassword()
-        );
-        Authentication authentication = authenticationManager.authenticate(token);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-    }
-
     @Override
     public User getUserFromIncomplete(Incomplete incomplete, Role role) {
+        User saved = createNewUser(incomplete, role);
+        trackerService.create(saved);
+        referralProgramService.create(saved);
+        accountSettingService.create(saved);
+        return saved;
+    }
+
+    private User createNewUser(Incomplete incomplete, Role role) {
         User user = new User();
         user.setEmailAddress(incomplete.getEmailAddress());
         user.setPassword(incomplete.getProfile().getPassword());
@@ -230,9 +241,6 @@ public class AuthImplementation implements AuthService {
         user.setRole(role);
         user.setFirstName(incomplete.getProfile().getFirstName());
         user.setLastName(incomplete.getProfile().getLastName());
-        User saved = userRepository.save(user);
-        referralProgramService.create(saved);
-        accountSettingService.create(saved);
-        return saved;
+        return userRepository.save(user);
     }
 }

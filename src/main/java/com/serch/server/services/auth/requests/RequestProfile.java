@@ -42,5 +42,7 @@ public class RequestProfile {
     private String emailAddress;
 
     private String referral;
+    private String state;
+    private String country;
     private RequestDevice device;
 }

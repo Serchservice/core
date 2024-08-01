@@ -32,8 +32,6 @@ public interface ScheduleRepository extends JpaRepository<Schedule, String> {
     List<Schedule> findByStatusAndCreatedAtBefore(@NonNull ScheduleStatus status, @NonNull LocalDateTime createdAt);
     @Query("select s from Schedule s where s.user.id = ?1 or s.provider.id = ?1 or s.user.business.id = ?1 or s.provider.business.id = ?1")
     List<Schedule> findByUser_Id(@NonNull UUID id);
-    @Query("select (count(s) > 0) from Schedule s where (s.user.id = ?1 and s.provider.id = ?2) and (s.status = 'PENDING' or s.status = 'ACCEPTED')")
-    boolean existByUserAndProvider(@NonNull UUID id, @NonNull UUID id1);
     @Query("select s from Schedule s where (s.user.id = ?1 and s.provider.id = ?2) and (s.status = 'PENDING' or s.status = 'ACCEPTED')")
     Optional<Schedule> findByUserAndProvider(@NonNull UUID id, @NonNull UUID id1);
 }

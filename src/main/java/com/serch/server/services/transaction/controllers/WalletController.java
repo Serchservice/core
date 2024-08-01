@@ -1,7 +1,7 @@
 package com.serch.server.services.transaction.controllers;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.services.payment.responses.InitializePaymentData;
+import com.serch.server.core.payment.responses.InitializePaymentData;
 import com.serch.server.services.transaction.requests.FundWalletRequest;
 import com.serch.server.services.transaction.requests.WalletUpdateRequest;
 import com.serch.server.services.transaction.requests.WithdrawRequest;
@@ -10,6 +10,7 @@ import com.serch.server.services.transaction.responses.WalletResponse;
 import com.serch.server.services.transaction.services.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/wallet")
+@PreAuthorize("hasRole('BUSINESS') || hasRole('PROVIDER') || hasRole('USER')")
 public class WalletController {
     private final WalletService service;
 

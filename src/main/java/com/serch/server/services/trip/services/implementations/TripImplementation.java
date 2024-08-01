@@ -1,539 +1,455 @@
 package com.serch.server.services.trip.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.enums.account.SerchCategory;
-import com.serch.server.enums.transaction.TransactionType;
+import com.serch.server.core.notification.core.NotificationService;
+import com.serch.server.core.payment.responses.InitializePaymentData;
+import com.serch.server.core.storage.core.StorageService;
+import com.serch.server.enums.account.ProviderStatus;
 import com.serch.server.exceptions.others.TripException;
 import com.serch.server.mappers.TripMapper;
+import com.serch.server.models.account.PhoneInformation;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.User;
-import com.serch.server.models.shared.Guest;
-import com.serch.server.models.transaction.Transaction;
-import com.serch.server.models.transaction.Wallet;
-import com.serch.server.models.trip.Trip;
-import com.serch.server.models.trip.TripAuthentication;
-import com.serch.server.models.trip.TripTime;
+import com.serch.server.models.trip.*;
+import com.serch.server.repositories.account.PhoneInformationRepository;
 import com.serch.server.repositories.account.ProfileRepository;
-import com.serch.server.repositories.shared.GuestRepository;
-import com.serch.server.repositories.transaction.TransactionRepository;
-import com.serch.server.repositories.transaction.WalletRepository;
-import com.serch.server.repositories.trip.TripAuthenticationRepository;
-import com.serch.server.repositories.trip.TripRepository;
-import com.serch.server.repositories.trip.TripTimeRepository;
-import com.serch.server.services.auth.services.TokenService;
-import com.serch.server.services.transaction.requests.BalanceUpdateRequest;
+import com.serch.server.repositories.trip.*;
+import com.serch.server.services.shared.services.SharedService;
 import com.serch.server.services.trip.requests.*;
-import com.serch.server.services.trip.responses.TripHistoryResponse;
-import com.serch.server.services.trip.services.ActiveService;
-import com.serch.server.services.trip.services.TripService;
-import com.serch.server.utils.MoneyUtil;
-import com.serch.server.utils.TimeUtil;
+import com.serch.server.services.trip.responses.ActiveResponse;
+import com.serch.server.services.trip.responses.TripResponse;
+import com.serch.server.services.trip.services.*;
+import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.UserUtil;
-import com.serch.server.utils.WalletUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.Objects;
 
-import static com.serch.server.enums.account.SerchCategory.GUEST;
-import static com.serch.server.enums.auth.Role.*;
-import static com.serch.server.enums.transaction.TransactionStatus.SUCCESSFUL;
+import static com.serch.server.enums.auth.Role.USER;
 import static com.serch.server.enums.trip.TripConnectionStatus.*;
+import static com.serch.server.enums.trip.TripMode.*;
+import static com.serch.server.enums.account.ProviderStatus.*;
 import static com.serch.server.enums.trip.TripStatus.*;
+import static com.serch.server.enums.trip.TripType.*;
 
-/**
- * This is the implementation of the wrapper class {@link TripService}.
- * It contains the logic and implementation of all the methods in its service layer.
- *
- * @see TokenService
- * @see ActiveService
- * @see UserUtil
- * @see PasswordEncoder
- * @see ProfileRepository
- * @see TripRepository
- * @see TripTimeRepository
- * @see TripAuthenticationRepository
- * @see GuestRepository
- * @see WalletRepository
- * @see TransactionRepository
- */
 @Service
 @RequiredArgsConstructor
 public class TripImplementation implements TripService {
-    private final TokenService tokenService;
+    private final StorageService storageService;
+    private final SharedService sharedService;
+    private final NotificationService notificationService;
+    private final ActiveSearchService activeSearchService;
+    private final TripTimelineService timelineService;
+    private final TripAuthenticationService authenticationService;
+    private final TripPayService payService;
     private final ActiveService activeService;
+    private final TripHistoryService historyService;
     private final UserUtil userUtil;
-    private final WalletUtil walletUtil;
-    private final PasswordEncoder passwordEncoder;
     private final ProfileRepository profileRepository;
     private final TripRepository tripRepository;
-    private final TripTimeRepository tripTimeRepository;
     private final TripAuthenticationRepository tripAuthenticationRepository;
-    private final GuestRepository guestRepository;
-    private final WalletRepository walletRepository;
-    private final TransactionRepository transactionRepository;
+    private final TripShareRepository tripShareRepository;
+    private final PhoneInformationRepository phoneInformationRepository;
+    private final ActiveRepository activeRepository;
 
     @Override
-    public ApiResponse<String> request(TripRequest request) {
-        Profile profile = profileRepository.findById(userUtil.getUser().getId())
-                .orElseThrow(() -> new TripException("Profile not found"));
-        Profile provider = profileRepository.findById(request.getProvider())
-                .orElseThrow(() -> new TripException("Provider not found"));
+    public ApiResponse<TripResponse> request(TripInviteRequest request) {
+        if(request.getAmount() != null) {
+            Profile profile = profileRepository.findById(request.getProvider())
+                    .orElseThrow(() -> new TripException("Provider not found"));
 
-        if(profile.getUser().getRole() != USER) {
-            throw new TripException("Access denied. Cannot request trip");
-        } else {
-            if(tripRepository.existsByStatusAndAccount(ON_TRIP, ACCEPTED, String.valueOf(profile.getId()))) {
-                throw new TripException("You have an active trip");
-            } else if(tripRepository.existsByStatusAndProvider(ON_TRIP, ACCEPTED, provider.getId())) {
-                throw new TripException("%s is currently on a trip".formatted(provider.getFullName()));
+            if(profile.getActive() == null) {
+                throw new TripException("We cannot place this request because the provider is not ready to accept trips");
+            } else if(tripRepository.existsByProviderIdAndTimelineStatus(profile.getId())) {
+                throw new TripException("%s is on a trip at the moment".formatted(profile.getFullName()));
             } else {
-                Trip trip = new Trip();
-                trip.setAccount(String.valueOf(profile.getId()));
-                trip.setProvider(provider);
-                trip.setAddress(TripMapper.INSTANCE.address(request.getAddress()));
-                tripRepository.save(trip);
-                return new ApiResponse<>("Success", HttpStatus.CREATED);
+                Trip trip = create(request, profile);
+                sharedService.create(trip.getLinkId(), trip.getAccount(), trip);
+
+                return getRequestResponse(trip, userUtil.getUser());
             }
+        } else {
+            throw new TripException("There must be an amount in order to create this trip");
         }
     }
 
+    private Trip create(TripInviteRequest request, Profile profile) {
+        Trip trip = TripMapper.INSTANCE.trip(request);
+        trip.setAccount(String.valueOf(userUtil.getUser().getId()));
+        trip.setMode(FROM_USER);
+        trip.setProvider(profile);
+        trip.setCategory(profile.getCategory());
+        trip.setType(SPEAK_TO);
+        trip.setStatus(WAITING);
+        trip.setAmount(BigDecimal.valueOf(request.getAmount()));
+
+        if(!HelperUtil.isUploadEmpty(request.getAudio())) {
+            String url = storageService.upload(request.getAudio(), "trip");
+            trip.setAudio(url);
+        }
+        return tripRepository.save(trip);
+    }
+
+    private ApiResponse<TripResponse> getRequestResponse(Trip trip, User user) {
+        timelineService.create(trip, null, REQUESTED);
+        notificationService.send(
+                String.valueOf(trip.getProvider().getId()),
+                String.format("%s is requesting for your %s skill", user.getFullName(), trip.getProvider().getCategory().getType()),
+                "New trip request",
+                String.valueOf(user.getId()), trip.getId(), false
+        );
+
+        return new ApiResponse<>(
+                "Request created, waiting for response",
+                historyService.response(trip.getId(), String.valueOf(user.getId()), null, false),
+                HttpStatus.OK
+        );
+    }
+
     @Override
-    public ApiResponse<String> accept(TripAcceptRequest request) {
-        Profile profile = profileRepository.findById(userUtil.getUser().getId())
-                .orElseThrow(() -> new TripException("Profile not found"));
-        Trip trip = tripRepository.findByIdAndProviderId(request.getTrip(), profile.getId())
+    public ApiResponse<TripResponse> rebook(String id, Boolean withInvited) {
+        Trip trip = buildTripFromExisting(id, withInvited);
+
+        return getRequestResponse(trip, userUtil.getUser());
+    }
+
+    private Trip buildTripFromExisting(String id, Boolean withInvited) {
+        Trip existing = tripRepository.findById(id).orElseThrow(() -> new TripException("No trip found"));
+
+        Trip newTrip = TripMapper.INSTANCE.trip(existing);
+        if(withInvited != null && withInvited) {
+            if(existing.getInvited() != null && existing.getInvited().getProvider() != null) {
+                newTrip.setProvider(existing.getInvited().getProvider());
+            } else {
+                throw new TripException("This trip was not shared to a Serch service provider");
+            }
+        } else {
+            newTrip.setProvider(existing.getProvider());
+        }
+        newTrip.setStatus(WAITING);
+        return tripRepository.save(newTrip);
+    }
+
+    @Override
+    public ApiResponse<TripResponse> request(TripInviteRequest request, Profile account, Profile profile) {
+        if(request.getAmount() != null) {
+            Trip trip = create(request, account.getId().toString(), profile);
+            payService.pay(trip, profile.getId());
+
+            return getRequestResponse(trip, account.getUser());
+        } else {
+            throw new TripException("There must be an amount in order to create this trip");
+        }
+    }
+
+    private Trip create(TripInviteRequest request, String account, Profile profile) {
+        Trip trip = TripMapper.INSTANCE.trip(request);
+        trip.setAccount(account);
+        trip.setMode(FROM_USER);
+        trip.setProvider(profile);
+        trip.setType(REQUEST);
+        trip.setStatus(ACTIVE);
+        trip.setAmount(BigDecimal.valueOf(request.getAmount()));
+        return tripRepository.save(trip);
+    }
+
+    @Override
+    public ApiResponse<TripResponse> accept(TripAcceptRequest request) {
+        Trip trip = tripRepository.findByIdAndProviderId(request.getTrip(), userUtil.getUser().getId())
                 .orElseThrow(() -> new TripException("Trip not found"));
-
-        if(profile.getUser().getRole() == ASSOCIATE_PROVIDER || profile.getUser().getRole() == PROVIDER) {
-            if(tripRepository.existsByStatusAndProvider(ON_TRIP, ACCEPTED, profile.getId())) {
-                closeTripRequest(trip, profile);
-                throw new TripException("You have an active trip");
-            } else if(tripRepository.existsByStatusAndAccount(ON_TRIP, ACCEPTED, trip.getAccount())) {
-                closeTripRequest(trip, profile);
-                throw new TripException("User/Guest has an active trip at the moment");
-            } else {
-                try {
-                    Optional<Profile> user = profileRepository.findById(UUID.fromString(trip.getAccount()));
-                    if(user.isPresent()) {
-                        return acceptTrip(request, trip, profile);
-                    }
-                } catch (Exception e) {
-                    Optional<Guest> guest = guestRepository.findById(trip.getAccount());
-                    if(guest.isPresent()) {
-                        if(trip.getShared() != null) {
-//                            if(trip.getTransaction() != null && trip.getTransaction().getStatus() == SUCCESSFUL) {
-//                                return acceptTrip(request, trip, profile);
-//                            } else {
-//                                return payAndAcceptTrip(request, trip, profile);
-//                            }
-                        } else {
-                            throw new TripException("Cannot accept trip till you pay the required commission");
-                        }
-                    }
-                    return payAndAcceptTrip(request, trip, profile);
-                }
-            }
-        } else {
-            throw new TripException("Access denied. Cannot accept trips");
-        }
-        throw new TripException("Couldn't find the user or guest that made trip request");
-    }
-
-    private ApiResponse<String> payAndAcceptTrip(TripAcceptRequest request, Trip trip, Profile profile) {
-        BalanceUpdateRequest update = BalanceUpdateRequest.builder()
-                .type(TransactionType.TRIP_WITHDRAW)
-                .amount(trip.getShared().getAmount().subtract(trip.getShared().getProvider()))
-                .user(profile.getId())
-                .build();
-
-        UUID userId = trip.getShared().getSharedLogin().getSharedLink().getUser().getId();
-        Wallet sender = walletRepository.findByUser_Id(profile.getId())
-                .orElseThrow(() -> new TripException("Wallet not found"));
-        String account = walletRepository.findByUser_Id(userId)
-                .map(Wallet::getId)
-                .orElseThrow(() -> new TripException("Wallet not found"));
-
-        if(walletUtil.isBalanceSufficient(update)) {
-            walletUtil.updateBalance(update);
-
-            update.setUser(userId);
-            update.setType(TransactionType.TRIP);
-            update.setAmount(trip.getShared().getUser());
-            walletUtil.updateBalance(update);
-
-            trip.getShared().setUpdatedAt(LocalDateTime.now());
-//            sharedPricingRepository.save(trip.getShared());
-
-            Transaction transaction = new Transaction();
-            transaction.setReference("S-SHARED-TRIP-%s".formatted(UUID.randomUUID().toString().substring(0, 8)));
-//            transaction.setTrip(trip);
-            transaction.setVerified(true);
-            transaction.setStatus(SUCCESSFUL);
-//            transaction.setSender(sender);
-            transaction.setAccount(account);
-            transaction.setType(TransactionType.TRIP);
-            transactionRepository.save(transaction);
-            return acceptTrip(request, trip, profile);
-        } else {
-            throw new TripException("Insufficient balance to pay for trip");
-        }
-    }
-
-    private void closeTripRequest(Trip trip, Profile profile) {
-        if(trip.getInvitedProvider().isSameAs(profile.getId())) {
-            trip.setInviteStatus(CLOSED);
-            /// TODO:: Send notification to account (user/guest and provider)
-        } else {
-            trip.setStatus(CLOSED);
-            trip.setCancelReason("%s had an active trip when this trip request was received".formatted(profile.getFullName()));
-            /// TODO:: Send notification to account (user/guest)
-        }
-        trip.setUpdatedAt(LocalDateTime.now());
+        trip.setStatus(ACTIVE);
         tripRepository.save(trip);
+
+        InitializePaymentData data = payService.pay(trip, userUtil.getUser().getId());
+
+        authenticationService.create(trip, null);
+        activeService.toggle(trip.getProvider().getUser(), BUSY, null);
+
+        updateOthers(trip);
+        return new ApiResponse<>(historyService.response(trip.getId(), String.valueOf(userUtil.getUser().getId()), data, true));
     }
 
-    private ApiResponse<String> acceptTrip(TripAcceptRequest request, Trip trip, Profile profile) {
-        String otp = tokenService.generateCode(8);
-        if(trip.getInvitedProvider().isSameAs(profile.getId())) {
-            acceptInvitedTrip(trip, otp, profile.getUser(), request.getAddress());
-        } else {
-            acceptTrip(trip, otp, profile.getUser(), request.getAddress());
+    @Override
+    public void updateOthers(Trip trip) {
+        if(trip.getProvider() != null) {
+            historyService.response(trip.getId(), String.valueOf(trip.getProvider().getId()), null, true);
         }
-        trip.setUpdatedAt(LocalDateTime.now());
+        if(trip.getInvited() != null && trip.getInvited().getProvider() != null) {
+            historyService.response(trip.getId(), String.valueOf(trip.getInvited().getProvider().getId()), null, true);
+        }
+        historyService.response(trip.getId(), trip.getAccount(), null, true);
+    }
+
+    @Override
+    public ApiResponse<List<TripResponse>> end(TripCancelRequest request) {
+        Trip trip;
+        if(request.getGuest() != null && !request.getGuest().isEmpty()) {
+            trip = tripRepository.findByIdAndAccount(request.getTrip(), request.getGuest())
+                    .orElseThrow(() -> new TripException("No trip found"));
+        } else if(userUtil.getUser().getRole() == USER) {
+            trip = tripRepository.findByIdAndAccount(request.getTrip(), String.valueOf(userUtil.getUser().getId()))
+                    .orElseThrow(() -> new TripException("No trip found"));
+        } else {
+            trip = tripRepository.findByIdAndProviderId(request.getTrip(), userUtil.getUser().getId())
+                    .orElseThrow(() -> new TripException("No trip found"));
+        }
+
+        trip.setIsActive(false);
+        trip.setStatus(CLOSED);
         tripRepository.save(trip);
-        return new ApiResponse<>("Trip accepted", otp, HttpStatus.OK);
-    }
 
-    private void acceptInvitedTrip(Trip trip, String otp, User user, OnlineRequest request) {
-        trip.setInviteStatus(ACCEPTED);
+        timelineService.create(trip, null, COMPLETED);
+        activeService.toggle(trip.getProvider().getUser(), ONLINE, TripMapper.INSTANCE.request(trip));
+        payService.processCredit(trip);
 
-        trip.getTime().setInviteAcceptedAt(LocalDateTime.now());
-        tripTimeRepository.save(trip.getTime());
-
-        trip.getAuthentication().setCode(passwordEncoder.encode(otp));
-        tripAuthenticationRepository.save(trip.getAuthentication());
-
-        activeService.toggle(user, REQUESTSHARING, request);
-        /// TODO:: Send notification to account (user/guest and provider)
-    }
-
-    private void acceptTrip(Trip trip, String otp, User user, OnlineRequest request) {
-        trip.setStatus(ACCEPTED);
-
-        TripTime time = new TripTime();
-        time.setAcceptedAt(LocalDateTime.now());
-        time.setTrip(trip);
-        tripTimeRepository.save(time);
-
-        TripAuthentication auth = new TripAuthentication();
-        auth.setCode(passwordEncoder.encode(otp));
-        auth.setTrip(trip);
-        tripAuthenticationRepository.save(auth);
-
-        activeService.toggle(user, BUSY, request);
-        /// TODO:: Send notification to account (user/guest)
-    }
-
-    @Override
-    public ApiResponse<String> decline(TripDeclineRequest request) {
-        Profile profile = profileRepository.findById(userUtil.getUser().getId())
-                .orElseThrow(() -> new TripException("Profile not found"));
-        Trip trip = tripRepository.findByIdAndProviderId(request.getTrip(), profile.getId())
-                .orElseThrow(() -> new TripException("Trip not found"));
-
-        if(profile.getUser().getRole() == ASSOCIATE_PROVIDER || profile.getUser().getRole() == PROVIDER) {
-            if(trip.getInvitedProvider().isSameAs(profile.getId())) {
-                trip.setInviteStatus(DECLINED);
-                trip.setInviteCancelReason(request.getReason());
-
-                /// TODO:: Send notification to account (user/guest and provider)
-            } else {
-                trip.setStatus(DECLINED);
-                trip.setCancelReason(request.getReason());
-
-                /// TODO:: Send notification to account (user/guest)
-            }
-            trip.setUpdatedAt(LocalDateTime.now());
-            tripRepository.save(trip);
-            return new ApiResponse<>("Trip declined", HttpStatus.OK);
-        } else {
-            throw new TripException("Access denied. Cannot decline trips");
+        if(trip.getInvited() != null && trip.getInvited().getProvider() != null) {
+            timelineService.create(null, trip.getInvited(), COMPLETED);
+            activeService.toggle(trip.getInvited().getProvider().getUser(), ONLINE, TripMapper.INSTANCE.request(trip));
         }
+
+        return historyService.history(request.getGuest(), request.getLinkId(), true, trip.getId());
     }
 
     @Override
-    public ApiResponse<String> cancel(TripCancelRequest request) {
-        Profile profile = profileRepository.findById(userUtil.getUser().getId())
-                .orElseThrow(() -> new TripException("Profile not found"));
-        Trip trip = tripRepository.findByIdAndAccount(request.getTrip(), String.valueOf(profile.getId()))
-                .orElseThrow(() -> new TripException("Trip not found"));
-
-        return getCancelResponse(trip, request.getReason());
-    }
-
-    @Override
-    public ApiResponse<String> getCancelResponse(Trip trip, String reason) {
-        if(trip.getStatus() == ON_TRIP || trip.getStatus() == ACCEPTED) {
-            throw new TripException("Cannot cancel an active trip");
+    public ApiResponse<List<TripResponse>> cancel(TripCancelRequest request) {
+        Trip trip;
+        if(request.getGuest() != null && !request.getGuest().isEmpty()) {
+            trip = tripRepository.findByIdAndAccount(request.getTrip(), request.getGuest())
+                    .orElseThrow(() -> new TripException("Trip not found"));
+        } else if(userUtil.getUser().getRole() == USER) {
+            trip = tripRepository.findByIdAndAccount(request.getTrip(), String.valueOf(userUtil.getUser().getId()))
+                    .orElseThrow(() -> new TripException("Trip not found"));
         } else {
-            trip.setStatus(CANCELLED);
-            trip.setCancelReason(reason);
-            trip.setUpdatedAt(LocalDateTime.now());
-            tripRepository.save(trip);
-            return new ApiResponse<>("Trip cancelled", HttpStatus.OK);
+            trip = tripRepository.findByIdAndProviderId(request.getTrip(), userUtil.getUser().getId())
+                    .orElseThrow(() -> new TripException("Trip not found"));
         }
-    }
 
-    @Override
-    public ApiResponse<String> permitSharing(String tripId) {
-        Profile profile = profileRepository.findById(userUtil.getUser().getId())
-                .orElseThrow(() -> new TripException("Profile not found"));
-        Trip trip = tripRepository.findByIdAndAccount(tripId, String.valueOf(profile.getId()))
-                .orElseThrow(() -> new TripException("Trip not found"));
+        trip.setCancelReason(request.getReason());
+        trip.setIsActive(false);
+        trip.setStatus(UNFULFILLED);
+        tripRepository.save(trip);
 
-        if(trip.getCanShare()) {
-            return new ApiResponse<>("Permission already granted", HttpStatus.OK);
-        } else if(trip.getStatus() != ACCEPTED && trip.getStatus() != ON_TRIP) {
-            throw new TripException("Cannot grant sharing permission till trip is accepted");
+        timelineService.create(trip, null, CANCELLED);
+        activeService.toggle(trip.getProvider().getUser(), ONLINE, TripMapper.INSTANCE.request(trip));
+
+        if(request.getGuest() != null && !request.getGuest().isEmpty()) {
+            notificationService.send(
+                    String.valueOf(trip.getProvider().getId()),
+                    "We are sorry to notify you that this trip has been cancelled.",
+                    "Trip share cancelled",
+                    request.getGuest(), null, false
+            );
+        } else if(userUtil.getUser().getRole() == USER) {
+            notificationService.send(
+                    String.valueOf(trip.getProvider().getId()),
+                    "We are sorry to notify you that this trip has been cancelled.",
+                    "Trip share cancelled",
+                    String.valueOf(userUtil.getUser().getId()), null, false
+            );
         } else {
-            trip.setCanShare(true);
-            trip.setUpdatedAt(LocalDateTime.now());
-            tripRepository.save(trip);
-            return new ApiResponse<>("Sharing permission granted", HttpStatus.OK);
-        }
-    }
-
-    @Override
-    public ApiResponse<String> invite(TripInviteRequest request) {
-        Profile profile = profileRepository.findById(userUtil.getUser().getId())
-                .orElseThrow(() -> new TripException("Profile not found"));
-        Profile provider = profileRepository.findById(request.getProvider())
-                .orElseThrow(() -> new TripException("Provider not found"));
-        Trip trip = tripRepository.findByIdAndProviderId(request.getTrip(), profile.getId())
-                .orElseThrow(() -> new TripException("Trip not found"));
-
-        if(!trip.getCanShare()) {
-            throw new TripException("Cannot invite provider without user's permission");
-        } else if(trip.getInviteStatus() == ACCEPTED || trip.getInviteStatus() == ON_TRIP) {
-            throw new TripException("Cannot invite another provider when another on is active");
-        } else {
-            trip.setInvitedProvider(provider);
-            trip.setUpdatedAt(LocalDateTime.now());
-            tripRepository.save(trip);
-
-            trip.getTime().setInvitedAt(LocalDateTime.now());
-            tripTimeRepository.save(trip.getTime());
-
-            /// TODO:: Send notification to account (user/guest and invited provider)
-            return new ApiResponse<>(
-                    "%s has been invited".formatted(provider.getFullName()),
-                    HttpStatus.OK
+            notificationService.send(
+                    trip.getAccount(),
+                    "We are sorry to notify you that this trip has been cancelled.",
+                    "Trip share cancelled",
+                    String.valueOf(userUtil.getUser().getId()), null, false
             );
         }
+
+        return historyService.history(request.getGuest(), request.getLinkId(), true, trip.getId());
     }
 
     @Override
-    public ApiResponse<String> cancelInvite(TripCancelRequest request) {
-        Profile profile = profileRepository.findById(userUtil.getUser().getId())
-                .orElseThrow(() -> new TripException("Profile not found"));
-        Trip trip = tripRepository.findByIdAndAccount(request.getTrip(), String.valueOf(profile.getId()))
+    public ApiResponse<TripResponse> payServiceFee(String id) {
+        Trip trip = tripRepository.findByIdAndProviderId(id, userUtil.getUser().getId())
                 .orElseThrow(() -> new TripException("Trip not found"));
 
-        if(trip.getInviteStatus() == ON_TRIP || trip.getInviteStatus() == ACCEPTED) {
-            throw new TripException("Cannot cancel an active invited trip");
-        } else {
-            trip.setInviteStatus(CANCELLED);
-            trip.setInviteCancelReason(request.getReason());
+        if(!trip.getIsServiceFeePaid()) {
+            Boolean isPaid = payService.processPayment(trip);
+            if(isPaid) {
+                timelineService.create(trip, null, CONNECTED);
+            } else {
+                timelineService.create(trip, null, REQUESTED);
+            }
+
+            trip.setIsServiceFeePaid(isPaid);
             trip.setUpdatedAt(LocalDateTime.now());
             tripRepository.save(trip);
-            return new ApiResponse<>("Invited Trip cancelled", HttpStatus.OK);
+
+            if(isPaid) {
+                updateOthers(trip);
+                return new ApiResponse<>(historyService.response(trip.getId(), String.valueOf(userUtil.getUser().getId()), null, true));
+            } else {
+                throw new TripException("Unable to process payment. Check wallet balance");
+            }
         }
+        throw new TripException("You've already paid for the necessary fee demanded.");
     }
 
     @Override
-    public ApiResponse<String> announceArrival(String code, String tripId) {
-        Profile profile = profileRepository.findById(userUtil.getUser().getId())
-                .orElseThrow(() -> new TripException("Profile not found"));
-        Trip trip = tripRepository.findByIdAndProviderId(tripId, profile.getId())
-                .orElseThrow(() -> new TripException("Trip not found"));
-
-        if(trip.getInvitedProvider().isSameAs(profile.getId())) {
-            if(trip.getInviteStatus() != ACCEPTED) {
-                throw new TripException("Cannot start unaccepted trip invite");
-            }
-
-            if(passwordEncoder.matches(code, trip.getAuthentication().getCode())) {
-                trip.setInviteStatus(ON_TRIP);
-                trip.setUpdatedAt(LocalDateTime.now());
-                tripRepository.save(trip);
-
-                trip.getTime().setInviteVerifiedAt(LocalDateTime.now());
-                tripTimeRepository.save(trip.getTime());
-                return new ApiResponse<>("Trip is now active", HttpStatus.OK);
-            }
-        } else if(trip.getProvider().isSameAs(profile.getId())) {
-            if(trip.getStatus() != ACCEPTED) {
-                throw new TripException("Cannot start unaccepted trip");
-            }
-
-            if(passwordEncoder.matches(code, trip.getAuthentication().getCode())) {
-                trip.setStatus(ON_TRIP);
-                trip.setUpdatedAt(LocalDateTime.now());
-                tripRepository.save(trip);
-
-                trip.getTime().setVerifiedAt(LocalDateTime.now());
-                tripTimeRepository.save(trip.getTime());
-                return new ApiResponse<>("Trip is now active", HttpStatus.OK);
-            }
+    public ApiResponse<TripResponse> verify(String id, String guest, String reference) {
+        Trip trip;
+        if(guest != null && !guest.isEmpty()) {
+            trip = tripRepository.findByIdAndAccount(id, guest)
+                    .orElseThrow(() -> new TripException("Trip not found"));
         } else {
-            throw new TripException("Access denied. Cannot perform action");
+            trip = tripRepository.findByIdAndAccount(id, String.valueOf(userUtil.getUser().getId()))
+                    .orElseThrow(() -> new TripException("Trip not found"));
         }
 
-        throw new TripException("Code does not match with trip authentication code");
-    }
-
-    @Override
-    public ApiResponse<String> leave(String tripId) {
-        Profile profile = profileRepository.findById(userUtil.getUser().getId())
-                .orElseThrow(() -> new TripException("Profile not found"));
-        Trip trip = tripRepository.findByIdAndProviderId(tripId, profile.getId())
-                .orElseThrow(() -> new TripException("Trip not found"));
-
-        if(trip.getInvitedProvider().isSameAs(profile.getId())) {
-            if(trip.getStatus() == ON_TRIP) {
-                trip.setInviteStatus(LEFT);
-                trip.setUpdatedAt(LocalDateTime.now());
-                tripRepository.save(trip);
-
-                trip.getTime().setLeftAt(LocalDateTime.now());
-                tripTimeRepository.save(trip.getTime());
-                return new ApiResponse<>("You've left trip %s".formatted(trip.getId()), HttpStatus.OK);
-            }
-        } else if(trip.getProvider().isSameAs(profile.getId())) {
-            if(trip.getInviteStatus() == ON_TRIP) {
-                trip.setStatus(LEFT);
-                trip.setUpdatedAt(LocalDateTime.now());
-                tripRepository.save(trip);
-
-                trip.getTime().setLeftAt(LocalDateTime.now());
-                tripTimeRepository.save(trip.getTime());
-                return new ApiResponse<>("You've left trip %s".formatted(trip.getId()), HttpStatus.OK);
-            }
+        Boolean isPaid = payService.verify(reference);
+        if(isPaid) {
+            timelineService.create(trip, null, CONNECTED);
         } else {
-            throw new TripException("Access denied. Cannot perform action");
+            timelineService.create(trip, null, REQUESTED);
         }
 
-        throw new TripException("You can't leave this trip when you are the only provider here");
+        updateOthers(trip);
+        return new ApiResponse<>(historyService.response(trip.getId(), String.valueOf(userUtil.getUser().getId()), null, true));
     }
 
     @Override
-    public ApiResponse<String> end(String tripId, Integer amount) {
-        Profile profile = profileRepository.findById(userUtil.getUser().getId())
-                .orElseThrow(() -> new TripException("Profile not found"));
-        Trip trip = tripRepository.findByIdAndAccount(tripId, String.valueOf(profile.getId()))
-                .orElse(
-                        tripRepository.findByIdAndProviderId(tripId, profile.getId())
-                                .orElseThrow(() -> new TripException("Trip not found"))
+    public ApiResponse<List<TripResponse>> leave(String id) {
+        Trip trip = tripRepository.findByIdAndProviderId(id, userUtil.getUser().getId())
+                .orElseThrow(() -> new TripException("No trip found for trip " + id));
+
+        if(trip.getInvited() != null && trip.getInvited().getTimelines() != null && !trip.getInvited().getTimelines().isEmpty()) {
+            if(trip.getInvited().getTimelines().stream().anyMatch(time -> time.getStatus() == LEFT)) {
+                throw new TripException("You cannot leave trip unless there is another provider on the trip");
+            }
+            timelineService.create(trip, null, LEFT);
+            activeService.toggle(trip.getProvider().getUser(), ONLINE, TripMapper.INSTANCE.request(trip));
+
+            notificationService.send(
+                    trip.getAccount(),
+                    String.format("%s has left the trip", userUtil.getUser().getFullName()),
+                    "Trip Update - Provider left",
+                    String.valueOf(userUtil.getUser().getId()), null, false
+            );
+
+            notificationService.send(
+                    String.valueOf(trip.getInvited().getProvider().getId()),
+                    String.format("%s has left the trip", userUtil.getUser().getFullName()),
+                    "Trip Update - Provider left",
+                    String.valueOf(userUtil.getUser().getId()), null, false
+            );
+
+            return historyService.history(null, null, true, trip.getId());
+        }
+        throw new TripException("You cannot leave trip unless there is another provider on the trip");
+    }
+
+    @Override
+    public ApiResponse<List<ActiveResponse>> search(String phoneNumber, Double lat, Double lng) {
+        List<PhoneInformation> list = phoneInformationRepository.findByPhoneNumber(phoneNumber);
+
+        if(list == null || list.isEmpty()) {
+            return new ApiResponse<>(List.of());
+        } else {
+            List<ActiveResponse> responses = list.stream()
+                    .map(phone -> {
+                        Profile profile = profileRepository.findById(phone.getUser().getId()).orElse(null);
+                        ProviderStatus status = activeRepository.findByProfile_Id(phone.getUser().getId())
+                                .map(Active::getProviderStatus).orElse(OFFLINE);
+                        Double latitude = activeRepository.findByProfile_Id(phone.getUser().getId())
+                                .map(Active::getLatitude).orElse(0.0);
+                        Double longitude = activeRepository.findByProfile_Id(phone.getUser().getId())
+                                .map(Active::getLongitude).orElse(0.0);
+
+                        if(profile != null) {
+                            return activeSearchService.response(profile, status, HelperUtil.getDistance(lat, lng, latitude, longitude));
+                        } else {
+                            return null;
+                        }
+                    })
+                    .filter(Objects::nonNull)
+                    .sorted()
+                    .toList();
+
+            return new ApiResponse<>(responses);
+        }
+    }
+
+    @Override
+    public ApiResponse<TripResponse> auth(TripAuthRequest request) {
+        Trip trip;
+        if(request.getGuest() != null && !request.getGuest().isEmpty()) {
+            trip = tripRepository.findByIdAndAccount(request.getTrip(), request.getGuest())
+                    .orElseThrow(() -> new TripException("Trip not found"));
+        } else {
+            trip = tripRepository.findByIdAndAccount(request.getTrip(), String.valueOf(userUtil.getUser().getId()))
+                    .orElseThrow(() -> new TripException("Trip not found"));
+        }
+
+        if(trip.getAuthentication() != null) {
+            if(authenticationService.verify(request, trip.getAuthentication().getCode())) {
+                TripAuthentication authentication = trip.getAuthentication();
+                authentication.setIsVerified(true);
+                authentication.setUpdatedAt(LocalDateTime.now());
+                tripAuthenticationRepository.save(authentication);
+                timelineService.create(trip, null, AUTHENTICATED);
+                timelineService.create(trip, null, ON_TRIP);
+
+                notificationService.send(
+                        String.valueOf(trip.getProvider().getId()),
+                        "Shared trip is now verified",
+                        "Trip authentication successful",
+                        trip.getAccount(), null, false
                 );
 
-        updateTripWhenEnded(amount, trip);
-        return new ApiResponse<>("Trip ended", trip.getId(), HttpStatus.OK);
+                updateOthers(trip);
+                return new ApiResponse<>(historyService.response(
+                        trip.getId(),
+                        request.getGuest() != null ? request.getGuest() : String.valueOf(userUtil.getUser().getId()),
+                        null,
+                        true
+                ));
+            } else {
+                throw new TripException("Wrong authentication code");
+            }
+        } else {
+            throw new TripException("No authentication found for trip " + request.getTrip());
+        }
     }
 
     @Override
-    public void updateTripWhenEnded(Integer amount, Trip trip) {
-        if(trip.getStatus() != LEFT) {
-            trip.setStatus(COMPLETED);
+    public ApiResponse<TripResponse> update(TripUpdateRequest request) {
+        if(request.getIsShared()) {
+            TripShare share = tripShareRepository.findByTrip_IdAndProvider_Id(request.getTrip(), userUtil.getUser().getId())
+                    .orElseThrow(() -> new TripException("Trip not found"));
+
+            timelineService.create(null, share, request.getStatus());
+
+            updateOthers(share.getTrip());
+            return new ApiResponse<>(historyService.response(share.getTrip().getId(), String.valueOf(userUtil.getUser().getId()), null, true));
+        } else if(request.getGuest() != null && !request.getGuest().isEmpty()) {
+            Trip trip = tripRepository.findByIdAndAccount(request.getTrip(), request.getGuest())
+                    .orElseThrow(() -> new TripException("Trip not found"));
+
+            timelineService.create(trip, null, request.getStatus());
+
+            updateOthers(trip);
+            return new ApiResponse<>(historyService.response(trip.getId(), request.getGuest(), null, true));
+        } else if(userUtil.getUser().getRole() == USER) {
+            Trip trip = tripRepository.findByIdAndAccount(request.getTrip(), String.valueOf(userUtil.getUser().getId()))
+                    .orElseThrow(() -> new TripException("Trip not found"));
+
+            timelineService.create(trip, null, request.getStatus());
+
+            updateOthers(trip);
+            return new ApiResponse<>(historyService.response(trip.getId(), String.valueOf(userUtil.getUser().getId()), null, true));
+        } else {
+            Trip trip = tripRepository.findByIdAndProviderId(request.getTrip(), userUtil.getUser().getId())
+                    .orElseThrow(() -> new TripException("Trip not found"));
+
+            timelineService.create(trip, null, request.getStatus());
+
+            updateOthers(trip);
+            return new ApiResponse<>(historyService.response(trip.getId(), String.valueOf(userUtil.getUser().getId()), null, true));
         }
-        if(trip.getInviteStatus() != LEFT && trip.getInviteStatus() != PENDING) {
-            trip.setInviteStatus(COMPLETED);
-        }
-        trip.setAmount(amount);
-        trip.setUpdatedAt(LocalDateTime.now());
-        tripRepository.save(trip);
-
-        trip.getTime().setStoppedAt(LocalDateTime.now());
-        tripTimeRepository.save(trip.getTime());
-
-        OnlineRequest request = TripMapper.INSTANCE.request(trip.getAddress());
-        if(trip.getInvitedProvider() != null) {
-            activeService.toggle(trip.getInvitedProvider().getUser(), ONLINE, request);
-        }
-        activeService.toggle(trip.getProvider().getUser(), ONLINE, request);
-
-        /// TODO::: Send notification to all involved
-    }
-
-    @Override
-    public ApiResponse<List<TripHistoryResponse>> history() {
-        Profile profile = profileRepository.findById(userUtil.getUser().getId())
-                .orElseThrow(() -> new TripException("Profile not found"));
-        List<TripHistoryResponse> trips = tripRepository.findByAccount(String.valueOf(profile.getId()), profile.getId())
-                .stream()
-                .map(trip -> {
-                    TripHistoryResponse response = new TripHistoryResponse();
-                    String name = "";
-                    String avatar = "";
-                    SerchCategory category = SerchCategory.USER;
-
-                    try {
-                        Optional<Profile> user = profileRepository.findById(UUID.fromString(trip.getAccount()));
-                        if(user.isPresent()) {
-                            name = user.get().getFullName();
-                            avatar = user.get().getAvatar();
-                            category = user.get().getCategory();
-                        }
-                    } catch (Exception e) {
-                        Optional<Guest> guest = guestRepository.findById(trip.getAccount());
-                        if(guest.isPresent()) {
-                            name = guest.get().getFullName();
-                            avatar = guest.get().getAvatar();
-                            category = GUEST;
-                        }
-                    }
-
-                    response.setId(trip.getId());
-                    response.setCategory(category);
-                    response.setName(name);
-                    response.setAvatar(avatar);
-                    response.setAmount(MoneyUtil.formatToNaira(BigDecimal.valueOf(trip.getAmount())));
-
-                    response.setStoppedAt(TimeUtil.formatDay(trip.getTime().getStoppedAt()));
-                    response.setRequestedAt(TimeUtil.formatDay(trip.getCreatedAt()));
-                    response.setLeftAt(TimeUtil.formatDay(trip.getTime().getLeftAt()));
-
-                    response.setReason(trip.getCancelReason());
-                    response.setProviderAvatar(trip.getProvider().getAvatar());
-                    response.setProviderAcceptedAt(TimeUtil.formatDay(trip.getTime().getAcceptedAt()));
-                    response.setProviderCategory(trip.getProvider().getCategory());
-                    response.setProviderName(trip.getProvider().getFullName());
-                    response.setProviderStatus(trip.getStatus());
-                    response.setProviderVerifiedAt(TimeUtil.formatDay(trip.getTime().getVerifiedAt()));
-
-                    response.setInviteReason(trip.getInviteCancelReason());
-                    response.setInvitedProviderAvatar(trip.getInvitedProvider().getAvatar());
-                    response.setInvitedProviderAcceptedAt(TimeUtil.formatDay(trip.getTime().getInviteAcceptedAt()));
-                    response.setInvitedProviderCategory(trip.getInvitedProvider().getCategory());
-                    response.setInvitedProviderInvitedAt(TimeUtil.formatDay(trip.getTime().getInvitedAt()));
-                    response.setInvitedProviderName(trip.getInvitedProvider().getFullName());
-                    response.setInvitedProviderStatus(trip.getInviteStatus());
-                    response.setInvitedProviderVerifiedAt(TimeUtil.formatDay(trip.getTime().getInviteVerifiedAt()));
-
-                    if(trip.getShared() != null) {
-                        response.setSharedAmount(MoneyUtil.formatToNaira(trip.getShared().getAmount()));
-                        response.setUserShare(MoneyUtil.formatToNaira(trip.getShared().getUser()));
-                        response.setProviderShare(MoneyUtil.formatToNaira(trip.getShared().getProvider()));
-                    }
-                    return response;
-                })
-                .toList();
-        return new ApiResponse<>(trips);
     }
 }

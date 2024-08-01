@@ -12,12 +12,12 @@ import com.serch.server.enums.company.IssueStatus;
 import com.serch.server.exceptions.others.CertificateException;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.User;
-import com.serch.server.models.business.BusinessProfile;
+import com.serch.server.models.account.BusinessProfile;
 import com.serch.server.models.certificate.Certificate;
 import com.serch.server.models.rating.Rating;
 import com.serch.server.repositories.account.AccountReportRepository;
 import com.serch.server.repositories.account.ProfileRepository;
-import com.serch.server.repositories.business.BusinessProfileRepository;
+import com.serch.server.repositories.account.BusinessProfileRepository;
 import com.serch.server.repositories.certificate.CertificateRepository;
 import com.serch.server.repositories.rating.RatingRepository;
 import com.serch.server.repositories.trip.TripRepository;
@@ -26,8 +26,8 @@ import com.serch.server.services.certificate.responses.CertificateData;
 import com.serch.server.services.certificate.responses.CertificateResponse;
 import com.serch.server.services.certificate.responses.VerifyCertificateResponse;
 import com.serch.server.services.rating.services.RatingService;
-import com.serch.server.services.supabase.core.SupabaseService;
-import com.serch.server.services.supabase.requests.FileUploadRequest;
+import com.serch.server.core.storage.core.StorageService;
+import com.serch.server.core.storage.requests.FileUploadRequest;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -49,7 +49,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CertificateImplementation implements CertificateService {
     private final JwtService jwtService;
-    private final SupabaseService supabaseService;
+    private final StorageService storageService;
     private final RatingService ratingService;
     private final UserUtil userUtil;
     private final PasswordEncoder encoder;
@@ -85,8 +85,8 @@ public class CertificateImplementation implements CertificateService {
                 data.setQrCode(code);
                 data.setId(cert.get().getId());
                 data.setName(user.getFullName());
-                data.setDocument(supabaseService.buildUrl("/storage/v1/object/public/certificate/Unsigned.png"));
-                data.setSignature(supabaseService.buildUrl("/storage/v1/object/public/certificate/ceo-sign.png"));
+                data.setDocument(storageService.buildUrl("/storage/v1/object/public/certificate/Unsigned.png"));
+                data.setSignature(storageService.buildUrl("/storage/v1/object/public/certificate/ceo-sign.png"));
                 data.setIssueDate(date(cert.get().getUpdatedAt()));
                 return new ApiResponse<>(data);
             } else {
@@ -102,8 +102,8 @@ public class CertificateImplementation implements CertificateService {
             data.setQrCode(certificate.getCode());
             data.setId(certificate.getId());
             data.setName(user.getFullName());
-            data.setDocument(supabaseService.buildUrl("/storage/v1/object/public/certificate/Unsigned.png"));
-            data.setSignature(supabaseService.buildUrl("/storage/v1/object/public/certificate/ceo-sign.png"));
+            data.setDocument(storageService.buildUrl("/storage/v1/object/public/certificate/Unsigned.png"));
+            data.setSignature(storageService.buildUrl("/storage/v1/object/public/certificate/ceo-sign.png"));
             data.setIssueDate(date(certificate.getCreatedAt()));
             return new ApiResponse<>(data);
         } else {
@@ -129,7 +129,7 @@ public class CertificateImplementation implements CertificateService {
             );
             response.setInstructions(instruction(userUtil.getUser(), cert.get()));
         } else {
-            data.setDocument(supabaseService.buildUrl("/storage/v1/object/public/certificate/UnsignedBlur.png"));
+            data.setDocument(storageService.buildUrl("/storage/v1/object/public/certificate/UnsignedBlur.png"));
             response.setIsGenerated(false);
             response.setReason(
                     "Inorder to generate a skill certificate, you need to fulfill the instructions below. " +
@@ -180,7 +180,7 @@ public class CertificateImplementation implements CertificateService {
     @Override
     public ApiResponse<CertificateResponse> upload(FileUploadRequest request) {
         String bucket = userUtil.getUser().isBusiness() ? "certificate/business" : "certificate/provider";
-        String url = supabaseService.upload(request, bucket);
+        String url = storageService.upload(request, bucket);
         Certificate certificate = certificateRepository.findByUser(userUtil.getUser().getId())
                 .orElseThrow(() -> new CertificateException("Certificate not found"));
         certificate.setDocument(url);
@@ -200,7 +200,7 @@ public class CertificateImplementation implements CertificateService {
     private String secret(User user) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", user.getRole().name());
-        claims.put("status", user.getAccountStatus().name());
+        claims.put("status", user.getStatus().name());
         claims.put("first_name", user.getFirstName());
         claims.put("last_name", user.getLastName());
         claims.put("id", user.getId());
@@ -295,8 +295,8 @@ public class CertificateImplementation implements CertificateService {
         BitMatrix bitMatrix = qrCodeWriter.encode(
                 String.format("https://www.serchservice.com/platform/certificates?verify=%s", secret),
                 BarcodeFormat.QR_CODE,
-                100,
-                100
+                300,
+                300
         );
         BufferedImage bufferedImage = MatrixToImageWriter.toBufferedImage(bitMatrix);
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -353,7 +353,7 @@ public class CertificateImplementation implements CertificateService {
             data.setName(name);
             data.setCategory(category.getType());
             data.setImage(category.getImage());
-            data.setSignature(supabaseService.buildUrl("/storage/v1/object/public/certificate/ceo-sign.png"));
+            data.setSignature(storageService.buildUrl("/storage/v1/object/public/certificate/ceo-sign.png"));
             data.setIssueDate(date(certificate.getUpdatedAt()));
             response.setData(data);
 

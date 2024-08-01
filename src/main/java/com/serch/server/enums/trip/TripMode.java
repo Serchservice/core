@@ -1,5 +1,6 @@
 package com.serch.server.enums.trip;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
@@ -13,12 +14,10 @@ import lombok.Getter;
  * </ul>
  */
 @Getter
+@AllArgsConstructor
 public enum TripMode {
     FROM_GUEST("From Guest"),
     FROM_USER("From User");
 
     private final String type;
-    TripMode(String type) {
-        this.type = type;
-    };
 }

@@ -17,4 +17,7 @@ public class SpeakWithSerchResponse {
 
     @JsonProperty("updated_at")
     private LocalDateTime updatedAt;
+
+    @JsonProperty("created_at")
+    private LocalDateTime createdAt;
 }

@@ -4,7 +4,7 @@ import com.serch.server.bases.ApiResponse;
 import com.serch.server.services.certificate.responses.CertificateData;
 import com.serch.server.services.certificate.responses.CertificateResponse;
 import com.serch.server.services.certificate.responses.VerifyCertificateResponse;
-import com.serch.server.services.supabase.requests.FileUploadRequest;
+import com.serch.server.core.storage.requests.FileUploadRequest;
 
 /**
  * This is the wrapper class that oversees the generation and verification of certificates issued in Serch

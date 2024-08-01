@@ -54,6 +54,21 @@ public class Schedule extends BaseDateTime {
     @Column(name = "closed_at")
     private String closedAt = null;
 
+    @Column(name = "address", nullable = false, columnDefinition = "TEXT")
+    private String address;
+
+    @Column(name = "place_id", columnDefinition = "TEXT")
+    private String placeId;
+
+    @Column(name = "latitude", nullable = false)
+    private Double latitude;
+
+    @Column(name = "longitude", nullable = false)
+    private Double longitude;
+
+    @Column(name = "amount", nullable = false)
+    private Integer amount;
+
     @Column(name = "closed_on_time", columnDefinition = "TEXT", nullable = false)
     private Boolean closedOnTime = true;
 

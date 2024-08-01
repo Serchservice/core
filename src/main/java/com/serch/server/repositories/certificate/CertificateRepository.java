@@ -9,4 +9,6 @@ import java.util.UUID;
 
 public interface CertificateRepository extends JpaRepository<Certificate, String> {
   Optional<Certificate> findByUser(@NonNull UUID user);
+
+  boolean existsByUser(@NonNull UUID user);
 }

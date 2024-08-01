@@ -13,6 +13,7 @@ import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.auth.incomplete.*;
 import com.serch.server.services.account.services.AccountSettingService;
 import com.serch.server.services.account.services.ProfileService;
+import com.serch.server.services.auth.services.AccountStatusTrackerService;
 import com.serch.server.services.referral.services.ReferralProgramService;
 import com.serch.server.services.auth.requests.RequestLogin;
 import com.serch.server.services.auth.requests.RequestProfile;
@@ -50,6 +51,7 @@ public class UserAuthImplementation implements UserAuthService {
     private final ProfileService profileService;
     private final SessionService sessionService;
     private final AuthService authService;
+    private final AccountStatusTrackerService trackerService;
     private final AccountSettingService accountSettingService;
     private final ReferralProgramService referralProgramService;
     private final PasswordEncoder passwordEncoder;
@@ -125,6 +127,14 @@ public class UserAuthImplementation implements UserAuthService {
 
     @Override
     public User getNewUser(RequestProfile profile, LocalDateTime confirmedAt) {
+        User saved = createNewUser(profile, confirmedAt);
+        trackerService.create(saved);
+        referralProgramService.create(saved);
+        accountSettingService.create(saved);
+        return saved;
+    }
+
+    private User createNewUser(RequestProfile profile, LocalDateTime confirmedAt) {
         User user = new User();
         user.setEmailAddress(profile.getEmailAddress());
         user.setPassword(passwordEncoder.encode(profile.getPassword()));
@@ -132,10 +142,9 @@ public class UserAuthImplementation implements UserAuthService {
         user.setRole(Role.USER);
         user.setFirstName(profile.getFirstName());
         user.setLastName(profile.getLastName());
-        User saved = userRepository.save(user);
-        referralProgramService.create(saved);
-        accountSettingService.create(saved);
-        return saved;
+        user.setCountry(profile.getCountry());
+        user.setState(profile.getState());
+        return userRepository.save(user);
     }
 
     @Override

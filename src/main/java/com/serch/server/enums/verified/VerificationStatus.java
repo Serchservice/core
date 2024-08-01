@@ -21,6 +21,7 @@ public enum VerificationStatus {
     REQUESTED("Requested"),
     VERIFIED("Verified"),
     NOT_VERIFIED("Not Verified"),
+    NONE("None"),
     ERROR("Error");
 
     private final String type;

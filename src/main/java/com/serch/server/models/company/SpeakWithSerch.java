@@ -1,5 +1,6 @@
 package com.serch.server.models.company;
 
+import com.serch.server.admin.models.Admin;
 import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.company.IssueStatus;
@@ -12,6 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -53,6 +55,30 @@ public class SpeakWithSerch extends BaseDateTime {
     )
     private User user;
 
+    @ManyToOne
+    @JoinColumn(
+            name = "assigned_admin_id",
+            referencedColumnName = "serch_id",
+            foreignKey = @ForeignKey(name = "issue_assigned_admin_fkey")
+    )
+    private Admin assignedAdmin;
+
+    @ManyToOne
+    @JoinColumn(
+            name = "resolved_admin_id",
+            referencedColumnName = "serch_id",
+            foreignKey = @ForeignKey(name = "issue_resolved_admin_fkey")
+    )
+    private Admin resolvedBy;
+
+    @ManyToOne
+    @JoinColumn(
+            name = "closed_admin_id",
+            referencedColumnName = "serch_id",
+            foreignKey = @ForeignKey(name = "issue_closed_admin_fkey")
+    )
+    private Admin closedBy;
+
     @OneToMany(mappedBy = "speakWithSerch", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Issue> issue;
+    private List<Issue> issues = new ArrayList<>();
 }

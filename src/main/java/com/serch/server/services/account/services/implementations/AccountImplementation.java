@@ -4,17 +4,18 @@ import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.schedule.ScheduleStatus;
 import com.serch.server.exceptions.account.AccountException;
 import com.serch.server.models.auth.User;
-import com.serch.server.models.business.BusinessProfile;
+import com.serch.server.models.account.BusinessProfile;
 import com.serch.server.models.shared.Guest;
 import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.auth.UserRepository;
-import com.serch.server.repositories.business.BusinessProfileRepository;
+import com.serch.server.repositories.account.BusinessProfileRepository;
 import com.serch.server.repositories.conversation.CallRepository;
 import com.serch.server.repositories.rating.RatingRepository;
 import com.serch.server.repositories.schedule.ScheduleRepository;
 import com.serch.server.repositories.shared.GuestRepository;
 import com.serch.server.repositories.transaction.TransactionRepository;
 import com.serch.server.repositories.trip.TripRepository;
+import com.serch.server.repositories.trip.TripShareRepository;
 import com.serch.server.services.account.responses.AccountResponse;
 import com.serch.server.services.account.responses.DashboardResponse;
 import com.serch.server.services.account.services.AccountService;
@@ -38,7 +39,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static com.serch.server.enums.auth.Role.USER;
-import static com.serch.server.enums.trip.TripConnectionStatus.COMPLETED;
 
 /**
  * This is the class that contains the logic and implementation of its wrapper class {@link AccountService}.
@@ -63,6 +63,7 @@ public class AccountImplementation implements AccountService {
     private final GuestRepository guestRepository;
     private final BusinessProfileRepository businessProfileRepository;
     private final ProfileRepository profileRepository;
+    private final TripShareRepository tripShareRepository;
 
     @Override
     public ApiResponse<List<AccountResponse>> accounts() {
@@ -111,13 +112,13 @@ public class AccountImplementation implements AccountService {
 
     private String todayTrips(UUID id) {
         int size = userUtil.getUser().getRole() == USER
-                ? tripRepository.todayTrips(String.valueOf(id), COMPLETED).size()
-                : tripRepository.todayTrips(id, COMPLETED).size();
+                ? tripRepository.todayTrips(String.valueOf(id)).size()
+                : tripRepository.todayTrips(id).size();
         return String.valueOf(size);
     }
 
     private String todayShared(UUID id) {
-        return String.valueOf(tripRepository.todaySharedTrips(id, COMPLETED).size());
+        return String.valueOf(tripShareRepository.todaySharedTrips(id).size());
     }
 
     @Override

@@ -10,15 +10,14 @@ import com.serch.server.models.auth.User;
 import com.serch.server.models.conversation.Call;
 import com.serch.server.models.rating.AppRating;
 import com.serch.server.models.rating.Rating;
-import com.serch.server.models.schedule.Schedule;
 import com.serch.server.models.shared.Guest;
 import com.serch.server.models.trip.Trip;
+import com.serch.server.repositories.account.BusinessProfileRepository;
 import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.conversation.CallRepository;
 import com.serch.server.repositories.rating.AppRatingRepository;
 import com.serch.server.repositories.rating.RatingRepository;
-import com.serch.server.repositories.schedule.ScheduleRepository;
 import com.serch.server.repositories.shared.GuestRepository;
 import com.serch.server.repositories.trip.TripRepository;
 import com.serch.server.services.rating.requests.RateAppRequest;
@@ -27,13 +26,18 @@ import com.serch.server.services.rating.responses.RatingChartResponse;
 import com.serch.server.services.rating.responses.RatingResponse;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
+
+import static com.serch.server.enums.auth.Role.USER;
+import static com.serch.server.enums.call.CallType.T2F;
 
 /**
  * Service implementation for managing ratings, including rating providers,
@@ -47,7 +51,6 @@ import java.util.*;
  * @see UserRepository
  * @see GuestRepository
  * @see CallRepository
- * @see ScheduleRepository
  * @see TripRepository
  * @see RatingRepository
  * @see ProfileRepository
@@ -60,99 +63,220 @@ public class RatingImplementation implements RatingService {
     private final UserRepository userRepository;
     private final GuestRepository guestRepository;
     private final CallRepository callRepository;
-    private final ScheduleRepository scheduleRepository;
     private final TripRepository tripRepository;
     private final RatingRepository ratingRepository;
     private final ProfileRepository profileRepository;
 
+    @Value("${application.account.rating.limit}")
+    private Integer ACCOUNT_MIN_RATING_LIMIT;
+    private final BusinessProfileRepository businessProfileRepository;
+
     @Override
     public ApiResponse<String> rate(RateRequest request) {
-        Rating rating = new Rating();
-        String rated;
+        callRepository.findById(request.getId())
+                .ifPresentOrElse(call -> rateCall(call, request), () -> tripRepository.findById(request.getId())
+                        .ifPresent(trip -> rateTrip(request, trip)));
+        return new ApiResponse<>("Rating saved", HttpStatus.CREATED);
+    }
 
-        if(request.getIsProvider()) {
-            Call call = callRepository.findById(request.getId())
-                    .orElseThrow(() -> new RatingException("Call not found"));
-            rating.setT2f(call.getChannel());
-            rated = String.valueOf(call.getCalled().getId());
+    private void rateCall(Call call, RateRequest request) {
+        if(call.getType() == T2F) {
+            if(request.getRating() != null) {
+                createRating(request, call.getChannel(), request.getRating(), call.getChannel(), false);
+            }
+            if(request.getRating() != null && request.getInvited() != null) {
+                Profile rated = userUtil.getUser().isUser(call.getCalled().getId()) ? call.getCaller() : call.getCalled();
+
+                createRating(request, rated.getId().toString(), request.getInvited(), call.getChannel(), true);
+                updateUserRating(rated);
+            } else if(request.getInvited() != null) {
+                Profile rated = userUtil.getUser().isUser(call.getCalled().getId()) ? call.getCaller() : call.getCalled();
+
+                createRating(request, rated.getId().toString(), request.getInvited(), call.getChannel(), false);
+                updateUserRating(rated);
+            }
         } else {
-            rated = callRepository.findById(request.getId())
-                    .map(Call::getChannel)
-                    .orElse(
-                            scheduleRepository.findById(request.getId())
-                                    .map(Schedule::getId)
-                                    .orElse(
-                                            tripRepository.findById(request.getId())
-                                                    .map(trip -> rated(trip, request))
-                                                    .orElseThrow(() -> new RatingException("Event not found"))
-                                    )
-                    );
+            if(request.getRating() != null) {
+                createRating(request, call.getChannel(), request.getRating(), call.getChannel(), false);
+            }
         }
+    }
 
+    private void createRating(RateRequest request, String rated, double value, String event, boolean skip) {
+        Rating rating = new Rating();
         rating.setRater(getAccount(request.getGuest()));
         rating.setRated(rated);
-        rating.setRating(request.getRating());
-        rating.setComment(request.getComment());
+        rating.setEvent(event);
+        rating.setRating(value);
+
+        if(!skip) {
+            rating.setComment(request.getComment());
+        }
         ratingRepository.save(rating);
-        return new ApiResponse<>("Rating saved", HttpStatus.CREATED);
     }
 
-    @Override
-    public ApiResponse<String> share(RateRequest request) {
-        Trip trip = tripRepository.findById(request.getId())
-                .orElseThrow(() -> new RatingException("Event not found"));
-
-        Rating first = new Rating();
-        Rating second = new Rating();
-        String rater = getAccount(request.getGuest());
-
-        first.setRater(rater);
-        first.setRated(rated(trip, request));
-        first.setRating(request.getRating() / 2.0);
-        first.setComment(request.getComment());
-        ratingRepository.save(first);
-
-        second.setRater(rater);
-        second.setRated(rated(trip, request));
-        second.setRating(request.getRating() / 2.0);
-        second.setComment(request.getComment());
-        ratingRepository.save(second);
-        return new ApiResponse<>("Rating saved", HttpStatus.CREATED);
-    }
-
-    private String rated(Trip trip, RateRequest request) {
-        if(request.getGuest() == null || request.getGuest().isEmpty()) {
-            try {
-                if(userUtil.getUser().isUser(UUID.fromString(trip.getAccount()))) {
-                    if(trip.getInvitedProvider() != null && request.getIsInvited()) {
-                        return String.valueOf(trip.getInvitedProvider().getId());
-                    } else {
-                        return String.valueOf(trip.getProvider().getId());
-                    }
-                } else if(trip.getProvider().isSameAs(userUtil.getUser().getId())) {
-                    if(trip.getInvitedProvider() != null && request.getIsInvited()) {
-                        return String.valueOf(trip.getInvitedProvider().getId());
-                    } else {
-                        return trip.getAccount();
-                    }
-                } else {
-                    if(trip.getInvitedProvider() != null && request.getIsInvited()) {
-                        return String.valueOf(trip.getProvider().getId());
-                    } else {
-                        return trip.getAccount();
-                    }
-                }
-            } catch (Exception e) {
-                throw new RatingException("Couldn't find the user being rated");
-            }
+    private void rateTrip(RateRequest request, Trip trip) {
+        if((request.getGuest() != null && !request.getGuest().isEmpty()) || userUtil.getUser().getRole() == USER) {
+            rateTripAsUserOrGuest(request, trip);
+        } else if(trip.getInvited() != null && trip.getInvited().getProvider() != null) {
+            rateTripAsInvited(request, trip);
         } else {
-            if(trip.getInvitedProvider() != null && request.getIsInvited()) {
-                return String.valueOf(trip.getInvitedProvider().getId());
-            } else {
-                return String.valueOf(trip.getProvider().getId());
+            rateTripAsProvider(request, trip);
+        }
+    }
+
+    private void rateTripAsUserOrGuest(RateRequest request, Trip trip) {
+        if(request.getRating() != null && request.getIsBoth() && trip.getInvited() != null && trip.getInvited().getProvider() != null) {
+            double value = request.getRating() / 2.0;
+
+            createRating(request, trip.getProvider().getId().toString(), value, trip.getId(), true);
+            updateUserRating(trip.getProvider());
+
+            createRating(request, trip.getInvited().getProvider().getId().toString(), value, trip.getId(), true);
+            updateUserRating(trip.getInvited().getProvider());
+        } else {
+            if (request.getRating() != null) {
+                createRating(request, trip.getProvider().getId().toString(), request.getRating(), trip.getId(), false);
+                updateUserRating(trip.getProvider());
+            }
+
+            if (request.getInvited() != null && trip.getInvited() != null && trip.getInvited().getProvider() != null) {
+                createRating(
+                        request, trip.getInvited().getProvider().getId().toString(),
+                        request.getInvited(), trip.getInvited().getId().toString(),
+                        false
+                );
+                updateUserRating(trip.getInvited().getProvider());
             }
         }
     }
+
+    private void rateTripAsProvider(RateRequest request, Trip trip) {
+        if(request.getRating() != null && request.getIsBoth() && trip.getInvited() != null && trip.getInvited().getProvider() != null) {
+            double value = request.getRating() / 2.0;
+
+            rateUserOrGuestInTrip(request, trip, value, true);
+            createRating(request, trip.getInvited().getProvider().getId().toString(), value, trip.getId(), true);
+            updateUserRating(trip.getInvited().getProvider());
+        } else {
+            if (request.getRating() != null) {
+                rateUserOrGuestInTrip(request, trip, request.getRating(), false);
+            }
+
+            if (request.getInvited() != null && trip.getInvited() != null && trip.getInvited().getProvider() != null) {
+                createRating(
+                        request, trip.getInvited().getProvider().getId().toString(),
+                        request.getInvited(), trip.getInvited().getId().toString(),
+                        false
+                );
+                updateUserRating(trip.getInvited().getProvider());
+            }
+        }
+    }
+
+    private void rateUserOrGuestInTrip(RateRequest request, Trip trip, double value, boolean skip) {
+        try {
+            profileRepository.findById(UUID.fromString(trip.getAccount()))
+                    .ifPresent(profile -> {
+                        createRating(request, profile.getId().toString(), value, trip.getId(), skip);
+                        updateUserRating(profile);
+                    });
+        } catch (Exception e) {
+            guestRepository.findById(trip.getAccount())
+                    .ifPresent(guest -> {
+                        createRating(request, guest.getId(), value, trip.getId(), skip);
+                        updateGuestRating(guest);
+                    });
+        }
+    }
+
+    private void rateTripAsInvited(RateRequest request, Trip trip) {
+        if(request.getRating() != null && request.getIsBoth()) {
+            double value = request.getRating() / 2.0;
+
+            rateUserOrGuestInTrip(request, trip, value, true);
+            createRating(request, trip.getProvider().getId().toString(), value, trip.getId(), true);
+            updateUserRating(trip.getProvider());
+        } else {
+            if (request.getRating() != null) {
+                rateUserOrGuestInTrip(request, trip, request.getRating(), false);
+            }
+
+            if (request.getInvited() != null) {
+                createRating(request, trip.getProvider().getId().toString(), request.getInvited(), trip.getId(), true);
+                updateUserRating(trip.getProvider());
+            }
+        }
+    }
+
+    private String getAccount(String account) {
+        if (account == null || account.isEmpty()) {
+            return String.valueOf(userUtil.getUser().getId());
+        } else {
+            return guestRepository.findById(account).orElseThrow(() -> new RatingException("Guest not found")).getId();
+        }
+    }
+
+    private void updateUserRating(Profile profile) {
+        if(profile.isAssociate()) {
+            List<Rating> ratings = new ArrayList<>();
+            profile.getBusiness().getAssociates().forEach(associate -> ratings.addAll(ratingRepository.findByRated(associate.getId().toString())));
+            double finalRating = getUpdatedRating(ratings);
+
+            profile.getBusiness().setRating(finalRating);
+            businessProfileRepository.save(profile.getBusiness());
+        }
+
+        List<Rating> ratings = ratingRepository.findByRated(profile.getId().toString());
+        double finalRating = getUpdatedRating(ratings);
+
+        profile.setRating(finalRating);
+        profileRepository.save(profile);
+    }
+
+    private double getUpdatedRating(List<Rating> ratings) {
+        double newWeightedAverage = calculateWeightedAverage(ratings);
+
+        double finalRating;
+        if (ratings.size() < ACCOUNT_MIN_RATING_LIMIT) {
+            // Blend the new weighted average with the initial rating of 5.0
+            double initialRating = 5.0;
+            double blendFactor = (double) ratings.size() / ACCOUNT_MIN_RATING_LIMIT;
+            finalRating = initialRating * (1 - blendFactor) + newWeightedAverage * blendFactor;
+        } else {
+            finalRating = newWeightedAverage;
+        }
+        return finalRating;
+    }
+
+    private void updateGuestRating(Guest profile) {
+        List<Rating> ratings = ratingRepository.findByRated(profile.getId());
+        double finalRating = getUpdatedRating(ratings);
+
+        profile.setRating(finalRating);
+        guestRepository.save(profile);
+    }
+
+    private double calculateWeightedAverage(List<Rating> ratings) {
+        double totalWeightedRating = 0.0;
+        double totalWeight = 0.0;
+        LocalDateTime currentTime = LocalDateTime.now();
+
+        for (Rating rating : ratings) {
+            long daysOld = ChronoUnit.DAYS.between(rating.getCreatedAt(), currentTime);
+            double weight = calculateWeight(daysOld);
+            totalWeightedRating += rating.getRating() * weight;
+            totalWeight += weight;
+        }
+
+        return totalWeight == 0 ? 0 : totalWeightedRating / totalWeight;
+    }
+
+    private double calculateWeight(long daysOld) {
+        double decayRate = 0.95;
+        return Math.pow(decayRate, daysOld);
+    }
+
 
     @Override
     public ApiResponse<RatingResponse> rate(RateAppRequest request) {
@@ -183,26 +307,13 @@ public class RatingImplementation implements RatingService {
         }
     }
 
-    private String getAccount(String request) {
-        if(request == null || request.isEmpty()) {
-            return String.valueOf(userUtil.getUser().getId());
-        } else {
-            return guestRepository.findById(request)
-                    .orElseThrow(() -> new RatingException("Guest not found"))
-                    .getId();
-        }
-    }
-
     private String getApp(String account) {
         String app;
         try {
-            Role role = userRepository.findById(UUID.fromString(account))
-                    .orElse(new User())
-                    .getRole();
-
+            Role role = userRepository.findById(UUID.fromString(account)).orElse(new User()).getRole();
             if(role == Role.ASSOCIATE_PROVIDER) {
                 app = "Serch Provider";
-            } else if(role == Role.USER) {
+            } else if(role == USER) {
                 app = "Serch User";
             } else {
                 app = "Serch Business";
@@ -217,38 +328,6 @@ public class RatingImplementation implements RatingService {
     public ApiResponse<List<RatingResponse>> view() {
         List<Rating> ratings = ratingRepository.findByRated(String.valueOf(userUtil.getUser().getId()));
         return ratings(ratings);
-    }
-
-    private RatingResponse getRatingResponse(Rating rating) {
-        RatingResponse response = RatingMapper.INSTANCE.response(rating);
-        response.setName(getName(rating));
-        response.setCategory(getCategory(rating).getType());
-        response.setImage(getCategory(rating).getImage());
-        return response;
-    }
-
-    private String getName(Rating rating) {
-        try {
-            return guestRepository.findById(rating.getRater())
-                    .map(Guest::getFirstName)
-                    .orElse(
-                            userRepository.findById(UUID.fromString(rating.getRater()))
-                                    .map(User::getFirstName)
-                                    .orElse("")
-                    );
-        } catch (Exception e) {
-                return "";
-        }
-    }
-
-    private SerchCategory getCategory(Rating rating) {
-        try {
-            return profileRepository.findById(UUID.fromString(rating.getRater()))
-                    .map(Profile::getCategory)
-                    .orElse(SerchCategory.USER);
-        } catch (Exception e) {
-            return SerchCategory.GUEST;
-        }
     }
 
     @Override
@@ -269,6 +348,22 @@ public class RatingImplementation implements RatingService {
                     .toList();
         }
         return new ApiResponse<>(list);
+    }
+
+    private RatingResponse getRatingResponse(Rating rating) {
+        RatingResponse response = RatingMapper.INSTANCE.response(rating);
+        response.setName("");
+        response.setCategory(getCategory(rating).getType());
+        response.setImage(getCategory(rating).getImage());
+        return response;
+    }
+
+    private SerchCategory getCategory(Rating rating) {
+        try {
+            return profileRepository.findById(UUID.fromString(rating.getRater())).map(Profile::getCategory).orElse(SerchCategory.USER);
+        } catch (Exception e) {
+            return SerchCategory.GUEST;
+        }
     }
 
     @Override

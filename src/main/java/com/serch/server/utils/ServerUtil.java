@@ -28,6 +28,16 @@ public class ServerUtil {
     );
 
     /**
+     * IP Whitelist
+     */
+    public static final List<String> IP_WHITELIST = List.of(
+            "34.240.137.52", /// SMILE ID
+            "44.230.128.108", /// SMILE ID
+            "52.36.32.43", /// SMILE ID
+            "52.213.46.74" /// SMILE ID
+    );
+
+    /**
      * Allowing headers for both development and production purposes
      */
     public static final List<String> HEADERS = List.of(

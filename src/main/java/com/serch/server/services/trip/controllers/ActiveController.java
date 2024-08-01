@@ -1,7 +1,7 @@
 package com.serch.server.services.trip.controllers;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.enums.trip.TripStatus;
+import com.serch.server.enums.account.ProviderStatus;
 import com.serch.server.services.trip.requests.OnlineRequest;
 import com.serch.server.services.trip.responses.ActiveResponse;
 import com.serch.server.services.trip.services.ActiveService;
@@ -20,8 +20,8 @@ public class ActiveController {
 
     @GetMapping("/status")
     @PreAuthorize("hasRole('PROVIDER') || hasRole('ASSOCIATE_PROVIDER')")
-    public ResponseEntity<ApiResponse<TripStatus>> status() {
-        ApiResponse<TripStatus> response = service.fetchStatus();
+    public ResponseEntity<ApiResponse<ProviderStatus>> status() {
+        ApiResponse<ProviderStatus> response = service.fetchStatus();
         return new ResponseEntity<>(response, response.getStatus());
     }
 
@@ -34,8 +34,8 @@ public class ActiveController {
 
     @PatchMapping("/toggle")
     @PreAuthorize("hasRole('PROVIDER') || hasRole('ASSOCIATE_PROVIDER')")
-    public ResponseEntity<ApiResponse<TripStatus>> toggle(@RequestBody OnlineRequest request) {
-        ApiResponse<TripStatus> response = service.toggleStatus(request);
+    public ResponseEntity<ApiResponse<ProviderStatus>> toggle(@RequestBody OnlineRequest request) {
+        ApiResponse<ProviderStatus> response = service.toggleStatus(request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 }

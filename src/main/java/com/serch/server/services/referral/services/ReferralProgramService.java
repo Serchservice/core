@@ -7,7 +7,7 @@ import com.serch.server.services.referral.responses.ReferralProgramResponse;
 /**
  * This is the wrapper class for the generation and creation of Referral Program in Serch
  *
- * @see com.serch.server.services.referral.services.implementations.ReferralProgramImplementation
+ * @see ReferralProgramImplementation
  * @author <a href="https://iamevaristus.github.com">Evaristus Adimonyemma</a>
  */
 public interface ReferralProgramService {
@@ -61,6 +61,4 @@ public interface ReferralProgramService {
      * @see User
      */
     User verify(String code);
-
-    void performChecks();
 }

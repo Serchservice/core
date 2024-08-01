@@ -4,7 +4,9 @@ import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.call.CallStatus;
 import com.serch.server.enums.call.CallType;
+import com.serch.server.exceptions.ExceptionCodes;
 import com.serch.server.exceptions.conversation.CallException;
+import com.serch.server.exceptions.transaction.WalletException;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.conversation.Call;
 import com.serch.server.repositories.account.ProfileRepository;
@@ -13,28 +15,29 @@ import com.serch.server.services.conversation.requests.StartCallRequest;
 import com.serch.server.services.conversation.responses.CallInformation;
 import com.serch.server.services.conversation.responses.CallMemberData;
 import com.serch.server.services.conversation.responses.CallResponse;
-import com.serch.server.services.conversation.responses.StartCallResponse;
-import com.serch.server.services.notification.core.NotificationService;
-import com.serch.server.services.notification.requests.NotificationRequest;
+import com.serch.server.services.conversation.responses.ActiveCallResponse;
+import com.serch.server.core.notification.core.NotificationService;
 import com.serch.server.services.transaction.services.WalletService;
 import com.serch.server.utils.*;
-import io.agora.media.RtcTokenBuilder;
+import io.agora.media.RtcTokenBuilder2;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class CallImplementation implements CallService {
     private final UserUtil userUtil;
+    private final SimpMessagingTemplate template;
     private final WalletService walletService;
     private final NotificationService notificationService;
     private final CallRepository callRepository;
@@ -53,24 +56,8 @@ public class CallImplementation implements CallService {
         return callRepository.findByUserId(id).stream().anyMatch(call -> call.getStatus() == CallStatus.ON_CALL);
     }
 
-    private String authenticate(String channel, String user, boolean isUid) {
-        RtcTokenBuilder token = new RtcTokenBuilder();
-        int timestamp = (int) (System.currentTimeMillis() / 1000 + AGORA_TOKEN_EXPIRATION_TIME);
-        if(isUid) {
-            return token.buildTokenWithUid(
-                    AGORA_APP_ID, AGORA_APP_CERTIFICATE, channel,
-                    Integer.parseInt(user), RtcTokenBuilder.Role.Role_Publisher, timestamp
-            );
-        } else {
-            return token.buildTokenWithUserAccount(
-                    AGORA_APP_ID, AGORA_APP_CERTIFICATE, channel,
-                    user, RtcTokenBuilder.Role.Role_Publisher, timestamp
-            );
-        }
-    }
-
     @Override
-    public ApiResponse<StartCallResponse> start(StartCallRequest request) {
+    public ApiResponse<ActiveCallResponse> start(StartCallRequest request) {
         Profile caller = profileRepository.findById(userUtil.getUser().getId())
                 .orElseThrow(() -> new CallException("User not found"));
         Profile called = profileRepository.findById(request.getUser())
@@ -85,7 +72,7 @@ public class CallImplementation implements CallService {
                 throw new CallException("%s is on another call. Wait a moment and try again".formatted(called.getFullName()));
             } else {
                 if (request.getType() == CallType.T2F) {
-                   walletService.checkBalanceForTip2Fix(caller.getId());
+                    walletService.checkBalanceForTip2Fix(caller.getId());
                 }
 
                 Call call = new Call();
@@ -95,114 +82,216 @@ public class CallImplementation implements CallService {
                 call.setCaller(caller);
                 if(request.getType() == CallType.T2F) {
                     call.setAmount(BigDecimal.valueOf(TIP2FIX_AMOUNT));
+                    call.setSession(1);
                 }
                 Call update = callRepository.save(call);
-                String auth = authenticate(update.getChannel(), String.valueOf(called.getId()), false);
-
-                CompletableFuture.runAsync(() -> {
-                    NotificationRequest notificationRequest = NotificationRequest.builder()
-                            .token(caller.getFcmToken())
-                            .message("Hello")
-                            .title("Hello")
-                            .build();
-                    notificationService.send(notificationRequest);
-                });
-                return new ApiResponse<>(StartCallResponse.builder()
-                        .status(CallStatus.RINGING)
-                        .app(AGORA_APP_ID)
-                        .channel(update.getChannel())
-                        .auth(auth)
-                        .build()
-                );
+                notificationService.send(request.getUser(), prepareResponse(update));
+                return new ApiResponse<>(prepareResponse(update));
             }
         }
     }
 
-    @Override
-    public Map<String, String> authenticate(String channel, Integer uid) {
-        Call call = callRepository.findById(channel).orElseThrow(() -> new CallException("Call not found"));
-        String auth = authenticate(call.getChannel(), String.valueOf(uid), true);
-        Map<String, String> data = new HashMap<>();
-        data.put("rtcToken", auth);
-        return data;
-    }
+    private ActiveCallResponse prepareResponse(Call call) {
+        Profile profile = call.getCalled().isSameAs(userUtil.getUser().getId())
+                ? call.getCaller()
+                : call.getCalled();
 
-    @Override
-    public ApiResponse<StartCallResponse> verify(String channel) {
-        Call call = callRepository.findByChannelAndCalled_Id(channel, userUtil.getUser().getId())
-                .orElseThrow(() -> new CallException("Call not found"));
-        return getStartCallResponse(call);
-    }
-
-    @Override
-    public ApiResponse<StartCallResponse> update(String channel, CallStatus status) {
-        Call call = callRepository.findById(channel).orElseThrow(() -> new CallException("Call not found"));
-        call.checkIfActive();
-        return getCallResponse(call, status);
-    }
-
-    @Override
-    public ApiResponse<StartCallResponse> answer(String channel) {
-        Call call = callRepository.findByChannelAndCalled_Id(channel, userUtil.getUser().getId())
-                .orElseThrow(() -> new CallException("Call not found"));
-
-        return getStartCallResponse(call);
-    }
-
-    private ApiResponse<StartCallResponse> getStartCallResponse(Call call) {
-        call.checkIfActive();
-        if(userIsOnCall(userUtil.getUser().getId())) {
-            throw new CallException("You cannot pick a call when you are on another.");
-        } else {
-            if(call.getType() == CallType.T2F) {
-                walletService.processTip2FixCallPayment(call.getChannel(), call.getCaller().getId(), call.getCalled());
-            }
-            return getCallResponse(call, CallStatus.ON_CALL);
-        }
-    }
-
-    private ApiResponse<StartCallResponse> getCallResponse(Call call, CallStatus status) {
-        String auth = authenticate(call.getChannel(), String.valueOf(userUtil.getUser().getId()), false);
-        call.setStatus(status);
-        call.setUpdatedAt(LocalDateTime.now());
-        callRepository.save(call);
-        return new ApiResponse<>(StartCallResponse.builder()
-                .status(status)
+        return ActiveCallResponse.builder()
+                .status(call.getStatus())
                 .app(AGORA_APP_ID)
                 .channel(call.getChannel())
-                .auth(auth)
-                .build()
-        );
+                .name(profile.getFullName())
+                .type(call.getType())
+                .user(profile.getId())
+                .isCaller(call.getCaller().isSameAs(userUtil.getUser().getId()))
+                .avatar(profile.getAvatar())
+                .image(profile.getCategory().getImage())
+                .category(profile.getCategory().getType())
+                .build();
     }
 
     @Override
-    public ApiResponse<StartCallResponse> decline(String channel) {
-        Call call = callRepository.findById(channel)
-                .orElseThrow(() -> new CallException("Call not found"));
+    public ApiResponse<String> auth(String channel) {
+        RtcTokenBuilder2 token = new RtcTokenBuilder2();
+        String authToken = token.buildTokenWithUserAccount(
+                AGORA_APP_ID, AGORA_APP_CERTIFICATE, channel, String.valueOf(userUtil.getUser().getId()),
+                RtcTokenBuilder2.Role.ROLE_SUBSCRIBER,
+                AGORA_TOKEN_EXPIRATION_TIME, AGORA_TOKEN_EXPIRATION_TIME
+        );
 
-        call.checkIfActive();
-        if(call.getCalled().isSameAs(userUtil.getUser().getId())) {
-            return getCallResponse(call, CallStatus.DECLINED);
+        return new ApiResponse<>("Authentication successful", authToken, HttpStatus.OK);
+    }
+
+    @Override
+    @Transactional
+    public void answer(String channel) {
+        Call call = callRepository.findByChannelAndCalled_Id(channel, userUtil.getUser().getId()).orElse(null);
+        if(call == null) {
+            sendError("Call not found", null);
         } else {
-            throw new CallException("You cannot decline calls that is not made to you");
+            try {
+                call.checkIfActive();
+            } catch (Exception e) {
+                sendError(e.getMessage(), call.getChannel());
+            }
+            if(userIsOnCall(userUtil.getUser().getId())) {
+                sendError("You cannot pick a call when you are on another.", call.getChannel());
+            } else {
+                if(call.getType() == CallType.T2F) {
+                    try {
+                        walletService.processTip2FixCallPayment(call.getChannel(), call.getCaller().getId(), call.getCalled());
+                    } catch (WalletException e) {
+                        sendError(e.getMessage(), call.getChannel());
+                        return;
+                    }
+                }
+                call.setStatus(CallStatus.ON_CALL);
+                call.setUpdatedAt(LocalDateTime.now());
+                callRepository.save(call);
+                sendToChannelMember(call, false);
+                sendToChannelMember(call, true);
+            }
         }
     }
 
-    @Override
-    public ApiResponse<StartCallResponse> end(String channel) {
-        Call call = callRepository.findById(channel)
-                .orElseThrow(() -> new CallException("Call not found"));
+    private void sendError(String error, String channel) {
+        ActiveCallResponse response = ActiveCallResponse.builder()
+                .error(error)
+                .errorCode(ExceptionCodes.CALL_ERROR)
+                .build();
 
-        call.checkIfActive();
-        if(call.getCaller().isSameAs(userUtil.getUser().getId()) || call.getCalled().isSameAs(userUtil.getUser().getId())) {
-            call.setStatus(CallStatus.CLOSED);
-            call.setDuration(CallUtil.formatCallTimeFromDate(call.getUpdatedAt()));
+        if(channel != null) {
+            template.convertAndSend(
+                    "/platform/%s/%s".formatted(channel, String.valueOf(userUtil.getUser().getId())),
+                    response
+            );
+        } else {
+            template.convertAndSend("/platform/%s".formatted(String.valueOf(userUtil.getUser().getId())), response);
+        }
+    }
+
+    private void sendToChannelMember(Call call, boolean isCaller) {
+        Profile profile = isCaller ? call.getCaller() : call.getCalled();
+
+        ActiveCallResponse response = ActiveCallResponse.builder()
+                .status(call.getStatus())
+                .app(AGORA_APP_ID)
+                .channel(call.getChannel())
+                .name(profile.getFullName())
+                .type(call.getType())
+                .user(profile.getId())
+                .avatar(profile.getAvatar())
+                .isCaller(isCaller)
+                .image(profile.getCategory().getImage())
+                .session(call.getSession())
+                .category(profile.getCategory().getType())
+                .build();
+        template.convertAndSend("/platform/%s/%s".formatted(call.getChannel(), String.valueOf(profile.getId())), response);
+    }
+
+    @Override
+    @Transactional
+    public void update(String channel, CallStatus status) {
+        Call call = callRepository.findById(channel).orElse(null);
+        if(call == null) {
+            sendError("Call not found", null);
+        } else {
+            try {
+                call.checkIfActive();
+            } catch (Exception e) {
+                sendError(e.getMessage(), call.getChannel());
+            }
+
+            call.setStatus(status);
             call.setUpdatedAt(LocalDateTime.now());
             callRepository.save(call);
 
-            return new ApiResponse<>(StartCallResponse.builder().status(CallStatus.CLOSED).build());
+            sendToChannelMember(call, true);
+            sendToChannelMember(call, false);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void decline(String channel) {
+        Call call = callRepository.findById(channel).orElse(null);
+        if(call == null) {
+            sendError("Call not found", null);
         } else {
-            throw new CallException("You cannot cancel calls you didn't start");
+            try {
+                call.checkIfActive();
+            } catch (Exception e) {
+                sendError(e.getMessage(), call.getChannel());
+            }
+            if(call.getCalled().isSameAs(userUtil.getUser().getId())) {
+                update(channel, CallStatus.DECLINED);
+            } else {
+                sendError("You cannot decline calls that is not made to you", call.getChannel());
+            }
+        }
+    }
+
+    @Override
+    @Transactional
+    public void end(String channel) {
+        Call call = callRepository.findById(channel).orElse(null);
+        if(call == null) {
+            sendError("Call not found", null);
+        } else {
+            try {
+                call.checkIfActive();
+            } catch (Exception e) {
+                sendError(e.getMessage(), call.getChannel());
+            }
+            if(call.getCaller().isSameAs(userUtil.getUser().getId()) || call.getCalled().isSameAs(userUtil.getUser().getId())) {
+                call.setStatus(CallStatus.CLOSED);
+                call.setDuration(CallUtil.formatCallTimeFromDate(call.getUpdatedAt()));
+                call.setUpdatedAt(LocalDateTime.now());
+                callRepository.save(call);
+
+                sendToChannelMember(call, true);
+                sendToChannelMember(call, false);
+            } else {
+                sendError("You cannot cancel calls you didn't start", call.getChannel());
+            }
+        }
+    }
+
+    @Override
+    @Transactional
+    public void checkSession(Integer duration, String channel) {
+        Call call = callRepository.findById(channel).orElse(null);
+        if(call == null) {
+            sendError("Call not found", null);
+        } else {
+            int hours = CallUtil.getHours(duration);
+            if (hours >= 1 && hours > call.getSession()) {
+                try {
+                    walletService.checkBalanceForTip2Fix(call.getCaller().getId());
+                    walletService.processTip2FixCallPayment(call.getChannel(), call.getCaller().getId(), call.getCalled());
+                    call.setSession(call.getSession() + 1);
+                    call.setUpdatedAt(LocalDateTime.now());
+                    callRepository.save(call);
+
+                    sendToChannelMember(call, true);
+                    sendToChannelMember(call, false);
+                } catch (Exception e) {
+                    if(call.getRetries() == 3) {
+                        call.setStatus(CallStatus.CLOSED);
+                    } else {
+                        call.setRetries(call.getRetries() + 1);
+                    }
+                    call.setUpdatedAt(LocalDateTime.now());
+                    callRepository.save(call);
+
+                    sendError(e.getMessage(), call.getChannel());
+
+                    if(call.getStatus() == CallStatus.CLOSED) {
+                        sendToChannelMember(call, true);
+                        sendToChannelMember(call, false);
+                    }
+                }
+            }
         }
     }
 
@@ -254,34 +343,6 @@ public class CallImplementation implements CallService {
         data.setCategory(profile.getCategory().getType());
         data.setImage(profile.getCategory().getImage());
         return data;
-    }
-
-    @Override
-    public ApiResponse<String> checkSession(Integer duration, String channel) {
-        Call call = callRepository.findById(channel)
-                .orElseThrow(() -> new CallException("Call not found"));
-
-        if(CallUtil.getHours(duration) == 1) {
-            try {
-                walletService.checkBalanceForTip2Fix(call.getCaller().getId());
-                walletService.processTip2FixCallPayment(call.getChannel(), call.getCaller().getId(), call.getCalled());
-                call.setSessionCount(call.getSessionCount() + 1);
-                call.setUpdatedAt(LocalDateTime.now());
-                callRepository.save(call);
-                return new ApiResponse<>("Continue with Tip2Fix", HttpStatus.OK);
-            } catch (Exception e) {
-                if(call.getRetries() == 3) {
-                    call.setStatus(CallStatus.CLOSED);
-                } else {
-                    call.setRetries(call.getRetries() + 1);
-                }
-                call.setUpdatedAt(LocalDateTime.now());
-                callRepository.save(call);
-                throw new CallException(e.getMessage());
-            }
-        } else {
-            return new ApiResponse<>("Continue with Tip2Fix", HttpStatus.OK);
-        }
     }
 
     @Override

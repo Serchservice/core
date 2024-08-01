@@ -9,15 +9,6 @@ import lombok.Setter;
  * The Rating class represents ratings given by users.
  * It stores information about the comment, rating, type of rating, rater, and rated user.
  * <p></p>
- * Annotations:
- * <ul>
- *     <li>{@link Getter}</li>
- *     <li>{@link Setter}</li>
- *     <li>{@link Entity}</li>
- *     <li>{@link Table}</li>
- * </ul>
- * Relationships: None
- * Enums: None
  */
 @Getter
 @Setter
@@ -30,7 +21,7 @@ public class Rating extends BaseModel {
     @Column(name = "rating", nullable = false)
     private Double rating = 5.0;
 
-    private String t2f;
+    private String event;
 
     @Column(name = "rater", nullable = false)
     private String rater;

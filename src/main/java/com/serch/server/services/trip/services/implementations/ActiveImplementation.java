@@ -1,16 +1,16 @@
 package com.serch.server.services.trip.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.enums.trip.TripStatus;
+import com.serch.server.enums.account.ProviderStatus;
 import com.serch.server.exceptions.account.AccountException;
 import com.serch.server.exceptions.others.TripException;
 import com.serch.server.mappers.TripMapper;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.User;
-import com.serch.server.models.business.BusinessProfile;
+import com.serch.server.models.account.BusinessProfile;
 import com.serch.server.models.trip.Active;
 import com.serch.server.repositories.account.ProfileRepository;
-import com.serch.server.repositories.business.BusinessProfileRepository;
+import com.serch.server.repositories.account.BusinessProfileRepository;
 import com.serch.server.repositories.trip.ActiveRepository;
 import com.serch.server.services.trip.requests.OnlineRequest;
 import com.serch.server.services.trip.responses.ActiveResponse;
@@ -19,6 +19,7 @@ import com.serch.server.services.trip.services.ActiveService;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -39,27 +40,28 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ActiveImplementation implements ActiveService {
     private final UserUtil userUtil;
+    private final SimpMessagingTemplate messaging;
     private final ActiveRepository activeRepository;
     private final ProfileRepository profileRepository;
     private final BusinessProfileRepository businessProfileRepository;
 
     @Override
-    public ApiResponse<TripStatus> toggleStatus(OnlineRequest request) {
+    public ApiResponse<ProviderStatus> toggleStatus(OnlineRequest request) {
         if(userUtil.getUser().isProvider()) {
             Optional<Active> existing = activeRepository.findByProfile_Id(userUtil.getUser().getId());
             if(existing.isPresent()) {
-                if(existing.get().getTripStatus() == TripStatus.ONLINE) {
-                    existing.get().setTripStatus(TripStatus.OFFLINE);
+                if(existing.get().getProviderStatus() == ProviderStatus.ONLINE) {
+                    existing.get().setProviderStatus(ProviderStatus.OFFLINE);
                     existing.get().setUpdatedAt(LocalDateTime.now());
                     updateActive(request, existing.get());
                     activeRepository.save(existing.get());
-                    return new ApiResponse<>(TripStatus.OFFLINE);
-                } else if(existing.get().getTripStatus() == TripStatus.OFFLINE) {
-                    existing.get().setTripStatus(TripStatus.ONLINE);
+                    return new ApiResponse<>(ProviderStatus.OFFLINE);
+                } else if(existing.get().getProviderStatus() == ProviderStatus.OFFLINE) {
+                    existing.get().setProviderStatus(ProviderStatus.ONLINE);
                     existing.get().setUpdatedAt(LocalDateTime.now());
                     updateActive(request, existing.get());
                     activeRepository.save(existing.get());
-                    return new ApiResponse<>(TripStatus.ONLINE);
+                    return new ApiResponse<>(ProviderStatus.ONLINE);
                 } else {
                     throw new TripException("Can't update your trip status");
                 }
@@ -67,10 +69,10 @@ public class ActiveImplementation implements ActiveService {
                 Profile profile = profileRepository.findById(userUtil.getUser().getId())
                         .orElseThrow(() -> new TripException("Profile not found"));
                 Active active = TripMapper.INSTANCE.active(request);
-                active.setTripStatus(TripStatus.ONLINE);
+                active.setProviderStatus(ProviderStatus.ONLINE);
                 active.setProfile(profile);
                 activeRepository.save(active);
-                return new ApiResponse<>("Success", TripStatus.ONLINE, HttpStatus.CREATED);
+                return new ApiResponse<>("Success", ProviderStatus.ONLINE, HttpStatus.CREATED);
             }
         } else {
             throw new TripException("Access denied. Cannot perform action");
@@ -79,17 +81,11 @@ public class ActiveImplementation implements ActiveService {
 
     private void updateActive(OnlineRequest request, Active active) {
         if(request != null) {
-            if(request.getCity() != null && !active.getCity().equalsIgnoreCase(request.getCity())) {
-                active.setCity(request.getCity());
+            if(request.getAddress() != null && !active.getAddress().equalsIgnoreCase(request.getAddress())) {
+                active.setAddress(request.getAddress());
             }
-            if(request.getPlace() != null && !active.getPlace().equalsIgnoreCase(request.getPlace())) {
-                active.setPlace(request.getPlace());
-            }
-            if(request.getCountry() != null && !active.getCountry().equalsIgnoreCase(request.getCountry())) {
-                active.setCountry(request.getCountry());
-            }
-            if(request.getState() != null && !active.getState().equalsIgnoreCase(request.getState())) {
-                active.setState(request.getState());
+            if(request.getPlaceId() != null && !active.getPlaceId().equalsIgnoreCase(request.getPlaceId())) {
+                active.setPlaceId(request.getPlaceId());
             }
             if(request.getLatitude() != null && !active.getLatitude().equals(request.getLatitude())) {
                 active.setLatitude(request.getLatitude());
@@ -101,12 +97,12 @@ public class ActiveImplementation implements ActiveService {
     }
 
     @Override
-    public ApiResponse<TripStatus> fetchStatus() {
+    public ApiResponse<ProviderStatus> fetchStatus() {
         return new ApiResponse<>(
                 "Success",
                 activeRepository.findByProfile_Id(userUtil.getUser().getId())
-                        .map(Active::getTripStatus)
-                        .orElse(TripStatus.OFFLINE),
+                        .map(Active::getProviderStatus)
+                        .orElse(ProviderStatus.OFFLINE),
                 HttpStatus.OK
         );
     }
@@ -124,7 +120,7 @@ public class ActiveImplementation implements ActiveService {
                         ActiveResponse response = new ActiveResponse();
                         response.setName(profile.getFullName());
                         response.setAvatar(profile.getAvatar());
-                        response.setStatus(active != null ? active.getTripStatus() : TripStatus.OFFLINE);
+                        response.setStatus(active != null ? active.getProviderStatus() : ProviderStatus.OFFLINE);
                         response.setCategory(profile.getCategory().getType());
                         response.setImage(profile.getCategory().getImage());
                         return response;
@@ -137,19 +133,33 @@ public class ActiveImplementation implements ActiveService {
     }
 
     @Override
-    public void toggle(User user, TripStatus status, OnlineRequest request) {
+    public void toggle(User user, ProviderStatus status, OnlineRequest request) {
         activeRepository.findByProfile_Id(user.getId())
                 .ifPresentOrElse(active -> {
-                    active.setTripStatus(status);
+                    active.setProviderStatus(status);
                     active.setUpdatedAt(LocalDateTime.now());
-                    updateActive(request, active);
+
+                    if(request != null) {
+                        updateActive(request, active);
+                    }
                     activeRepository.save(active);
+                    messaging.convertAndSend(
+                            "/platform/%s".formatted(String.valueOf(active.getProfile().getId())),
+                            status
+                    );
                 }, () -> profileRepository.findById(user.getId())
                         .ifPresent(profile -> {
-                            Active active = TripMapper.INSTANCE.active(request);
-                            active.setTripStatus(status);
-                            active.setProfile(profile);
-                            activeRepository.save(active);
+                            if(request != null) {
+                                Active active = TripMapper.INSTANCE.active(request);
+                                active.setProviderStatus(status);
+                                active.setProfile(profile);
+                                activeRepository.save(active);
+
+                                messaging.convertAndSend(
+                                        "/platform/%s".formatted(String.valueOf(profile.getId())),
+                                        status
+                                );
+                            }
                         }));
     }
 }

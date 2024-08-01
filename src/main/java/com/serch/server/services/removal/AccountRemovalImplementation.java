@@ -3,14 +3,14 @@ package com.serch.server.services.removal;
 import com.serch.server.enums.auth.Role;
 import com.serch.server.enums.company.IssueStatus;
 import com.serch.server.models.account.AccountDelete;
-import com.serch.server.models.business.BusinessProfile;
+import com.serch.server.models.account.BusinessProfile;
 import com.serch.server.models.auth.User;
 import com.serch.server.repositories.account.*;
 import com.serch.server.repositories.auth.SessionRepository;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.auth.mfa.MFAFactorRepository;
 import com.serch.server.repositories.bookmark.BookmarkRepository;
-import com.serch.server.repositories.business.BusinessProfileRepository;
+import com.serch.server.repositories.account.BusinessProfileRepository;
 import com.serch.server.repositories.company.SpeakWithSerchRepository;
 import com.serch.server.repositories.conversation.CallRepository;
 import com.serch.server.repositories.conversation.ChatMessageRepository;
@@ -20,8 +20,6 @@ import com.serch.server.repositories.referral.ReferralProgramRepository;
 import com.serch.server.repositories.referral.ReferralRepository;
 import com.serch.server.repositories.schedule.ScheduleRepository;
 import com.serch.server.repositories.shop.ShopRepository;
-import com.serch.server.repositories.subscription.SubscriptionAssociateRepository;
-import com.serch.server.repositories.subscription.SubscriptionRepository;
 import com.serch.server.repositories.transaction.TransactionRepository;
 import com.serch.server.repositories.transaction.WalletRepository;
 import com.serch.server.repositories.trip.ActiveRepository;
@@ -56,12 +54,10 @@ public class AccountRemovalImplementation implements AccountRemovalService {
     private final ReferralProgramRepository referralProgramRepository;
     private final ScheduleRepository scheduleRepository;
     private final ShopRepository shopRepository;
-    private final SubscriptionRepository subscriptionRepository;
     private final TransactionRepository transactionRepository;
     private final WalletRepository walletRepository;
     private final ActiveRepository activeRepository;
     private final TripRepository tripRepository;
-    private final SubscriptionAssociateRepository subscriptionAssociateRepository;
     private final SpeakWithSerchRepository speakWithSerchRepository;
 
     @Override
@@ -118,7 +114,6 @@ public class AccountRemovalImplementation implements AccountRemovalService {
         scheduleRepository.deleteAll(scheduleRepository.findByUser_Id(user.getId()));
 
         shopRepository.deleteAll(shopRepository.findByUser_Id(user.getId()));
-        subscriptionRepository.findByUser_Id(user.getId()).ifPresent(subscriptionRepository::delete);
 //        transactionRepository.deleteAll(transactionRepository.findBySender_User_Id(user.getId()));
         transactionRepository.deleteAll(transactionRepository.findByAccount(String.valueOf(user.getId())));
         walletRepository.findByUser_Id(user.getId()).ifPresent(walletRepository::delete);
@@ -133,7 +128,6 @@ public class AccountRemovalImplementation implements AccountRemovalService {
                     BusinessProfile business = profile.getBusiness();
                     business.getAssociates().remove(profile);
                     businessProfileRepository.save(business);
-                    subscriptionAssociateRepository.deleteAll(subscriptionAssociateRepository.findByProfile_Id(user.getId()));
                     removeFromOtherTables(user);
                     profileRepository.delete(profile);
                 });

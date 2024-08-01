@@ -32,7 +32,10 @@ public class CategoryImplementation implements CategoryService {
 
     private List<SerchCategoryResponse> getSerchCategoryResponses() {
         return Arrays.stream(SerchCategory.values())
-                .filter(serchCategory -> serchCategory != SerchCategory.USER && serchCategory != SerchCategory.BUSINESS && serchCategory != SerchCategory.GUEST)
+                .filter(serchCategory -> serchCategory != SerchCategory.USER)
+                .filter(serchCategory -> serchCategory != SerchCategory.BUSINESS)
+                .filter(serchCategory -> serchCategory != SerchCategory.GUEST)
+                .filter(serchCategory -> serchCategory != SerchCategory.PERSONAL_SHOPPER)
                 .map(this::response)
                 .toList();
     }

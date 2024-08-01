@@ -1,163 +1,154 @@
 package com.serch.server.services.trip.services;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.models.account.Profile;
 import com.serch.server.models.trip.Trip;
 import com.serch.server.services.trip.requests.*;
-import com.serch.server.services.trip.responses.TripHistoryResponse;
+import com.serch.server.services.trip.responses.ActiveResponse;
+import com.serch.server.services.trip.responses.TripResponse;
 
 import java.util.List;
 
 /**
- * This is the wrapper class for the implementation of trip actions and activities.
- * <p></p>
- * @see com.serch.server.services.trip.services.implementations.TripImplementation
- * @see com.serch.server.services.trip.controllers.TripController
+ * TripService interface defines the operations related to trip management.
  */
 public interface TripService {
     /**
-     * This initiates a request for trip session. Accessible to Users.
+     * Request a new trip.
      *
-     * @param request The request data containing the address of the user making the request.
+     * @param request the trip request details
      *
-     * @return ApiResponse of string
+     * @return the response containing the active trip details
      *
-     * @see ApiResponse
-     * @see TripRequest
-     */
-    ApiResponse<String> request(TripRequest request);
-
-    /**
-     * This accepts an existing trip request. Accessible to Providers.
-     *
-     * @param request The request data containing the address of the providing accepting the request.
-     *
-     * @return ApiResponse of string
-     *
-     * @see ApiResponse
-     * @see TripAcceptRequest
-     */
-    ApiResponse<String> accept(TripAcceptRequest request);
-
-    /**
-     * This declines an existing trip request. Accessible to Providers.
-     *
-     * @param request The request data containing the trip id and reason for declining.
-     *
-     * @return ApiResponse of string
-     *
-     * @see ApiResponse
-     * @see TripDeclineRequest
-     */
-    ApiResponse<String> decline(TripDeclineRequest request);
-
-    /**
-     * This cancels an existing trip request. Accessible to Users.
-     *
-     * @param request The request data containing the reason for cancelling and trip id.
-     *
-     * @return ApiResponse of string
-     *
-     * @see ApiResponse
-     * @see TripCancelRequest
-     */
-    ApiResponse<String> cancel(TripCancelRequest request);
-
-    /**
-     * This makes it possible for users to permit providers into sharing the current trip they're on.
-     *
-     * @param tripId The trip id of the active trip
-     *
-     * @return ApiResponse of string
-     *
-     * @see ApiResponse
-     */
-    ApiResponse<String> permitSharing(String tripId);
-
-    /**
-     * This initiates a request to invite another provider for an existing trip session. Accessible to Providers.
-     *
-     * @param request The request data containing the trip id and the id of the provider being invited.
-     *
-     * @return ApiResponse of string
-     *
-     * @see ApiResponse
      * @see TripInviteRequest
-     */
-    ApiResponse<String> invite(TripInviteRequest request);
-
-    /**
-     * This cancels an existing request to invite another provider to an existing trip session.
-     * Accessible to Users.
-     *
-     * @param request The request data containing the trip id and cancel reason.
-     *
-     * @return ApiResponse of string
-     *
      * @see ApiResponse
-     * @see TripCancelRequest
+     * @see TripResponse
      */
-    ApiResponse<String> cancelInvite(TripCancelRequest request);
+    ApiResponse<TripResponse> request(TripInviteRequest request);
 
     /**
-     * This makes it possible for providers to announce arrival and verify the code they have, in order
-     * to start the trip properly.
+     * Recreate an existing trip data into a new one
      *
-     * @param code The authentication code in the provider's phone
-     * @param tripId The trip id of the active trip
+     * @param withInvited Whether to use the invited provider as the main provider in the new created trip
+     * @param id The trip id to use in recreating the same trip data
      *
-     * @return ApiResponse of string
+     * @return {@link ApiResponse} of {@link TripResponse} data
+     */
+    ApiResponse<TripResponse> rebook(String id, Boolean withInvited);
+
+
+    /**
+     * Create a trip from schedule
      *
+     * @param request The {@link TripInviteRequest} data
+     * @param account The {@link Profile} data of the user
+     * @param profile The {@link Profile} data of the provider
+     *
+     * @return {@link ApiResponse} of requested {@link TripResponse}
+     */
+    ApiResponse<TripResponse> request(TripInviteRequest request, Profile account, Profile profile);
+
+    /**
+     * Accept a trip request.
+     *
+     * @param request the trip accept request details
+     *
+     * @return the response containing the active trip details
+     *
+     * @see TripAcceptRequest
      * @see ApiResponse
+     * @see TripResponse
      */
-    ApiResponse<String> announceArrival(String code, String tripId);
+    ApiResponse<TripResponse> accept(TripAcceptRequest request);
 
     /**
-     * This makes it possible for providers to leave the trip.
+     * End an active trip.
      *
-     * @param tripId The trip id of the active trip
-     *
-     * @return ApiResponse of string
-     *
-     * @see ApiResponse
-     */
-    ApiResponse<String> leave(String tripId);
-
-    /**
-     * This makes it possible for either user or provider to end the active trip.
-     *
-     * @param tripId The trip id of the active trip.
-     * @param amount The amount spent during the trip.
-     *
-     * @return ApiResponse of string
+     * @param request The {@link TripCancelRequest} data
      *
      * @see ApiResponse
      */
-    ApiResponse<String> end(String tripId, Integer amount);
+    ApiResponse<List<TripResponse>> end(TripCancelRequest request);
 
     /**
-     * This returns a list of trips the logged-in user or provider has been a part of.
+     * Leave an active trip.
      *
-     * @return ApiResponse of List for {@link TripHistoryResponse}
+     * @param id the trip id
      *
      * @see ApiResponse
+     * @see TripResponse
      */
-    ApiResponse<List<TripHistoryResponse>> history();
+    ApiResponse<List<TripResponse>> leave(String id);
 
     /**
-     * This cancels the trip
+     * Search for active providers based on the provided phone number.
      *
-     * @param trip The current active trip {@link Trip}
-     * @param reason The reason for trip cancellation
+     * @param lng Provider lng
+     * @param lat Provider latitude
+     * @param phoneNumber Nullable phone number
      *
-     * @return ApiResponse of string
+     * @return the response containing a list of active responses
+     * @see ApiResponse
+     * @see ActiveResponse
      */
-    ApiResponse<String> getCancelResponse(Trip trip, String reason);
+    ApiResponse<List<ActiveResponse>> search(String phoneNumber, Double lat, Double lng);
 
     /**
-     * This updates the trip details when it is ended
+     * Verify trip authentication.
      *
-     * @param amount The amount spent during the trip
-     * @param trip The current trip {@link Trip}
+     * @param request the trip authentication request details
+     *
+     * @return the response containing the active trip details
+     *
+     * @see TripAuthRequest
+     * @see ApiResponse
+     * @see TripResponse
      */
-    void updateTripWhenEnded(Integer amount, Trip trip);
+    ApiResponse<TripResponse> auth(TripAuthRequest request);
+
+    /**
+     * Cancel the trip
+     *
+     * @param request The {@link TripCancelRequest} data
+     *
+     * @return {@link ApiResponse} list of {@link TripResponse}
+     */
+    ApiResponse<List<TripResponse>> cancel(TripCancelRequest request);
+
+    /**
+     * Try paying the service fee, if not paid
+     *
+     * @param id The trip id
+     *
+     * @return {@link ApiResponse} list of {@link TripResponse}
+     */
+    ApiResponse<TripResponse> payServiceFee(String id);
+
+    /**
+     * Verify the transaction for special trip requests
+     *
+     * @param id The trip id
+     * @param guest The guest id (Optional)
+     * @param reference The transaction reference
+     *
+     * @return {@link ApiResponse} list of {@link TripResponse}
+     */
+    ApiResponse<TripResponse> verify(String id, String guest, String reference);
+
+    /**
+     * Update the details of a trip.
+     *
+     * @param request the trip update request details
+     * @see TripUpdateRequest
+     *
+     * @return {@link ApiResponse} list of {@link TripResponse}
+     */
+    ApiResponse<TripResponse> update(TripUpdateRequest request);
+
+    /**
+     * Update other entities data in the trip
+     *
+     * @param trip The {@link Trip} data
+     */
+    void updateOthers(Trip trip);
 }

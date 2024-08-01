@@ -5,15 +5,10 @@ import com.serch.server.enums.auth.AuthMethod;
 import com.serch.server.enums.auth.Role;
 import com.serch.server.exceptions.ExceptionCodes;
 import com.serch.server.exceptions.auth.AuthException;
-import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.User;
-import com.serch.server.models.auth.incomplete.Incomplete;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.auth.incomplete.IncompleteRepository;
-import com.serch.server.services.business.services.BusinessService;
-import com.serch.server.services.account.services.ProfileService;
-import com.serch.server.services.account.services.SpecialtyService;
-import com.serch.server.services.auth.requests.RequestAuth;
+import com.serch.server.services.account.services.BusinessService;
 import com.serch.server.services.auth.requests.RequestBusinessProfile;
 import com.serch.server.services.auth.requests.RequestLogin;
 import com.serch.server.services.auth.requests.RequestSession;
@@ -32,8 +27,6 @@ import org.springframework.stereotype.Service;
  * @see AuthService
  * @see SessionService
  * @see BusinessService
- * @see ProfileService
- * @see SpecialtyService
  * @see UserRepository
  * @see IncompleteRepository
  */
@@ -43,8 +36,6 @@ public class BusinessAuthImplementation implements BusinessAuthService {
     private final AuthService authService;
     private final SessionService sessionService;
     private final BusinessService businessService;
-    private final ProfileService profileService;
-    private final SpecialtyService specialtyService;
     private final UserRepository userRepository;
     private final IncompleteRepository incompleteRepository;
 
@@ -69,6 +60,9 @@ public class BusinessAuthImplementation implements BusinessAuthService {
             if(incomplete.hasProfile()) {
                 if(incomplete.hasCategory()) {
                     User user = authService.getUserFromIncomplete(incomplete, Role.BUSINESS);
+                    user.setCountry(profile.getCountry());
+                    user.setState(profile.getState());
+                    userRepository.save(user);
                     ApiResponse<String> response = businessService.createProfile(incomplete, user, profile);
 
                     if(response.getStatus().is2xxSuccessful()) {
@@ -93,27 +87,6 @@ public class BusinessAuthImplementation implements BusinessAuthService {
             }
         } else {
             throw new AuthException("You have not confirmed your email", ExceptionCodes.EMAIL_NOT_VERIFIED);
-        }
-    }
-
-    @Override
-    public ApiResponse<AuthResponse> finishAssociateSignup(RequestAuth auth) {
-        Incomplete incomplete = incompleteRepository.findByEmailAddress(auth.getEmailAddress())
-                .orElseThrow(() -> new AuthException("User not found"));
-
-        User user = authService.getUserFromIncomplete(incomplete, Role.ASSOCIATE_PROVIDER);
-        ApiResponse<Profile> response = profileService.createProviderProfile(incomplete, user);
-        if(response.getStatus().is2xxSuccessful()) {
-            specialtyService.createSpecialties(incomplete, response.getData());
-
-            RequestSession requestSession = new RequestSession();
-            requestSession.setMethod(AuthMethod.PASSWORD);
-            requestSession.setUser(user);
-            requestSession.setDevice(auth.getDevice());
-
-            return sessionService.generateSession(requestSession);
-        } else {
-            return new ApiResponse<>(response.getMessage());
         }
     }
 }

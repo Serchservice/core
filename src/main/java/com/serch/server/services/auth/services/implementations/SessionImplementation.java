@@ -1,5 +1,7 @@
 package com.serch.server.services.auth.services.implementations;
 
+import com.serch.server.admin.models.Admin;
+import com.serch.server.admin.repositories.AdminRepository;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.auth.AuthLevel;
@@ -12,13 +14,12 @@ import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.RefreshToken;
 import com.serch.server.models.auth.Session;
 import com.serch.server.models.auth.User;
-import com.serch.server.models.business.BusinessProfile;
+import com.serch.server.models.account.BusinessProfile;
 import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.auth.RefreshTokenRepository;
 import com.serch.server.repositories.auth.SessionRepository;
 import com.serch.server.repositories.auth.UserRepository;
-import com.serch.server.repositories.business.BusinessProfileRepository;
-import com.serch.server.repositories.subscription.SubscriptionRepository;
+import com.serch.server.repositories.account.BusinessProfileRepository;
 import com.serch.server.services.auth.requests.RequestSession;
 import com.serch.server.services.auth.requests.RequestSessionToken;
 import com.serch.server.services.auth.responses.AuthResponse;
@@ -56,7 +57,7 @@ public class SessionImplementation implements SessionService {
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
     private final BusinessProfileRepository businessProfileRepository;
-    private final SubscriptionRepository subscriptionRepository;
+    private final AdminRepository adminRepository;
 
     @Override
     public void revokeAllRefreshTokens(UUID userId) {
@@ -113,51 +114,8 @@ public class SessionImplementation implements SessionService {
         revokeAllRefreshTokens(request.getUser().getId());
 
         String token = tokenService.generateRefreshToken();
-        String accessToken = getAccessToken(request, token);
-        SerchCategory category = profileRepository.findById(request.getUser().getId())
-                .map(Profile::getCategory)
-                .orElse(
-                        businessProfileRepository.findById(request.getUser().getId())
-                                .map(BusinessProfile::getCategory)
-                                .orElse(SerchCategory.USER)
-                );
-        String avatar = profileRepository.findById(request.getUser().getId())
-                .map(Profile::getAvatar)
-                .orElse(
-                        businessProfileRepository.findById(request.getUser().getId())
-                                .map(BusinessProfile::getAvatar)
-                                .orElse("")
-                );
-        Double rating = profileRepository.findById(request.getUser().getId())
-                .map(Profile::getRating)
-                .orElse(
-                        businessProfileRepository.findById(request.getUser().getId())
-                                .map(BusinessProfile::getRating)
-                                .orElse(5.0)
-                );
-        String subscription = subscriptionRepository.findByUser_Id(request.getUser().getId())
-                .map(sub -> sub.getPlan().getType().name())
-                .orElse("");
-        return new ApiResponse<>(
-                "Successful",
-                AuthResponse.builder()
-                        .mfaEnabled(request.getUser().getMfaEnabled())
-                        .session(new SessionResponse(accessToken, token))
-                        .firstName(request.getUser().getFirstName())
-                        .lastName(request.getUser().getLastName())
-                        .role(request.getUser().getRole().name())
-                        .category(category.getType())
-                        .image(category.getImage())
-                        .shouldSubscribe(category.getShouldSubscribe())
-                        .subscription(subscription)
-                        .verification("")
-                        .rating(rating)
-                        .avatar(avatar)
-                        .id(request.getUser().getId())
-                        .recoveryCodesEnabled(request.getUser().getRecoveryCodeEnabled())
-                        .build(),
-                HttpStatus.CREATED
-        );
+
+        return new ApiResponse<>("Successful", auth(request, getAccessToken(request, token), token), HttpStatus.CREATED);
     }
 
     private String getAccessToken(RequestSession request, String token) {
@@ -172,6 +130,54 @@ public class SessionImplementation implements SessionService {
         sessionToken.setRefreshId(refreshToken.getId());
 
         return jwtService.generateToken(sessionToken);
+    }
+
+    private AuthResponse auth(RequestSession request, String accessToken, String token) {
+        SerchCategory category = profileRepository.findById(request.getUser().getId())
+                .map(Profile::getCategory)
+                .orElse(
+                        businessProfileRepository.findById(request.getUser().getId())
+                                .map(BusinessProfile::getCategory)
+                                .orElse(SerchCategory.USER)
+                );
+        String avatar = profileRepository.findById(request.getUser().getId())
+                .map(Profile::getAvatar)
+                .orElse(
+                        businessProfileRepository.findById(request.getUser().getId())
+                                .map(BusinessProfile::getBusinessLogo)
+                                .orElse(
+                                        adminRepository.findById(request.getUser().getId())
+                                                .map(Admin::getAvatar)
+                                                .orElse("")
+                                )
+                );
+        Double rating = profileRepository.findById(request.getUser().getId())
+                .map(Profile::getRating)
+                .orElse(
+                        businessProfileRepository.findById(request.getUser().getId())
+                                .map(BusinessProfile::getRating)
+                                .orElse(5.0)
+                );
+        String firstName = businessProfileRepository.findById(request.getUser().getId())
+                .map(BusinessProfile::getBusinessName)
+                .orElse(request.getUser().getFirstName());
+        String lastName = businessProfileRepository.findById(request.getUser().getId())
+                .map(business -> "")
+                .orElse(request.getUser().getLastName());
+
+        return AuthResponse.builder()
+                .mfaEnabled(request.getUser().getMfaEnabled())
+                .session(new SessionResponse(accessToken, token))
+                .firstName(firstName)
+                .lastName(lastName)
+                .role(request.getUser().getRole().name())
+                .category(category.getType())
+                .image(category.getImage())
+                .rating(rating)
+                .avatar(avatar)
+                .id(request.getUser().getId())
+                .recoveryCodesEnabled(request.getUser().getRecoveryCodeEnabled())
+                .build();
     }
 
     @Override
@@ -225,7 +231,7 @@ public class SessionImplementation implements SessionService {
     }
 
     @Override
-    public ApiResponse<String> validateSession(String token) {
+    public ApiResponse<String> validateSession(String token, String state, String country) {
         try {
             if(jwtService.isTokenExpired(token)) {
                 throw new SessionException(
@@ -248,17 +254,27 @@ public class SessionImplementation implements SessionService {
                         .orElseThrow(() -> new SessionException("Invalid token"));
 
                 if(user.getId().equals(userId) && jwtService.isTokenIssuedBySerch(token) && (!session.getRevoked() && !refreshToken.getRevoked())) {
+                    if(user.isAdmin()) {
+                        Admin admin = adminRepository.findById(user.getId())
+                                .orElseThrow(() -> new AuthException("Admin not found"));
+                        if(admin.mfaEnforced()) {
+                            throw new SessionException("Two-factor authentication is required", ExceptionCodes.MFA_COMPULSORY);
+                        }
+                    }
                     user.setLastSignedIn(LocalDateTime.now());
+                    if(state != null) {
+                        user.setState(state);
+                    }
+                    if(country != null) {
+                        user.setCountry(country);
+                    }
                     userRepository.save(user);
                     return new ApiResponse<>("Token is valid", email, HttpStatus.OK);
                 } else {
                     return new ApiResponse<>("Invalid token");
                 }
             } catch (IllegalArgumentException e) {
-                throw new SessionException(
-                        "Invalid session. Please login",
-                        ExceptionCodes.IMPROPER_USER_ID_FORMAT
-                );
+                throw new SessionException("Invalid session. Please login", ExceptionCodes.IMPROPER_USER_ID_FORMAT);
             }
         } catch (ExpiredJwtException e) {
             return new ApiResponse<>("Token has expired. Please login");

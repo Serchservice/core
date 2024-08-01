@@ -6,6 +6,7 @@ import com.serch.server.services.schedule.requests.ScheduleRequest;
 import com.serch.server.services.schedule.responses.ScheduleGroupResponse;
 import com.serch.server.services.schedule.responses.ScheduleResponse;
 import com.serch.server.services.schedule.responses.ScheduleTimeResponse;
+import com.serch.server.services.trip.responses.TripResponse;
 
 import java.util.List;
 import java.util.UUID;
@@ -17,7 +18,6 @@ import java.util.UUID;
  * @see ScheduleImplementation
  */
 public interface ScheduleService {
-
     /**
      * Places a schedule request based on the provided details.
      * Checks for existing schedules for the provider on the current day
@@ -66,7 +66,7 @@ public interface ScheduleService {
      * @param id The ID of the schedule to be started.
      * @return A response indicating the status of the operation.
      */
-    ApiResponse<String> start(String id);
+    ApiResponse<TripResponse> start(String id);
 
     /**
      * Declines a scheduled appointment based on the provided details.

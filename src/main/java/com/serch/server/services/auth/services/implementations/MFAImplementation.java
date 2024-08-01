@@ -1,8 +1,10 @@
 package com.serch.server.services.auth.services.implementations;
 
+import com.serch.server.admin.enums.ActivityMode;
+import com.serch.server.admin.services.account.services.AdminActivityService;
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.core.totp.MFAAuthenticatorService;
 import com.serch.server.enums.auth.AuthMethod;
-import com.serch.server.enums.auth.Role;
 import com.serch.server.exceptions.ExceptionCodes;
 import com.serch.server.exceptions.auth.AuthException;
 import com.serch.server.mappers.AuthMapper;
@@ -26,19 +28,7 @@ import com.serch.server.services.auth.services.SessionService;
 import com.serch.server.services.auth.services.TokenService;
 import com.serch.server.utils.DatabaseUtil;
 import com.serch.server.utils.UserUtil;
-import dev.samstevens.totp.code.DefaultCodeGenerator;
-import dev.samstevens.totp.code.DefaultCodeVerifier;
-import dev.samstevens.totp.code.HashingAlgorithm;
-import dev.samstevens.totp.qr.QrData;
-import dev.samstevens.totp.qr.QrGenerator;
-import dev.samstevens.totp.qr.ZxingPngQrGenerator;
-import dev.samstevens.totp.secret.DefaultSecretGenerator;
-import dev.samstevens.totp.secret.SecretGenerator;
-import dev.samstevens.totp.time.SystemTimeProvider;
-import dev.samstevens.totp.util.Utils;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -70,51 +60,8 @@ public class MFAImplementation implements MFAService {
     private final MFARecoveryCodeRepository mFARecoveryCodeRepository;
     private final SessionService sessionService;
     private final TokenService tokenService;
-
-    /**
-     * Generates a random secret for MFA.
-     *
-     * @return The generated secret.
-     */
-    protected String generateSecret() {
-        SecretGenerator secretGenerator = new DefaultSecretGenerator(64);
-        return secretGenerator.generate();
-    }
-
-    /**
-     * Generates a QR code for the provided secret.
-     *
-     * @param secret The secret for generating the QR code.
-     * @param role   The role of the user.
-     * @return The data URI for the generated QR code.
-     */
-    @SneakyThrows
-    protected String generateQrCode(String secret, Role role) {
-        QrData data = new QrData.Builder()
-                .label(UserUtil.getLoginUser())
-                .secret(secret)
-                .issuer("Serch " + role.getType())
-                .algorithm(HashingAlgorithm.SHA512)
-                .digits(6)
-                .build();
-        QrGenerator generator = new ZxingPngQrGenerator();
-        byte[] imageData = generator.generate(data);
-        return Utils.getDataUriForImage(imageData, generator.getImageMimeType());
-    }
-
-    /**
-     * Checks if the provided MFA code is valid.
-     *
-     * @param secret The secret associated with the MFA code.
-     * @param code   The MFA code to be validated.
-     * @return {@code true} if the code is valid, otherwise {@code false}.
-     */
-    protected boolean isCodeValid(String secret, String code) {
-        return new DefaultCodeVerifier(
-                new DefaultCodeGenerator(),
-                new SystemTimeProvider()
-        ).isValidCode(secret, code);
-    }
+    private final AdminActivityService activityService;
+    private final MFAAuthenticatorService authenticatorService;
 
     @Override
     @Transactional
@@ -124,18 +71,25 @@ public class MFAImplementation implements MFAService {
 
         if(user.getMfaEnabled()) {
             throw new AuthException("You have enabled MFA", ExceptionCodes.ACCESS_DENIED);
-        } else if(user.getMfaFactor() != null) {
-            String qrCode = generateQrCode(user.getMfaFactor().getSecret(), user.getRole());
-            return new ApiResponse<>(new MFADataResponse(user.getMfaFactor().getSecret(), qrCode));
+        }
+        return new ApiResponse<>(getMFAData(user));
+    }
+
+    @Override
+    public MFADataResponse getMFAData(User user) {
+        if(user.getMfaFactor() != null) {
+            String secret = DatabaseUtil.decodeData(user.getMfaFactor().getSecret());
+            String qrCode = authenticatorService.getQRCode(secret, user.getEmailAddress(), user.getRole());
+            return new MFADataResponse(secret, String.format("data:image/png;base64,%s", qrCode));
         } else {
-            String secret = generateSecret();
-            String qrCode = generateQrCode(secret, user.getRole());
+            String secret = authenticatorService.getRandomSecretKey();
+            String qrCode = authenticatorService.getQRCode(secret, user.getEmailAddress(), user.getRole());
 
             MFAFactor factor = new MFAFactor();
             factor.setUser(user);
-            factor.setSecret(secret);
+            factor.setSecret(DatabaseUtil.encodeData(secret));
             mFAFactorRepository.save(factor);
-            return new ApiResponse<>(new MFADataResponse(secret, qrCode));
+            return new MFADataResponse(secret, String.format("data:image/png;base64,%s", qrCode));
         }
     }
 
@@ -143,16 +97,19 @@ public class MFAImplementation implements MFAService {
     public ApiResponse<AuthResponse> validateCode(RequestMFAChallenge request) {
         var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        var factor = user.getMfaFactor();
-        if(factor == null) {
+        if(user.getMfaFactor() == null) {
             throw new AuthException("You have not enabled MFA", ExceptionCodes.ACCESS_DENIED);
         } else {
-            MFAChallenge challenge = saveMFAChallenge(request, factor);
-            if(isCodeValid(factor.getSecret(), request.getCode())) {
+            MFAChallenge challenge = saveMFAChallenge(request, user.getMfaFactor());
+            if(authenticatorService.isValid(request.getCode(), DatabaseUtil.decodeData(user.getMfaFactor().getSecret()))) {
                 if(!user.getMfaEnabled()) {
                     user.setMfaEnabled(true);
                     user.setUpdatedAt(LocalDateTime.now());
                     userRepository.save(user);
+
+                    if(user.isAdmin()) {
+                        activityService.create(ActivityMode.MFA_LOGIN, null, null, user);
+                    }
 
                     challenge.setVerifiedAt(LocalDateTime.now());
                     mFAChallengeRepository.save(challenge);
@@ -196,6 +153,10 @@ public class MFAImplementation implements MFAService {
                         MFAChallenge challenge = saveMFAChallenge(request, factor);
                         challenge.setVerifiedAt(LocalDateTime.now());
                         mFAChallengeRepository.save(challenge);
+
+                        if(user.isAdmin()) {
+                            activityService.create(ActivityMode.MFA_LOGIN, null, null, user);
+                        }
                         return sessionResponse(request, user);
                     }
                 }
@@ -292,11 +253,14 @@ public class MFAImplementation implements MFAService {
         var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if(user.getMfaEnabled()) {
+            MFAFactor factor = user.getMfaFactor();
+            mFAFactorRepository.delete(factor);
+            mFAFactorRepository.flush();
+
             user.setMfaEnabled(false);
             user.setRecoveryCodeEnabled(false);
             user.setUpdatedAt(LocalDateTime.now());
             userRepository.save(user);
-            mFAFactorRepository.delete(user.getMfaFactor());
 
             RequestSession requestSession = new RequestSession();
             requestSession.setMethod(AuthMethod.TOKEN);
@@ -304,21 +268,6 @@ public class MFAImplementation implements MFAService {
             requestSession.setDevice(device);
 
             return sessionService.generateSession(requestSession);
-        } else {
-            throw new AuthException("Error occurred while disabling MFA");
-        }
-    }
-
-    @Override
-    public ApiResponse<String> disableRecoveryCode() {
-        var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        if(user.getMfaEnabled() && user.getRecoveryCodeEnabled()) {
-            user.setRecoveryCodeEnabled(false);
-            user.setUpdatedAt(LocalDateTime.now());
-            userRepository.save(user);
-            mFAFactorRepository.delete(user.getMfaFactor());
-            return new ApiResponse<>("MFA Recovery Codes disabled", HttpStatus.OK);
         } else {
             throw new AuthException("Error occurred while disabling MFA");
         }

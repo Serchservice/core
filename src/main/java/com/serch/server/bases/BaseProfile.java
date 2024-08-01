@@ -3,9 +3,6 @@ package com.serch.server.bases;
 import com.serch.server.annotations.SerchEnum;
 import com.serch.server.enums.account.Gender;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,35 +31,12 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @EntityListeners(AuditingEntityListener.class)
 public class BaseProfile extends BaseUser {
     /**
-     * The first name associated with the profile.
-     */
-    @Column(name = "first_name", nullable = false, columnDefinition = "TEXT")
-    @Size(min = 3, message = "First name must be above 3 characters")
-    @NotBlank(message = "First name cannot be empty or null")
-    private String firstName;
-
-    /**
-     * The last name associated with the profile.
-     */
-    @Column(name = "last_name", nullable = false, columnDefinition = "TEXT")
-    @Size(min = 3, message = "Last name must be above 3 characters")
-    @NotBlank(message = "Last name cannot be empty or null")
-    private String lastName;
-
-    /**
      * The gender associated with the profile.
      */
     @Column(name = "gender", nullable = false)
     @Enumerated(value = EnumType.STRING)
     @SerchEnum(message = "Gender must be an enum")
     private Gender gender = Gender.ANY;
-
-    /**
-     * The email address associated with the profile.
-     */
-    @Column(name = "email_address", unique = true, nullable = false, columnDefinition = "TEXT")
-    @Email(message = "Email address must be properly formatted")
-    private String emailAddress;
 
     /**
      * The URL of the profile picture.

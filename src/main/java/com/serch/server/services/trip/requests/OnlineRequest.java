@@ -1,13 +1,14 @@
 package com.serch.server.services.trip.requests;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
 public class OnlineRequest {
-    private String place;
-    private String country;
-    private String state;
-    private String city;
+    @JsonProperty("place_id")
+    private String placeId;
+
+    private String address;
     private Double latitude;
     private Double longitude;
 }

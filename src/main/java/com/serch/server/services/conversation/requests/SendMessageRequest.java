@@ -1,7 +1,7 @@
 package com.serch.server.services.conversation.requests;
 
 import com.serch.server.enums.chat.MessageType;
-import com.serch.server.services.supabase.requests.FileUploadRequest;
+import com.serch.server.core.storage.requests.FileUploadRequest;
 import lombok.Data;
 
 @Data

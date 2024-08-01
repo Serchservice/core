@@ -7,6 +7,8 @@ import lombok.Data;
 public class VerifyEmailRequest {
     private String token;
     private String link;
+    private String country;
+    private String state;
 
     @JsonProperty("link_id")
     private String linkId;

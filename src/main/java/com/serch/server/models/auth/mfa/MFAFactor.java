@@ -45,9 +45,9 @@ public class MFAFactor extends BaseEntity {
     )
     private User user;
 
-    @OneToMany(mappedBy = "factor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "factor", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private List<MFARecoveryCode> recoveryCodes;
 
-    @OneToMany(mappedBy = "mfaFactor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "mfaFactor", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private List<MFAChallenge> mfaChallenges;
 }

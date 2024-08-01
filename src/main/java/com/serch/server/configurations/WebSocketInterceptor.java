@@ -31,7 +31,7 @@ public class WebSocketInterceptor implements ChannelInterceptor {
                 if (authHeader != null && authHeader.startsWith("Bearer ")) {
                     String token = authHeader.substring(7);
                     try {
-                        var session = sessionService.validateSession(token);
+                        var session = sessionService.validateSession(token, null, null);
                         if (session.getStatus().is2xxSuccessful()) {
                             UserDetails userDetails = userDetailsService.loadUserByUsername(session.getData());
                             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(

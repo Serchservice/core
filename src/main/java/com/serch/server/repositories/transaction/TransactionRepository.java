@@ -28,4 +28,9 @@ public interface TransactionRepository extends JpaRepository<Transaction, String
 
     @Query("select t from Transaction t where t.sender = ?1 or t.account = ?1")
     Page<Transaction> findRecentBySenderOrReceiver(@NonNull String account, Pageable pageable);
+
+    @Query("SELECT t FROM Transaction t WHERE (t.account = :userId OR t.sender = :userId) AND t.createdAt BETWEEN :startDate AND :endDate")
+    List<Transaction> findByUserAndDateRange(@Param("userId") String userId, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+
+    Optional<Transaction> findByEvent(@NonNull String event);
 }

@@ -1,12 +1,16 @@
 package com.serch.server.services.schedule.services;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.core.notification.core.NotificationService;
 import com.serch.server.enums.schedule.ScheduleStatus;
 import com.serch.server.exceptions.others.ScheduleException;
+import com.serch.server.exceptions.others.SharedException;
 import com.serch.server.mappers.ScheduleMapper;
 import com.serch.server.models.account.Profile;
+import com.serch.server.models.auth.User;
 import com.serch.server.models.schedule.Schedule;
 import com.serch.server.repositories.account.ProfileRepository;
+import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.schedule.ScheduleRepository;
 import com.serch.server.services.schedule.requests.ScheduleDeclineRequest;
 import com.serch.server.services.schedule.requests.ScheduleRequest;
@@ -14,12 +18,16 @@ import com.serch.server.services.schedule.responses.ScheduleGroupResponse;
 import com.serch.server.services.schedule.responses.ScheduleResponse;
 import com.serch.server.services.schedule.responses.ScheduleTimeResponse;
 import com.serch.server.services.transaction.services.SchedulePayService;
+import com.serch.server.services.trip.requests.TripInviteRequest;
+import com.serch.server.services.trip.responses.TripResponse;
+import com.serch.server.services.trip.services.TripService;
 import com.serch.server.utils.MoneyUtil;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -46,9 +54,15 @@ import static com.serch.server.enums.schedule.ScheduleStatus.*;
 @RequiredArgsConstructor
 public class ScheduleImplementation implements ScheduleService {
     private final SchedulePayService payService;
+    private final SchedulingService schedulingService;
+    private final NotificationService notificationService;
+    private final TripService tripService;
+    private final SimpMessagingTemplate template;
     private final UserUtil userUtil;
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("h:mma");
     private final ProfileRepository profileRepository;
     private final ScheduleRepository scheduleRepository;
+    private final UserRepository userRepository;
 
     @Value("${application.account.schedule.close.limit}")
     private Integer ACCOUNT_SCHEDULE_CLOSE_LIMIT;
@@ -75,15 +89,14 @@ public class ScheduleImplementation implements ScheduleService {
         if (schedules.stream().anyMatch(schedule -> schedule.getTime().equalsIgnoreCase(request.getTime()))) {
             throw new ScheduleException("Provider is already booked for %s today".formatted(request.getTime()));
         } else {
-            Schedule schedule = new Schedule();
-            schedule.setProvider(provider);
-            schedule.setUser(user);
-            schedule.setStatus(PENDING);
-            schedule.setTime(request.getTime().toUpperCase());
-            ScheduleResponse response = response(scheduleRepository.save(schedule));
+            Schedule schedule = createNewSchedule(request, provider, user);
+            ScheduleResponse response = schedulingService.response(schedule, false, true);
 
-            /// TODO:: Send notification
-
+            sendActiveNotification(schedule);
+            notificationService.send(
+                    provider.getId(),
+                    schedulingService.response(schedule, true, true)
+            );
             return new ApiResponse<>(
                     "Schedule placed for %s. ".formatted(request.getTime()) +
                             "%s will be notified".formatted(schedule.getProvider().getFullName()),
@@ -100,15 +113,59 @@ public class ScheduleImplementation implements ScheduleService {
         );
     }
 
-    private static void validateTime(ScheduleRequest request) {
+    private void validateTime(ScheduleRequest request) {
         LocalDate today = LocalDate.now();
         LocalDateTime currentTime = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("h:mma");
         LocalDateTime requestedTime = LocalDateTime.of(today, LocalTime.parse(request.getTime().toUpperCase(), formatter));
 
         // Check if the requested time has already passed
         if (requestedTime.isBefore(currentTime)) {
             throw new ScheduleException("The requested time %s has already passed.".formatted(request.getTime()));
+        }
+    }
+
+    private Schedule createNewSchedule(ScheduleRequest request, Profile provider, Profile user) {
+        Schedule schedule = ScheduleMapper.INSTANCE.schedule(request);
+        schedule.setProvider(provider);
+        schedule.setUser(user);
+        schedule.setStatus(PENDING);
+        schedule.setTime(request.getTime().toUpperCase());
+        return scheduleRepository.save(schedule);
+    }
+
+    private void sendActiveNotification(Schedule schedule) {
+        template.convertAndSend(
+                "/platform/%s".formatted(String.valueOf(schedule.getUser().getId())),
+                active(schedule.getUser().getId())
+        );
+        template.convertAndSend(
+                "/platform/%s".formatted(String.valueOf(schedule.getProvider().getId())),
+                active(schedule.getProvider().getId())
+        );
+
+        if(schedule.getProvider().isAssociate()) {
+            template.convertAndSend(
+                    "/platform/%s".formatted(String.valueOf(schedule.getProvider().getBusiness().getId())),
+                    active(schedule.getProvider().getBusiness().getId())
+            );
+        }
+    }
+
+    private void sendInactiveNotification(Schedule schedule) {
+        template.convertAndSend(
+                "/platform/%s".formatted(String.valueOf(schedule.getUser().getId())),
+                schedules(schedule.getUser().getId())
+        );
+        template.convertAndSend(
+                "/platform/%s".formatted(String.valueOf(schedule.getProvider().getId())),
+                schedules(schedule.getProvider().getId())
+        );
+
+        if(schedule.getProvider().isAssociate()) {
+            template.convertAndSend(
+                    "/platform/%s".formatted(String.valueOf(schedule.getProvider().getBusiness().getId())),
+                    schedules(schedule.getProvider().getBusiness().getId())
+            );
         }
     }
 
@@ -123,6 +180,12 @@ public class ScheduleImplementation implements ScheduleService {
                 schedule.setStatus(ACCEPTED);
                 schedule.setUpdatedAt(LocalDateTime.now());
                 scheduleRepository.save(schedule);
+
+                sendActiveNotification(schedule);
+                notificationService.send(
+                        schedule.getUser().getId(),
+                        schedulingService.response(schedule, false, true)
+                );
                 return new ApiResponse<>(
                         "Schedule accepted. %s will be notified".formatted(schedule.getUser().getFullName()),
                         HttpStatus.OK
@@ -144,6 +207,12 @@ public class ScheduleImplementation implements ScheduleService {
                 schedule.setStatus(CANCELLED);
                 schedule.setUpdatedAt(LocalDateTime.now());
                 scheduleRepository.save(schedule);
+
+                sendInactiveNotification(schedule);
+                notificationService.send(
+                        schedule.getProvider().getId(),
+                        schedulingService.response(schedule, true, true)
+                );
                 return new ApiResponse<>(
                         "Schedule cancelled. %s will not be notified".formatted(
                                 schedule.getProvider().getFullName()
@@ -166,7 +235,6 @@ public class ScheduleImplementation implements ScheduleService {
             if(schedule.getStatus() == ACCEPTED) {
                 long diff = getDiff(schedule);
 
-                System.out.printf("Schedule - %s%n", diff);
                 schedule.setStatus(ScheduleStatus.CLOSED);
                 schedule.setUpdatedAt(LocalDateTime.now());
                 schedule.setClosedAt(TimeUtil.formatTimeDifference(diff));
@@ -174,7 +242,11 @@ public class ScheduleImplementation implements ScheduleService {
                 schedule.setClosedOnTime(diff <= ACCOUNT_SCHEDULE_CLOSE_DURATION && diff >= 0);
                 scheduleRepository.save(schedule);
 
-                /// TODO:: Send notification
+                sendInactiveNotification(schedule);
+                notificationService.send(
+                        isCurrentUser(schedule.getProvider().getId()) ? schedule.getUser().getId() : schedule.getProvider().getId(),
+                        schedulingService.response(schedule, isCurrentUser(schedule.getProvider().getId()), true)
+                );
 
                 int closed = scheduleRepository.findByClosedByAndClosedOnTime(userUtil.getUser().getId(), false).size();
                 if(closed == ACCOUNT_SCHEDULE_CLOSE_LIMIT) {
@@ -223,21 +295,33 @@ public class ScheduleImplementation implements ScheduleService {
 
     private long getDiff(Schedule schedule) {
         LocalTime currentTime = LocalTime.now();
-        LocalTime scheduleTime = LocalTime.parse(schedule.getTime(), DateTimeFormatter.ofPattern("h:mma"));
+        LocalTime scheduleTime = LocalTime.parse(schedule.getTime(), formatter);
         return ChronoUnit.MINUTES.between(currentTime, scheduleTime);
     }
 
     @Override
-    public ApiResponse<String> start(String id) {
+    public ApiResponse<TripResponse> start(String id) {
         Schedule schedule = scheduleRepository.findById(id)
                 .orElseThrow(() -> new ScheduleException("Schedule not found"));
 
         if(schedule.getProvider().isSameAs(userUtil.getUser().getId()) || schedule.getUser().isSameAs(userUtil.getUser().getId())) {
+            if(schedule.getProvider() == null) {
+                throw new SharedException("Provider not found");
+            } else if(schedule.getProvider().getActive() == null) {
+                throw new SharedException("Provider not active");
+            }
+
             long diff = getDiff(schedule);
             schedule.setClosedAt(TimeUtil.formatTimeDifference(diff));
             schedule.setStatus(ScheduleStatus.ATTENDED);
+            scheduleRepository.save(schedule);
+
+            TripInviteRequest request = ScheduleMapper.INSTANCE.request(schedule);
+            request.setCategory(schedule.getProvider().getCategory());
+            return tripService.request(request, schedule.getUser(), schedule.getProvider());
+        } else {
+            throw new ScheduleException("An error occurred while trying to start a scheduled trip");
         }
-        return null;
     }
 
     @Override
@@ -252,10 +336,14 @@ public class ScheduleImplementation implements ScheduleService {
                     schedule.setStatus(ScheduleStatus.DECLINED);
                     schedule.setUpdatedAt(LocalDateTime.now());
                     scheduleRepository.save(schedule);
+
+                    sendInactiveNotification(schedule);
+                    notificationService.send(
+                            schedule.getUser().getId(),
+                            schedulingService.response(schedule, false, true)
+                    );
                     return new ApiResponse<>(
-                            "Schedule declined. %s will not be notified".formatted(
-                                    schedule.getUser().getFullName()
-                            ),
+                            "Schedule declined. %s will not be notified".formatted(schedule.getUser().getFullName()),
                             HttpStatus.OK
                     );
                 } else {
@@ -269,196 +357,33 @@ public class ScheduleImplementation implements ScheduleService {
 
     @Override
     public ApiResponse<List<ScheduleResponse>> active() {
-        List<Schedule> schedules = scheduleRepository.active(userUtil.getUser().getId());
+        return new ApiResponse<>(active(userUtil.getUser().getId()));
+    }
+
+    private List<ScheduleResponse> active(UUID id) {
+        List<Schedule> schedules = scheduleRepository.active(id);
         List<ScheduleResponse> list = new ArrayList<>();
 
         if(schedules != null && !schedules.isEmpty()) {
             list = schedules.stream()
                     .sorted(Comparator.comparing(Schedule::getUpdatedAt))
-                    .map(this::response)
+                    .map(schedule -> schedulingService.response(
+                            schedule,
+                            schedule.getProvider().getId().equals(id),
+                            userRepository.findById(id).map(User::isProfile).orElse(false)
+                    ))
                     .toList();
         }
-        return new ApiResponse<>(list);
-    }
-
-    private ScheduleResponse response(Schedule schedule) {
-        ScheduleResponse response = ScheduleMapper.INSTANCE.response(schedule);
-        response.setName(
-                isCurrentUser(schedule.getProvider().getId())
-                        ? schedule.getUser().getFullName()
-                        : schedule.getProvider().getFullName()
-        );
-        response.setAvatar(
-                isCurrentUser(schedule.getProvider().getId())
-                        ? schedule.getUser().getAvatar()
-                        : schedule.getProvider().getAvatar()
-        );
-        response.setCategory(
-                isCurrentUser(schedule.getProvider().getId())
-                        ? schedule.getUser().getCategory().getType()
-                        : schedule.getProvider().getCategory().getType()
-        );
-        response.setImage(
-                isCurrentUser(schedule.getProvider().getId())
-                        ? schedule.getUser().getCategory().getImage()
-                        : schedule.getProvider().getCategory().getImage()
-        );
-        response.setRating(
-                isCurrentUser(schedule.getProvider().getId())
-                        ? schedule.getUser().getRating()
-                        : schedule.getProvider().getRating()
-        );
-        response.setLabel(TimeUtil.formatDay(schedule.getCreatedAt()));
-        response.setReason(buildReason(schedule));
-
-        if(schedule.getClosedBy() != null) {
-            response.setClosedBy(profileRepository.findById(schedule.getClosedBy()).map(Profile::getFullName).orElse(""));
-        } else {
-            response.setClosedBy("From Serch");
-        }
-        return response;
-    }
-
-    private String buildReason(Schedule schedule) {
-        if(userUtil.getUser().isProfile()) {
-            if(userUtil.getUser().isProvider()) {
-                if(schedule.getStatus() == PENDING) {
-                    return String.format(
-                            "%s invited you for a scheduled service trip for %s, %s",
-                            schedule.getUser().getFirstName(),
-                            schedule.getTime(),
-                            TimeUtil.formatChatLabel(schedule.getCreatedAt())
-                    );
-                } else if(schedule.getStatus() == DECLINED) {
-                    return schedule.getReason();
-                } else if(schedule.getStatus() == UNATTENDED) {
-                    return "This schedule was left unattended. There was no trip action initiated after schedule time clocked";
-                } else if(schedule.getStatus() == CANCELLED) {
-                    return String.format(
-                            "%s cancelled your scheduled invitation for %s, %s",
-                            schedule.getUser().getFirstName(),
-                            schedule.getTime(),
-                            TimeUtil.formatChatLabel(schedule.getCreatedAt())
-                    );
-                } else if(schedule.getStatus() == ACCEPTED) {
-                    return String.format(
-                            "You accepted %s's scheduled invitation for %s, %s",
-                            schedule.getUser().getFirstName(),
-                            schedule.getTime(),
-                            TimeUtil.formatChatLabel(schedule.getCreatedAt())
-                    );
-                } else if(schedule.getStatus() == CLOSED) {
-                    return String.format(
-                            "%s closed this scheduled invitation for %s, %s",
-                            profileRepository.findById(schedule.getClosedBy()).map(Profile::getFullName).orElse(""),
-                            schedule.getTime(),
-                            TimeUtil.formatChatLabel(schedule.getCreatedAt())
-                    );
-                } else {
-                    return String.format(
-                            "You %s %s's schedule invitation for %s, %s",
-                            schedule.getStatus().getType(),
-                            schedule.getUser().getFirstName(),
-                            schedule.getTime(),
-                            TimeUtil.formatChatLabel(schedule.getCreatedAt())
-                    );
-                }
-            } else {
-                if(schedule.getStatus() == PENDING) {
-                    return String.format(
-                            "You invited %s for a scheduled service trip for %s, %s",
-                            schedule.getProvider().getFullName(),
-                            schedule.getTime(),
-                            TimeUtil.formatChatLabel(schedule.getCreatedAt())
-                    );
-                } else if(schedule.getStatus() == DECLINED) {
-                    return schedule.getReason();
-                } else if(schedule.getStatus() == UNATTENDED) {
-                    return "This schedule was left unattended. There was no trip action initiated after schedule time clocked";
-                } else if(schedule.getStatus() == CANCELLED) {
-                    return String.format(
-                            "You cancelled %s's scheduled invitation for %s, %s",
-                            schedule.getProvider().getFullName(),
-                            schedule.getTime(),
-                            TimeUtil.formatChatLabel(schedule.getCreatedAt())
-                    );
-                } else if(schedule.getStatus() == ACCEPTED) {
-                    return String.format(
-                            "%s accepted your scheduled invitation for %s, %s",
-                            schedule.getProvider().getFullName(),
-                            schedule.getTime(),
-                            TimeUtil.formatChatLabel(schedule.getCreatedAt())
-                    );
-                } else if(schedule.getStatus() == CLOSED) {
-                    return String.format(
-                            "%s closed this scheduled invitation for %s, %s",
-                            profileRepository.findById(schedule.getClosedBy()).map(Profile::getFullName).orElse(""),
-                            schedule.getTime(),
-                            TimeUtil.formatChatLabel(schedule.getCreatedAt())
-                    );
-                } else {
-                    return String.format(
-                            "%s %s %s's schedule invitation for %s, %s",
-                            schedule.getProvider().getFullName(),
-                            schedule.getStatus().getType(),
-                            schedule.getUser().getFirstName(),
-                            schedule.getTime(),
-                            TimeUtil.formatChatLabel(schedule.getCreatedAt())
-                    );
-                }
-            }
-        } else {
-            if(schedule.getStatus() == PENDING) {
-                return String.format(
-                        "%s invited %s for a scheduled service trip for %s, %s",
-                        schedule.getUser().getFirstName(),
-                        schedule.getProvider().getFullName(),
-                        schedule.getTime(),
-                        TimeUtil.formatChatLabel(schedule.getCreatedAt())
-                );
-            } else if(schedule.getStatus() == DECLINED) {
-                return schedule.getReason();
-            } else if(schedule.getStatus() == UNATTENDED) {
-                return "This schedule was left unattended. There was no trip action initiated after schedule time clocked";
-            } else if(schedule.getStatus() == CANCELLED) {
-                return String.format(
-                        "%s cancelled %s's scheduled invitation for %s, %s",
-                        schedule.getUser().getFirstName(),
-                        schedule.getProvider().getFullName(),
-                        schedule.getTime(),
-                        TimeUtil.formatChatLabel(schedule.getCreatedAt())
-                );
-            } else if(schedule.getStatus() == ACCEPTED) {
-                return String.format(
-                        "%s accepted %s's scheduled invitation for %s, %s",
-                        schedule.getProvider().getFullName(),
-                        schedule.getUser().getFirstName(),
-                        schedule.getTime(),
-                        TimeUtil.formatChatLabel(schedule.getCreatedAt())
-                );
-            } else if(schedule.getStatus() == CLOSED) {
-                return String.format(
-                        "%s closed this scheduled invitation for %s, %s",
-                        profileRepository.findById(schedule.getClosedBy()).map(Profile::getFullName).orElse(""),
-                        schedule.getTime(),
-                        TimeUtil.formatChatLabel(schedule.getCreatedAt())
-                );
-            } else {
-                return String.format(
-                        "%s %s %s's schedule invitation for %s, %s",
-                        schedule.getProvider().getFullName(),
-                        schedule.getStatus().getType(),
-                        schedule.getUser().getFirstName(),
-                        schedule.getTime(),
-                        TimeUtil.formatChatLabel(schedule.getCreatedAt())
-                );
-            }
-        }
+        return list;
     }
 
     @Override
     public ApiResponse<List<ScheduleGroupResponse>> schedules() {
-        List<Schedule> schedules = scheduleRepository.schedules(userUtil.getUser().getId());
+        return new ApiResponse<>(schedules(userUtil.getUser().getId()));
+    }
+
+    private List<ScheduleGroupResponse> schedules(UUID id) {
+        List<Schedule> schedules = scheduleRepository.schedules(id);
 
         if(schedules != null && !schedules.isEmpty()) {
             List<ScheduleGroupResponse> list = new ArrayList<>();
@@ -469,16 +394,20 @@ public class ScheduleImplementation implements ScheduleService {
                 response.setTime(LocalDateTime.of(date, LocalTime.now()));
                 response.setLabel(TimeUtil.formatChatLabel(LocalDateTime.of(date, LocalTime.now())));
                 response.setSchedules(scheduleList.stream()
-                        .sorted(Comparator.comparing(Schedule::getUpdatedAt))
-                        .map(this::response)
+                        .sorted(Comparator.comparing(Schedule::getUpdatedAt).reversed())
+                        .map(schedule -> schedulingService.response(
+                                schedule,
+                                schedule.getProvider().getId().equals(id),
+                                userRepository.findById(id).map(User::isProfile).orElse(false)
+                        ))
                         .toList()
                 );
                 list.add(response);
             });
-            list.sort(Comparator.comparing(ScheduleGroupResponse::getTime));
-            return new ApiResponse<>(list);
+            list.sort(Comparator.comparing(ScheduleGroupResponse::getTime).reversed());
+            return list;
         }
-        return new ApiResponse<>(List.of());
+        return List.of();
     }
 
     @Override
@@ -533,9 +462,8 @@ public class ScheduleImplementation implements ScheduleService {
     }
 
     private void checkUnavailableTimeInSchedules(List<Schedule> schedules, List<ScheduleTimeResponse> list) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("hh:mma");
         for (Schedule schedule : schedules) {
-            LocalTime scheduleTime = LocalTime.parse(schedule.getTime(), formatter);
+            LocalTime scheduleTime = LocalTime.parse(schedule.getTime().trim(), formatter);
             int scheduledHour = scheduleTime.getHour() % 12 == 0 ? 12 : scheduleTime.getHour() % 12;
             boolean isScheduledPm = scheduleTime.getHour() >= 12;
 
@@ -557,6 +485,14 @@ public class ScheduleImplementation implements ScheduleService {
                     LocalTime time = LocalTime.parse(schedule.getTime(), DateTimeFormatter.ofPattern("h:mma"));
                     if(time.equals(currentTime)) {
                         /// TODO:: Send notification to both scheduler and scheduled
+                        notificationService.send(
+                                schedule.getProvider().getId(),
+                                schedulingService.response(schedule, true, true)
+                        );
+                        notificationService.send(
+                                schedule.getUser().getId(),
+                                schedulingService.response(schedule, false, true)
+                        );
                     }
                 });
     }
@@ -587,7 +523,6 @@ public class ScheduleImplementation implements ScheduleService {
     private void performCloseAction(LocalDateTime current, Schedule schedule) {
         LocalDate today = LocalDate.now();
         LocalDateTime currentTime = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("h:mma");
         LocalDateTime requestedTime = LocalDateTime.of(today, LocalTime.parse(schedule.getTime().toUpperCase(), formatter));
 
         // Check if the requested time has already passed
@@ -600,5 +535,20 @@ public class ScheduleImplementation implements ScheduleService {
             schedule.setUpdatedAt(current);
             scheduleRepository.save(schedule);
         }
+
+        if(schedule.getProvider().isAssociate()) {
+            template.convertAndSend(
+                    "/platform/%s".formatted(String.valueOf(schedule.getProvider().getBusiness().getId())),
+                    active(schedule.getProvider().getBusiness().getId())
+            );
+        }
+        template.convertAndSend(
+                "/platform/%s".formatted(String.valueOf(schedule.getProvider().getId())),
+                active(schedule.getProvider().getId())
+        );
+        template.convertAndSend(
+                "/platform/%s".formatted(String.valueOf(schedule.getUser().getId())),
+                active(schedule.getUser().getId())
+        );
     }
 }

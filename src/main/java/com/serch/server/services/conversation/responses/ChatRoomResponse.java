@@ -3,6 +3,7 @@ package com.serch.server.services.conversation.responses;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.serch.server.enums.chat.MessageStatus;
+import com.serch.server.services.schedule.responses.ScheduleResponse;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -23,7 +24,9 @@ public class ChatRoomResponse {
     private MessageStatus status;
     private Long count;
     private String bookmark;
-    private String schedule;
+
+    @JsonProperty("message_id")
+    private String messageId;
 
     @JsonProperty("last_seen")
     private String lastSeen;
@@ -31,8 +34,7 @@ public class ChatRoomResponse {
     @JsonProperty("is_bookmarked")
     private Boolean isBookmarked;
 
-    @JsonProperty("is_scheduled")
-    private Boolean isScheduled;
+    private ScheduleResponse schedule;
 
     @JsonProperty("sent_at")
     private LocalDateTime sentAt;

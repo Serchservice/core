@@ -26,10 +26,10 @@ import java.util.List;
 @Entity
 @Table(schema = "sharing", name = "logins")
 public class SharedLogin extends BaseModel {
-    @Column(name = "status", nullable = false)
+    @Column(name = "status", nullable = false, updatable = false)
     @Enumerated(value = EnumType.STRING)
     @SerchEnum(message = "UseStatus must be an enum")
-    private UseStatus status = UseStatus.NOT_USED;
+    private UseStatus status = UseStatus.COUNT_1;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
@@ -51,4 +51,17 @@ public class SharedLogin extends BaseModel {
 
     @OneToMany(mappedBy = "sharedLogin", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<SharedStatus> statuses;
+
+    public boolean isExpired() {
+        return statuses != null && !statuses.isEmpty() && statuses.stream().allMatch(SharedStatus::isExpired);
+    }
+
+    public UseStatus nextUsageStatus() {
+        if(statuses != null && !statuses.isEmpty()) {
+            UseStatus latestStatus = statuses.get(statuses.size() - 1).getUseStatus();
+            return latestStatus.next();
+        } else {
+            return UseStatus.COUNT_1;
+        }
+    }
 }

@@ -1,6 +1,7 @@
 package com.serch.server.services.auth.services;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.models.auth.User;
 import com.serch.server.services.auth.requests.RequestDevice;
 import com.serch.server.services.auth.requests.RequestMFAChallenge;
 import com.serch.server.services.auth.responses.AuthResponse;
@@ -26,6 +27,16 @@ public interface MFAService {
      * @see MFADataResponse
      */
     ApiResponse<MFADataResponse> getMFAData();
+
+    /**
+     * Retrieves MFA data for the current user.
+     *
+     * @param user The {@link User} data
+     * @return An MFA data.
+     *
+     * @see MFADataResponse
+     */
+    MFADataResponse getMFAData(User user);
 
     /**
      * Validates the MFA challenge code.
@@ -71,15 +82,6 @@ public interface MFAService {
      * @see AuthResponse
      */
     ApiResponse<AuthResponse> disable(RequestDevice device);
-
-    /**
-     * Disables MFA recovery codes for the current user.
-     *
-     * @return An API response confirming the disablement of MFA recovery codes.
-     *
-     * @see ApiResponse
-     */
-    ApiResponse<String> disableRecoveryCode();
 
     /**
      * Retrieves usage statistics of MFA for the current user.

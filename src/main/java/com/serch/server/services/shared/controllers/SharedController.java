@@ -2,7 +2,6 @@ package com.serch.server.services.shared.controllers;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.services.account.responses.AccountResponse;
-import com.serch.server.services.shared.responses.GuestResponse;
 import com.serch.server.services.shared.responses.SharedLinkResponse;
 import com.serch.server.services.shared.services.SharedService;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +30,16 @@ public class SharedController {
     @PreAuthorize(value = "hasRole('BUSINESS') || hasRole('USER') || hasRole('PROVIDER') || hasRole('ASSOCIATE_PROVIDER')")
     public ResponseEntity<ApiResponse<List<SharedLinkResponse>>> links() {
         ApiResponse<List<SharedLinkResponse>> response = service.links();
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @GetMapping("/create")
+    @PreAuthorize(value = "hasRole('USER')")
+    public ResponseEntity<ApiResponse<List<SharedLinkResponse>>> create(
+            @RequestParam String id,
+            @RequestParam(required = false) Boolean withInvited
+    ) {
+        ApiResponse<List<SharedLinkResponse>> response = service.create(id, withInvited);
         return new ResponseEntity<>(response, response.getStatus());
     }
 }

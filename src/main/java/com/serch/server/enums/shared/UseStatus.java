@@ -14,19 +14,27 @@ import lombok.RequiredArgsConstructor;
  *     <li>{@link UseStatus#COUNT_2} - Represents a status with a count of 2</li>
  *     <li>{@link UseStatus#COUNT_3} - Represents a status with a count of 3</li>
  *     <li>{@link UseStatus#COUNT_4} - Represents a status with a count of 4</li>
- *     <li>{@link UseStatus#NOT_USED} - Represents a not used status with a count of 0</li>
+ *     <li>{@link UseStatus#COUNT_5} - Represents a not used status with a count of 0</li>
  * </ul>
  */
 @Getter
 @RequiredArgsConstructor
 public enum UseStatus {
-    USED("Used", 5),
-    COUNT_1("Count1", 1),
-    COUNT_2("Count2", 2),
-    COUNT_3("Count3", 3),
-    COUNT_4("Count4", 4),
-    NOT_USED("Not Used", 0);
+    COUNT_1("One-time usage", 0),
+    COUNT_2("Two-times usage", 1),
+    COUNT_3("Three-times usage", 2),
+    COUNT_4("Four-times usage", 3),
+    COUNT_5("Five-times usage", 4),
+    USED("Used", 5);
 
     private final String type;
     private final Integer count;
+
+    public UseStatus next() {
+        if (this == USED) {
+            return USED;
+        }
+        int nextOrdinal = (this.ordinal() + 1) % values().length;
+        return values()[nextOrdinal];
+    }
 }

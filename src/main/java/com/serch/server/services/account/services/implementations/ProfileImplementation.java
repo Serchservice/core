@@ -29,7 +29,7 @@ import com.serch.server.services.account.services.SpecialtyService;
 import com.serch.server.services.auth.requests.RequestPhoneInformation;
 import com.serch.server.services.referral.services.ReferralService;
 import com.serch.server.services.auth.requests.RequestProfile;
-import com.serch.server.services.supabase.core.SupabaseService;
+import com.serch.server.core.storage.core.StorageService;
 import com.serch.server.services.transaction.services.WalletService;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
@@ -47,7 +47,7 @@ import java.util.List;
  * Service for managing user profiles, including creation, updating, and retrieval.
  * It implements the wrapper class {@link ProfileService}
  *
- * @see SupabaseService
+ * @see StorageService
  * @see ReferralService
  * @see WalletService
  * @see UserUtil
@@ -62,7 +62,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ProfileImplementation implements ProfileService {
-    private final SupabaseService supabase;
+    private final StorageService supabase;
     private final ReferralService referralService;
     private final WalletService walletService;
     private final SpecialtyService specialtyService;
@@ -153,6 +153,9 @@ public class ProfileImplementation implements ProfileService {
         ProfileResponse response = AccountMapper.INSTANCE.profile(profile);
         response.setCertificate(certificateRepository.findByUser(profile.getId()).map(Certificate::getDocument).orElse(""));
         response.setStatus("");
+        response.setFirstName(profile.getUser().getFirstName());
+        response.setLastName(profile.getUser().getLastName());
+        response.setEmailAddress(profile.getUser().getEmailAddress());
         response.setVerificationStatus(VerificationStatus.NOT_VERIFIED);
 
         if(profile.isAssociate()) {
@@ -271,10 +274,9 @@ public class ProfileImplementation implements ProfileService {
     private void updateFirstName(UpdateProfileRequest request, Profile profile) {
         boolean canUpdateFirstName = request.getFirstName() != null
                 && !request.getFirstName().isEmpty()
-                && !profile.getFirstName().equalsIgnoreCase(request.getFirstName());
+                && !profile.getUser().getFirstName().equalsIgnoreCase(request.getFirstName());
         if(canUpdateFirstName) {
             profile.getUser().setFirstName(request.getFirstName());
-            profile.setFirstName(request.getFirstName());
             updateTimeStamps(profile.getUser(), profile);
         }
     }
@@ -282,10 +284,9 @@ public class ProfileImplementation implements ProfileService {
     private void updateLastName(UpdateProfileRequest request, Profile profile) {
         boolean canUpdateLastName = request.getLastName() != null
                 && !request.getLastName().isEmpty()
-                && !profile.getLastName().equalsIgnoreCase(request.getLastName());
+                && !profile.getUser().getLastName().equalsIgnoreCase(request.getLastName());
         if(canUpdateLastName) {
             profile.getUser().setLastName(request.getLastName());
-            profile.setLastName(request.getLastName());
             updateTimeStamps(profile.getUser(), profile);
         }
     }

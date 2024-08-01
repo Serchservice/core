@@ -12,14 +12,16 @@ import com.serch.server.models.conversation.Call;
 import com.serch.server.models.schedule.Schedule;
 import com.serch.server.models.transaction.Transaction;
 import com.serch.server.models.transaction.Wallet;
+import com.serch.server.models.trip.Trip;
 import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.conversation.CallRepository;
 import com.serch.server.repositories.schedule.ScheduleRepository;
 import com.serch.server.repositories.transaction.TransactionRepository;
 import com.serch.server.repositories.transaction.WalletRepository;
-import com.serch.server.services.payment.core.PaymentService;
-import com.serch.server.services.payment.requests.InitializePaymentRequest;
-import com.serch.server.services.payment.responses.InitializePaymentData;
+import com.serch.server.core.payment.core.PaymentService;
+import com.serch.server.core.payment.requests.InitializePaymentRequest;
+import com.serch.server.core.payment.responses.InitializePaymentData;
+import com.serch.server.repositories.trip.TripRepository;
 import com.serch.server.services.transaction.requests.*;
 import com.serch.server.services.transaction.responses.*;
 import com.serch.server.services.transaction.services.WalletService;
@@ -64,6 +66,7 @@ public class WalletImplementation implements WalletService {
     private final ScheduleRepository scheduleRepository;
     private final ProfileRepository profileRepository;
     private final CallRepository callRepository;
+    private final TripRepository tripRepository;
 
     @Value("${application.wallet.fund-limit}")
     private Integer FUND_LIMIT;
@@ -365,8 +368,9 @@ public class WalletImplementation implements WalletService {
             case WITHDRAW -> prepareWithdrawTransactionResponse(transaction);
             case SCHEDULE -> prepareScheduleTransactionResponse(transaction);
             case TIP2FIX -> prepareTip2FixTransactionResponse(transaction);
-            case TRIP -> new TransactionResponse();
-            case TRIP_WITHDRAW -> new TransactionResponse();
+            case TRIP_CHARGE -> prepareTripChargeTransactionResponse(transaction);
+            case SHOPPING -> new TransactionResponse();
+            case TRIP_SHARE -> prepareTripShareTransactionResponse(transaction);
         };
     }
 
@@ -599,63 +603,66 @@ public class WalletImplementation implements WalletService {
         }
     }
 
-//    private static TransactionResponse createResponse(Transaction transaction, Wallet wallet) {
-//        TransactionResponse response = new TransactionResponse();
-//        response.setId(transaction.getId());
-//        response.setAmount(MoneyUtil.formatToNaira(transaction.getAmount()));
-//        response.setReason(transaction.getReason());
-//        response.setCompletedAt(TimeUtil.formatDay(transaction.getUpdatedAt()));
-//        response.setStatus(transaction.getStatus());
-//        response.setType(transaction.getType());
-//        response.setIsIncoming(transaction.getType() == TransactionType.FUNDING);
-//        response.setTime(TimeUtil.formatTime(transaction.getCreatedAt()));
-//        response.setRequestedAt(TimeUtil.formatDay(transaction.getCreatedAt()));
-//        response.setCreatedAt(transaction.getCreatedAt());
-//        response.setName(transaction.getSender().getUser().getFullName());
-//        response.setReference(transaction.getReference());
-//
-//        if(transaction.getAssociate() != null) {
-//            response.setAssociates(List.of(
-//                    AssociateTransactionData.builder()
-//                            .name(transaction.getAssociate().getFullName())
-//                            .category(transaction.getAssociate().getCategory().getType())
-//                            .rating(transaction.getAssociate().getRating())
-//                            .avatar(transaction.getAssociate().getAvatar())
-//                            .build()
-//            ));
-//        }
-//        response.setMode("WALLET");
-//        return response;
-//    }
-//
-//    private TransactionResponse createTripResponse(Transaction transaction, Wallet wallet) {
-//        TransactionResponse response = new TransactionResponse();
-//        response.setId(transaction.getId());
-//        response.setAmount(MoneyUtil.formatToNaira(transaction.getTrip().getShared().getAmount()));
-////        response.setReason(
-////                "Transaction for Shared Trip %s - %s".formatted(
-////                        transaction.getTrip().getShared().getStatus().getSharedLink().getLink(),
-////                        transaction.getTrip().getShared().getStatus().getId()
-////                )
-////        );
-//        response.setCompletedAt(TimeUtil.formatDay(transaction.getUpdatedAt()));
-//        response.setStatus(transaction.getStatus());
-//        response.setType(transaction.getType());
-//        response.setIsIncoming(wallet.getId().equals(transaction.getAccount()));
-//        response.setTime(TimeUtil.formatTime(transaction.getCreatedAt()));
-//        response.setRequestedAt(TimeUtil.formatDay(transaction.getTrip().getShared().getCreatedAt()));
-//        response.setCreatedAt(transaction.getCreatedAt());
-//        response.setName(transaction.getSender().getUser().getFullName());
-//        response.setReference(transaction.getReference());
-////        response.setPricing(
-////                guestAuthService.getSharedPricingData(
-////                        transaction.getTrip().getShared().getStatus().getSharedLink(),
-////                        transaction.getTrip().getShared()
-////                )
-////        );
-//        response.setMode("TRIP");
-//        return response;
-//    }
+    private TransactionResponse prepareTripShareTransactionResponse(Transaction transaction) {
+        boolean isIncoming = String.valueOf(userUtil.getUser().getId()).equals(transaction.getAccount());
+        TransactionResponse response = getResponse(transaction, isIncoming);
+
+        TransactionData data = TransactionMapper.INSTANCE.data(transaction);
+        data.setHeader("Transaction %s".formatted(transaction.getStatus().getType()));
+        data.setDescription(prepareTripShareDescription(transaction));
+        data.setDate(TimeUtil.formatDay(transaction.getCreatedAt()));
+        data.setUpdatedAt(TimeUtil.formatDay(transaction.getUpdatedAt()));
+        response.setData(data);
+
+        if(userUtil.getUser().isBusiness()) {
+            addAssociateData(tripRepository.findById(transaction.getEvent()).map(Trip::getProvider), response);
+        }
+        return response;
+    }
+
+    private String prepareTripShareDescription(Transaction transaction) {
+        if(userUtil.getUser().isBusiness()) {
+            return String.format(
+                    "This is the amount sent to the user that shared %s based on the attended trip %s",
+                    tripRepository.findById(transaction.getEvent()).map(trip -> trip.getProvider().getFullName()).orElse("your associate provider"),
+                    transaction.getEvent()
+            );
+        } else if(userUtil.getUser().isUser()) {
+            return String.format("This is your received percentage for sharing the link that made %s happen. Keep sharing!!!", transaction.getEvent());
+        } else {
+            return String.format("This is the trip charge for your attended trip %s", transaction.getEvent());
+        }
+    }
+
+    private TransactionResponse prepareTripChargeTransactionResponse(Transaction transaction) {
+        TransactionResponse response = getResponse(transaction, false);
+        response.setRecipient("Service Fee");
+
+        TransactionData data = TransactionMapper.INSTANCE.data(transaction);
+        data.setHeader("Transaction %s".formatted(transaction.getStatus().getType()));
+        data.setDescription(prepareTripChargeDescription(transaction));
+        data.setDate(TimeUtil.formatDay(transaction.getCreatedAt()));
+        data.setUpdatedAt(TimeUtil.formatDay(transaction.getUpdatedAt()));
+        response.setData(data);
+
+        if(userUtil.getUser().isBusiness()) {
+            addAssociateData(tripRepository.findById(transaction.getEvent()).map(Trip::getProvider), response);
+        }
+
+        return response;
+    }
+
+    private String prepareTripChargeDescription(Transaction transaction) {
+        if(userUtil.getUser().isBusiness()) {
+            return String.format(
+                    "This is a trip charge for %s based on the attended trip %s",
+                    tripRepository.findById(transaction.getEvent()).map(trip -> trip.getProvider().getFullName()).orElse("your associate provider"),
+                    transaction.getEvent()
+            );
+        } else {
+            return String.format("This is the trip charge for your attended trip %s", transaction.getEvent());
+        }
+    }
 
     @Override
     public void processPaydays() {

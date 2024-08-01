@@ -6,6 +6,7 @@ import com.serch.server.models.shared.Guest;
 import com.serch.server.models.shared.SharedLink;
 import com.serch.server.models.shared.SharedLogin;
 import com.serch.server.models.shared.SharedStatus;
+import com.serch.server.models.trip.Trip;
 import com.serch.server.services.account.responses.AccountResponse;
 import com.serch.server.services.shared.responses.SharedLinkData;
 import com.serch.server.services.shared.responses.SharedLinkResponse;
@@ -23,14 +24,25 @@ public interface SharedService {
      * Retrieves account information based on the provided ID.
      *
      * @param id The ID of the account.
-     * @return A response containing the account information.
+     *
+     * @return {@link ApiResponse} list of {@link AccountResponse}
      */
     ApiResponse<List<AccountResponse>> accounts(String id);
 
     /**
+     * Create provide sharing link
+     *
+     * @param withInvited Whether to create the data from the invited provider
+     * @param id The trip id to create a {@link SharedLink} data from
+     *
+     * @return {@link ApiResponse} list of {@link SharedLinkResponse}
+     */
+    ApiResponse<List<SharedLinkResponse>> create(String id, Boolean withInvited);
+
+    /**
      * Retrieves a list of guest responses.
      *
-     * @return A response containing a list of guest responses.
+     * @return {@link ApiResponse} list of {@link SharedLinkResponse}
      */
     ApiResponse<List<SharedLinkResponse>> links();
 
@@ -71,6 +83,17 @@ public interface SharedService {
      * @return SharedPricingData response {@link SharedStatusData}
      */
     SharedStatusData getStatusData(SharedLink link, SharedStatus status);
+
+    /**
+     * Create a shared status data for the trip data
+     *
+     * @param linkId The {@link SharedLink} id
+     * @param account The {@link Guest} id
+     * @param trip The {@link Trip} data
+     *
+     * @return {@link SharedStatus} data
+     */
+    SharedStatus create(String linkId, String account, Trip trip);
 
     /**
      * Builds an ApiResponse containing the account response for a user.

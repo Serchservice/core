@@ -15,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 public enum SerchCategory {
     MECHANIC(
             "Mechanic",
-            true,
             "https://wyvcjsumdfoamsmdzsna.supabase.co/storage/v1/object/public/categories/mechanic.png",
             "What skills do you have",
             true,
@@ -23,7 +22,6 @@ public enum SerchCategory {
     ),
     PLUMBER(
             "Plumber",
-            true,
             "https://wyvcjsumdfoamsmdzsna.supabase.co/storage/v1/object/public/categories/plumber.png",
             "What skills do you have",
             true,
@@ -31,7 +29,6 @@ public enum SerchCategory {
     ),
     ELECTRICIAN(
             "Electrician",
-            true,
             "https://wyvcjsumdfoamsmdzsna.supabase.co/storage/v1/object/public/categories/electrician.png",
             "What skills do you have",
             true,
@@ -39,7 +36,6 @@ public enum SerchCategory {
     ),
     BUSINESS(
             "Business",
-            false,
             "https://wyvcjsumdfoamsmdzsna.supabase.co/storage/v1/object/public/categories/business.png",
             "What skills do you have",
             true,
@@ -47,7 +43,6 @@ public enum SerchCategory {
     ),
     PERSONAL_SHOPPER(
             "Personal Shopper",
-            false,
             "https://wyvcjsumdfoamsmdzsna.supabase.co/storage/v1/object/public/categories/shopper.png",
             "What skills do you have",
             false,
@@ -55,7 +50,6 @@ public enum SerchCategory {
     ),
     HOUSE_KEEPING(
             "House Keeper",
-            false,
             "https://wyvcjsumdfoamsmdzsna.supabase.co/storage/v1/object/public/categories/housekeeper.png",
             "What skills do you have",
             false,
@@ -63,7 +57,6 @@ public enum SerchCategory {
     ),
     CARPENTER(
             "Carpenter",
-            false,
             "https://wyvcjsumdfoamsmdzsna.supabase.co/storage/v1/object/public/categories/carpenter.png",
             "What skills do you have",
             true,
@@ -71,7 +64,6 @@ public enum SerchCategory {
     ),
     GUEST(
             "Guest",
-            false,
             "https://wyvcjsumdfoamsmdzsna.supabase.co/storage/v1/object/public/categories/guest.png",
             "What skills do you have",
             true,
@@ -79,7 +71,6 @@ public enum SerchCategory {
     ),
     USER(
             "User",
-            false,
             "https://wyvcjsumdfoamsmdzsna.supabase.co/storage/v1/object/public/categories/user.png",
             "What skills do you have",
             true,
@@ -87,7 +78,6 @@ public enum SerchCategory {
     );
 
     private final String type;
-    private final Boolean shouldSubscribe;
     private final String image;
     private final String information;
     private final boolean canDrive;

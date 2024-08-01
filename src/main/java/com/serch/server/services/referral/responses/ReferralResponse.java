@@ -8,5 +8,5 @@ public class ReferralResponse {
     private String name;
     private String avatar;
     private String role;
-    private ReferralData data;
+    private String info;
 }

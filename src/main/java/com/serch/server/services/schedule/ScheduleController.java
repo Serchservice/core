@@ -7,6 +7,7 @@ import com.serch.server.services.schedule.responses.ScheduleGroupResponse;
 import com.serch.server.services.schedule.responses.ScheduleResponse;
 import com.serch.server.services.schedule.responses.ScheduleTimeResponse;
 import com.serch.server.services.schedule.services.ScheduleService;
+import com.serch.server.services.trip.responses.TripResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -77,8 +78,8 @@ public class ScheduleController {
 
     @PatchMapping("/start/{id}")
     @PreAuthorize("hasRole('PROVIDER') || hasRole('ASSOCIATE_PROVIDER') || hasRole('USER')")
-    public ResponseEntity<ApiResponse<String>> start(@PathVariable("id") String id) {
-        ApiResponse<String> response = service.start(id);
+    public ResponseEntity<ApiResponse<TripResponse>> start(@PathVariable("id") String id) {
+        ApiResponse<TripResponse> response = service.start(id);
         return new ResponseEntity<>(response, response.getStatus());
     }
 }

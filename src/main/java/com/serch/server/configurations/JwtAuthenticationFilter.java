@@ -3,6 +3,7 @@ package com.serch.server.configurations;
 import com.serch.server.exceptions.ServerExceptionHandler;
 import com.serch.server.exceptions.auth.AuthException;
 import com.serch.server.services.auth.services.SessionService;
+import com.serch.server.utils.ServerUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
@@ -20,6 +21,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.util.Arrays;
 
 /**
  * The JwtAuthenticationFilter class is responsible for authenticating requests using JWT (JSON Web Token).
@@ -61,12 +64,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      */
     @Override
     @SneakyThrows
-    protected void doFilterInternal(
-            @NonNull HttpServletRequest request,
-            @NonNull HttpServletResponse response,
-            @NonNull FilterChain filterChain
-    ) {
+    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) {
         System.out.println(request.getRequestURL());
+        System.out.println(request.getRequestURI());
+        request.getParameterMap().forEach((key, value) -> System.out.println(key + ": " + Arrays.toString(value)));
+        System.out.println(request.getRemoteAddr());
         // Extract JWT token from the Authorization header
         String header = request.getHeader("Authorization");
 
@@ -76,9 +78,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+        // If remote address contains any of the Whitelisted IP Addresses, proceed to next filter
+        if(ServerUtil.IP_WHITELIST.contains(request.getRemoteAddr())){
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         try {
             // Validate the session associated with the JWT token
-            var session = sessionService.validateSession(header.substring(7));
+            var session = sessionService.validateSession(header.substring(7), null, null);
             if(session.getStatus().is2xxSuccessful()) {
                 // If the user is not already authenticated, set up the authentication context
                 if(SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -97,7 +105,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // Proceed to the next filter
             filterChain.doFilter(request, response);
         } catch (ExpiredJwtException | MalformedJwtException | AuthException | SignatureException
-                 | UnsupportedJwtException | IllegalArgumentException e
+                 | UnsupportedJwtException | IllegalArgumentException | StringIndexOutOfBoundsException e
         ) {
             // Handle various exceptions related to JWT processing and authentication
             if(e instanceof AuthException) {
@@ -110,6 +118,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 handler.handleSignatureException((SignatureException) e);
             } else if(e instanceof  UnsupportedJwtException) {
                 handler.handleUnsupportedJwtException((UnsupportedJwtException) e);
+            } else if(e instanceof  StringIndexOutOfBoundsException) {
+                handler.handleStringIndexOutOfBoundsException((StringIndexOutOfBoundsException) e);
             }
         }
     }

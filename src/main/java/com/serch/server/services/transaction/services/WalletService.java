@@ -3,7 +3,7 @@ package com.serch.server.services.transaction.services;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.User;
-import com.serch.server.services.payment.responses.InitializePaymentData;
+import com.serch.server.core.payment.responses.InitializePaymentData;
 import com.serch.server.services.transaction.requests.FundWalletRequest;
 import com.serch.server.services.transaction.requests.WalletUpdateRequest;
 import com.serch.server.services.transaction.requests.WithdrawRequest;

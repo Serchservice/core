@@ -21,7 +21,7 @@ package com.serch.server.exceptions;
  *     <li>{@link ExceptionCodes#CATEGORY_NOT_SET} - Code for category not set error.</li>
  *     <li>{@link ExceptionCodes#EXISTING_USER} - Code for existing user error.</li>
  *     <li>{@link ExceptionCodes#UNKNOWN} - Code for unknown error.</li>
- *     <li>{@link ExceptionCodes#NO_SUBSCRIPTION} - Code for no subscription error.</li>
+ *     <li>{@link ExceptionCodes#CALL_ERROR} - Code for call error.</li>
  * </ul>
  */
 public class ExceptionCodes {
@@ -40,5 +40,7 @@ public class ExceptionCodes {
     public static final String CATEGORY_NOT_SET = "S96";
     public static final String EXISTING_USER = "S100";
     public static final String UNKNOWN = "S400";
-    public static final String NO_SUBSCRIPTION = "S65";
+    public static final String CALL_ERROR = "S65";
+    public static final String MFA_COMPULSORY = "S423";
+    public static final String ON_TRIP = "S111";
 }

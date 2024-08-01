@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.serch.server.enums.schedule.ScheduleStatus;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Data
 public class ScheduleResponse {
     private String id;
@@ -16,6 +18,10 @@ public class ScheduleResponse {
     private String reason;
     private String label;
     private Double rating;
+    private String snt;
+
+    @JsonProperty("created_at")
+    private LocalDateTime createdAt;
 
     @JsonProperty("closed_by")
     private String closedBy;

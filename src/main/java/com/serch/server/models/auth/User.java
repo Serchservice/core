@@ -1,14 +1,13 @@
 package com.serch.server.models.auth;
 
-import com.serch.server.annotations.SerchEnum;
+import com.serch.server.admin.enums.UserAction;
 import com.serch.server.bases.BaseEntity;
 import com.serch.server.enums.account.AccountStatus;
 import com.serch.server.enums.auth.Role;
-import com.serch.server.exceptions.subscription.SubscriptionException;
 import com.serch.server.models.account.AccountSetting;
 import com.serch.server.models.auth.mfa.MFAFactor;
+import com.serch.server.models.auth.verified.Verification;
 import com.serch.server.models.referral.ReferralProgram;
-import com.serch.server.models.subscription.Subscription;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
@@ -25,6 +24,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+import static com.serch.server.enums.auth.Role.USER;
+
 /**
  * The User class represents a user entity in the system.
  * It extends the BaseEntity class and implements the UserDetails interface provided by Spring Security.
@@ -38,28 +39,16 @@ import java.util.UUID;
  * <ul>
  *     <li>{@link AccountStatus}</li>
  * </ul>
- * Annotations:
- * <ul>
- *     <li>{@link Column}</li>
- *     <li>{@link Email}</li>
- *     <li>{@link NotEmpty}</li>
- *     <li>{@link Enumerated}</li>
- *     <li>{@link SerchEnum}</li>
- *     <li>{@link OneToMany}</li>
- *     <li>{@link OneToOne}</li>
- *     <li>{@link JoinColumn}</li>
- * </ul>
+ *
  * @see BaseEntity
  * @see UserDetails
  * @see ReferralProgram
- * @see SerchEnum
  */
 @Getter
 @Setter
 @Entity(name = "users")
 @Table(schema = "identity", name = "users")
 public class User extends BaseEntity implements UserDetails {
-
     @Column(name = "email_address", unique = true, nullable = false, columnDefinition = "TEXT")
     @Email(
             message = "Email address must be properly formatted",
@@ -80,7 +69,6 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "role", nullable = false)
     @Enumerated(value = EnumType.STRING)
     @NotNull(message = "Role cannot be null")
-    @SerchEnum(message = "Role must be an enum")
     private Role role;
 
     @Column(name = "last_signed_in")
@@ -105,10 +93,21 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "password_recovery_token_confirmed_at")
     private LocalDateTime passwordRecoveryConfirmedAt = null;
 
+    @Enumerated(value = EnumType.STRING)
+    private UserAction action;
+
+    @Column(name = "sign_in_token", columnDefinition = "TEXT")
+    private String signInToken = null;
+
+    @Column(name = "sign_in_token_expires_at", columnDefinition = "TEXT")
+    private LocalDateTime signInTokenExpiresAt = null;
+
+    @Column(name = "sign_in_token_confirmed_at")
+    private LocalDateTime signInTokenConfirmedAt = null;
+
     @Column(name = "status", nullable = false)
     @Enumerated(value = EnumType.STRING)
-    @SerchEnum(message = "AuthStatus must be an enum")
-    private AccountStatus accountStatus = AccountStatus.ACTIVE;
+    private AccountStatus status = AccountStatus.ACTIVE;
 
     @Column(name = "enabled_mfa", nullable = false)
     private Boolean mfaEnabled = false;
@@ -119,8 +118,17 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "is_email_confirmed", nullable = false)
     private Boolean isEmailConfirmed = true;
 
+    @Column(columnDefinition = "TEXT")
+    private String state;
+
+    @Column(columnDefinition = "TEXT")
+    private String country;
+
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Session> sessions;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<AccountStatusTracker> trackers;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private MFAFactor mfaFactor;
@@ -132,7 +140,7 @@ public class User extends BaseEntity implements UserDetails {
     private AccountSetting setting;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private Subscription subscription;
+    private Verification verification;
 
     /**
      * Retrieves the authorities granted to the user.
@@ -171,7 +179,7 @@ public class User extends BaseEntity implements UserDetails {
      */
     @Override
     public boolean isAccountNonExpired() {
-        return accountStatus == AccountStatus.ACTIVE;
+        return status == AccountStatus.ACTIVE;
     }
 
     /**
@@ -181,7 +189,7 @@ public class User extends BaseEntity implements UserDetails {
      */
     @Override
     public boolean isAccountNonLocked() {
-        return accountStatus == AccountStatus.ACTIVE;
+        return status == AccountStatus.ACTIVE;
     }
 
     /**
@@ -201,7 +209,7 @@ public class User extends BaseEntity implements UserDetails {
      */
     @Override
     public boolean isEnabled() {
-        return accountStatus == AccountStatus.ACTIVE;
+        return status == AccountStatus.ACTIVE;
     }
 
     /**
@@ -213,7 +221,7 @@ public class User extends BaseEntity implements UserDetails {
      * @see Role
      */
     public boolean isProfile() {
-        return getRole() == Role.USER || getRole() == Role.PROVIDER ||
+        return getRole() == USER || getRole() == Role.PROVIDER ||
                 getRole() == Role.ASSOCIATE_PROVIDER;
     }
 
@@ -241,7 +249,7 @@ public class User extends BaseEntity implements UserDetails {
      * @return True or False
      */
     public boolean isBusinessLocked() {
-        return accountStatus == AccountStatus.BUSINESS_DEACTIVATED;
+        return status == AccountStatus.BUSINESS_DEACTIVATED;
     }
 
     /**
@@ -250,11 +258,11 @@ public class User extends BaseEntity implements UserDetails {
      * @return User - Logged In User
      */
     public User check() {
-        if(accountStatus == AccountStatus.DELETED) {
+        if(status == AccountStatus.DELETED) {
             throw new LockedException(
                     "Access is denied. Contact support if this is your account."
             );
-        } else if(accountStatus == AccountStatus.BUSINESS_DELETED) {
+        } else if(status == AccountStatus.BUSINESS_DELETED) {
             throw new LockedException(
                     "This account has been deleted. Let your business admin contact support for more."
             );
@@ -262,21 +270,31 @@ public class User extends BaseEntity implements UserDetails {
             throw new DisabledException(
                     "This account is locked by your business administrator. Contact your business admin"
             );
-        } else if(accountStatus == AccountStatus.DEACTIVATED) {
+        } else if(status == AccountStatus.DEACTIVATED) {
             throw new DisabledException(
                     "This account is deactivated. Contact support for more information"
             );
-        } else if(accountStatus == AccountStatus.SUSPENDED) {
+        } else if(status == AccountStatus.SUSPENDED) {
             throw new LockedException(
                     "This account is suspended at the moment. Contact support for more information"
             );
-        } else if(accountStatus == AccountStatus.HAS_REPORTED_ISSUES) {
+        } else if(status == AccountStatus.HAS_REPORTED_ISSUES) {
             throw new LockedException(
                     "This account has issues Serch is following up on. Contact support for more information"
             );
         } else {
             return this;
         }
+    }
+
+    /**
+     * Checks if the user is a Serch admin, combining {@link Role#SUPER_ADMIN}
+     * , {@link Role#ADMIN}, {@link Role#MANAGER} and {@link Role#TEAM}
+     *
+     * @return true or false
+     */
+    public boolean isAdmin() {
+        return getRole() == Role.SUPER_ADMIN || getRole() == Role.ADMIN || getRole() == Role.MANAGER || getRole() == Role.TEAM;
     }
 
     /**
@@ -299,23 +317,11 @@ public class User extends BaseEntity implements UserDetails {
         return getRole() == Role.BUSINESS;
     }
 
-    /**
-     * Check if a user can continue with the request with a valid subscription
-     */
-    public void checkSubscription() {
-        if(getSubscription() != null && getSubscription().isExpired()) {
-            throw new SubscriptionException("Your subscription has expired. Cannot continue with request.");
-        }
-
-        if(getSubscription() != null && getSubscription().isPaused()) {
-            throw new SubscriptionException("You have unsubscribed. Subscribe to continue with request.");
-        }
+    public boolean isUser() {
+        return role == USER;
     }
 
-    /**
-     * Check if user has subscription
-     */
-    public boolean hasSubscription() {
-        return getSubscription() != null;
+    public boolean hasMFA() {
+        return getMfaFactor() != null && getMfaEnabled();
     }
 }

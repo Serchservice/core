@@ -1,13 +1,19 @@
 package com.serch.server.services.trip.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.enums.account.Gender;
 import com.serch.server.enums.account.SerchCategory;
-import com.serch.server.enums.trip.TripStatus;
+import com.serch.server.enums.account.ProviderStatus;
+import com.serch.server.enums.verified.VerificationStatus;
 import com.serch.server.mappers.AccountMapper;
 import com.serch.server.mappers.TripMapper;
+import com.serch.server.models.account.AccountSetting;
 import com.serch.server.models.account.Profile;
+import com.serch.server.models.auth.verified.Verification;
 import com.serch.server.models.trip.Active;
 import com.serch.server.repositories.account.SpecialtyRepository;
+import com.serch.server.repositories.auth.UserRepository;
+import com.serch.server.repositories.certificate.CertificateRepository;
 import com.serch.server.repositories.rating.RatingRepository;
 import com.serch.server.repositories.shared.SharedLinkRepository;
 import com.serch.server.repositories.shop.ShopRepository;
@@ -21,13 +27,16 @@ import com.serch.server.services.trip.responses.ActiveResponse;
 import com.serch.server.services.trip.responses.SearchResponse;
 import com.serch.server.services.trip.services.ActiveSearchService;
 import com.serch.server.utils.HelperUtil;
+import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Implementation of the {@link ActiveSearchService} interface.
@@ -52,17 +61,26 @@ public class ActiveSearchImplementation implements ActiveSearchService {
     private final SharedLinkRepository sharedLinkRepository;
     private final SpecialtyRepository specialtyRepository;
     private final ActiveRepository activeRepository;
+    private final UserRepository userRepository;
+    private final CertificateRepository certificateRepository;
 
     @Value("${application.map.search-radius}")
     private String MAP_SEARCH_RADIUS;
 
     @Override
-    public ActiveResponse response(Profile profile, TripStatus status, double distance) {
+    public Double getSearchRadius(Double radius) {
+        return radius == null ? Double.parseDouble(MAP_SEARCH_RADIUS) : radius;
+    }
+
+    @Override
+    public ActiveResponse response(Profile profile, ProviderStatus status, double distance) {
         ActiveResponse response = TripMapper.INSTANCE.response(profile);
         response.setStatus(status);
         response.setName(profile.getFullName());
         response.setDistanceInKm(distance + " km");
         response.setDistance(distance);
+        response.setCategory(profile.getCategory().getType());
+        response.setImage(profile.getCategory().getImage());
         if(profile.isAssociate()) {
             response.setBusiness(AccountMapper.INSTANCE.business(profile.getBusiness()));
         }
@@ -71,6 +89,10 @@ public class ActiveSearchImplementation implements ActiveSearchService {
                         .stream()
                         .map(specialtyService::response)
                         .toList()
+        );
+        response.setVerificationStatus(profile.getUser().getVerification() != null
+                ? profile.getUser().getVerification().getStatus()
+                : VerificationStatus.NOT_VERIFIED
         );
         MoreProfileData more = profileService.moreInformation(profile.getUser());
         more.setTotalShared(sharedLinkRepository.findByUserId(profile.getId()).size());
@@ -83,15 +105,14 @@ public class ActiveSearchImplementation implements ActiveSearchService {
 
     @Override
     public ApiResponse<SearchResponse> search(SerchCategory category, Double longitude, Double latitude, Double radius, Boolean autoConnect) {
-        double searchRadius = radius == null ? Double.parseDouble(MAP_SEARCH_RADIUS) : radius;
-        List<Active> actives = activeRepository.sortAllWithinDistance(latitude, longitude, searchRadius, category.name());
+        List<Active> actives = activeRepository.sortAllWithinDistance(latitude, longitude, getSearchRadius(radius), category.name());
 
         SearchResponse response = prepareResponse(longitude, latitude, actives);
         if(autoConnect != null && autoConnect) {
-            Active bestMatch = activeRepository.findBestMatchWithCategory(latitude, longitude, category.name(), searchRadius);
+            Active bestMatch = activeRepository.findBestMatchWithCategory(latitude, longitude, category.name(), getSearchRadius(radius));
             if(bestMatch != null) {
                 response.setBest(response(
-                        bestMatch.getProfile(), bestMatch.getTripStatus(),
+                        bestMatch.getProfile(), bestMatch.getProviderStatus(),
                         HelperUtil.getDistance(latitude, longitude, bestMatch.getLatitude(), bestMatch.getLongitude())
                 ));
             }
@@ -100,35 +121,65 @@ public class ActiveSearchImplementation implements ActiveSearchService {
     }
 
     private SearchResponse prepareResponse(Double longitude, Double latitude, List<Active> actives) {
+        AtomicReference<AccountSetting> setting = new AtomicReference<>();
+        userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
+                .ifPresent(user -> setting.set(user.getSetting()));
+
         SearchResponse response = new SearchResponse();
-        if(actives != null && !actives.isEmpty()) {
-            Set<Active> distinct = new HashSet<>();
-            List<ActiveResponse> list = actives.stream()
-                    .filter(distinct::add)
-                    .map(activeProvider -> response(
-                            activeProvider.getProfile(),
-                            activeProvider.getTripStatus(),
-                            HelperUtil.getDistance(latitude, longitude, activeProvider.getLatitude(), activeProvider.getLongitude())
-                    ))
-                    .toList();
-            response.setProviders(list);
+        if(setting.get() != null) {
+            if (actives != null && !actives.isEmpty()) {
+                Set<Active> distinct = new HashSet<>();
+                List<ActiveResponse> list = actives.stream()
+                        .filter(active -> {
+                            boolean showOnlyCertified = Optional.ofNullable(setting.get().getShowOnlyCertified()).orElse(false);
+                            return !showOnlyCertified || certificateRepository.existsByUser(active.getProfile().getId());
+                        })
+                        .filter(active -> {
+                            boolean showOnlyVerified = Optional.ofNullable(setting.get().getShowOnlyVerified()).orElse(false);
+                            return !showOnlyVerified || Optional.ofNullable(active.getProfile().getUser().getVerification()).map(Verification::isVerified).orElse(false);
+                        })
+                        .filter(active -> {
+                            Gender genderSetting = Optional.ofNullable(setting.get().getGender()).orElse(Gender.NONE);
+                            return genderSetting == Gender.NONE || genderSetting.equals(active.getProfile().getGender());
+                        })
+                        .filter(distinct::add)
+                        .map(activeProvider -> response(
+                                activeProvider.getProfile(),
+                                activeProvider.getProviderStatus(),
+                                HelperUtil.getDistance(latitude, longitude, activeProvider.getLatitude(), activeProvider.getLongitude())
+                        ))
+                        .toList();
+                response.setProviders(list);
+            }
+        } else {
+            if(actives != null && !actives.isEmpty()) {
+                Set<Active> distinct = new HashSet<>();
+                List<ActiveResponse> list = actives.stream()
+                        .filter(distinct::add)
+                        .map(activeProvider -> response(
+                                activeProvider.getProfile(),
+                                activeProvider.getProviderStatus(),
+                                HelperUtil.getDistance(latitude, longitude, activeProvider.getLatitude(), activeProvider.getLongitude())
+                        ))
+                        .toList();
+                response.setProviders(list);
+            }
         }
         return response;
     }
 
     @Override
     public ApiResponse<SearchResponse> search(String query, Double longitude, Double latitude, Double radius, Boolean autoConnect) {
-        double searchRadius = radius == null ? Double.parseDouble(MAP_SEARCH_RADIUS) : radius;
-        List<Active> actives = activeRepository.fullTextSearchWithinDistance(latitude, longitude, query, searchRadius);
-        List<SearchShopResponse> shops = shopService.list(query, null, longitude, latitude, searchRadius);
+        List<Active> actives = activeRepository.fullTextSearchWithinDistance(latitude, longitude, query, getSearchRadius(radius));
+        List<SearchShopResponse> shops = shopService.list(query, null, longitude, latitude, getSearchRadius(radius));
 
         SearchResponse response = prepareResponse(longitude, latitude, actives);
         response.setShops(shops);
         if(autoConnect != null && autoConnect) {
-            Active bestMatch = activeRepository.findBestMatchWithQuery(latitude, longitude, query, searchRadius);
+            Active bestMatch = activeRepository.findBestMatchWithQuery(latitude, longitude, query, getSearchRadius(radius));
             if(bestMatch != null) {
                 response.setBest(response(
-                        bestMatch.getProfile(), bestMatch.getTripStatus(),
+                        bestMatch.getProfile(), bestMatch.getProviderStatus(),
                         HelperUtil.getDistance(latitude, longitude, bestMatch.getLatitude(), bestMatch.getLongitude())
                 ));
             }

@@ -1,16 +1,17 @@
 package com.serch.server.models.company;
 
+import com.serch.server.admin.models.Admin;
 import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseDateTime;
-import com.serch.server.bases.BaseModel;
 import com.serch.server.enums.company.IssueStatus;
-import com.serch.server.models.auth.User;
+import com.serch.server.generators.ComplaintID;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.GenericGenerator;
 
 /**
  * This class is the record for any complaints about Serch platform or website, even product.
@@ -21,7 +22,13 @@ import lombok.Setter;
 @NoArgsConstructor
 @Entity
 @Table(schema = "company", name = "complaints")
-public class Complaint extends BaseModel {
+public class Complaint extends BaseDateTime {
+    @Id
+    @Column(nullable = false, columnDefinition = "TEXT")
+    @GenericGenerator(name = "complaint_seq", type = ComplaintID.class)
+    @GeneratedValue(generator = "complaint_seq")
+    private String id;
+
     @Column(name = "comment", nullable = false, columnDefinition = "TEXT")
     @NotEmpty(message = "Comment cannot be empty")
     private String comment;
@@ -37,4 +44,17 @@ public class Complaint extends BaseModel {
     @Column(name = "email_address", nullable = false, columnDefinition = "TEXT")
     @NotEmpty(message = "Sender cannot be empty")
     private String emailAddress;
+
+    @Column(name = "status", nullable = false)
+    @Enumerated(value = EnumType.STRING)
+    @SerchEnum(message = "IssueStatus must be an enum")
+    private IssueStatus status = IssueStatus.OPENED;
+
+    @ManyToOne
+    @JoinColumn(
+            name = "admin_id",
+            referencedColumnName = "serch_id",
+            foreignKey = @ForeignKey(name = "complaint_admin_fkey")
+    )
+    private Admin admin;
 }

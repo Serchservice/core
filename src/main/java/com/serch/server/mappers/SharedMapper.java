@@ -18,28 +18,37 @@ public interface SharedMapper {
     SharedMapper INSTANCE = Mappers.getMapper(SharedMapper.class);
 
     SharedLinkData response(SharedLink link);
+
     @Mapping(target = "id", source = "id")
     SharedProfileData response(Profile profile);
 
     @Mapping(target = "device", source = "device", ignore = true)
     Guest guest(CreateGuestRequest request);
+
     Guest guest(Profile profile);
+
+    @Mappings({
+            @Mapping(target = "firstName", source = "user.firstName"),
+            @Mapping(target = "lastName", source = "user.lastName"),
+            @Mapping(target = "emailAddress", source = "user.emailAddress"),
+    })
     CreateGuestRequest request(Profile profile);
+
     GuestProfileData response(Guest guest);
+
     RequestProfile profile(GuestToUserRequest request);
+
     @Mappings({
             @Mapping(target = "linkId", source = "id"),
             @Mapping(target = "amount", source = "amount", ignore = true),
     })
     SharedLinkData shared(SharedLink link);
+
     @Mapping(target = "gender", source = "gender", ignore = true)
     GuestResponse guest(Guest guest);
 
     @Mappings({
-            @Mapping(target = "user", source = "user", ignore = true),
-            @Mapping(target = "provider", source = "provider", ignore = true),
-            @Mapping(target = "amount", source = "amount", ignore = true),
-            @Mapping(target = "status", source = "status", ignore = true),
+            @Mapping(target = "status", source = "useStatus", ignore = true),
             @Mapping(target = "trip", source = "trip", ignore = true),
     })
     SharedStatusData data(SharedStatus status);

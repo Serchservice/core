@@ -53,8 +53,8 @@ public class Call extends BaseDateTime {
     @Column(name = "duration", columnDefinition = "TEXT", nullable = false)
     private String duration = "00:00:00";
 
-    @Column(name = "session_count", nullable = false)
-    private Integer sessionCount = 0;
+    @Column(nullable = false)
+    private Integer session = 0;
 
     @Column(name = "retries", nullable = false)
     private Integer retries = 0;

@@ -7,8 +7,12 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.servers.Server;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
 
 /**
  * The SwaggerConfiguration class configures Swagger documentation settings for the application.
@@ -19,6 +23,9 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class SwaggerConfiguration {
+    @Value("${application.base-url}")
+    private String SERCH_BASE_URL;
+
     /**
      * Configures custom OpenAPI specification for the application.
      *
@@ -32,9 +39,9 @@ public class SwaggerConfiguration {
                         .version("1.0.0")
                         .summary("This contains the server implementations for Serch platform")
                         .description("Serch Server")
-                        .termsOfService("https://legal.serchservice.com")
+                        .termsOfService("https://www.serchservice.com/hub/legal")
                         .license(new License()
-                                .url("https://legal.serchservice.com")
+                                .url("https://www.serchservice.com/hub/legal")
                                 .name("Serch Server License")
                                 .identifier("server")
                         )
@@ -54,6 +61,14 @@ public class SwaggerConfiguration {
                                                 .bearerFormat("JWT")
                                 )
                 )
+                .servers(List.of(
+                        new Server()
+                                .description("Development Server")
+                                .url(String.format("%s/dev", SERCH_BASE_URL)),
+                        new Server()
+                                .description("Production Server")
+                                .url(SERCH_BASE_URL)
+                ))
                 .addSecurityItem(new SecurityRequirement().addList("Bearer Authentication"));
     }
 }

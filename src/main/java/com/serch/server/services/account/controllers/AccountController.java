@@ -1,12 +1,10 @@
 package com.serch.server.services.account.controllers;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.services.account.requests.AccountReportRequest;
 import com.serch.server.services.account.responses.AccountResponse;
 import com.serch.server.services.account.responses.DashboardResponse;
 import com.serch.server.services.account.responses.AdditionalInformationResponse;
 import com.serch.server.services.account.services.AccountDeleteService;
-import com.serch.server.services.account.services.AccountReportService;
 import com.serch.server.services.account.services.AccountService;
 import com.serch.server.services.account.services.AdditionalService;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +19,6 @@ import java.util.List;
 @RequestMapping("/account")
 public class AccountController {
     private final AccountDeleteService deleteService;
-    private final AccountReportService reportService;
     private final AdditionalService additionalService;
     private final AccountService service;
 
@@ -61,12 +58,6 @@ public class AccountController {
     @PreAuthorize(value = "hasRole('BUSINESS')")
     public ResponseEntity<ApiResponse<List<DashboardResponse>>> dashboardBusiness() {
         ApiResponse<List<DashboardResponse>> response = service.dashboards();
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
-    @PostMapping("/report")
-    public ResponseEntity<ApiResponse<String>> report(@RequestBody AccountReportRequest request) {
-        ApiResponse<String> response = reportService.report(request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

@@ -15,11 +15,9 @@ public interface SpecialtyRepository extends JpaRepository<Specialty, Long> {
     Optional<Specialty> findByIdAndProfile_Id(@NonNull Long id, @NonNull UUID serchId);
     List<Specialty> findByProfile_Business_Id(@NonNull UUID id);
     @Query(
-            value = "SELECT s.* " +
-                    "FROM account.specializations s " +
-                    "INNER JOIN account.profiles p ON s.serch_id = p.serch_id " +
+            value = "SELECT s.* FROM account.specializations s LEFT JOIN account.profiles p ON s.serch_id = p.serch_id " +
                     "WHERE to_tsvector('english', s.specialty) @@ plainto_tsquery(:query) " +
-                    "OR to_tsvector('english', p.serch_category) @@ plainto_tsquery(:query) ",
+                    "OR to_tsvector('english', COALESCE(p.serch_category, '')) @@ plainto_tsquery(:query) ",
             nativeQuery = true
     )
     List<Specialty> fullTextSearch(@Param("query") String query);

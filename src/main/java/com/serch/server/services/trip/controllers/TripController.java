@@ -2,10 +2,13 @@ package com.serch.server.services.trip.controllers;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.services.trip.requests.*;
-import com.serch.server.services.trip.responses.TripHistoryResponse;
+import com.serch.server.services.trip.responses.ActiveResponse;
+import com.serch.server.services.trip.responses.TripResponse;
+import com.serch.server.services.trip.services.TripHistoryService;
 import com.serch.server.services.trip.services.TripService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,71 +17,99 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/trip")
 public class TripController {
+    private final TripHistoryService historyService;
     private final TripService service;
 
     @GetMapping("/history")
-    public ResponseEntity<ApiResponse<List<TripHistoryResponse>>> history() {
-        ApiResponse<List<TripHistoryResponse>> response = service.history();
+    public ResponseEntity<ApiResponse<List<TripResponse>>> history(
+            @RequestParam(required = false) String guest,
+            @RequestParam(required = false) String link
+    ) {
+        ApiResponse<List<TripResponse>> response = historyService.history(guest, link);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @GetMapping("/pay/service_fee")
+    @PreAuthorize("hasRole('PROVIDER') || hasRole('ASSOCIATE_PROVIDER')")
+    public ResponseEntity<ApiResponse<TripResponse>> payServiceFee(@RequestParam String id) {
+        ApiResponse<TripResponse> response = service.payServiceFee(id);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @GetMapping("/pay/verify")
+    public ResponseEntity<ApiResponse<TripResponse>> verify(
+            @RequestParam String id,
+            @RequestParam(required = false) String guest,
+            @RequestParam String reference
+    ) {
+        ApiResponse<TripResponse> response = service.verify(id, guest, reference);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @GetMapping("/search")
+    @PreAuthorize("hasRole('PROVIDER') || hasRole('ASSOCIATE_PROVIDER')")
+    public ResponseEntity<ApiResponse<List<ActiveResponse>>> search(
+            @RequestParam String phone,
+            @RequestParam Double lat,
+            @RequestParam Double lng
+    ) {
+        ApiResponse<List<ActiveResponse>> response = service.search(phone, lat, lng);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @GetMapping("/rebook")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ApiResponse<TripResponse>> rebook(
+            @RequestParam String id,
+            @RequestParam(required = false) Boolean withInvited
+    ) {
+        ApiResponse<TripResponse> response = service.rebook(id, withInvited);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @PostMapping("/request")
-    public ResponseEntity<ApiResponse<String>> request(@RequestBody TripRequest request) {
-        ApiResponse<String> response = service.request(request);
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ApiResponse<TripResponse>> request(@RequestBody TripInviteRequest request) {
+        ApiResponse<TripResponse> response = service.request(request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @PatchMapping("/accept")
-    public ResponseEntity<ApiResponse<String>> accept(@RequestBody TripAcceptRequest accept) {
-        ApiResponse<String> response = service.accept(accept);
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
-    @PatchMapping("/decline")
-    public ResponseEntity<ApiResponse<String>> decline(@RequestBody TripDeclineRequest decline) {
-        ApiResponse<String> response = service.decline(decline);
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
-    @PatchMapping("/cancel")
-    public ResponseEntity<ApiResponse<String>> cancel(@RequestBody TripCancelRequest cancel) {
-        ApiResponse<String> response = service.cancel(cancel);
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
-    @PatchMapping("/arrival/announce")
-    public ResponseEntity<ApiResponse<String>> announceArrival(@RequestParam String trip, @RequestParam String code) {
-        ApiResponse<String> response = service.announceArrival(code, trip);
+    @PostMapping("/accept")
+    @PreAuthorize("hasRole('PROVIDER') || hasRole('ASSOCIATE_PROVIDER')")
+    public ResponseEntity<ApiResponse<TripResponse>> accept(@RequestBody TripAcceptRequest request) {
+        ApiResponse<TripResponse> response = service.accept(request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @PatchMapping("/leave")
-    public ResponseEntity<ApiResponse<String>> leave(@RequestParam String trip) {
-        ApiResponse<String> response = service.leave(trip);
+    @PreAuthorize("hasRole('PROVIDER') || hasRole('ASSOCIATE_PROVIDER')")
+    public ResponseEntity<ApiResponse<List<TripResponse>>> leave(@RequestParam String id) {
+        ApiResponse<List<TripResponse>> response = service.leave(id);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @PatchMapping("/end")
-    public ResponseEntity<ApiResponse<String>> end(@RequestParam String trip, @RequestParam(required = false) Integer amount) {
-        ApiResponse<String> response = service.end(trip, amount);
+    public ResponseEntity<ApiResponse<List<TripResponse>>> end(@RequestBody TripCancelRequest request) {
+        ApiResponse<List<TripResponse>> response = service.end(request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @PatchMapping("/sharing/permit")
-    public ResponseEntity<ApiResponse<String>> permitSharing(@RequestParam String trip) {
-        ApiResponse<String> response = service.permitSharing(trip);
+    @PatchMapping("/auth")
+    public ResponseEntity<ApiResponse<TripResponse>> auth(@RequestBody TripAuthRequest request) {
+        ApiResponse<TripResponse> response = service.auth(request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @PatchMapping("/invite")
-    public ResponseEntity<ApiResponse<String>> invite(@RequestBody TripInviteRequest invite) {
-        ApiResponse<String> response = service.invite(invite);
+    @PatchMapping("/cancel")
+    public ResponseEntity<ApiResponse<List<TripResponse>>> cancel(@RequestBody TripCancelRequest request) {
+        ApiResponse<List<TripResponse>> response = service.cancel(request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @PatchMapping("/invite/cancel")
-    public ResponseEntity<ApiResponse<String>> cancelInvite(@RequestBody TripCancelRequest cancelInvite) {
-        ApiResponse<String> response = service.cancelInvite(cancelInvite);
+    @PatchMapping("/update")
+    @PreAuthorize("hasRole('PROVIDER') || hasRole('ASSOCIATE_PROVIDER')")
+    public ResponseEntity<ApiResponse<TripResponse>> update(@RequestBody TripUpdateRequest request) {
+        ApiResponse<TripResponse> response = service.update(request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 }

@@ -2,9 +2,12 @@ package com.serch.server.configurations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.google.auth.oauth2.GoogleCredentials;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.utils.ServerUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
@@ -21,21 +24,29 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
 /**
  * The ServerConfiguration class configured various beans and settings related to server operations.
  * It is annotated with @Configuration to indicate that it defines application beans.
  * <p></p>
  * Additionally, it uses constructor injection for dependency management.
+ * <p>
+ * Use this to convert json to string for proper secure fetch
+ * {@code cat /path/to/your/serviceAccountKey.json | jq -c .}
  *
  * @see org.springframework.context.annotation.Configuration
  */
 @Configuration
 @RequiredArgsConstructor
 public class ServerConfiguration {
-    /**
-     * Repository for accessing user data.
-     */
     private final UserRepository userRepository;
+
+    @Value("${application.notification.service.key}")
+    private String NOTIFICATION_SERVICE_KEY;
 
     /**
      * Configures a RestTemplate bean for making RESTful HTTP requests.
@@ -107,6 +118,7 @@ public class ServerConfiguration {
         configuration.setAllowedOriginPatterns(ServerUtil.DEVELOPMENT);
         configuration.setAllowedMethods(ServerUtil.METHODS);
         configuration.setAllowedHeaders(ServerUtil.HEADERS);
+        configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
@@ -118,5 +130,15 @@ public class ServerConfiguration {
         builder.modulesToInstall(new JavaTimeModule());
         builder.simpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         return builder.build();
+    }
+
+    @Bean
+    @SneakyThrows
+    public GoogleCredentials credentials() {
+        InputStream inputStream = new ByteArrayInputStream(NOTIFICATION_SERVICE_KEY.getBytes(StandardCharsets.UTF_8));
+        GoogleCredentials credentials = GoogleCredentials.fromStream(inputStream)
+                .createScoped(List.of("https://www.googleapis.com/auth/firebase.messaging"));
+        credentials.refreshIfExpired();
+        return credentials;
     }
 }

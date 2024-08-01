@@ -54,12 +54,6 @@ public class RatingController {
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @PostMapping("/rate/share")
-    public ResponseEntity<ApiResponse<String>> share(@RequestBody RateRequest request) {
-        ApiResponse<String> response = service.share(request);
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
     @PostMapping("/rate/app")
     public ResponseEntity<ApiResponse<RatingResponse>> rate(@RequestBody RateAppRequest request) {
         ApiResponse<RatingResponse> response = service.rate(request);

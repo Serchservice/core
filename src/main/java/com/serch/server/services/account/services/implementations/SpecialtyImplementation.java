@@ -91,7 +91,7 @@ public class SpecialtyImplementation implements SpecialtyService {
 
     @Override
     public ApiResponse<List<SpecialtyResponse>> search(String query) {
-        List<Specialty> specialties = specialtyRepository.fullTextSearch(query);
+        List<Specialty> specialties = specialtyRepository.fullTextSearch(query.toLowerCase());
         if(specialties != null && !specialties.isEmpty()) {
             return new ApiResponse<>(specialties.stream().map(this::response).toList());
         } else {

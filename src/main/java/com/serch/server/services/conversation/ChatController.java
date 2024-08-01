@@ -1,12 +1,13 @@
 package com.serch.server.services.conversation;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.services.conversation.requests.RoomRequest;
 import com.serch.server.services.conversation.requests.SendMessageRequest;
 import com.serch.server.services.conversation.requests.UpdateMessageRequest;
 import com.serch.server.services.conversation.responses.ChatRoomResponse;
 import com.serch.server.services.conversation.services.ChatService;
 import com.serch.server.services.conversation.services.ChattingService;
-import com.serch.server.services.socket.SocketService;
+import com.serch.server.core.socket.SocketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -20,28 +21,41 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
+@MessageMapping("/chat")
 @RequestMapping("/chat")
 public class ChatController {
     private final ChatService service;
     private final SocketService socket;
     private final ChattingService chatting;
 
-    @MessageMapping("/chat/send")
+    @MessageMapping("/send")
     public void sendMessage(@Payload SendMessageRequest message, SimpMessageHeaderAccessor header) {
         socket.authenticate(header);
         chatting.send(message);
     }
 
-    @MessageMapping("/chat/update")
-    public void sendMessage(@Payload UpdateMessageRequest message, SimpMessageHeaderAccessor header) {
+    @MessageMapping("/refresh")
+    public void refresh(@Payload RoomRequest room, SimpMessageHeaderAccessor header) {
+        socket.authenticate(header);
+        chatting.refresh(room.getRoom());
+    }
+
+    @MessageMapping("/update")
+    public void updateStatus(@Payload UpdateMessageRequest message, SimpMessageHeaderAccessor header) {
         socket.authenticate(header);
         chatting.update(message);
     }
 
-    @MessageMapping("/chat/connect")
-    public void sendMessage(@Payload String room, SimpMessageHeaderAccessor header) {
+    @MessageMapping("/update/all")
+    public void updateAllStatus(@Payload UpdateMessageRequest message, SimpMessageHeaderAccessor header) {
         socket.authenticate(header);
-        chatting.announce(room);
+        chatting.updateAll(message);
+    }
+
+    @MessageMapping("/connect")
+    public void sendMessage(@Payload RoomRequest room, SimpMessageHeaderAccessor header) {
+        socket.authenticate(header);
+        chatting.announce(room.getRoom());
     }
 
     @GetMapping("/rooms")

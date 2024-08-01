@@ -38,16 +38,22 @@ public class SpeakWithSerchImplementation implements SpeakWithSerchService {
 
         Optional<SpeakWithSerch> existing = speakWithSerchRepository.findById(request.getTicket());
         if(existing.isPresent()) {
-            saveNewIssue(request, user, existing.get());
-            existing.get().setUpdatedAt(LocalDateTime.now());
-            speakWithSerchRepository.save(existing.get());
-            return new ApiResponse<>(prepareSpeakWithSerchResponse(existing.get()));
+            if(existing.get().getStatus() == IssueStatus.CLOSED) {
+                throw new CompanyException("This ticket has been closed. Please open a new one");
+            } else if(existing.get().getStatus() == IssueStatus.RESOLVED) {
+                throw new CompanyException("This ticket has been marked as resolved. Please open a new one");
+            } else {
+                saveNewIssue(request, user, existing.get());
+                existing.get().setUpdatedAt(LocalDateTime.now());
+                speakWithSerchRepository.save(existing.get());
+                return new ApiResponse<>(prepareSpeakWithSerchResponse(existing.get()));
+            }
         } else {
             SpeakWithSerch serch = new SpeakWithSerch();
             serch.setUser(user);
             serch.setStatus(IssueStatus.OPENED);
             SpeakWithSerch saved = speakWithSerchRepository.save(serch);
-            saved.setIssue(List.of(saveNewIssue(request, user, saved)));
+            saved.setIssues(List.of(saveNewIssue(request, user, saved)));
             return new ApiResponse<>(prepareSpeakWithSerchResponse(saved));
         }
     }
@@ -66,8 +72,8 @@ public class SpeakWithSerchImplementation implements SpeakWithSerchService {
         response.setLabel(TimeUtil.formatDay(speakWithSerch.getCreatedAt()));
         response.setTime(TimeUtil.formatDay(speakWithSerch.getUpdatedAt()));
         response.setIssues(
-                speakWithSerch.getIssue() != null
-                        ? speakWithSerch.getIssue().stream()
+                speakWithSerch.getIssues() != null
+                        ? speakWithSerch.getIssues().stream()
                         .sorted(Comparator.comparing(Issue::getCreatedAt))
                         .map(issue -> {
                             IssueResponse res = CompanyMapper.INSTANCE.response(issue);
@@ -99,12 +105,13 @@ public class SpeakWithSerchImplementation implements SpeakWithSerchService {
 
     @Override
     public ApiResponse<List<SpeakWithSerchResponse>> markRead(String ticket) {
-        userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
+        User user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new CompanyException("User not found"));
         SpeakWithSerch speakWithSerch = speakWithSerchRepository.findById(ticket)
                 .orElseThrow(() -> new CompanyException("Content not found. Might have been removed by Serch"));
-        speakWithSerch.getIssue().stream()
+        speakWithSerch.getIssues().stream()
                 .filter(serch -> !serch.getIsRead())
+                .filter(serch -> !serch.getSender().equals(String.valueOf(user.getId())))
                 .forEach(serch -> {
                     serch.setIsRead(true);
                     serch.setUpdatedAt(LocalDateTime.now());

@@ -3,10 +3,12 @@ package com.serch.server.services.shared.controllers;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.services.auth.responses.AuthResponse;
 import com.serch.server.services.shared.requests.GuestToUserRequest;
-import com.serch.server.services.shared.responses.GuestActivityResponse;
+import com.serch.server.services.shared.requests.SwitchRequest;
 import com.serch.server.services.shared.services.GuestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,12 +16,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/guest")
 public class GuestController {
     private final GuestService service;
-
-    @GetMapping("/activity")
-    public ResponseEntity<ApiResponse<GuestActivityResponse>> activity(@RequestParam String linkId, @RequestParam String guestId) {
-        ApiResponse<GuestActivityResponse> response = service.activity(guestId, linkId);
-        return new ResponseEntity<>(response, response.getStatus());
-    }
 
     @GetMapping("/user/become")
     public ResponseEntity<ApiResponse<AuthResponse>> becomeAUser(@RequestBody GuestToUserRequest request) {
@@ -31,5 +27,10 @@ public class GuestController {
     public ResponseEntity<ApiResponse<String>> updateFcmToken(@RequestParam String token, @RequestParam String guest) {
         ApiResponse<String> response = service.updateFcmToken(token, guest);
         return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @MessageMapping("/guest/refresh")
+    void refresh(@Payload SwitchRequest request) {
+        service.refresh(request);
     }
 }

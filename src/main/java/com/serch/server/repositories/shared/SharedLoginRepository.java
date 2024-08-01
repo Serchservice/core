@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface SharedLoginRepository extends JpaRepository<SharedLogin, Long> {
-  Optional<SharedLogin> findBySharedLink_IdAndGuest_Id(@NonNull String link, @NonNull String id);
+  Optional<SharedLogin> findBySharedLink_IdAndGuest_Id(@NonNull String linkId, @NonNull String id);
+
   List<SharedLogin> findByGuest_Id(@NonNull String id);
+
+  Optional<SharedLogin> findBySharedLink_LinkAndGuest_Id(@NonNull String link, @NonNull String id);
 }

@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
  *     <li>{@link AuthMethod#PASSWORD} - Authentication using a password</li>
  *     <li>{@link AuthMethod#PASSWORD_CHANGE} - Authentication for changing password</li>
  *     <li>{@link AuthMethod#MFA} - Multi-Factor Authentication</li>
+ *     <li>{@link AuthMethod#NONE} - No Authentication</li>
  * </ul>
  * This enum is annotated with Lombok's {@link Getter} and {@link RequiredArgsConstructor} to generate
  * getter methods and a constructor with required arguments automatically.
@@ -22,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 public enum AuthMethod {
     TOKEN("Token"),
     PASSWORD("Password"),
+    NONE("None"),
     PASSWORD_CHANGE("Password Change"),
     MFA("Multi-Factor Authentication");
 

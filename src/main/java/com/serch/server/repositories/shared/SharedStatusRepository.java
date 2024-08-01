@@ -8,8 +8,6 @@ import org.springframework.lang.NonNull;
 import java.util.Optional;
 
 public interface SharedStatusRepository extends JpaRepository<SharedStatus, Long> {
-    @Query("""
-            select s from SharedStatus s inner join s.sharedLogin.guest guest
-            where s.sharedLogin.sharedLink.id = ?1 and guest.id = ?2 and s.isExpired = ?3""")
-    Optional<SharedStatus> findBySharedGuestAndExpired(@NonNull String id, @NonNull String id1, @NonNull Boolean isExpired);
+    @Query("select s from SharedStatus s inner join s.sharedLogin.guest guest where s.sharedLogin.sharedLink.id = ?1 and guest.id = ?2")
+    Optional<SharedStatus> findBySharedGuest(@NonNull String id, @NonNull String id1);
 }

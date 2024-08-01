@@ -15,4 +15,8 @@ public interface GuestRepository extends JpaRepository<Guest, String> {
     @Query("SELECT sl.guest FROM SharedLogin sl " +
             "WHERE sl.createdAt <= :oneYearAgo")
     List<Guest> findGuestsWithLastTripOneYearAgo(@Param("oneYearAgo") LocalDateTime oneYearAgo);
+
+    List<Guest> findByCountryLikeIgnoreCase(@NonNull String country);
+
+    List<Guest> findByStateLikeIgnoreCase(@NonNull String state);
 }

@@ -18,7 +18,7 @@ import com.serch.server.services.shop.responses.SearchShopResponse;
 import com.serch.server.services.shop.responses.ShopResponse;
 import com.serch.server.services.shop.responses.ShopServiceResponse;
 import com.serch.server.services.shop.responses.ShopWeekdayResponse;
-import com.serch.server.services.supabase.core.SupabaseService;
+import com.serch.server.core.storage.core.StorageService;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +41,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ShopImplementation implements ShopService {
-    private final SupabaseService supabaseService;
+    private final StorageService storageService;
     private final UserUtil userUtil;
     private final ShopRepository shopRepository;
     private final ShopServiceRepository shopServiceRepository;
@@ -105,7 +105,7 @@ public class ShopImplementation implements ShopService {
         if(HelperUtil.isUploadEmpty(request.getUpload())) {
             throw new ShopException("Shop logo or image is needed");
         } else {
-            String logo = supabaseService.upload(request.getUpload(), "shops");
+            String logo = storageService.upload(request.getUpload(), "shops");
             Shop newShop = ShopMapper.INSTANCE.shop(request);
             newShop.setUser(userUtil.getUser());
             newShop.setLogo(logo);
@@ -289,9 +289,9 @@ public class ShopImplementation implements ShopService {
 
         List<Shop> listOfShops;
         if(query != null && !query.isEmpty()) {
-            listOfShops = shopRepository.findByServiceAndLocation(latitude, longitude, query, radius);
+            listOfShops = shopRepository.findByServiceAndLocation(latitude, longitude, query.toLowerCase(), radius);
         } else {
-            listOfShops = shopRepository.findByServiceAndLocation(latitude, longitude, category, radius);
+            listOfShops = shopRepository.findByServiceAndLocation(latitude, longitude, category.toLowerCase(), radius);
         }
 
         if(listOfShops != null && !listOfShops.isEmpty()) {

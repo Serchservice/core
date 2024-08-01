@@ -192,6 +192,9 @@ public class ProviderAuthImplementation implements ProviderAuthService {
             if(incomplete.hasProfile()) {
                 if(incomplete.hasCategory()) {
                     User user = authService.getUserFromIncomplete(incomplete, Role.PROVIDER);
+                    user.setCountry(request.getCountry());
+                    user.setState(request.getState());
+                    userRepository.save(user);
                     ApiResponse<Profile> response = profileService.createProviderProfile(incomplete, user);
                     if(response.getStatus().is2xxSuccessful()) {
                         additionalService.createAdditional(request, response.getData());

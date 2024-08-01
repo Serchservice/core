@@ -44,8 +44,8 @@ public class AccountDeleteImplementation implements AccountDeleteService {
             User user = profileRepository.findById(id)
                     .orElseThrow(() -> new AccountException("Provider not found"))
                     .getUser();
-            if(user.getAccountStatus() != AccountStatus.BUSINESS_DELETED) {
-                user.setAccountStatus(AccountStatus.BUSINESS_DELETED);
+            if(user.getStatus() != AccountStatus.BUSINESS_DELETED) {
+                user.setStatus(AccountStatus.BUSINESS_DELETED);
                 user.setUpdatedAt(LocalDateTime.now());
                 userRepository.save(user);
             }

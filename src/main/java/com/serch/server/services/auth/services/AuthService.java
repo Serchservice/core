@@ -60,6 +60,16 @@ public interface AuthService {
     ApiResponse<AuthResponse> authenticate(RequestLogin request, User user);
 
     /**
+     * This retrieves the {@link AuthResponse} data needed for continuous data request
+     *
+     * @param request The RequestLogin containing the login credentials.
+     * @param user    The authenticated user entity.
+     *
+     * @return ApiResponse containing the authentication response.
+     */
+    ApiResponse<AuthResponse> getAuthResponse(RequestLogin request, User user);
+
+    /**
      * Gets a user entity from the incomplete user data.
      *
      * @param incomplete The incomplete user entity.

@@ -2,7 +2,6 @@ package com.serch.server.services.shop.requests;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.serch.server.enums.account.SerchCategory;
-import com.serch.server.services.supabase.requests.FileUploadRequest;
 import lombok.Data;
 
 @Data

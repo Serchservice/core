@@ -2,7 +2,7 @@ package com.serch.server.services.trip.services;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.account.SerchCategory;
-import com.serch.server.enums.trip.TripStatus;
+import com.serch.server.enums.account.ProviderStatus;
 import com.serch.server.models.account.Profile;
 import com.serch.server.services.trip.responses.ActiveResponse;
 import com.serch.server.services.trip.responses.SearchResponse;
@@ -15,6 +15,15 @@ import com.serch.server.services.trip.responses.SearchResponse;
 public interface ActiveSearchService {
 
     /**
+     * Retrieves the search radius to be used for the search
+     *
+     * @param radius Nullable radius
+     *
+     * @return The search radius to apply
+     */
+    Double getSearchRadius(Double radius);
+
+    /**
      * Generates an {@link ActiveResponse} based on the profile, status, and distance.
      *
      * @param profile The profile of the active provider.
@@ -23,9 +32,9 @@ public interface ActiveSearchService {
      * @return An {@link ActiveResponse} representing the active provider's response.
      *
      * @see Profile
-     * @see TripStatus
+     * @see ProviderStatus
      */
-    ActiveResponse response(Profile profile, TripStatus status, double distance);
+    ActiveResponse response(Profile profile, ProviderStatus status, double distance);
 
     /**
      * Searches for active providers by category within a specified radius.

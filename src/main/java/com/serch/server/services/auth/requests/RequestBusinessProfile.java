@@ -12,6 +12,8 @@ public class RequestBusinessProfile {
     private Double latitude;
     private Double longitude;
     private String place;
+    private String state;
+    private String country;
 
     @JsonProperty("email_address")
     private String emailAddress;

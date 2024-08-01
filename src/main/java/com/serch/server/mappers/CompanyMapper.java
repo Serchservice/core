@@ -3,9 +3,11 @@ package com.serch.server.mappers;
 import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.models.company.Complaint;
 import com.serch.server.models.company.Issue;
+import com.serch.server.models.company.ServiceSuggest;
 import com.serch.server.models.company.SpeakWithSerch;
 import com.serch.server.services.category.SerchCategoryResponse;
 import com.serch.server.services.company.requests.ComplaintRequest;
+import com.serch.server.services.company.requests.ServiceSuggestRequest;
 import com.serch.server.services.company.responses.IssueResponse;
 import com.serch.server.services.company.responses.SpeakWithSerchResponse;
 import org.mapstruct.Mapper;
@@ -25,4 +27,5 @@ public interface CompanyMapper {
     IssueResponse response(Issue issue);
     SpeakWithSerchResponse response(SpeakWithSerch speakWithSerch);
     SerchCategoryResponse response(SerchCategory category);
+    ServiceSuggest response(ServiceSuggestRequest request);
 }

@@ -2,6 +2,8 @@ package com.serch.server.exceptions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.zxing.WriterException;
+import com.serch.server.admin.exceptions.AdminException;
+import com.serch.server.admin.exceptions.PermissionException;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.exceptions.account.AccountException;
 import com.serch.server.exceptions.others.ReferralException;
@@ -15,10 +17,7 @@ import com.serch.server.exceptions.media.MediaBlogException;
 import com.serch.server.exceptions.media.MediaLegalException;
 import com.serch.server.exceptions.media.MediaNewsroomException;
 import com.serch.server.exceptions.others.*;
-import com.serch.server.exceptions.subscription.PlanException;
-import com.serch.server.exceptions.subscription.SubscriptionException;
 import com.serch.server.exceptions.transaction.WalletException;
-import dev.samstevens.totp.exceptions.QrGenerationException;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
@@ -52,8 +51,13 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import java.io.IOException;
 import java.net.ConnectException;
+import java.net.NoRouteToHostException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.security.GeneralSecurityException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -115,12 +119,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  *     <li>{@link ServerExceptionHandler#handleWalletException(WalletException)} -
  *     Handles exception involved with wallet services. {@link WalletException}
  *     </li>
- *     <li>{@link ServerExceptionHandler#handleSubscriptionException(SubscriptionException)} -
- *     Handles exception involved with subscription services. {@link SubscriptionException}
- *     </li>
- *     <li>{@link ServerExceptionHandler#handlePlanException(PlanException)} -
- *     Handles exception involved with plan services. {@link PlanException}
- *     </li>
  *     <li>{@link ServerExceptionHandler#handlePaymentException(PaymentException)} -
  *     Handles exception involved with payment services. {@link PaymentException}
  *     </li>
@@ -133,8 +131,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  *     <li>{@link ServerExceptionHandler#handleShopException(ShopException)} -
  *     Handles exception involved with shop services. {@link ShopException}
  *     </li>
- *     <li>{@link ServerExceptionHandler#handleStorageException(SupabaseException)} -
- *     Handles exception involved with storage services. {@link SupabaseException}
+ *     <li>{@link ServerExceptionHandler#handleStorageException(StorageException)} -
+ *     Handles exception involved with storage services. {@link StorageException}
  *     </li>
  *     <li>{@link ServerExceptionHandler#handleSharedException(SharedException)} -
  *     Handles exception involved with shared services. {@link SharedException}
@@ -181,9 +179,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  *     <li>{@link ServerExceptionHandler#handleHttpClientErrorException(HttpClientErrorException)} -
  *     Handles exception related to HTTP client errors. {@link HttpClientErrorException}
  *     </li>
- *     <li>{@link ServerExceptionHandler#handleQrException(QrGenerationException)} -
- *     Handles exception related to QR code generation errors. {@link QrGenerationException}
- *     </li>
  *     <li>{@link ServerExceptionHandler#handleWriterException(WriterException)} -
  *     Handles exception related to writer errors. {@link WriterException}
  *     </li>
@@ -221,6 +216,30 @@ import java.util.concurrent.atomic.AtomicInteger;
 @RequiredArgsConstructor
 public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     private final SimpMessagingTemplate simpMessagingTemplate;
+
+    @ExceptionHandler(AdminException.class)
+    public ApiResponse<String> handleAdminException(AdminException exception) {
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage());
+        response.setData(exception.getLocalizedMessage());
+        return response;
+    }
+
+    @ExceptionHandler(VerificationException.class)
+    public ApiResponse<String> handleVerificationException(VerificationException exception) {
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage());
+        response.setData(exception.getLocalizedMessage());
+        return response;
+    }
+
+    @ExceptionHandler(PermissionException.class)
+    public ApiResponse<String> handlePermissionException(PermissionException exception) {
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage());
+        response.setData(exception.getLocalizedMessage());
+        return response;
+    }
 
     @ExceptionHandler(ChatException.class)
     @MessageExceptionHandler(ChatException.class)
@@ -372,26 +391,6 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
         return response;
     }
 
-    @ExceptionHandler(SubscriptionException.class)
-    public ApiResponse<Object> handleSubscriptionException(SubscriptionException exception) {
-        ApiResponse<Object> response = new ApiResponse<>(exception.getMessage());
-        log.error(exception.getMessage());
-        if(exception.getData() != null) {
-            response.setData(exception.getData());
-        } else {
-            response.setData(exception.getLocalizedMessage());
-        }
-        return response;
-    }
-
-    @ExceptionHandler(PlanException.class)
-    public ApiResponse<String> handlePlanException(PlanException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
-        log.error(exception.getMessage());
-        response.setData(exception.getLocalizedMessage());
-        return response;
-    }
-
     @ExceptionHandler(PaymentException.class)
     public ApiResponse<String> handlePaymentException(PaymentException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
@@ -424,8 +423,8 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
         return response;
     }
 
-    @ExceptionHandler(SupabaseException.class)
-    public ApiResponse<String> handleStorageException(SupabaseException exception) {
+    @ExceptionHandler(StorageException.class)
+    public ApiResponse<String> handleStorageException(StorageException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
@@ -514,6 +513,12 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
         return new ApiResponse<>(exception.getMessage());
     }
 
+    @ExceptionHandler(Exception.class)
+    public ApiResponse<String> handleException(Exception exception) {
+        log.error(exception.getMessage());
+        return new ApiResponse<>(exception.getMessage());
+    }
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ApiResponse<String> handleDataIntegrityViolationException(DataIntegrityViolationException exception) {
         ApiResponse<String> response;
@@ -562,6 +567,12 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
         return new ApiResponse<>(exception.getMessage());
     }
 
+    @ExceptionHandler(DateTimeParseException.class)
+    public ApiResponse<String> handleDateTimeParseException(DateTimeParseException exception) {
+        log.error(exception.getMessage());
+        return new ApiResponse<>(exception.getMessage());
+    }
+
     @ExceptionHandler(UsernameNotFoundException.class)
     public ApiResponse<String> handleUsernameNotFoundException(UsernameNotFoundException exception){
         log.error(exception.getMessage());
@@ -570,12 +581,6 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(HttpClientErrorException.class)
     public ApiResponse<String> handleHttpClientErrorException(HttpClientErrorException exception){
-        log.error(exception.getMessage());
-        return new ApiResponse<>(exception.getMessage());
-    }
-
-    @ExceptionHandler(QrGenerationException.class)
-    public ApiResponse<String> handleQrException(QrGenerationException exception){
         log.error(exception.getMessage());
         return new ApiResponse<>(exception.getMessage());
     }
@@ -614,6 +619,36 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     public ApiResponse<String> handleMalformedJwtException(MalformedJwtException exception){
         log.error(exception.getMessage());
         return new ApiResponse<>("Incorrect token");
+    }
+
+    @ExceptionHandler(NoRouteToHostException.class)
+    public ApiResponse<String> handleNoRouteToHostException(NoRouteToHostException exception){
+        log.error(exception.getMessage());
+        return new ApiResponse<>("Host not found for specified route. Please check your internet");
+    }
+
+    @ExceptionHandler(GeneralSecurityException.class)
+    public ApiResponse<String> handleGeneralSecurityException(GeneralSecurityException exception){
+        log.error(exception.getMessage());
+        return new ApiResponse<>(exception.getLocalizedMessage());
+    }
+
+    @ExceptionHandler(NoSuchAlgorithmException.class)
+    public ApiResponse<String> handleNoSuchAlgorithmException(NoSuchAlgorithmException exception){
+        log.error(exception.getMessage());
+        return new ApiResponse<>(exception.getLocalizedMessage());
+    }
+
+    @ExceptionHandler(StringIndexOutOfBoundsException.class)
+    public ApiResponse<String> handleStringIndexOutOfBoundsException(StringIndexOutOfBoundsException exception){
+        log.error(exception.getMessage());
+        return new ApiResponse<>(exception.getLocalizedMessage());
+    }
+
+    @ExceptionHandler(InvalidKeyException.class)
+    public ApiResponse<String> handleInvalidKeyException(InvalidKeyException exception){
+        log.error(exception.getMessage());
+        return new ApiResponse<>(exception.getLocalizedMessage());
     }
 
     @Override

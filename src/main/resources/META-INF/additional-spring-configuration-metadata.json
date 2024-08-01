@@ -106,12 +106,12 @@
       "description": "A description for 'application.payment.api-key'."
     },
     {
-      "name": "application.payment.trip.share.user",
+      "name": "application.payment.trip.service.user",
       "type": "java.lang.Integer",
       "description": "A description for 'application.payment.trip.share.user'."
     },
     {
-      "name": "application.payment.trip.share.serch",
+      "name": "application.payment.trip.service.fee",
       "type": "java.lang.Integer",
       "description": "A description for 'application.payment.trip.share.serch'."
     },
@@ -156,194 +156,9 @@
       "description": "A description for 'application.call.tip2fix.amount'."
     },
     {
-      "name": "application.notification.type",
+      "name": "application.notification.service.key",
       "type": "java.lang.String",
-      "description": "A description for 'application.notification.type'."
-    },
-    {
-      "name": "application.notification.project-id",
-      "type": "java.lang.String",
-      "description": "A description for 'application.notification.project-id'."
-    },
-    {
-      "name": "application.notification.client.email",
-      "type": "java.lang.String",
-      "description": "A description for 'application.notification.client.email'."
-    },
-    {
-      "name": "application.notification.client.id",
-      "type": "java.lang.String",
-      "description": "A description for 'application.notification.client.id'."
-    },
-    {
-      "name": "application.notification.uri.auth",
-      "type": "java.lang.String",
-      "description": "A description for 'application.notification.uri.auth'."
-    },
-    {
-      "name": "application.notification.uri.token",
-      "type": "java.lang.String",
-      "description": "A description for 'application.notification.uri.token'."
-    },
-    {
-      "name": "application.notification.x509.cert.url.auth",
-      "type": "java.lang.String",
-      "description": "A description for 'application.notification.x509.cert.url.auth'."
-    },
-    {
-      "name": "application.notification.x509.cert.url.client",
-      "type": "java.lang.String",
-      "description": "A description for 'application.notification.x509.cert.url.client'."
-    },
-    {
-      "name": "application.notification.universe-domain",
-      "type": "java.lang.String",
-      "description": "A description for 'application.notification.universe-domain'."
-    },
-    {
-      "name": "application.notification.private.key.id",
-      "type": "java.lang.String",
-      "description": "Firebase Private Key id."
-    },
-    {
-      "name": "application.notification.private.key.p1",
-      "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 1."
-    },
-    {
-      "name": "application.notification.private.key.p2",
-      "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 2'."
-    },
-    {
-      "name": "application.notification.private.key.p3",
-      "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 3'."
-    },
-    {
-      "name": "application.notification.private.key.p4",
-      "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 4'."
-    },
-    {
-      "name": "application.notification.private.key.p5",
-      "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 5'."
-    },
-    {
-      "name": "application.notification.private.key.p6",
-      "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 6'."
-    },
-    {
-      "name": "application.notification.private.key.p7",
-      "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 7'."
-    },
-    {
-      "name": "application.notification.private.key.p8",
-      "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 8'."
-    },
-    {
-      "name": "application.notification.private.key.p9",
-      "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 9'."
-    },
-    {
-      "name": "application.notification.private.key.p10",
-      "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 10'."
-    },
-    {
-      "name": "application.notification.private.key.p11",
-      "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 11'."
-    },
-    {
-      "name": "application.notification.private.key.p12",
-      "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 12'."
-    },
-    {
-      "name": "application.notification.private.key.p13",
-      "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 13'."
-    },
-    {
-      "name": "application.notification.private.key.p14",
-      "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 14'."
-    },
-    {
-      "name": "application.notification.private.key.p15",
-      "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 15'."
-    },
-    {
-      "name": "application.notification.private.key.p16",
-      "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 16'."
-    },
-    {
-      "name": "application.notification.private.key.p17",
-      "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 17'."
-    },
-    {
-      "name": "application.notification.private.key.p18",
-      "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 18'."
-    },
-    {
-      "name": "application.notification.private.key.p19",
-      "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 19'."
-    },
-    {
-      "name": "application.notification.private.key.p20",
-      "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 20'."
-    },
-    {
-      "name": "application.notification.private.key.p21",
-      "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 21'."
-    },
-    {
-      "name": "application.notification.private.key.p22",
-      "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 22'."
-    },
-    {
-      "name": "application.notification.private.key.p23",
-      "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 23'."
-    },
-    {
-      "name": "application.notification.private.key.p24",
-      "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 24'."
-    },
-    {
-      "name": "application.notification.private.key.p25",
-      "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 25'."
-    },
-    {
-      "name": "application.notification.private.key.p26",
-      "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 26'."
-    },
-    {
-      "name": "application.notification.private.key.p27",
-      "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 27'."
-    },
-    {
-      "name": "application.notification.private.key.p28",
-      "type": "java.lang.String",
-      "description": "Firebase Private Key - Part 28.'."
+      "description": "Firebase Admin key'."
     },
     {
       "name": "application.call.api-certificate",
@@ -354,6 +169,56 @@
       "name": "application.call.token.expiration",
       "type": "java.lang.Integer",
       "description": "The Agora token generated expiration time."
+    },
+    {
+      "name": "application.admin.super-email-address",
+      "type": "java.lang.String",
+      "description": "This signifies the super admin email address."
+    },
+    {
+      "name": "application.admin.default-password",
+      "type": "java.lang.String",
+      "description": "The default password assigned to all admin users."
+    },
+    {
+      "name": "application.notification.base-url",
+      "type": "java.lang.String",
+      "description": "The url for sending notification to devices using fcm."
+    },
+    {
+      "name": "application.base-url",
+      "type": "java.lang.String",
+      "description": "The base url for the server."
+    },
+    {
+      "name": "application.account.rating.limit",
+      "type": "java.lang.Integer",
+      "description": "The minimum rating count before it is being weighted."
+    },
+    {
+      "name": "application.trip.count.min",
+      "type": "java.lang.Integer",
+      "description": "Minimum number of trips before charging the service provider."
+    },
+    {
+      "name": "application.verification.expiration.time.link",
+      "type": "java.lang.Integer",
+      "description": "The expiration time wait for a link."
+    },
+    {
+      "name": "application.verification.expiration.time.wait",
+      "type": "java.lang.Integer",
+      "description": "The time wait for link generation."
+    },
+    {
+      "name": "application.map.location.iq.base.url.autocomplete",
+      "type": "java.lang.String",
+      "description": "The base url for autocomplete Location IQ."
+    },
+    {
+      "name": "application.map.location.iq.access-token",
+      "type": "java.lang.String",
+      "description": "Location IQ Access token."
     }
   ]
 }

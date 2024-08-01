@@ -43,10 +43,4 @@ public class BusinessAuthController {
         var response = authService.signup(profile);
         return new ResponseEntity<>(response, response.getStatus());
     }
-
-    @PostMapping("/associate/signup")
-    public ResponseEntity<ApiResponse<AuthResponse>> finishAssociateSignup(@RequestBody RequestAuth auth) {
-        var response = authService.finishAssociateSignup(auth);
-        return new ResponseEntity<>(response, response.getStatus());
-    }
 }

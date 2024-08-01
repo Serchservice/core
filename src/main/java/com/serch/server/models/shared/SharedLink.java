@@ -1,8 +1,11 @@
 package com.serch.server.models.shared;
 
 import com.serch.server.bases.BaseDateTime;
+import com.serch.server.enums.shared.UseStatus;
+import com.serch.server.exceptions.others.SharedException;
 import com.serch.server.generators.shared.SharedLinkID;
 import com.serch.server.models.account.Profile;
+import com.serch.server.models.trip.TripTimeline;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,17 +19,6 @@ import java.util.List;
  * The SharedLink class represents a shared link in a sharing platform.
  * It stores information such as the link status, URL, amount, and related profiles and guests.
  * <p></p>
- * Annotations:
- * <ul>
- *     <li>{@link Getter}</li>
- *     <li>{@link Setter}</li>
- *     <li>{@link Entity}</li>
- *     <li>{@link Table}</li>
- * </ul>
- * Constraints:
- * <ul>
- *     <li>{@link URL} - Validates the link format.</li>
- * </ul>
  * Relationships:
  * <ul>
  *     <li>Many-to-one with {@link Profile} as the user.</li>
@@ -73,4 +65,38 @@ public class SharedLink extends BaseDateTime {
 
     @OneToMany(mappedBy = "sharedLink", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<SharedLogin> logins;
+
+    @OneToMany(mappedBy = "sharedLink", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<SharedStatus> statuses;
+
+    public boolean isExpired() {
+        return statuses != null && !statuses.isEmpty() && statuses.stream().anyMatch(shared -> shared.getUseStatus() == UseStatus.USED &&
+                ((shared.getTrip().getTimelines() != null && shared.getTrip().getTimelines().stream().anyMatch(TripTimeline::isCompleted))
+                || (shared.getTrip().getInvited() != null && shared.getTrip().getInvited().getTimelines() != null && shared.getTrip().getInvited().getTimelines().stream().anyMatch(TripTimeline::isCompleted))));
+    }
+
+    public boolean cannotLogin() {
+        return (logins != null && !logins.isEmpty() && logins.stream().anyMatch(login -> login.getStatus() == UseStatus.USED))
+                || isExpired();
+    }
+
+    public UseStatus nextLoginStatus() {
+        if(logins != null && !logins.isEmpty()) {
+            UseStatus latestStatus = logins.get(logins.size() - 1).getStatus();
+            return latestStatus.next();
+        } else {
+            return UseStatus.COUNT_1;
+        }
+    }
+
+    public boolean is(String emailAddress) {
+        return user.getUser().getEmailAddress().equalsIgnoreCase(emailAddress)
+                || provider.getUser().getEmailAddress().equalsIgnoreCase(emailAddress);
+    }
+
+    public void validate(String emailAddress) {
+        if(is(emailAddress)) {
+            throw new SharedException("This email address cannot use this link since it belongs to one of the shared identities in the link");
+        }
+    }
 }

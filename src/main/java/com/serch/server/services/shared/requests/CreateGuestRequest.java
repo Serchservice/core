@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.serch.server.annotations.SerchEnum;
 import com.serch.server.enums.account.Gender;
 import com.serch.server.services.auth.requests.RequestDevice;
-import com.serch.server.services.supabase.requests.FileUploadRequest;
+import com.serch.server.core.storage.requests.FileUploadRequest;
 import lombok.Data;
 
 @Data
@@ -21,11 +21,16 @@ public class CreateGuestRequest {
     @JsonProperty("fcm_token")
     private String fcmToken;
 
+    @JsonProperty("phone_number")
+    private String phoneNumber;
+
     @SerchEnum(message = "Gender must be an enum")
     private Gender gender;
 
     private FileUploadRequest upload;
     private String link;
+    private String country;
+    private String state;
 
     @JsonProperty("link_id")
     private String linkId;

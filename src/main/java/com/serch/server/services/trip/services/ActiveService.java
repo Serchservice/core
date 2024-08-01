@@ -1,7 +1,7 @@
 package com.serch.server.services.trip.services;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.enums.trip.TripStatus;
+import com.serch.server.enums.account.ProviderStatus;
 import com.serch.server.models.auth.User;
 import com.serch.server.services.trip.requests.OnlineRequest;
 import com.serch.server.services.trip.responses.ActiveResponse;
@@ -20,14 +20,14 @@ public interface ActiveService {
      * @param request The request containing details to update the trip status.
      * @return An ApiResponse containing the updated trip status.
      */
-    ApiResponse<TripStatus> toggleStatus(OnlineRequest request);
+    ApiResponse<ProviderStatus> toggleStatus(OnlineRequest request);
 
     /**
      * Fetches the current trip status.
      *
      * @return An ApiResponse containing the current trip status.
      */
-    ApiResponse<TripStatus> fetchStatus();
+    ApiResponse<ProviderStatus> fetchStatus();
 
     /**
      * Fetches the list of active providers for a business
@@ -44,8 +44,8 @@ public interface ActiveService {
      * @param request The request containing details to update the trip status.
      *
      * @see User
-     * @see TripStatus
+     * @see ProviderStatus
      * @see OnlineRequest
      */
-    void toggle(User user, TripStatus status, OnlineRequest request);
+    void toggle(User user, ProviderStatus status, OnlineRequest request);
 }

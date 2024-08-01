@@ -44,7 +44,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Table(schema = "sharing", name = "profiles")
+@Table(schema = "sharing", name = "guests")
 public class Guest extends BaseDateTime {
     @Id
     @GenericGenerator(name = "guest_id_seq", type = GuestID.class)
@@ -81,17 +81,29 @@ public class Guest extends BaseDateTime {
     @Column(name = "messaging_token", columnDefinition = "TEXT")
     private String fcmToken = null;
 
+    @Column(name = "phone_number", columnDefinition = "TEXT")
+    private String phoneNumber = null;
+
     @Column(nullable = false, columnDefinition = "TEXT")
     private String platform;
 
     @Column(name = "token", columnDefinition = "TEXT")
     private String token;
 
+    @Column(nullable = false)
+    private Double rating = 5.0;
+
     @Column(name = "expires_at")
     private LocalDateTime expiresAt = null;
 
     @Column(name = "confirmed_at")
     private LocalDateTime confirmedAt = null;
+
+    @Column(columnDefinition = "TEXT")
+    private String state;
+
+    @Column(columnDefinition = "TEXT")
+    private String country;
 
     @Column(columnDefinition = "TEXT", nullable = false)
     private String name;

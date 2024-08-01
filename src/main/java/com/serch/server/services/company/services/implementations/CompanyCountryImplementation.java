@@ -5,8 +5,8 @@ import com.serch.server.exceptions.others.CompanyException;
 import com.serch.server.models.company.*;
 import com.serch.server.repositories.company.LaunchedCountryRepository;
 import com.serch.server.repositories.company.RequestCityRepository;
-import com.serch.server.repositories.company.RequestCountryRepository;
-import com.serch.server.repositories.company.RequestStateRepository;
+import com.serch.server.repositories.company.RequestedCountryRepository;
+import com.serch.server.repositories.company.RequestedStateRepository;
 import com.serch.server.services.company.requests.CountryRequest;
 import com.serch.server.services.company.services.CompanyCountryService;
 import lombok.RequiredArgsConstructor;
@@ -19,15 +19,15 @@ import org.springframework.stereotype.Service;
  *
  * @see LaunchedCountryRepository
  * @see RequestCityRepository
- * @see RequestCountryRepository
- * @see RequestStateRepository
+ * @see RequestedCountryRepository
+ * @see RequestedStateRepository
  */
 @Service
 @RequiredArgsConstructor
 public class CompanyCountryImplementation implements CompanyCountryService {
     private final LaunchedCountryRepository launchedCountryRepository;
-    private final RequestCountryRepository requestCountryRepository;
-    private final RequestStateRepository requestStateRepository;
+    private final RequestedCountryRepository requestedCountryRepository;
+    private final RequestedStateRepository requestedStateRepository;
     private final RequestCityRepository requestCityRepository;
 
     @Override
@@ -53,7 +53,7 @@ public class CompanyCountryImplementation implements CompanyCountryService {
     }
 
     private static ApiResponse<String> checkLaunchedState(CountryRequest request, LaunchedCountry country) {
-        if(country.getLaunchedStates().isEmpty()) {
+        if(country.getLaunchedStates() == null || country.getLaunchedStates().isEmpty()) {
             return new ApiResponse<>(
                     "Serch is launched in %s".formatted(request.getState()),
                     HttpStatus.OK
@@ -81,7 +81,7 @@ public class CompanyCountryImplementation implements CompanyCountryService {
                 .findFirst()
                 .orElse(new LaunchedState());
 
-        if(country.getLaunchedStates().isEmpty() || state.getLaunchedCities().isEmpty()) {
+        if(country.getLaunchedStates() == null || country.getLaunchedStates().isEmpty() || state.getLaunchedCities() == null || state.getLaunchedCities().isEmpty()) {
             return new ApiResponse<>(
                     "Serch is launched in %s".formatted(request.getCity()),
                     HttpStatus.OK
@@ -114,73 +114,73 @@ public class CompanyCountryImplementation implements CompanyCountryService {
         } else if (request.getState() != null) {
             return requestState(request);
         } else {
-            if(requestCountryRepository.existsByNameIgnoreCase(request.getCountry())) {
+            if(requestedCountryRepository.existsByNameIgnoreCase(request.getCountry())) {
                 throw new CompanyException("Country has already been requested for.");
             } else {
-                RequestCountry newCountry = new RequestCountry();
+                RequestedCountry newCountry = new RequestedCountry();
                 newCountry.setName(request.getCountry());
-                requestCountryRepository.save(newCountry);
+                requestedCountryRepository.save(newCountry);
             }
             return new ApiResponse<>("Country request processed successfully.", HttpStatus.CREATED);
         }
     }
 
     private ApiResponse<String> requestState(CountryRequest request) {
-        RequestCountry country = requestCountryRepository.findByNameIgnoreCase(request.getCountry())
+        RequestedCountry country = requestedCountryRepository.findByNameIgnoreCase(request.getCountry())
                 .orElseGet(() -> {
-                    RequestCountry newCountry = new RequestCountry();
+                    RequestedCountry newCountry = new RequestedCountry();
                     newCountry.setName(request.getCountry());
-                    requestCountryRepository.save(newCountry);
+                    requestedCountryRepository.save(newCountry);
                     return newCountry;
                 });
         if (country.getRequestedStates() != null && country.getRequestedStates().stream().anyMatch(c -> c.getName().contains(request.getState()))) {
             throw new CompanyException("State has already been requested for.");
         }
-        RequestState state = new RequestState();
-        state.setRequestCountry(country);
+        RequestedState state = new RequestedState();
+        state.setRequestedCountry(country);
         state.setName(request.getState());
-        requestStateRepository.save(state);
+        requestedStateRepository.save(state);
         return new ApiResponse<>("State request processed successfully.", HttpStatus.CREATED);
     }
 
     private ApiResponse<String> requestCity(CountryRequest request) {
-        RequestCountry country = requestCountryRepository.findByNameIgnoreCase(request.getCountry())
+        RequestedCountry country = requestedCountryRepository.findByNameIgnoreCase(request.getCountry())
                 .orElseGet(() -> {
-                    RequestCountry newCountry = new RequestCountry();
+                    RequestedCountry newCountry = new RequestedCountry();
                     newCountry.setName(request.getCountry());
-                    requestCountryRepository.save(newCountry);
+                    requestedCountryRepository.save(newCountry);
                     return newCountry;
                 });
-        RequestState state = getState(country, request);
+        RequestedState state = getState(country, request);
 
         if (state.getRequestedCities() != null && state.getRequestedCities().stream().anyMatch(c -> c.getName().contains(request.getCity()))) {
             throw new CompanyException("City has already been requested for.");
         }
 
-        RequestCity requestCity = new RequestCity();
-        requestCity.setRequestState(state);
-        requestCity.setName(request.getCity());
-        requestCityRepository.save(requestCity);
+        RequestedCity requestedCity = new RequestedCity();
+        requestedCity.setRequestedState(state);
+        requestedCity.setName(request.getCity());
+        requestCityRepository.save(requestedCity);
 
         return new ApiResponse<>("City request processed successfully.", HttpStatus.CREATED);
     }
 
-    private RequestState getState(RequestCountry country, CountryRequest request) {
+    private RequestedState getState(RequestedCountry country, CountryRequest request) {
         if(country.getRequestedStates() != null) {
             return country.getRequestedStates().stream()
                     .filter(s -> s.getName().contains(request.getState()))
                     .findFirst()
                     .orElseGet(() -> {
-                        RequestState newState = new RequestState();
-                        newState.setRequestCountry(country);
+                        RequestedState newState = new RequestedState();
+                        newState.setRequestedCountry(country);
                         newState.setName(request.getState());
-                        return requestStateRepository.save(newState);
+                        return requestedStateRepository.save(newState);
                     });
         } else {
-            RequestState newState = new RequestState();
-            newState.setRequestCountry(country);
+            RequestedState newState = new RequestedState();
+            newState.setRequestedCountry(country);
             newState.setName(request.getState());
-            return requestStateRepository.save(newState);
+            return requestedStateRepository.save(newState);
         }
     }
 }

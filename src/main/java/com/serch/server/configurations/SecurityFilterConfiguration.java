@@ -97,10 +97,20 @@ public class SecurityFilterConfiguration {
                                 "/rating/app",
                                 "/country/**",
                                 "/certificate/verify",
-                                "/verification/status",
+                                "/verification/receive/**",
                                 "/call/rtc/**",
                                 "/ws:serch/**",
-                                "/ws:trip/**"
+                                "/ws:trip/**",
+                                "/auth/admin/**",
+                                "/banking/**",
+                                "/trip/invite/**",
+                                "/trip/history",
+                                "/trip/end",
+                                "/trip/cancel",
+                                "/trip/auth",
+                                "/trip/shared/access",
+                                "/trip/shared/auth",
+                                "/trip/shared/cancel"
                         ).permitAll()
                         .requestMatchers(
                                 // Public endpoints for actuator and server endpoints

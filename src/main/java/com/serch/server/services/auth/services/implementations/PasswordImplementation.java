@@ -1,5 +1,7 @@
 package com.serch.server.services.auth.services.implementations;
 
+import com.serch.server.admin.enums.ActivityMode;
+import com.serch.server.admin.services.account.services.AdminActivityService;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.auth.AuthMethod;
 import com.serch.server.enums.email.EmailType;
@@ -16,7 +18,7 @@ import com.serch.server.services.auth.responses.AuthResponse;
 import com.serch.server.services.auth.services.PasswordService;
 import com.serch.server.services.auth.services.SessionService;
 import com.serch.server.services.auth.services.TokenService;
-import com.serch.server.services.email.services.EmailTemplateService;
+import com.serch.server.core.email.services.EmailTemplateService;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
@@ -49,6 +51,7 @@ public class PasswordImplementation implements PasswordService {
     private final EmailTemplateService emailService;
     private final PasswordEncoder passwordEncoder;
     private final SessionService sessionService;
+    private final AdminActivityService activityService;
 
     @Value("${application.security.otp-expiration-time}")
     protected Integer OTP_EXPIRATION_TIME;
@@ -91,10 +94,7 @@ public class PasswordImplementation implements PasswordService {
         var user = userRepository.findByEmailAddressIgnoreCase(verify.getEmailAddress())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if(user.getPasswordRecoveryToken() == null) {
-            throw new AuthException(
-                    "Invalid access. Request for password reset OTP",
-                    ExceptionCodes.ACCESS_DENIED
-            );
+            throw new AuthException("Invalid access. Request for password reset OTP", ExceptionCodes.ACCESS_DENIED);
         } else {
             if(TimeUtil.isOtpExpired(user.getPasswordRecoveryExpiresAt(), OTP_EXPIRATION_TIME)) {
                 throw new AuthException("OTP already expired");
@@ -120,16 +120,10 @@ public class PasswordImplementation implements PasswordService {
         var user = userRepository.findByEmailAddressIgnoreCase(resetPassword.getEmailAddress())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if(user.getPasswordRecoveryToken() == null) {
-            throw new AuthException(
-                    "Invalid access. Request for password reset OTP",
-                    ExceptionCodes.ACCESS_DENIED
-            );
+            throw new AuthException("Invalid access. Request for password reset OTP", ExceptionCodes.ACCESS_DENIED);
         } else {
             if(user.getPasswordRecoveryConfirmedAt() == null) {
-                throw new AuthException(
-                        "Verify the OTP sent to your email",
-                        ExceptionCodes.ACCESS_DENIED
-                );
+                throw new AuthException("Verify the OTP sent to your email", ExceptionCodes.ACCESS_DENIED);
             } else {
                 if(passwordEncoder.matches(resetPassword.getPassword(), user.getPassword())) {
                     throw new AuthException(
@@ -169,6 +163,10 @@ public class PasswordImplementation implements PasswordService {
                 accountDeleteRepository.findByUser_EmailAddress(UserUtil.getLoginUser())
                         .ifPresent(accountDeleteRepository::delete);
 
+                if(user.isAdmin()) {
+                    activityService.create(ActivityMode.PASSWORD_CHANGE, null, null, user);
+                }
+
                 RequestSession requestSession = new RequestSession();
                 requestSession.setMethod(AuthMethod.PASSWORD_CHANGE);
                 requestSession.setUser(user);
@@ -182,10 +180,7 @@ public class PasswordImplementation implements PasswordService {
                 );
             }
         } else {
-            throw new AuthException(
-                    "Incorrect password",
-                    ExceptionCodes.INCORRECT_LOGIN
-            );
+            throw new AuthException("Incorrect password", ExceptionCodes.INCORRECT_LOGIN);
         }
     }
 }

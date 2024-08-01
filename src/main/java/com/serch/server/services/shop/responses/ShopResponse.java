@@ -17,6 +17,8 @@ public class ShopResponse {
     private String id;
     private String address;
     private String phone;
+    private Double latitude;
+    private Double longitude;
 
     private ShopWeekdayResponse current;
     private List<ShopWeekdayResponse> weekdays;

@@ -2,13 +2,16 @@ package com.serch.server.services.shared.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.call.CallStatus;
+import com.serch.server.exceptions.ExceptionCodes;
 import com.serch.server.exceptions.others.SharedException;
 import com.serch.server.models.auth.User;
 import com.serch.server.models.conversation.Call;
+import com.serch.server.models.shared.SharedLink;
 import com.serch.server.models.shared.SharedLogin;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.conversation.CallRepository;
 import com.serch.server.repositories.shared.GuestRepository;
+import com.serch.server.repositories.shared.SharedLinkRepository;
 import com.serch.server.repositories.shared.SharedLoginRepository;
 import com.serch.server.repositories.trip.TripRepository;
 import com.serch.server.services.auth.requests.RequestProfile;
@@ -25,9 +28,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-
-import static com.serch.server.enums.trip.TripConnectionStatus.ACCEPTED;
-import static com.serch.server.enums.trip.TripConnectionStatus.ON_TRIP;
 
 /**
  * This is the class that contains the logic and implementation of its wrapper class.
@@ -48,28 +48,36 @@ public class SwitchImplementation implements SwitchService {
     private final TripRepository tripRepository;
     private final SharedLoginRepository sharedLoginRepository;
     private final CallRepository callRepository;
+    private final SharedLinkRepository sharedLinkRepository;
 
     @Override
     public ApiResponse<GuestResponse> switchToGuest(SwitchRequest request) {
-        SharedLogin login = sharedLoginRepository.findBySharedLink_IdAndGuest_Id(request.getLinkId(), request.getId())
-                .orElseThrow(() -> new SharedException("Couldn't find the account you want to switch to"));
-        Optional<User> user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser());
-        if(user.isPresent()) {
-            if(tripRepository.existsByStatusAndAccount(ACCEPTED, ON_TRIP, String.valueOf(user.get().getId()))) {
-                throw new SharedException("Can't switch account when you are on a trip");
-            } else {
-                List<Call> calls = callRepository.findByUserId(user.get().getId());
-                if(calls.stream().anyMatch(call ->
-                        call.getStatus() == CallStatus.ON_CALL || call.getStatus() == CallStatus.RINGING
-                                || call.getStatus() == CallStatus.CALLING
-                )) {
-                    throw new SharedException("Can't switch account when you are on a call");
+        SharedLink sharedLink = sharedLinkRepository.findById(request.getLinkId())
+                .orElseThrow(() -> new SharedException("Link not found"));
+
+        if(sharedLink.cannotLogin()) {
+            throw new SharedException("This link has run out of its usage, so you cannot access it.");
+        } else {
+            SharedLogin login = sharedLoginRepository.findBySharedLink_IdAndGuest_Id(request.getLinkId(), request.getId())
+                    .orElseThrow(() -> new SharedException("Couldn't find the account you want to switch to"));
+            Optional<User> user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser());
+            if(user.isPresent()) {
+                if(tripRepository.existsByStatusAndAccount(String.valueOf(user.get().getId()))) {
+                    throw new SharedException("Can't switch account when you are on a trip");
+                } else {
+                    List<Call> calls = callRepository.findByUserId(user.get().getId());
+                    if(calls.stream().anyMatch(call ->
+                            call.getStatus() == CallStatus.ON_CALL || call.getStatus() == CallStatus.RINGING
+                                    || call.getStatus() == CallStatus.CALLING
+                    )) {
+                        throw new SharedException("Can't switch account when you are on a call");
+                    }
                 }
+            } else {
+                checkRequest(request);
             }
+            return new ApiResponse<>(guestService.response(login));
         }
-        checkRequest(request);
-        guestService.checkLink(login);
-        return new ApiResponse<>(guestService.response(login));
     }
 
     @Override
@@ -88,8 +96,8 @@ public class SwitchImplementation implements SwitchService {
                 .orElseThrow(() -> new SharedException("Guest not found"))
                 .getId();
 
-        if(tripRepository.existsByStatusAndAccount(ACCEPTED, ON_TRIP, id)) {
-            throw new SharedException("Can't switch account when you are on a trip");
+        if(tripRepository.existsByStatusAndAccount(id)) {
+            throw new SharedException("Cannot switch account when you are on a trip", ExceptionCodes.ON_TRIP);
         }
     }
 }

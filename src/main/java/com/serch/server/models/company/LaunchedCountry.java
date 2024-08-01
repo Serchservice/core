@@ -47,6 +47,9 @@ public class LaunchedCountry extends BaseModel {
     private String flag;
 
     @Column(nullable = false, columnDefinition = "TEXT")
+    private String emoji;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String code;
 
     @Column(name = "dial_code", nullable = false)

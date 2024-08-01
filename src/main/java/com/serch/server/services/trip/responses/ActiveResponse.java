@@ -1,9 +1,9 @@
 package com.serch.server.services.trip.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.serch.server.enums.trip.TripStatus;
+import com.serch.server.enums.account.ProviderStatus;
 import com.serch.server.enums.verified.VerificationStatus;
-import com.serch.server.services.business.responses.BusinessInformationData;
+import com.serch.server.services.account.responses.BusinessInformationData;
 import com.serch.server.services.account.responses.MoreProfileData;
 import com.serch.server.services.account.responses.SpecialtyResponse;
 import lombok.Data;
@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Data
-public class ActiveResponse {
+public class ActiveResponse implements Comparable<ActiveResponse> {
     private UUID id;
     private String name;
     private String avatar;
@@ -20,7 +20,7 @@ public class ActiveResponse {
     private Double distance;
     private String image;
     private String category;
-    private TripStatus status;
+    private ProviderStatus status;
 
     @JsonProperty("distance_in_km")
     private String distanceInKm;
@@ -31,4 +31,9 @@ public class ActiveResponse {
     private MoreProfileData more;
     private BusinessInformationData business;
     private List<SpecialtyResponse> specializations;
+
+    @Override
+    public int compareTo(ActiveResponse other) {
+        return this.distance.compareTo(other.distance);
+    }
 }

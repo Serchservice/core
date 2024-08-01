@@ -1,6 +1,6 @@
 package com.serch.server.utils;
 
-import com.serch.server.services.supabase.requests.FileUploadRequest;
+import com.serch.server.core.storage.requests.FileUploadRequest;
 
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -12,19 +12,6 @@ import java.util.regex.Pattern;
  * between two geographic points, generating QR codes, and formatting file sizes.
  */
 public class HelperUtil {
-    /**
-     * Generates a sharing link based on the user's first name.
-     * @param firstName The first name of the user.
-     * @return The generated sharing link.
-     */
-    public static String generateSharingLink(String firstName) {
-        String code = (firstName + UUID.randomUUID().toString().substring(0, 10))
-                .toLowerCase()
-                .replaceAll("-", "")
-                .replaceAll("_", "");
-        return "https://serchservice.com/service/request?shared_by=%s".formatted(code);
-    }
-
     /**
      * Validates a password based on a regular expression pattern.
      * @param password The password to validate.

@@ -10,11 +10,11 @@ import lombok.RequiredArgsConstructor;
  * The transaction types are:
  * <ul>
  *     <li>{@link TransactionType#TIP2FIX} - Represents a Tip2Fix transaction</li>
- *     <li>{@link TransactionType#TRIP} - Represents a Service Trip transaction</li>
+ *     <li>{@link TransactionType#TRIP_CHARGE} - Represents a Service Trip transaction</li>
  *     <li>{@link TransactionType#WITHDRAW} - Represents a Withdrawal transaction</li>
  *     <li>{@link TransactionType#FUNDING} - Represents a Fund transaction</li>
  *     <li>{@link TransactionType#SCHEDULE} - Represents a Schedule transaction</li>
- *     <li>{@link TransactionType#TRIP_WITHDRAW} - Represents a trip withdrawal transaction</li>
+ *     <li>{@link TransactionType#TRIP_SHARE} - Represents a guest to account transaction for shared trip percentage</li>
  * </ul>
  */
 @Getter
@@ -24,8 +24,9 @@ public enum TransactionType {
     WITHDRAW("Withdrawal"),
     SCHEDULE("Schedule"),
     TIP2FIX("Tip2Fix"),
-    TRIP("Service Trip"),
-    TRIP_WITHDRAW("Trip Withdrawal");
+    TRIP_SHARE("Service Trip Connection Debit"),
+    SHOPPING("Shopping"),
+    TRIP_CHARGE("Service Trip Charge Debit");
 
     private final String type;
 }

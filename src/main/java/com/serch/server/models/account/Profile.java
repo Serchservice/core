@@ -4,10 +4,9 @@ import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseProfile;
 import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.auth.Role;
-import com.serch.server.models.business.BusinessProfile;
 import com.serch.server.models.certificate.Certificate;
 import com.serch.server.models.trip.Active;
-import com.serch.server.models.verified.Verification;
+import com.serch.server.models.auth.verified.Verification;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -52,12 +51,6 @@ public class Profile extends BaseProfile {
     private SerchCategory category;
 
     /**
-     * The verification status associated with the profile.
-     */
-    @OneToOne(mappedBy = "profile", cascade = CascadeType.ALL)
-    private Verification verification;
-
-    /**
      * The active address associated with the profile - Mostly for a provider.
      */
     @OneToOne(mappedBy = "profile", cascade = CascadeType.ALL)
@@ -86,7 +79,7 @@ public class Profile extends BaseProfile {
      * @return The full name of the profile.
      */
     public String getFullName() {
-        return getFirstName() + " " + getLastName();
+        return getUser().getFirstName() + " " + getUser().getLastName();
     }
 
     /**

@@ -7,5 +7,6 @@ public class ReferralProgramResponse {
     private String name;
     private String avatar;
     private String role;
-    private ReferralProgramData data;
+    private String referralCode;
+    private String referLink;
 }

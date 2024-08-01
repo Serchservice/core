@@ -56,11 +56,14 @@ public interface SessionService {
      * Validates the authenticity and expiration of a session token.
      *
      * @param token The session token to validate.
+     * @param country The country location the user is making the request from.
+     * @param state The state location the user is making the request from.
+     *
      * @return ApiResponse indicating the validation status.
      *
      * @see ApiResponse
      */
-    ApiResponse<String> validateSession(String token);
+    ApiResponse<String> validateSession(String token, String state, String country);
 
     /**
      * Validates the authenticity and expiration of a session token.

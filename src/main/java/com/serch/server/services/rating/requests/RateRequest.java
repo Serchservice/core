@@ -19,13 +19,11 @@ import lombok.Data;
 @Data
 public class RateRequest {
     private String id;
-    private Double rating = 0.0;
+    private Double rating;
+    private Double invited;
     private String guest;
     private String comment;
 
-    @JsonProperty("is_provider")
-    private Boolean isProvider;
-
-    @JsonProperty("is_invited")
-    private Boolean isInvited;
+    @JsonProperty("is_both")
+    private Boolean isBoth = false;
 }

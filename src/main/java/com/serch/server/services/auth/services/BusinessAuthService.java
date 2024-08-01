@@ -1,7 +1,6 @@
 package com.serch.server.services.auth.services;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.services.auth.requests.RequestAuth;
 import com.serch.server.services.auth.requests.RequestBusinessProfile;
 import com.serch.server.services.auth.requests.RequestLogin;
 import com.serch.server.services.auth.responses.AuthResponse;
@@ -34,16 +33,4 @@ public interface BusinessAuthService {
      * @see RequestBusinessProfile
      */
     ApiResponse<AuthResponse> signup(RequestBusinessProfile profile);
-
-    /**
-     * Finishes the signup process for an associate provider.
-     *
-     * @param auth The authentication request.
-     * @return ApiResponse containing the authentication response.
-     *
-     * @see AuthResponse
-     * @see ApiResponse
-     * @see RequestAuth
-     */
-    ApiResponse<AuthResponse> finishAssociateSignup(RequestAuth auth);
 }

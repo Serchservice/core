@@ -57,7 +57,7 @@ public class LogoutService implements LogoutHandler {
             return;
         }
 
-        var res = sessionService.validateSession(header.substring(7));
+        var res = sessionService.validateSession(header.substring(7), null, null);
         if (res.getCode() == 200) {
             authenticate(request, res);
             sessionService.signOut();

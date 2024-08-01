@@ -1,8 +1,5 @@
 package com.serch.server.utils;
 
-import com.serch.server.enums.subscription.PlanType;
-import com.serch.server.enums.subscription.SubPlanType;
-
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -16,38 +13,6 @@ import java.util.Locale;
  * The TimeUtil class provides utility methods for working with dates and times.
  */
 public class TimeUtil {
-    /**
-     * Calculates the time for a subscription plan based on the given duration.
-     * @param dateTime The base date and time.
-     * @param duration The duration of the subscription plan.
-     * @return The calculated date and time.
-     */
-    private static LocalDateTime calculateSubPlanTime(LocalDateTime dateTime, SubPlanType duration) {
-        return switch (duration) {
-            case DAILY -> dateTime.plusDays(1);
-            case WEEKLY -> dateTime.plusWeeks(1);
-            case MONTHLY -> dateTime.plusMonths(1);
-            case QUARTERLY -> dateTime.plusMonths(3);
-        };
-    }
-
-    /**
-     * Calculates the time for a plan based on the given plan type and duration.
-     * @param dateTime The base date and time.
-     * @param plan The type of plan.
-     * @param duration The duration of the plan.
-     * @return The calculated date and time.
-     */
-    private static LocalDateTime calculatePlanTime(
-            LocalDateTime dateTime, PlanType plan, SubPlanType duration
-    ) {
-        return switch (plan) {
-            case FREE -> dateTime.plusDays(21);
-            case ALL_DAY, PREMIUM -> calculateSubPlanTime(dateTime, duration);
-            case PAYU -> dateTime.plusDays(1);
-        };
-    }
-
     /**
      * Formats the time difference in minutes, hours, or days before or after the current time.
      * @param diff The time difference in minutes.
@@ -80,53 +45,6 @@ public class TimeUtil {
                 }
             }
         }
-    }
-
-    /**
-     * Checks if the provided time is expired compared to the current time.
-     * @param time The time to check for expiration.
-     * @return True if the provided time is expired; otherwise, false.
-     */
-    public static boolean isExpired(LocalDateTime time) {
-        return LocalDateTime.now().isAfter(time);
-    }
-
-    /**
-     * Formats the remaining time of a subscription plan based on the provided creation time, plan type, and sub-plan type.
-     * @param createdAt The date and time of plan creation.
-     * @param plan The subscription plan type.
-     * @param sub The sub-plan type.
-     * @return The formatted remaining time of the subscription plan.
-     */
-    public static String formatPlanTime(LocalDateTime createdAt, PlanType plan, SubPlanType sub) {
-        LocalDateTime endTime = calculatePlanTime(createdAt, plan, sub);
-        if (isExpired(endTime)) {
-            return "Subscription expired";
-        }
-
-        Duration duration = Duration.between(LocalDateTime.now(), endTime);
-        long days = duration.toDays();
-        long hours = duration.toHours() % 24;
-        long minutes = duration.toMinutes() % 60;
-
-        StringBuilder result = new StringBuilder();
-        if (days > 0) {
-            result.append("Remaining").append(" ")
-                    .append(days).append(" ")
-                    .append(days == 1 ? "day" : "days");
-        } else if (hours > 0) {
-            result.append("Remaining").append(" ")
-                    .append(hours).append(" ")
-                    .append(hours == 1 ? "hour" : "hours");
-        } else if (minutes > 0) {
-            result.append("Remaining").append(" ")
-                    .append(minutes).append(" ")
-                    .append(minutes == 1 ? "minute" : "minutes");
-        } else {
-            return "Expired";
-        }
-
-        return !result.isEmpty() ? result.toString() : "Just expired";
     }
 
     /**

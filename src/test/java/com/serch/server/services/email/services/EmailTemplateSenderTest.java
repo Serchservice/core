@@ -2,6 +2,8 @@ package com.serch.server.services.email.services;
 
 import com.resend.services.emails.model.SendEmailResponse;
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.core.email.services.EmailService;
+import com.serch.server.core.email.services.EmailTemplateSender;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;

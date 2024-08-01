@@ -15,45 +15,17 @@ public interface ActiveRepository extends JpaRepository<Active, Long> {
 
     @Query(
             value = "SELECT ap.* FROM platform.active_providers ap " +
-                    "JOIN account.profiles p ON ap.serch_id = p.serch_id " +
+                    "LEFT JOIN account.profiles p ON ap.serch_id = p.serch_id " +
                     "LEFT JOIN account.business_profiles busi ON p.business_id = busi.serch_id " +
-                    "LEFT JOIN verified.verification verify ON ap.serch_id = verify.serch_id " +
-                    "LEFT JOIN verified.verification verifyBusi ON busi.serch_id = verify.serch_id " +
-                    "JOIN account.specializations s ON p.serch_id = s.serch_id " +
-                    "LEFT JOIN subscription.subscriptions sub ON p.serch_id = sub.serch_id " +
-                    "LEFT JOIN subscription.subscriptions subBusi ON busi.serch_id = sub.serch_id " +
-                    "LEFT JOIN company.plan_parents parent ON sub.plan = parent.id " +
-                    "LEFT JOIN company.plan_children child ON sub.sub_plan = child.id " +
-                    "LEFT JOIN company.plan_parents parentBusi ON subBusi.plan = parentBusi.id " +
-                    "LEFT JOIN company.plan_children childBusi ON subBusi.sub_plan = childBusi.id " +
+                    "LEFT JOIN identity.verification verify ON ap.serch_id = verify.serch_id " +
+                    "LEFT JOIN identity.verification verifyBusi ON busi.serch_id = verify.serch_id " +
+                    "LEFT JOIN account.specializations s ON p.serch_id = s.serch_id " +
                     "WHERE " +
                     "SQRT(POWER(:latitude - ap.latitude, 2) + POWER(:longitude - ap.longitude, 2)) * 111.325 < :radius " +
                     "AND p.serch_category = :category " +
-                    "GROUP BY ap.id, parent.type, child.type, parentBusi.type, childBusi.type, " +
-                    "s.specialty, p.serch_category, verify.status, verifyBusi.status, " +
-                    "ap.latitude, ap.longitude, ap.status, p.rating " +
+                    "GROUP BY ap.id, s.specialty, p.serch_category, verify.status, verifyBusi.status, ap.latitude, ap.longitude, ap.status, p.rating " +
                     "ORDER BY " +
                     "SQRT(POWER(:latitude - ap.latitude, 2) + POWER(:longitude - ap.longitude, 2)) * 111.325, " +
-                    "CASE " +
-                    "WHEN parent.type = 'PREMIUM' AND parentBusi.type = 'PREMIUM' THEN 0 " +
-                    "WHEN parent.type = 'ALL_DAY' AND parentBusi.type = 'ALL_DAY' THEN 1 " +
-                    "ELSE 2 END, " +
-                    "CASE " +
-                    "WHEN parent.type = 'PREMIUM' AND parentBusi.type = 'PREMIUM' THEN " +
-                    "CASE COALESCE(child.type, childBusi.type) " +
-                    "WHEN 'QUARTERLY' THEN 0 " +
-                    "WHEN 'MONTHLY' THEN 1 " +
-                    "WHEN 'WEEKLY' THEN 2 " +
-                    "WHEN 'DAILY' THEN 3 " +
-                    "ELSE 4 END " +
-                    "WHEN parent.type = 'ALL_DAY' AND parentBusi.type = 'ALL_DAY' THEN " +
-                    "CASE COALESCE(child.type, childBusi.type) " +
-                    "WHEN 'QUARTERLY' THEN 5 " +
-                    "WHEN 'MONTHLY' THEN 6 " +
-                    "WHEN 'WEEKLY' THEN 7 " +
-                    "WHEN 'DAILY' THEN 8 " +
-                    "ELSE 9 END " +
-                    "ELSE 10 END, " +
                     "CASE " +
                     "WHEN verify.status = 'VERIFIED' AND verifyBusi.status = 'VERIFIED' THEN 0 " +
                     "WHEN verify.status = 'REQUESTED' AND verifyBusi.status = 'REQUESTED' THEN 1 " +
@@ -77,46 +49,18 @@ public interface ActiveRepository extends JpaRepository<Active, Long> {
 
     @Query(
             value = "SELECT ap.* FROM platform.active_providers ap " +
-                    "JOIN account.profiles p ON ap.serch_id = p.serch_id " +
+                    "LEFT JOIN account.profiles p ON ap.serch_id = p.serch_id " +
                     "LEFT JOIN account.business_profiles busi ON p.business_id = busi.serch_id " +
-                    "LEFT JOIN verified.verification verify ON ap.serch_id = verify.serch_id " +
-                    "LEFT JOIN verified.verification verifyBusi ON busi.serch_id = verify.serch_id " +
-                    "JOIN account.specializations s ON p.serch_id = s.serch_id " +
-                    "LEFT JOIN subscription.subscriptions sub ON p.serch_id = sub.serch_id " +
-                    "LEFT JOIN subscription.subscriptions subBusi ON busi.serch_id = sub.serch_id " +
-                    "LEFT JOIN company.plan_parents parent ON sub.plan = parent.id " +
-                    "LEFT JOIN company.plan_children child ON sub.sub_plan = child.id " +
-                    "LEFT JOIN company.plan_parents parentBusi ON subBusi.plan = parentBusi.id " +
-                    "LEFT JOIN company.plan_children childBusi ON subBusi.sub_plan = childBusi.id " +
+                    "LEFT JOIN identity.verification verify ON ap.serch_id = verify.serch_id " +
+                    "LEFT JOIN identity.verification verifyBusi ON busi.serch_id = verify.serch_id " +
+                    "LEFT JOIN account.specializations s ON p.serch_id = s.serch_id " +
                     "WHERE " +
                     "SQRT(POWER(:latitude - ap.latitude, 2) + POWER(:longitude - ap.longitude, 2)) * 111.325 < :radius " +
-                    "AND (to_tsvector('english', s.specialty) @@ plainto_tsquery(:query) " +
-                    "OR to_tsvector('english', p.serch_category) @@ plainto_tsquery(:query)) " +
-                    "GROUP BY ap.id, parent.type, child.type, parentBusi.type, childBusi.type, " +
-                    "s.specialty, p.serch_category, verify.status, verifyBusi.status, " +
-                    "ap.latitude, ap.longitude, ap.status, p.rating " +
+                    "AND (to_tsvector('english', COALESCE(s.specialty, '')) @@ plainto_tsquery(:query) " +
+                    "OR to_tsvector('english', COALESCE(p.serch_category, '')) @@ plainto_tsquery(:query)) " +
+                    "GROUP BY ap.id, s.specialty, p.serch_category, verify.status, verifyBusi.status, ap.latitude, ap.longitude, ap.status, p.rating " +
                     "ORDER BY " +
                     "SQRT(POWER(:latitude - ap.latitude, 2) + POWER(:longitude - ap.longitude, 2)) * 111.325, " +
-                    "CASE " +
-                    "WHEN parent.type = 'PREMIUM' AND parentBusi.type = 'PREMIUM' THEN 0 " +
-                    "WHEN parent.type = 'ALL_DAY' AND parentBusi.type = 'ALL_DAY' THEN 1 " +
-                    "ELSE 2 END, " +
-                    "CASE " +
-                    "WHEN parent.type = 'PREMIUM' AND parentBusi.type = 'PREMIUM' THEN " +
-                    "CASE COALESCE(child.type, childBusi.type) " +
-                    "WHEN 'QUARTERLY' THEN 0 " +
-                    "WHEN 'MONTHLY' THEN 1 " +
-                    "WHEN 'WEEKLY' THEN 2 " +
-                    "WHEN 'DAILY' THEN 3 " +
-                    "ELSE 4 END " +
-                    "WHEN parent.type = 'ALL_DAY' AND parentBusi.type = 'ALL_DAY' THEN " +
-                    "CASE COALESCE(child.type, childBusi.type) " +
-                    "WHEN 'QUARTERLY' THEN 5 " +
-                    "WHEN 'MONTHLY' THEN 6 " +
-                    "WHEN 'WEEKLY' THEN 7 " +
-                    "WHEN 'DAILY' THEN 8 " +
-                    "ELSE 9 END " +
-                    "ELSE 10 END, " +
                     "CASE " +
                     "WHEN verify.status = 'VERIFIED' AND verifyBusi.status = 'VERIFIED' THEN 0 " +
                     "WHEN verify.status = 'REQUESTED' AND verifyBusi.status = 'REQUESTED' THEN 1 " +
@@ -142,46 +86,18 @@ public interface ActiveRepository extends JpaRepository<Active, Long> {
 
     @Query(
             value = "SELECT ap.* FROM platform.active_providers ap " +
-                    "JOIN account.profiles p ON ap.serch_id = p.serch_id " +
+                    "LEFT JOIN account.profiles p ON ap.serch_id = p.serch_id " +
                     "LEFT JOIN account.business_profiles busi ON p.business_id = busi.serch_id " +
-                    "LEFT JOIN verified.verification verify ON ap.serch_id = verify.serch_id " +
-                    "LEFT JOIN verified.verification verifyBusi ON busi.serch_id = verify.serch_id " +
-                    "JOIN account.specializations s ON p.serch_id = s.serch_id " +
-                    "LEFT JOIN subscription.subscriptions sub ON p.serch_id = sub.serch_id " +
-                    "LEFT JOIN subscription.subscriptions subBusi ON busi.serch_id = sub.serch_id " +
-                    "LEFT JOIN company.plan_parents parent ON sub.plan = parent.id " +
-                    "LEFT JOIN company.plan_children child ON sub.sub_plan = child.id " +
-                    "LEFT JOIN company.plan_parents parentBusi ON subBusi.plan = parentBusi.id " +
-                    "LEFT JOIN company.plan_children childBusi ON subBusi.sub_plan = childBusi.id " +
+                    "LEFT JOIN identity.verification verify ON ap.serch_id = verify.serch_id " +
+                    "LEFT JOIN identity.verification verifyBusi ON busi.serch_id = verify.serch_id " +
+                    "LEFT JOIN account.specializations s ON p.serch_id = s.serch_id " +
                     "WHERE " +
                     "SQRT(POWER(:latitude - ap.latitude, 2) + POWER(:longitude - ap.longitude, 2)) * 111.325 < :radius " +
-                    "AND (to_tsvector('english', s.specialty) @@ plainto_tsquery(:query) " +
-                    "OR to_tsvector('english', p.serch_category) @@ plainto_tsquery(:query)) " +
-                    "GROUP BY ap.id, parent.type, child.type, parentBusi.type, childBusi.type," +
-                    " s.specialty, p.serch_category," +
-                    " verify.status, verifyBusi.status, ap.latitude, ap.longitude, ap.status, p.rating " +
+                    "AND (to_tsvector('english', COALESCE(s.specialty, '')) @@ plainto_tsquery(:query) " +
+                    "OR to_tsvector('english', COALESCE(p.serch_category, '')) @@ plainto_tsquery(:query)) " +
+                    "GROUP BY ap.id, s.specialty, p.serch_category, verify.status, verifyBusi.status, ap.latitude, ap.longitude, ap.status, p.rating " +
                     "ORDER BY " +
                     "SQRT(POWER(:latitude - ap.latitude, 2) + POWER(:longitude - ap.longitude, 2)) * 111.325, " +
-                    "CASE " +
-                    "WHEN parent.type = 'PREMIUM' AND parentBusi.type = 'PREMIUM' THEN 0 " +
-                    "WHEN parent.type = 'ALL_DAY' AND parentBusi.type = 'ALL_DAY' THEN 1 " +
-                    "ELSE 2 END, " +
-                    "CASE " +
-                    "WHEN parent.type = 'PREMIUM' AND parentBusi.type = 'PREMIUM' THEN " +
-                    "CASE COALESCE(child.type, childBusi.type) " +
-                    "WHEN 'QUARTERLY' THEN 0 " +
-                    "WHEN 'MONTHLY' THEN 1 " +
-                    "WHEN 'WEEKLY' THEN 2 " +
-                    "WHEN 'DAILY' THEN 3 " +
-                    "ELSE 4 END " +
-                    "WHEN parent.type = 'ALL_DAY' AND parentBusi.type = 'ALL_DAY' THEN " +
-                    "CASE COALESCE(child.type, childBusi.type) " +
-                    "WHEN 'QUARTERLY' THEN 5 " +
-                    "WHEN 'MONTHLY' THEN 6 " +
-                    "WHEN 'WEEKLY' THEN 7 " +
-                    "WHEN 'DAILY' THEN 8 " +
-                    "ELSE 9 END " +
-                    "ELSE 10 END, " +
                     "CASE " +
                     "WHEN verify.status = 'VERIFIED' AND verifyBusi.status = 'VERIFIED' THEN 0 " +
                     "WHEN verify.status = 'REQUESTED' AND verifyBusi.status = 'REQUESTED' THEN 1 " +
@@ -207,45 +123,17 @@ public interface ActiveRepository extends JpaRepository<Active, Long> {
 
     @Query(
             value = "SELECT ap.* FROM platform.active_providers ap " +
-                    "JOIN account.profiles p ON ap.serch_id = p.serch_id " +
+                    "LEFT JOIN account.profiles p ON ap.serch_id = p.serch_id " +
                     "LEFT JOIN account.business_profiles busi ON p.business_id = busi.serch_id " +
-                    "LEFT JOIN verified.verification verify ON ap.serch_id = verify.serch_id " +
-                    "LEFT JOIN verified.verification verifyBusi ON busi.serch_id = verify.serch_id " +
+                    "LEFT JOIN identity.verification verify ON ap.serch_id = verify.serch_id " +
+                    "LEFT JOIN identity.verification verifyBusi ON busi.serch_id = verify.serch_id " +
                     "LEFT JOIN account.specializations s ON p.serch_id = s.serch_id " +
-                    "LEFT JOIN subscription.subscriptions sub ON p.serch_id = sub.serch_id " +
-                    "LEFT JOIN subscription.subscriptions subBusi ON busi.serch_id = sub.serch_id " +
-                    "LEFT JOIN company.plan_parents parent ON sub.plan = parent.id " +
-                    "LEFT JOIN company.plan_children child ON sub.sub_plan = child.id " +
-                    "LEFT JOIN company.plan_parents parentBusi ON subBusi.plan = parentBusi.id " +
-                    "LEFT JOIN company.plan_children childBusi ON subBusi.sub_plan = childBusi.id " +
                     "WHERE " +
                     "SQRT(POWER(:latitude - ap.latitude, 2) + POWER(:longitude - ap.longitude, 2)) * 111.325 < :radius " +
                     "AND p.serch_category = :category " +
-                    "GROUP BY ap.id, parent.type, child.type, parentBusi.type, childBusi.type, " +
-                    "s.specialty, p.serch_category, ap.status," +
-                    " verify.status, verifyBusi.status, ap.latitude, ap.longitude, p.rating " +
+                    "GROUP BY ap.id, s.specialty, p.serch_category, ap.status, verify.status, verifyBusi.status, ap.latitude, ap.longitude, p.rating " +
                     "ORDER BY " +
                     "SQRT(POWER(:latitude - ap.latitude, 2) + POWER(:longitude - ap.longitude, 2)) * 111.325, " +
-                    "CASE " +
-                    "WHEN parent.type = 'PREMIUM' AND parentBusi.type = 'PREMIUM' THEN 0 " +
-                    "WHEN parent.type = 'ALL_DAY' AND parentBusi.type = 'ALL_DAY' THEN 1 " +
-                    "ELSE 2 END, " +
-                    "CASE " +
-                    "WHEN parent.type = 'PREMIUM' AND parentBusi.type = 'PREMIUM' THEN " +
-                    "CASE COALESCE(child.type, childBusi.type) " +
-                    "WHEN 'QUARTERLY' THEN 0 " +
-                    "WHEN 'MONTHLY' THEN 1 " +
-                    "WHEN 'WEEKLY' THEN 2 " +
-                    "WHEN 'DAILY' THEN 3 " +
-                    "ELSE 4 END " +
-                    "WHEN parent.type = 'ALL_DAY' AND parentBusi.type = 'ALL_DAY' THEN " +
-                    "CASE COALESCE(child.type, childBusi.type) " +
-                    "WHEN 'QUARTERLY' THEN 5 " +
-                    "WHEN 'MONTHLY' THEN 6 " +
-                    "WHEN 'WEEKLY' THEN 7 " +
-                    "WHEN 'DAILY' THEN 8 " +
-                    "ELSE 9 END " +
-                    "ELSE 10 END, " +
                     "CASE " +
                     "WHEN verify.status = 'VERIFIED' AND verifyBusi.status = 'VERIFIED' THEN 0 " +
                     "WHEN verify.status = 'REQUESTED' AND verifyBusi.status = 'REQUESTED' THEN 1 " +

@@ -5,7 +5,7 @@ import com.serch.server.services.certificate.responses.CertificateData;
 import com.serch.server.services.certificate.responses.CertificateResponse;
 import com.serch.server.services.certificate.responses.VerifyCertificateResponse;
 import com.serch.server.services.certificate.services.CertificateService;
-import com.serch.server.services.supabase.requests.FileUploadRequest;
+import com.serch.server.core.storage.requests.FileUploadRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

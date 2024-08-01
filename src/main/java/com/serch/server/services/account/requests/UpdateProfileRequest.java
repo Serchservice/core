@@ -3,7 +3,7 @@ package com.serch.server.services.account.requests;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.serch.server.enums.account.Gender;
 import com.serch.server.services.auth.requests.RequestPhoneInformation;
-import com.serch.server.services.supabase.requests.FileUploadRequest;
+import com.serch.server.core.storage.requests.FileUploadRequest;
 import lombok.Data;
 
 @Data

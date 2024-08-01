@@ -12,6 +12,7 @@ public class ServerUtil {
     public static final List<String> PRODUCTION = List.of(
             "https://www.serchservice.com", // Frontend
             "https://serchservice.com", // Frontend
+            "https://help.serchservice.com", // Frontend
             "flutter-app://com.serch.user", // Scheme for Flutter mobile app (User)
             "flutter-app://com.serch.business", // Scheme for Flutter mobile app (Business)
             "flutter-app://com.serch.provider", // Scheme for Flutter mobile app (Provider)

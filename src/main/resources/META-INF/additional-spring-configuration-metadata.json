@@ -156,12 +156,12 @@
       "description": "A description for 'application.call.tip2fix.amount'."
     },
     {
-      "name": "application.notification.service.key",
+      "name": "application.notification.key.service",
       "type": "java.lang.String",
       "description": "Firebase Admin key'."
     },
     {
-      "name": "application.call.api-certificate",
+      "name": "application.call.api-secret",
       "type": "java.lang.String",
       "description": "The Agora app certificate."
     },

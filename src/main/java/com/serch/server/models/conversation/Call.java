@@ -99,4 +99,8 @@ public class Call extends BaseDateTime {
             throw new CallException("Call is %s".formatted(getStatus().getType()));
         }
     }
+
+    public boolean isVoice() {
+        return type == CallType.VOICE;
+    }
 }

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.utils.ServerUtil;
+import io.getstream.chat.java.services.framework.DefaultClient;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,7 +28,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * The ServerConfiguration class configured various beans and settings related to server operations.
@@ -45,8 +48,14 @@ import java.util.List;
 public class ServerConfiguration {
     private final UserRepository userRepository;
 
-    @Value("${application.notification.service.key}")
+    @Value("${application.notification.key.service}")
     private String NOTIFICATION_SERVICE_KEY;
+
+    @Value("${application.call.api-key}")
+    private String CALL_APP_ID;
+
+    @Value("${application.call.api-secret}")
+    private String CALL_APP_SECRET;
 
     /**
      * Configures a RestTemplate bean for making RESTful HTTP requests.
@@ -135,10 +144,32 @@ public class ServerConfiguration {
     @Bean
     @SneakyThrows
     public GoogleCredentials credentials() {
-        InputStream inputStream = new ByteArrayInputStream(NOTIFICATION_SERVICE_KEY.getBytes(StandardCharsets.UTF_8));
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        // Parse the JSON string into a Map
+        var account = objectMapper.readValue(NOTIFICATION_SERVICE_KEY, HashMap.class);
+
+        // Convert the map back to a JSON string
+        String json = objectMapper.writeValueAsString(account);
+
+        InputStream inputStream = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
         GoogleCredentials credentials = GoogleCredentials.fromStream(inputStream)
                 .createScoped(List.of("https://www.googleapis.com/auth/firebase.messaging"));
+
+        // Refresh credentials if expired
         credentials.refreshIfExpired();
+
         return credentials;
+    }
+
+    @Bean
+    public DefaultClient defaultClient() {
+        var properties = new Properties();
+        properties.put(DefaultClient.API_KEY_PROP_NAME, CALL_APP_ID);
+        properties.put(DefaultClient.API_SECRET_PROP_NAME, CALL_APP_SECRET);
+        var client = new DefaultClient(properties);
+        DefaultClient.setInstance(client);
+
+        return client;
     }
 }

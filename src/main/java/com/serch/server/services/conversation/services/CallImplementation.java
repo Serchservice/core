@@ -19,7 +19,7 @@ import com.serch.server.services.conversation.responses.ActiveCallResponse;
 import com.serch.server.core.notification.core.NotificationService;
 import com.serch.server.services.transaction.services.WalletService;
 import com.serch.server.utils.*;
-import io.agora.media.RtcTokenBuilder2;
+import io.getstream.chat.java.models.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -44,11 +44,11 @@ public class CallImplementation implements CallService {
     private final ProfileRepository profileRepository;
 
     @Value("${application.call.api-key}")
-    private String AGORA_APP_ID;
-    @Value("${application.call.api-certificate}")
-    private String AGORA_APP_CERTIFICATE;
+    private String CALL_APP_ID;
+
     @Value("${application.call.token.expiration}")
-    private Integer AGORA_TOKEN_EXPIRATION_TIME;
+    private Integer CALL_TOKEN_EXPIRATION_TIME;
+
     @Value("${application.call.tip2fix.amount}")
     private Integer TIP2FIX_AMOUNT;
 
@@ -98,7 +98,7 @@ public class CallImplementation implements CallService {
 
         return ActiveCallResponse.builder()
                 .status(call.getStatus())
-                .app(AGORA_APP_ID)
+                .app(CALL_APP_ID)
                 .channel(call.getChannel())
                 .name(profile.getFullName())
                 .type(call.getType())
@@ -112,14 +112,19 @@ public class CallImplementation implements CallService {
 
     @Override
     public ApiResponse<String> auth(String channel) {
-        RtcTokenBuilder2 token = new RtcTokenBuilder2();
-        String authToken = token.buildTokenWithUserAccount(
-                AGORA_APP_ID, AGORA_APP_CERTIFICATE, channel, String.valueOf(userUtil.getUser().getId()),
-                RtcTokenBuilder2.Role.ROLE_SUBSCRIBER,
-                AGORA_TOKEN_EXPIRATION_TIME, AGORA_TOKEN_EXPIRATION_TIME
-        );
+        Call call = callRepository.findById(channel).orElseThrow(() -> new CallException("Call not found"));
 
-        return new ApiResponse<>("Authentication successful", authToken, HttpStatus.OK);
+        String token;
+        if(call.isVoice()) {
+            token = User.createToken(String.valueOf(userUtil.getUser().getId()), null, null);
+        } else {
+            var calendar = new GregorianCalendar();
+            calendar.add(Calendar.MINUTE, CALL_TOKEN_EXPIRATION_TIME);
+
+            token = User.createToken(String.valueOf(userUtil.getUser().getId()), calendar.getTime(), null);
+        }
+
+        return new ApiResponse<>("Authentication successful", token, HttpStatus.OK);
     }
 
     @Override
@@ -175,7 +180,7 @@ public class CallImplementation implements CallService {
 
         ActiveCallResponse response = ActiveCallResponse.builder()
                 .status(call.getStatus())
-                .app(AGORA_APP_ID)
+                .app(CALL_APP_ID)
                 .channel(call.getChannel())
                 .name(profile.getFullName())
                 .type(call.getType())

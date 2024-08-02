@@ -39,7 +39,7 @@ public class SwaggerConfiguration {
                         .version("1.0.0")
                         .summary("This contains the server implementations for Serch platform")
                         .description("Serch Server")
-                        .termsOfService("https://www.serchservice.com/hub/legal")
+                        .termsOfService("https://www.serchservice.com/hub/legal/terms-and-conditions")
                         .license(new License()
                                 .url("https://www.serchservice.com/hub/legal")
                                 .name("Serch Server License")
@@ -61,10 +61,11 @@ public class SwaggerConfiguration {
                                                 .bearerFormat("JWT")
                                 )
                 )
+                .addServersItem(new Server()
+                        .description("Production Server")
+                        .url(SERCH_BASE_URL)
+                )
                 .servers(List.of(
-                        new Server()
-                                .description("Development Server")
-                                .url(String.format("%s/dev", SERCH_BASE_URL)),
                         new Server()
                                 .description("Production Server")
                                 .url(SERCH_BASE_URL)

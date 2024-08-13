@@ -36,6 +36,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import static com.serch.server.enums.auth.Role.USER;
 import static com.serch.server.enums.trip.TripMode.FROM_GUEST;
@@ -66,6 +67,7 @@ public class TripRequestImplementation implements TripRequestService {
     private final TripInviteQuotationRepository tripInviteQuotationRepository;
     private final GuestRepository guestRepository;
     private final TripRepository tripRepository;
+    private final MapViewRepository mapViewRepository;
 
     @Value("${application.map.search-radius}")
     private String MAP_SEARCH_RADIUS;
@@ -132,24 +134,27 @@ public class TripRequestImplementation implements TripRequestService {
     }
 
     private void pingServiceProviders(TripInviteRequest request, TripInvite trip, String name, String account) {
-        List<Active> actives = activeRepository.sortAllWithinDistance(
-                request.getLatitude(), request.getLongitude(),
-                Double.parseDouble(MAP_SEARCH_RADIUS), request.getCategory().name()
-        );
-        if(actives != null && !actives.isEmpty()) {
-            actives.forEach(active -> {
-                messaging.convertAndSend(
-                        "/platform/%s".formatted(String.valueOf(active.getProfile().getId())),
-                        historyService.response(trip.getId(), String.valueOf(active.getProfile().getId()))
-                );
-                notificationService.send(
-                        String.valueOf(active.getProfile().getId()),
-                        String.format("%s wants your service now", name),
-                        "You have a new trip request. Tap to view details",
-                        account, null, true
-                );
-            });
-        }
+        CompletableFuture.runAsync(() -> {
+            List<Active> actives = activeRepository.sortAllWithinDistance(
+                    request.getLatitude(), request.getLongitude(),
+                    Double.parseDouble(MAP_SEARCH_RADIUS), request.getCategory().name()
+            );
+            if(actives != null && !actives.isEmpty()) {
+                actives.forEach(active -> {
+                    messaging.convertAndSend(
+                            "/platform/%s".formatted(String.valueOf(active.getProfile().getId())),
+                            historyService.response(trip.getId(), String.valueOf(active.getProfile().getId()))
+                    );
+                    System.out.println("Hello");
+                    notificationService.send(
+                            String.valueOf(active.getProfile().getId()),
+                            String.format("%s wants your service now", name),
+                            "You have a new trip request. Tap to view details",
+                            account, null, true
+                    );
+                });
+            }
+        });
     }
 
     @Override
@@ -311,6 +316,10 @@ public class TripRequestImplementation implements TripRequestService {
         Trip saved = buildTripFromRequest(quote);
         tripInviteRepository.delete(quote.getInvite());
         tripInviteQuotationRepository.delete(quote);
+
+        MapView mapView = TripMapper.INSTANCE.view(activeService.getLocation(saved.getProvider().getUser()));
+        mapView.setTrip(saved);
+        mapViewRepository.save(mapView);
 
         sharedService.create(saved.getLinkId(), saved.getAccount(), saved);
         InitializePaymentData data = payService.pay(saved, saved.getProvider().getId());

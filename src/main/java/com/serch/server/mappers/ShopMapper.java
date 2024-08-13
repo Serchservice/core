@@ -1,7 +1,10 @@
 package com.serch.server.mappers;
 
 import com.serch.server.models.shop.Shop;
+import com.serch.server.models.shop.ShopDrive;
+import com.serch.server.services.rating.requests.RatingCalculation;
 import com.serch.server.services.shop.requests.CreateShopRequest;
+import com.serch.server.services.shop.requests.ShopDriveRequest;
 import com.serch.server.services.shop.responses.ShopResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -24,4 +27,8 @@ public interface ShopMapper {
             @Mapping(target = "phone", source = "phoneNumber"),
     })
     ShopResponse shop(Shop shop);
+
+    ShopDrive drive(ShopDriveRequest request);
+
+    RatingCalculation calculation(ShopDrive drive);
 }

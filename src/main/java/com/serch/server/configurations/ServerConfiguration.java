@@ -3,6 +3,7 @@ package com.serch.server.configurations;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.auth.oauth2.GoogleCredentials;
+import com.mailersend.sdk.MailerSend;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.utils.ServerUtil;
 import io.getstream.chat.java.services.framework.DefaultClient;
@@ -47,6 +48,9 @@ import java.util.Properties;
 @RequiredArgsConstructor
 public class ServerConfiguration {
     private final UserRepository userRepository;
+
+    @Value("${spring.mail.password}")
+    private String MAIL_API_KEY;
 
     @Value("${application.notification.key.service}")
     private String NOTIFICATION_SERVICE_KEY;
@@ -171,5 +175,13 @@ public class ServerConfiguration {
         DefaultClient.setInstance(client);
 
         return client;
+    }
+
+    @Bean
+    public MailerSend send() {
+        MailerSend ms = new MailerSend();
+
+        ms.setToken(MAIL_API_KEY);
+        return ms;
     }
 }

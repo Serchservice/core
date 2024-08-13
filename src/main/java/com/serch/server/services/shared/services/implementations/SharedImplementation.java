@@ -130,33 +130,36 @@ public class SharedImplementation implements SharedService {
         List<SharedLinkResponse> list = sharedLinkRepository.findByUserId(util.getUser().getId())
                 .stream()
                 .sorted(Comparator.comparing(SharedLink::getUpdatedAt).reversed())
-                .map(link -> {
-                    SharedLinkResponse response = new SharedLinkResponse();
-                    response.setData(data(link, getCurrentStatus(link)));
-                    response.setTotalGuests(link.getLogins() != null ? link.getLogins().size() : 0);
-                    if(link.getLogins() != null && !link.getLogins().isEmpty()) {
-                        response.setGuests(link.getLogins().stream()
-                                .sorted(Comparator.comparing(login -> getCurrentStatusForAccount(login).getCreatedAt()))
-                                .map(login -> {
-                                    GuestProfileData data = new GuestProfileData();
-                                    data.setId(login.getGuest().getId());
-                                    data.setGender(login.getGuest().getGender());
-                                    data.setAvatar(login.getGuest().getAvatar());
-                                    data.setName(login.getGuest().getFullName());
-                                    data.setJoinedAt(TimeUtil.formatDay(login.getCreatedAt()));
-                                    data.setStatus(login.getStatus().getType());
-                                    if(login.getStatuses() != null && !login.getStatuses().isEmpty()) {
-                                        data.setStatuses(login.getStatuses().stream().map(stat -> getStatusData(login.getSharedLink(), stat)).toList());
-                                    }
-                                    return data;
-                                })
-                                .toList()
-                        );
-                    }
-                    return response;
-                })
+                .map(this::buildLink)
                 .toList();
         return new ApiResponse<>(list);
+    }
+
+    @Override
+    public SharedLinkResponse buildLink(SharedLink link) {
+        SharedLinkResponse response = new SharedLinkResponse();
+        response.setData(data(link, getCurrentStatus(link)));
+        response.setTotalGuests(link.getLogins() != null ? link.getLogins().size() : 0);
+        if(link.getLogins() != null && !link.getLogins().isEmpty()) {
+            response.setGuests(link.getLogins().stream()
+                    .sorted(Comparator.comparing(login -> getCurrentStatusForAccount(login).getCreatedAt()))
+                    .map(login -> {
+                        GuestProfileData data = new GuestProfileData();
+                        data.setId(login.getGuest().getId());
+                        data.setGender(login.getGuest().getGender());
+                        data.setAvatar(login.getGuest().getAvatar());
+                        data.setName(login.getGuest().getFullName());
+                        data.setJoinedAt(TimeUtil.formatDay(login.getCreatedAt()));
+                        data.setStatus(login.getStatus().getType());
+                        if(login.getStatuses() != null && !login.getStatuses().isEmpty()) {
+                            data.setStatuses(login.getStatuses().stream().map(stat -> getStatusData(login.getSharedLink(), stat)).toList());
+                        }
+                        return data;
+                    })
+                    .toList()
+            );
+        }
+        return response;
     }
 
     @Override

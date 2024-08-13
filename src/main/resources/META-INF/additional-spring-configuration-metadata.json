@@ -186,9 +186,34 @@
       "description": "The url for sending notification to devices using fcm."
     },
     {
-      "name": "application.base-url",
+      "name": "application.link.server.base",
       "type": "java.lang.String",
       "description": "The base url for the server."
+    },
+    {
+      "name": "application.link.platform.base",
+      "type": "java.lang.String",
+      "description": "The base url for the Serch product platform."
+    },
+    {
+      "name": "application.link.admin.base",
+      "type": "java.lang.String",
+      "description": "The base url for the Serch admin platform."
+    },
+    {
+      "name": "application.link.associate.invite",
+      "type": "java.lang.String",
+      "description": "The link prefix for inviting an associate provider."
+    },
+    {
+      "name": "application.link.admin.invite",
+      "type": "java.lang.String",
+      "description": "The link prefix for inviting an admin in Serch."
+    },
+    {
+      "name": "application.link.admin.reset",
+      "type": "java.lang.String",
+      "description": "The link prefix for admin reset password."
     },
     {
       "name": "application.account.rating.limit",
@@ -211,14 +236,24 @@
       "description": "The time wait for link generation."
     },
     {
-      "name": "application.map.location.iq.base.url.autocomplete",
+      "name": "application.map.base.url.autocomplete",
       "type": "java.lang.String",
       "description": "The base url for autocomplete Location IQ."
     },
     {
-      "name": "application.map.location.iq.access-token",
+      "name": "application.mail.template.id.auth",
       "type": "java.lang.String",
-      "description": "Location IQ Access token."
+      "description": "This is the template id for email authentication template."
+    },
+    {
+      "name": "application.mail.template.id.reset",
+      "type": "java.lang.String",
+      "description": "This is the template id for email reset password template."
+    },
+    {
+      "name": "application.mail.template.id.invite",
+      "type": "java.lang.String",
+      "description": "This is the template id for email invite user template."
     }
   ]
 }

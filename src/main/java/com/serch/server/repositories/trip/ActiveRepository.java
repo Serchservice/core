@@ -21,7 +21,7 @@ public interface ActiveRepository extends JpaRepository<Active, Long> {
                     "LEFT JOIN identity.verification verifyBusi ON busi.serch_id = verify.serch_id " +
                     "LEFT JOIN account.specializations s ON p.serch_id = s.serch_id " +
                     "WHERE " +
-                    "SQRT(POWER(:latitude - ap.latitude, 2) + POWER(:longitude - ap.longitude, 2)) * 111.325 < :radius " +
+                    "SQRT(POWER(:latitude - ap.latitude, 2) + POWER(:longitude - ap.longitude, 2)) * 111.325 < :radius / 1000 " +
                     "AND p.serch_category = :category " +
                     "GROUP BY ap.id, s.specialty, p.serch_category, verify.status, verifyBusi.status, ap.latitude, ap.longitude, ap.status, p.rating " +
                     "ORDER BY " +
@@ -55,7 +55,7 @@ public interface ActiveRepository extends JpaRepository<Active, Long> {
                     "LEFT JOIN identity.verification verifyBusi ON busi.serch_id = verify.serch_id " +
                     "LEFT JOIN account.specializations s ON p.serch_id = s.serch_id " +
                     "WHERE " +
-                    "SQRT(POWER(:latitude - ap.latitude, 2) + POWER(:longitude - ap.longitude, 2)) * 111.325 < :radius " +
+                    "SQRT(POWER(:latitude - ap.latitude, 2) + POWER(:longitude - ap.longitude, 2)) * 111.325 < :radius / 1000 " +
                     "AND (to_tsvector('english', COALESCE(s.specialty, '')) @@ plainto_tsquery(:query) " +
                     "OR to_tsvector('english', COALESCE(p.serch_category, '')) @@ plainto_tsquery(:query)) " +
                     "GROUP BY ap.id, s.specialty, p.serch_category, verify.status, verifyBusi.status, ap.latitude, ap.longitude, ap.status, p.rating " +
@@ -92,7 +92,7 @@ public interface ActiveRepository extends JpaRepository<Active, Long> {
                     "LEFT JOIN identity.verification verifyBusi ON busi.serch_id = verify.serch_id " +
                     "LEFT JOIN account.specializations s ON p.serch_id = s.serch_id " +
                     "WHERE " +
-                    "SQRT(POWER(:latitude - ap.latitude, 2) + POWER(:longitude - ap.longitude, 2)) * 111.325 < :radius " +
+                    "SQRT(POWER(:latitude - ap.latitude, 2) + POWER(:longitude - ap.longitude, 2)) * 111.325 < :radius / 1000 " +
                     "AND (to_tsvector('english', COALESCE(s.specialty, '')) @@ plainto_tsquery(:query) " +
                     "OR to_tsvector('english', COALESCE(p.serch_category, '')) @@ plainto_tsquery(:query)) " +
                     "GROUP BY ap.id, s.specialty, p.serch_category, verify.status, verifyBusi.status, ap.latitude, ap.longitude, ap.status, p.rating " +
@@ -129,7 +129,7 @@ public interface ActiveRepository extends JpaRepository<Active, Long> {
                     "LEFT JOIN identity.verification verifyBusi ON busi.serch_id = verify.serch_id " +
                     "LEFT JOIN account.specializations s ON p.serch_id = s.serch_id " +
                     "WHERE " +
-                    "SQRT(POWER(:latitude - ap.latitude, 2) + POWER(:longitude - ap.longitude, 2)) * 111.325 < :radius " +
+                    "SQRT(POWER(:latitude - ap.latitude, 2) + POWER(:longitude - ap.longitude, 2)) * 111.325 < :radius / 1000 " +
                     "AND p.serch_category = :category " +
                     "GROUP BY ap.id, s.specialty, p.serch_category, ap.status, verify.status, verifyBusi.status, ap.latitude, ap.longitude, p.rating " +
                     "ORDER BY " +

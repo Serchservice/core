@@ -258,6 +258,10 @@ public class TripHistoryImplementation implements TripHistoryService {
                         share.setTimelines(timeline(timelines, share, null));
                     }
 
+                    if(trip.getInvited().getMapView() != null) {
+                        share.setLocation(TripMapper.INSTANCE.view(trip.getInvited().getMapView()));
+                    }
+
                     if(trip.getInvited().getProvider().isAssociate()) {
                         business = trip.getInvited().getProvider().getBusiness().getId().toString();
                     }
@@ -300,6 +304,10 @@ public class TripHistoryImplementation implements TripHistoryService {
         List<TripTimeline> timelines = tripTimelineRepository.findByTrip_Id(trip.getId());
         if(timelines != null && !timelines.isEmpty()) {
             response.setTimelines(timeline(timelines, response, trip.getInvited()));
+        }
+
+        if(trip.getMapView() != null) {
+            response.setLocation(TripMapper.INSTANCE.view(trip.getMapView()));
         }
 
         if(sendUpdate) {

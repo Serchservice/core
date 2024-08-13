@@ -39,6 +39,9 @@ public class TripShare extends BaseModel {
     @OneToOne(mappedBy = "sharing", cascade = CascadeType.ALL)
     private TripAuthentication authentication;
 
+    @OneToOne(mappedBy = "sharing", cascade = CascadeType.ALL)
+    private MapView mapView;
+
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(
             name = "provider_id",

@@ -49,7 +49,6 @@ public class Payment implements PaymentService {
         String endpoint = BASE_API_ENDPOINT + "/transaction/initialize";
         ResponseEntity<InitializePaymentResponse> response = rest.postForEntity(endpoint, entity, InitializePaymentResponse.class);
 
-        System.out.println("Initialize Method in Payment - " + response.getBody());
         if(response.getStatusCode().is2xxSuccessful()) {
             InitializePaymentResponse body = response.getBody();
             assert body != null : "Couldn't initialize payment";
@@ -64,7 +63,6 @@ public class Payment implements PaymentService {
         String endpoint = BASE_API_ENDPOINT + "/transaction/verify/" + reference;
         ResponseEntity<PaymentVerificationResponse> response = rest.exchange(endpoint, HttpMethod.GET, entity, PaymentVerificationResponse.class);
 
-        System.out.println("Verify Method in Payment - " + response.getBody());
         return getPaymentVerificationData(response);
     }
 
@@ -75,7 +73,6 @@ public class Payment implements PaymentService {
         String endpoint = BASE_API_ENDPOINT + "/transaction/charge_authorization" ;
         ResponseEntity<PaymentVerificationResponse> response = rest.postForEntity(endpoint, entity, PaymentVerificationResponse.class);
 
-        System.out.println("Charge Method in Payment - " + response.getBody());
         return getPaymentVerificationData(response);
     }
 

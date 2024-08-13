@@ -74,10 +74,10 @@ public class BusinessImplementation implements BusinessService {
     private final RatingRepository ratingRepository;
     private final SharedLinkRepository sharedLinkRepository;
     private final SpecialtyRepository specialtyRepository;
+    private final TripRepository tripRepository;
 
     @Value("${application.account.duration}")
     private Integer ACCOUNT_DURATION;
-    private final TripRepository tripRepository;
 
     @Override
     public ApiResponse<String> createProfile(Incomplete incomplete, User user, RequestBusinessProfile profile) {

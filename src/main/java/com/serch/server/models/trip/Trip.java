@@ -89,6 +89,9 @@ public class Trip extends BaseTrip {
     @OneToOne(mappedBy = "trip", cascade = CascadeType.ALL)
     private SharedStatus shared;
 
+    @OneToOne(mappedBy = "trip", cascade = CascadeType.ALL)
+    private MapView mapView;
+
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(
             name = "provider_id",

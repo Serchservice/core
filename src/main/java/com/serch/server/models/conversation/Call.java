@@ -18,15 +18,6 @@ import java.math.BigDecimal;
  * The Call class represents a call entity in the system.
  * It stores information about calls, including the channel, duration, session count, type, status, amount spent, and associated profiles.
  * <p></p>
- * Annotations:
- * <ul>
- *     <li>{@link Column}</li>
- *     <li>{@link Enumerated}</li>
- *     <li>{@link OneToMany}</li>
- *     <li>{@link JoinColumn}</li>
- *     <li>{@link Entity}</li>
- *     <li>{@link Table}</li>
- * </ul>
  * Relationships:
  * <ul>
  *     <li>{@link Profile} - The profiles associated with the call.</li>

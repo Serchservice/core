@@ -1,6 +1,7 @@
 package com.serch.server.services.trip.controllers;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.core.socket.SocketService;
 import com.serch.server.services.trip.requests.*;
 import com.serch.server.services.trip.responses.ActiveResponse;
 import com.serch.server.services.trip.responses.TripResponse;
@@ -8,6 +9,9 @@ import com.serch.server.services.trip.services.TripHistoryService;
 import com.serch.server.services.trip.services.TripService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +23,7 @@ import java.util.List;
 public class TripController {
     private final TripHistoryService historyService;
     private final TripService service;
+    private final SocketService socket;
 
     @GetMapping("/history")
     public ResponseEntity<ApiResponse<List<TripResponse>>> history(
@@ -111,5 +116,11 @@ public class TripController {
     public ResponseEntity<ApiResponse<TripResponse>> update(@RequestBody TripUpdateRequest request) {
         ApiResponse<TripResponse> response = service.update(request);
         return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @MessageMapping("/trip/update")
+    public void update(@Payload MapViewRequest request, SimpMessageHeaderAccessor header) {
+        socket.authenticate(header);
+        service.update(request);
     }
 }

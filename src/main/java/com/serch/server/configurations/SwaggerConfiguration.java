@@ -23,7 +23,7 @@ import java.util.List;
  */
 @Configuration
 public class SwaggerConfiguration {
-    @Value("${application.base-url}")
+    @Value("${application.link.server.base}")
     private String SERCH_BASE_URL;
 
     /**

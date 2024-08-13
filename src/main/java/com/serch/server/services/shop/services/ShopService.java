@@ -2,6 +2,7 @@ package com.serch.server.services.shop.services;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.shop.ShopStatus;
+import com.serch.server.models.shop.Shop;
 import com.serch.server.services.shop.requests.CreateShopRequest;
 import com.serch.server.services.shop.requests.UpdateShopRequest;
 import com.serch.server.services.shop.requests.ShopWeekdayRequest;
@@ -16,6 +17,15 @@ import java.util.List;
  * @see ShopImplementation
  */
 public interface ShopService {
+    /**
+     * Prepare the shop data from the shop record
+     *
+     * @param shop The {@link Shop} data
+     *
+     * @return {@link ShopResponse}
+     */
+    ShopResponse response(Shop shop);
+
     /**
      * Creates a new shop based on the provided request.
      *

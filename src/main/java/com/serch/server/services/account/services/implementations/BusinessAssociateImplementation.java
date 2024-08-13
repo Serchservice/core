@@ -1,8 +1,10 @@
 package com.serch.server.services.account.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.core.email.EmailService;
 import com.serch.server.enums.account.AccountStatus;
 import com.serch.server.enums.auth.Role;
+import com.serch.server.enums.email.EmailType;
 import com.serch.server.enums.verified.ConsentType;
 import com.serch.server.exceptions.account.AccountException;
 import com.serch.server.mappers.AccountMapper;
@@ -13,7 +15,7 @@ import com.serch.server.models.account.BusinessProfile;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.User;
 import com.serch.server.models.auth.incomplete.Incomplete;
-import com.serch.server.models.email.Email;
+import com.serch.server.models.email.SendEmail;
 import com.serch.server.repositories.account.PhoneInformationRepository;
 import com.serch.server.repositories.account.SpecialtyRepository;
 import com.serch.server.repositories.auth.PendingRepository;
@@ -30,13 +32,13 @@ import com.serch.server.services.account.responses.BusinessAssociateResponse;
 import com.serch.server.services.account.services.BusinessAssociateService;
 import com.serch.server.services.auth.services.AuthService;
 import com.serch.server.services.auth.services.ProviderAuthService;
-import com.serch.server.core.email.services.EmailTemplateService;
 import com.serch.server.services.rating.services.RatingService;
 import com.serch.server.services.referral.services.ReferralProgramService;
 import com.serch.server.services.referral.services.ReferralService;
 import com.serch.server.utils.UserUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -68,7 +70,7 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
     private final ReferralService referralService;
     private final JwtService jwtService;
     private final ReferralProgramService referralProgramService;
-    private final EmailTemplateService emailTemplateService;
+    private final EmailService emailService;
     private final AccountStatusTrackerService trackerService;
     private final UserUtil util;
     private final PasswordEncoder passwordEncoder;
@@ -79,6 +81,9 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
     private final PhoneInformationRepository phoneInformationRepository;
     private final SpecialtyRepository specialtyRepository;
     private final PendingRepository pendingRepository;
+
+    @Value("${application.link.associate.invite}")
+    private String ASSOCIATE_INVITE_LINK;
 
     @Override
     public BusinessAssociateResponse response(Profile profile) {
@@ -173,28 +178,14 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
                     pendingRepository.save(pending);
                 });
 
-        Email email = new Email();
-        email.setOtp("Click on this link to activate your account and start providing in the Serch platform");
-        email.setGreeting("Welcome, %s".formatted(user.getFirstName()));
-        email.setCentered(true);
-        email.setLink(
-                "https://www.serchservice.com/auth/associate/verify?invite=%s&role=%s&platform=%s"
-                        .formatted(secret, user.getRole(), "provider")
-        );
-        email.setEmailAddress(emailAddress);
-        email.setSubject("Hello %s, you were invited".formatted(user.getFirstName()));
-        email.setContent(
-                "%s, business account owned by %s, has invited you to the Serch Provider platform as "
-                        .formatted(business.getBusinessName(), business.getUser().getFullName()) +
-                        "someone who has the best skill needed to grow both the business and yourself. \n\n" +
-                        "In order to access your account, you need to click on the link below to verify your " +
-                        "identity as a person. \n\n" +
-                        "Thanks and welcome!"
-        );
-        email.setHasLink(true);
-        email.setReceiver(emailAddress);
-        email.setImageHeader("/security.png?alt=media&token=9b7ce5b9-6353-4da9-b423-e73bf153eee3");
-        emailTemplateService.sendEmail(email);
+        SendEmail email = new SendEmail();
+        email.setTo(emailAddress);
+        email.setFirstName(user.getFirstName());
+        email.setPrimary(business.getBusinessName());
+        email.setSecondary(business.getUser().getFullName());
+        email.setType(EmailType.ASSOCIATE_INVITE);
+        email.setContent(String.format("%s?invite=%s&role=%s&platform=%s", ASSOCIATE_INVITE_LINK, secret, user.getRole(), "provider"));
+        emailService.send(email);
     }
 
     private User saveAssociateUser(AddAssociateRequest request, BusinessProfile business) {

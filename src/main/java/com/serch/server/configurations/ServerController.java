@@ -18,7 +18,7 @@ import java.util.Map;
 public class ServerController {
     private final RestTemplate rest;
 
-    @Value("${application.base-url}")
+    @Value("${application.link.server.base}")
     private String SERCH_BASE_URL;
 
     @GetMapping("/memory/status")

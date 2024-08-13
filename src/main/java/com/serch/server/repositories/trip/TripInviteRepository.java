@@ -16,7 +16,7 @@ public interface TripInviteRepository extends JpaRepository<TripInvite, String> 
 
     @Query(
             value = "SELECT DISTINCT ti.*, " +
-                    "SQRT(POWER(ti.latitude - ap.latitude, 2) + POWER(ti.longitude - ap.longitude, 2)) * 111.325 AS distance, " +
+                    "SQRT(POWER(ti.latitude - ap.latitude, 2) + POWER(ti.longitude - ap.longitude, 2)) * 111.325 / 1000 AS distance, " +
                     "CASE " +
                     "WHEN verify.status = 'VERIFIED' AND verifyBusi.status = 'VERIFIED' THEN 0 " +
                     "WHEN verify.status = 'REQUESTED' AND verifyBusi.status = 'REQUESTED' THEN 1 " +
@@ -31,14 +31,14 @@ public interface TripInviteRepository extends JpaRepository<TripInvite, String> 
                     "p.rating AS provider_rating " +
                     "FROM trip.invites ti " +
                     "LEFT JOIN platform.active_providers ap ON " +
-                    "SQRT(POWER(ti.latitude - ap.latitude, 2) + POWER(ti.longitude - ap.longitude, 2)) * 111.325 < :radius " +
+                    "SQRT(POWER(ti.latitude - ap.latitude, 2) + POWER(ti.longitude - ap.longitude, 2)) * 111.325 < :radius / 1000 " +
                     "LEFT JOIN account.profiles p ON ap.serch_id = p.serch_id " +
                     "LEFT JOIN account.business_profiles busi ON p.business_id = busi.serch_id " +
                     "LEFT JOIN identity.verification verify ON ap.serch_id = verify.serch_id " +
                     "LEFT JOIN identity.verification verifyBusi ON busi.serch_id = verifyBusi.serch_id " +
                     "LEFT JOIN account.specializations s ON p.serch_id = s.serch_id " +
                     "WHERE " +
-                    "SQRT(POWER(ti.latitude - ap.latitude, 2) + POWER(ti.longitude - ap.longitude, 2)) * 111.325 < :radius " +
+                    "SQRT(POWER(ti.latitude - ap.latitude, 2) + POWER(ti.longitude - ap.longitude, 2)) * 111.325 < :radius / 1000 " +
                     "AND ti.category = :category " +
                     "GROUP BY ti.id, ap.id, ti.latitude, ti.longitude, distance, verification_status, provider_status, provider_rating " +
                     "ORDER BY distance, verification_status, provider_status, provider_rating DESC",

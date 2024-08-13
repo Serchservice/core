@@ -44,7 +44,7 @@ public class CallImplementation implements CallService {
     private final ProfileRepository profileRepository;
 
     @Value("${application.call.api-key}")
-    private String CALL_APP_ID;
+    private String CALL_APP_KEY;
 
     @Value("${application.call.token.expiration}")
     private Integer CALL_TOKEN_EXPIRATION_TIME;
@@ -72,7 +72,7 @@ public class CallImplementation implements CallService {
                 throw new CallException("%s is on another call. Wait a moment and try again".formatted(called.getFullName()));
             } else {
                 if (request.getType() == CallType.T2F) {
-                    walletService.checkBalanceForTip2Fix(caller.getId());
+                    walletService.checkBalanceForTip2Fix(userUtil.getUser().getId());
                 }
 
                 Call call = new Call();
@@ -85,6 +85,7 @@ public class CallImplementation implements CallService {
                     call.setSession(1);
                 }
                 Call update = callRepository.save(call);
+
                 notificationService.send(request.getUser(), prepareResponse(update));
                 return new ApiResponse<>(prepareResponse(update));
             }
@@ -98,7 +99,7 @@ public class CallImplementation implements CallService {
 
         return ActiveCallResponse.builder()
                 .status(call.getStatus())
-                .app(CALL_APP_ID)
+                .app(CALL_APP_KEY)
                 .channel(call.getChannel())
                 .name(profile.getFullName())
                 .type(call.getType())
@@ -108,6 +109,13 @@ public class CallImplementation implements CallService {
                 .image(profile.getCategory().getImage())
                 .category(profile.getCategory().getType())
                 .build();
+    }
+
+    @Override
+    public ApiResponse<String> auth() {
+        String token = User.createToken(String.valueOf(userUtil.getUser().getId()), null, null);
+
+        return new ApiResponse<>("Authentication successful", token, HttpStatus.OK);
     }
 
     @Override
@@ -171,7 +179,7 @@ public class CallImplementation implements CallService {
                     response
             );
         } else {
-            template.convertAndSend("/platform/%s".formatted(String.valueOf(userUtil.getUser().getId())), response);
+            template.convertAndSend("/platform/%s".formatted(String.valueOf(userUtil.getUser().getId())), error);
         }
     }
 
@@ -180,7 +188,7 @@ public class CallImplementation implements CallService {
 
         ActiveCallResponse response = ActiveCallResponse.builder()
                 .status(call.getStatus())
-                .app(CALL_APP_ID)
+                .app(CALL_APP_KEY)
                 .channel(call.getChannel())
                 .name(profile.getFullName())
                 .type(call.getType())
@@ -204,6 +212,7 @@ public class CallImplementation implements CallService {
             try {
                 call.checkIfActive();
             } catch (Exception e) {
+                System.out.println(e);
                 sendError(e.getMessage(), call.getChannel());
             }
 

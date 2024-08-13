@@ -69,6 +69,13 @@ public class CallController {
         return new ResponseEntity<>(response, response.getStatus());
     }
 
+    @GetMapping("/authentication")
+    @PreAuthorize("hasRole('PROVIDER') || hasRole('USER') || hasRole('ASSOCIATE_PROVIDER')")
+    public ResponseEntity<ApiResponse<String>> auth() {
+        ApiResponse<String> response = service.auth();
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
     @PostMapping("/start")
     @PreAuthorize("hasRole('PROVIDER') || hasRole('USER') || hasRole('ASSOCIATE_PROVIDER')")
     public ResponseEntity<ApiResponse<ActiveCallResponse>> start(@RequestBody StartCallRequest request) {

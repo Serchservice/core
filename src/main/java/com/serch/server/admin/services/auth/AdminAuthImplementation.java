@@ -8,12 +8,13 @@ import com.serch.server.admin.services.account.services.AdminActivityService;
 import com.serch.server.admin.services.auth.requests.*;
 import com.serch.server.admin.services.permission.services.PermissionService;
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.core.email.EmailService;
+import com.serch.server.enums.account.AccountStatus;
 import com.serch.server.enums.auth.Role;
 import com.serch.server.enums.email.EmailType;
 import com.serch.server.exceptions.ExceptionCodes;
 import com.serch.server.exceptions.auth.AuthException;
 import com.serch.server.models.auth.User;
-import com.serch.server.models.email.Email;
 import com.serch.server.models.email.SendEmail;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.services.auth.requests.RequestDevice;
@@ -21,7 +22,6 @@ import com.serch.server.services.auth.requests.RequestLogin;
 import com.serch.server.services.auth.responses.AuthResponse;
 import com.serch.server.services.auth.responses.MFADataResponse;
 import com.serch.server.services.auth.services.*;
-import com.serch.server.core.email.services.EmailTemplateService;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
@@ -54,13 +54,19 @@ public class AdminAuthImplementation implements AdminAuthService {
     private final JwtService jwtService;
     private final MFAService mfaService;
     private final AccountStatusTrackerService trackerService;
-    private final EmailTemplateService emailTemplateService;
+    private final EmailService emailService;
     private final AdminActivityService activityService;
     private final PermissionService permissionService;
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final AdminRepository adminRepository;
+
+    @Value("${application.link.admin.invite}")
+    private String ADMIN_INVITE_LINK;
+
+    @Value("${application.link.admin.reset}")
+    private String ADMIN_RESET_PASSWORD_LINK;
 
     @Value("${application.security.otp-expiration-time}")
     protected Integer OTP_EXPIRATION_TIME;
@@ -100,8 +106,14 @@ public class AdminAuthImplementation implements AdminAuthService {
             user.setAction(mode);
             userRepository.save(user);
 
-            Email email = getInviteEmail(user, admin, secret);
-            emailTemplateService.sendEmail(email);
+            SendEmail email = new SendEmail();
+            email.setTo(user.getEmailAddress());
+            email.setFirstName(user.getFirstName());
+            email.setPrimary(admin.getUser().getFullName());
+            email.setSecondary(admin.getPosition());
+            email.setType(EmailType.ADMIN_INVITE);
+            email.setContent(String.format("%s?invite=%s&role=%s", ADMIN_INVITE_LINK, secret, user.getRole()));
+            emailService.send(email);
         } else if(mode == UserAction.PASSWORD_RESET) {
             String secret = getSecret(user, mode, admin);
 
@@ -111,8 +123,12 @@ public class AdminAuthImplementation implements AdminAuthService {
             user.setAction(mode);
             userRepository.save(user);
 
-            Email email = getResetEmail(user, secret);
-            emailTemplateService.sendEmail(email);
+            SendEmail email = new SendEmail();
+            email.setTo(user.getEmailAddress());
+            email.setType(EmailType.ADMIN_RESET_PASSWORD);
+            email.setFirstName(user.getFirstName());
+            email.setContent(String.format("%s?invite=%s", ADMIN_RESET_PASSWORD_LINK, secret));
+            emailService.send(email);
         } else {
             String otp = tokenService.generateOtp();
             user.setSignInToken(passwordEncoder.encode(otp));
@@ -122,61 +138,11 @@ public class AdminAuthImplementation implements AdminAuthService {
 
             SendEmail email = new SendEmail();
             email.setContent(otp);
-            email.setType(mode == UserAction.LOGIN ? EmailType.LOGIN : EmailType.SIGNUP);
+            email.setType(mode == UserAction.LOGIN ? EmailType.ADMIN_LOGIN : EmailType.ADMIN_SIGNUP);
             email.setTo(user.getEmailAddress());
             email.setFirstName(user.getFirstName());
-            emailTemplateService.send(email);
+            emailService.send(email);
         }
-    }
-
-    private static Email getInviteEmail(User user, Admin admin, String secret) {
-        Email email = new Email();
-        email.setOtp("Click on this link to activate your account");
-        email.setGreeting("Welcome, %s".formatted(user.getFirstName()));
-        email.setCentered(true);
-        email.setLink(
-                "https://admin.serchservice.com/auth/setup/verify?invite=%s&role=%s"
-                        .formatted(secret, user.getRole())
-        );
-        email.setEmailAddress(user.getEmailAddress());
-        email.setSubject("Hello %s, you were invited".formatted(user.getFirstName()));
-        email.setContent(
-                "%s, the %s for Serchservice Inc. franchise, has invited you to the Serch Admin platform as "
-                        .formatted(admin.getUser().getFullName(), admin.getPosition()) +
-                        "team player in Serch. \n\n" +
-                        "In order to access your account, you need to click on the link below to verify your " +
-                        "identity as a person. \n\n" +
-                        "Thanks and welcome!"
-        );
-        email.setHasLink(true);
-        email.setReceiver(user.getEmailAddress());
-        email.setImageHeader("/security.png?alt=media&token=9b7ce5b9-6353-4da9-b423-e73bf153eee3");
-        return email;
-    }
-
-    private static Email getResetEmail(User user, String secret) {
-        Email email = new Email();
-        email.setOtp("Click on this link to reset your password");
-        email.setGreeting("Welcome, %s".formatted(user.getFirstName()));
-        email.setCentered(true);
-        email.setLink(
-                "https://admin.serchservice.com/auth/reset/verify?invite=%s&role=%s"
-                        .formatted(secret, user.getRole())
-        );
-        email.setEmailAddress(user.getEmailAddress());
-        email.setSubject("Hello %s, reset your password".formatted(user.getFirstName()));
-        email.setContent(
-                """
-                You requested for a password reset on your admin account. If this action wasn't your intention, \
-                please ignore. Else, In order to access your account, you need to click on the link below\
-                to verify your identity as a person.\s
-
-                Keep building!"""
-        );
-        email.setHasLink(true);
-        email.setReceiver(user.getEmailAddress());
-        email.setImageHeader("/security.png?alt=media&token=9b7ce5b9-6353-4da9-b423-e73bf153eee3");
-        return email;
     }
 
     @Override
@@ -213,7 +179,12 @@ public class AdminAuthImplementation implements AdminAuthService {
                 if(existing.isPresent()) {
                     if(!adminRepository.existsById(existing.get().getId())) {
                         sendToken(existing.get(), UserAction.SUPER_SIGNUP, null);
-                        return new ApiResponse<>("Finish your signup with the token sent to your email address", HttpStatus.CREATED);
+
+                        return new ApiResponse<>(
+                                "Finish your signup with the token sent to your email address",
+                                mfaService.getMFAData(existing.get()),
+                                HttpStatus.CREATED
+                        );
                     }
                     throw new AuthException("This email already exists");
                 } else {
@@ -221,6 +192,7 @@ public class AdminAuthImplementation implements AdminAuthService {
                         User user = createSuperUser(request);
                         trackerService.create(user);
                         sendToken(user, UserAction.SUPER_SIGNUP, null);
+
                         return new ApiResponse<>(
                                 "Finish your signup with the token sent to your email address",
                                 mfaService.getMFAData(user),
@@ -301,6 +273,7 @@ public class AdminAuthImplementation implements AdminAuthService {
         user.setRole(request.getRole());
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
+        user.setStatus(AccountStatus.SUSPENDED);
         user.setEmailConfirmedAt(LocalDateTime.now());
         return userRepository.save(user);
     }
@@ -322,6 +295,7 @@ public class AdminAuthImplementation implements AdminAuthService {
                 user.setAction(UserAction.LOGIN);
                 user.setPassword(passwordEncoder.encode(request.getPassword()));
                 user.setSignInTokenConfirmedAt(LocalDateTime.now());
+                user.setStatus(AccountStatus.ACTIVE);
                 userRepository.save(user);
 
                 Admin admin = adminRepository.findById(user.getId()).orElseThrow(() -> new AuthException("Admin not found"));

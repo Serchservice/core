@@ -60,7 +60,8 @@ public class ShopImplementation implements ShopService {
         return time.format(TIME_FORMATTER);
     }
 
-    private ShopResponse response(Shop shop) {
+    @Override
+    public ShopResponse response(Shop shop) {
         ShopResponse response = ShopMapper.INSTANCE.shop(shop);
         response.setOpen(shop.getStatus() == ShopStatus.OPEN);
         response.setCategory(shop.getCategory().getType());

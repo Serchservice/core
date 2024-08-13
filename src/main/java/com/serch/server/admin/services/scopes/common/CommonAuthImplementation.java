@@ -28,11 +28,19 @@ public class CommonAuthImplementation implements CommonAuthService {
 
     @Override
     public AccountMFAResponse mfa(User user) {
-        return AnalysisMapper.instance.mfa(user.getMfaFactor());
+        if(user.getMfaFactor() == null) {
+            return new AccountMFAResponse();
+        } else {
+            return AnalysisMapper.instance.mfa(user.getMfaFactor());
+        }
     }
 
     @Override
     public List<AccountMFAChallengeResponse> challenges(User user) {
+        if(user.getMfaFactor() == null) {
+            return new ArrayList<>();
+        }
+
         List<MFAChallenge> challenges = user.getMfaFactor().getMfaChallenges();
         if(challenges == null || challenges.isEmpty()) {
             return new ArrayList<>();

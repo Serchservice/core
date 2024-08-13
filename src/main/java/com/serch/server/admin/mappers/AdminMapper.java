@@ -17,6 +17,7 @@ public interface AdminMapper {
     AdminMapper instance = Mappers.getMapper(AdminMapper.class);
 
     AdminActivityResponse response(AdminActivity activity);
+
     AdminNotificationResponse response(AdminNotification adminNotification);
 
     @Mappings({
@@ -25,6 +26,8 @@ public interface AdminMapper {
             @Mapping(target = "permissions", source = "permissions", ignore = true),
     })
     PermissionScopeResponse response(GrantedPermissionScope permission);
+
     PermissionRequestResponse response(RequestedPermission permission);
+
     AdminProfileResponse response(User user);
 }

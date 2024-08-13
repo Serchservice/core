@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.lang.NonNull;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -19,4 +20,9 @@ public interface SharedLinkRepository extends JpaRepository<SharedLink, String> 
             "JOIN sl.logins login " +
             "WHERE login.status = 'USED'")
     List<SharedLink> findSharedLinksWithUsedStatus();
+
+    List<SharedLink> findAllByCreatedAtBetween(LocalDateTime from, LocalDateTime to);
+
+    @Query("select count(s) from SharedLink s where s.createdAt BETWEEN :startDate AND :endDate")
+    long countWithinDateRange(LocalDateTime start, LocalDateTime end);
 }

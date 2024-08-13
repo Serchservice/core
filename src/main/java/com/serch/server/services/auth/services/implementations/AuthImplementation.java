@@ -1,6 +1,7 @@
 package com.serch.server.services.auth.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.core.email.EmailService;
 import com.serch.server.enums.auth.AuthMethod;
 import com.serch.server.enums.auth.Role;
 import com.serch.server.enums.email.EmailType;
@@ -21,7 +22,6 @@ import com.serch.server.services.auth.services.AccountStatusTrackerService;
 import com.serch.server.services.auth.services.AuthService;
 import com.serch.server.services.auth.services.SessionService;
 import com.serch.server.services.auth.services.TokenService;
-import com.serch.server.core.email.services.EmailTemplateService;
 import com.serch.server.services.referral.services.ReferralProgramService;
 import com.serch.server.utils.TimeUtil;
 import jakarta.validation.constraints.NotNull;
@@ -48,7 +48,6 @@ import org.springframework.stereotype.Service;
  * @see SessionService
  * @see TokenService
  * @see AuthenticationManager
- * @see EmailTemplateService
  * @see ReferralProgramService
  * @see AccountDeleteRepository
  * @see AccountSettingService
@@ -65,7 +64,7 @@ public class AuthImplementation implements AuthService {
     private final ReferralProgramService referralProgramService;
     private final TokenService tokenService;
     private final AuthenticationManager authenticationManager;
-    private final EmailTemplateService emailService;
+    private final EmailService emailService;
     private final AccountDeleteRepository accountDeleteRepository;
 
     @Value("${application.security.otp-expiration-time}")

@@ -10,11 +10,11 @@ import com.serch.server.repositories.auth.AccountStatusTrackerRepository;
 import com.serch.server.repositories.auth.SessionRepository;
 import com.serch.server.repositories.auth.mfa.MFAChallengeRepository;
 import com.serch.server.repositories.transaction.TransactionRepository;
+import com.serch.server.utils.AdminUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.TextStyle;
 import java.util.*;
@@ -29,24 +29,9 @@ public class CommonAccountAnalysisImplementation implements CommonAccountAnalysi
     private final MFAChallengeRepository mFAChallengeRepository;
     private final SessionRepository sessionRepository;
 
-    private String randomColor() {
-        Random random = new Random();
-        int color = random.nextInt(0xFFFFFF);
-        return String.format("#%06X", color);
-    }
-
-    private LocalDateTime getStartYear(Integer year) {
-        if (year != null) {
-            return LocalDateTime.of(year, 1, 1, 0, 0);
-        } else {
-            LocalDate now = LocalDate.now();
-            return LocalDateTime.of(now.getYear(), 1, 1, 0, 0);
-        }
-    }
-
     @Override
     public List<ChartMetric> accountStatus(User user, Integer year) {
-        LocalDateTime start = getStartYear(year);
+        LocalDateTime start = AdminUtil.getStartYear(year);
         LocalDateTime end = start.plusYears(1);
 
         return Arrays.stream(AccountStatus.values())
@@ -68,7 +53,7 @@ public class CommonAccountAnalysisImplementation implements CommonAccountAnalysi
                     ChartMetric metric = new ChartMetric();
                     metric.setLabel(status.getType());
                     metric.setValue(count != null ? count.size() : 0);
-                    metric.setColor(randomColor());
+                    metric.setColor(AdminUtil.randomColor());
                     return metric;
                 })
                 .toList();
@@ -115,7 +100,7 @@ public class CommonAccountAnalysisImplementation implements CommonAccountAnalysi
 
     @Override
     public List<ChartMetric> wallet(User user, Integer year) {
-        LocalDateTime start = getStartYear(year);
+        LocalDateTime start = AdminUtil.getStartYear(year);
         LocalDateTime end = start.plusYears(1);
 
         List<Transaction> transactions = transactionRepository
@@ -136,7 +121,7 @@ public class CommonAccountAnalysisImplementation implements CommonAccountAnalysi
             ChartMetric metric = new ChartMetric();
             metric.setLabel(label);
             metric.setAmount(value);
-            metric.setColor(randomColor());
+            metric.setColor(AdminUtil.randomColor());
             metrics.add(metric);
         });
 
@@ -145,7 +130,7 @@ public class CommonAccountAnalysisImplementation implements CommonAccountAnalysi
 
     @Override
     public List<ChartMetric> transaction(User user, Integer year) {
-        LocalDateTime start = getStartYear(year);
+        LocalDateTime start = AdminUtil.getStartYear(year);
         LocalDateTime end = start.plusYears(1);
 
         List<Transaction> transactions = transactionRepository.findByUserAndDateRange(String.valueOf(user.getId()), start, end);
@@ -166,7 +151,7 @@ public class CommonAccountAnalysisImplementation implements CommonAccountAnalysi
 
     @Override
     public List<ChartMetric> auth(User user, Integer year) {
-        LocalDateTime start = getStartYear(year);
+        LocalDateTime start = AdminUtil.getStartYear(year);
 
         List<ChartMetric> metrics = new ArrayList<>();
         for (int month = 1; month <= 12; month++) {
@@ -182,7 +167,7 @@ public class CommonAccountAnalysisImplementation implements CommonAccountAnalysi
             metric.setChallenges((int) challenges);
             metric.setSessions((int) sessions);
             metric.setDevices((int) devices);
-            metric.setColor(randomColor());
+            metric.setColor(AdminUtil.randomColor());
             metrics.add(metric);
         }
 

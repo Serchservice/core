@@ -3,6 +3,7 @@ package com.serch.server.services.auth.services.implementations;
 import com.serch.server.admin.enums.ActivityMode;
 import com.serch.server.admin.services.account.services.AdminActivityService;
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.core.email.EmailService;
 import com.serch.server.enums.auth.AuthMethod;
 import com.serch.server.enums.email.EmailType;
 import com.serch.server.exceptions.ExceptionCodes;
@@ -18,7 +19,6 @@ import com.serch.server.services.auth.responses.AuthResponse;
 import com.serch.server.services.auth.services.PasswordService;
 import com.serch.server.services.auth.services.SessionService;
 import com.serch.server.services.auth.services.TokenService;
-import com.serch.server.core.email.services.EmailTemplateService;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
@@ -38,7 +38,6 @@ import java.time.LocalDateTime;
  * @see UserRepository
  * @see AccountDeleteRepository
  * @see TokenService
- * @see EmailTemplateService
  * @see PasswordEncoder
  * @see SessionService
  */
@@ -48,7 +47,7 @@ public class PasswordImplementation implements PasswordService {
     private final UserRepository userRepository;
     private final AccountDeleteRepository accountDeleteRepository;
     private final TokenService tokenService;
-    private final EmailTemplateService emailService;
+    private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final SessionService sessionService;
     private final AdminActivityService activityService;
@@ -69,7 +68,7 @@ public class PasswordImplementation implements PasswordService {
 
             SendEmail email = new SendEmail();
             email.setTo(user.getEmailAddress());
-            email.setType(EmailType.RESET);
+            email.setType(EmailType.RESET_PASSWORD);
             email.setFirstName(user.getFirstName());
             email.setContent(otp);
             emailService.send(email);

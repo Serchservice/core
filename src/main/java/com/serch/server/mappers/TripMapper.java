@@ -82,4 +82,11 @@ public interface TripMapper {
 
     @Mapping(target = "authentication", source = "authentication", ignore = true)
     TripShareResponse share(TripShare share);
+
+    @Mapping(target = "place", source = "address")
+    MapViewResponse view(Active active);
+
+    MapViewResponse view(MapView view);
+
+    MapView view(MapViewResponse view);
 }

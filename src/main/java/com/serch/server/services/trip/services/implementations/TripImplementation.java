@@ -17,13 +17,16 @@ import com.serch.server.repositories.trip.*;
 import com.serch.server.services.shared.services.SharedService;
 import com.serch.server.services.trip.requests.*;
 import com.serch.server.services.trip.responses.ActiveResponse;
+import com.serch.server.services.trip.responses.MapViewResponse;
 import com.serch.server.services.trip.responses.TripResponse;
 import com.serch.server.services.trip.services.*;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -50,12 +53,14 @@ public class TripImplementation implements TripService {
     private final ActiveService activeService;
     private final TripHistoryService historyService;
     private final UserUtil userUtil;
+    private final SimpMessagingTemplate messaging;
     private final ProfileRepository profileRepository;
     private final TripRepository tripRepository;
     private final TripAuthenticationRepository tripAuthenticationRepository;
     private final TripShareRepository tripShareRepository;
     private final PhoneInformationRepository phoneInformationRepository;
     private final ActiveRepository activeRepository;
+    private final MapViewRepository mapViewRepository;
 
     @Override
     public ApiResponse<TripResponse> request(TripInviteRequest request) {
@@ -164,6 +169,10 @@ public class TripImplementation implements TripService {
                 .orElseThrow(() -> new TripException("Trip not found"));
         trip.setStatus(ACTIVE);
         tripRepository.save(trip);
+
+        MapView mapView = TripMapper.INSTANCE.view(activeService.getLocation(trip.getProvider().getUser()));
+        mapView.setTrip(trip);
+        mapViewRepository.save(mapView);
 
         InitializePaymentData data = payService.pay(trip, userUtil.getUser().getId());
 
@@ -451,5 +460,55 @@ public class TripImplementation implements TripService {
             updateOthers(trip);
             return new ApiResponse<>(historyService.response(trip.getId(), String.valueOf(userUtil.getUser().getId()), null, true));
         }
+    }
+
+    @Override
+    @Transactional
+    public void update(MapViewRequest request) {
+        if(request.getIsShared()) {
+            TripShare share = tripShareRepository.findByTrip_IdAndProvider_Id(request.getTrip(), userUtil.getUser().getId())
+                    .orElseThrow(() -> new TripException("Trip not found"));
+
+            if(share != null) {
+                MapView view = share.getMapView();
+                if(view != null) {
+                    updateView(request, view);
+                } else {
+                    view = TripMapper.INSTANCE.view(request);
+                    view.setSharing(share);
+                    mapViewRepository.save(view);
+                }
+                sendViewUpdate(view, share.getTrip());
+            }
+        } else {
+            Trip trip = tripRepository.findByIdAndProviderId(request.getTrip(), userUtil.getUser().getId()).orElse(null);
+
+            if(trip != null) {
+                MapView view = trip.getMapView();
+                if(view != null) {
+                    updateView(request, view);
+                } else {
+                    view = TripMapper.INSTANCE.view(request);
+                    view.setTrip(trip);
+                    mapViewRepository.save(view);
+                }
+                sendViewUpdate(view, trip);
+            }
+        }
+    }
+
+    private void sendViewUpdate(MapView view, Trip share) {
+        MapViewResponse response = TripMapper.INSTANCE.view(view);
+        messaging.convertAndSend("/platform/location/%s/%s".formatted(share.getId(), share.getAccount()), response);
+        historyService.response(share.getId(), String.valueOf(userUtil.getUser().getId()), null, true);
+    }
+
+    private void updateView(MapViewRequest request, MapView view) {
+        view.setPlace(request.getPlace());
+        view.setLongitude(request.getLongitude());
+        view.setLatitude(request.getLatitude());
+        view.setBearing(request.getBearing());
+        view.setUpdatedAt(LocalDateTime.now());
+        mapViewRepository.save(view);
     }
 }

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.lang.NonNull;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -49,7 +50,7 @@ public interface ShopRepository extends JpaRepository<Shop, String> {
                     "LEFT JOIN account.business_profiles bus ON bus.serch_id = use.id " +
                     "LEFT JOIN identity.verification verify ON use.id = verify.serch_id " +
                     "WHERE " +
-                    "((6371 * acos(cos(radians(:latitude)) * cos(radians(shop.latitude)) * " +
+                    "((6371000 * acos(cos(radians(:latitude)) * cos(radians(shop.latitude)) * " +
                     "cos(radians(shop.longitude) - radians(:longitude)) + sin(radians(:latitude)) * " +
                     "sin(radians(shop.latitude)))) <= :radius) " +
                     "AND (to_tsvector('english', COALESCE(serv.service, '')) @@ plainto_tsquery(:query) " +
@@ -59,7 +60,7 @@ public interface ShopRepository extends JpaRepository<Shop, String> {
                     "GROUP BY shop.serch_id, verify.status, shop.latitude, shop.longitude, shop.status, shop.rating, " +
                     "shop.id, shop.created_at, shop.updated_at, address, shop.category, shop.name, shop.phone_number " +
                     "ORDER BY " +
-                    "((6371 * acos(cos(radians(:latitude)) * cos(radians(shop.latitude)) * " +
+                    "((6371000 * acos(cos(radians(:latitude)) * cos(radians(shop.latitude)) * " +
                     "cos(radians(shop.longitude) - radians(:longitude)) + sin(radians(:latitude)) * " +
                     "sin(radians(shop.latitude))))), " +
                     "CASE verify.status " +
@@ -88,4 +89,9 @@ public interface ShopRepository extends JpaRepository<Shop, String> {
             "WHERE s.status != 'SUSPENDED' AND s.status != 'CLOSED' AND w.day = :currentDay " +
             "AND w.closing = CURRENT_TIME")
     List<Shop> findShopsWithCurrentClosingTimeAndDay(Weekday currentDay);
+
+    List<Shop> findAllByCreatedAtBetween(LocalDateTime start, LocalDateTime localDateTime);
+
+    @Query("select count(s) from Shop s where s.createdAt BETWEEN :startDate AND :endDate")
+    long countByDateRange(LocalDateTime startDate, LocalDateTime endDate);
 }

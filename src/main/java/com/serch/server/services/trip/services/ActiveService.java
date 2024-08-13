@@ -5,6 +5,7 @@ import com.serch.server.enums.account.ProviderStatus;
 import com.serch.server.models.auth.User;
 import com.serch.server.services.trip.requests.OnlineRequest;
 import com.serch.server.services.trip.responses.ActiveResponse;
+import com.serch.server.services.trip.responses.MapViewResponse;
 
 import java.util.List;
 
@@ -48,4 +49,15 @@ public interface ActiveService {
      * @see OnlineRequest
      */
     void toggle(User user, ProviderStatus status, OnlineRequest request);
+
+    /**
+     * Get the map view location of the user
+     *
+     * @param user    The user whose location is to be retrieved.
+     *
+     * @see User
+     * @see ProviderStatus
+     * @see OnlineRequest
+     */
+    MapViewResponse getLocation(User user);
 }

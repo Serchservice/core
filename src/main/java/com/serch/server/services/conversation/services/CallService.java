@@ -20,6 +20,13 @@ public interface CallService {
     ApiResponse<ActiveCallResponse> start(StartCallRequest request);
 
     /**
+     * Generate authentication code
+     *
+     * @return {@link ApiResponse} of call authentication token
+     */
+    ApiResponse<String> auth();
+
+    /**
      * This starts a call and sends {@link ActiveCallResponse} containing the APP ID and other details
      * back to the caller
      *

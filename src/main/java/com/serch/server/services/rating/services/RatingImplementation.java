@@ -22,18 +22,17 @@ import com.serch.server.repositories.shared.GuestRepository;
 import com.serch.server.repositories.trip.TripRepository;
 import com.serch.server.services.rating.requests.RateAppRequest;
 import com.serch.server.services.rating.requests.RateRequest;
+import com.serch.server.services.rating.requests.RatingCalculation;
 import com.serch.server.services.rating.responses.RatingChartResponse;
 import com.serch.server.services.rating.responses.RatingResponse;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static com.serch.server.enums.auth.Role.USER;
@@ -58,6 +57,7 @@ import static com.serch.server.enums.call.CallType.T2F;
 @Service
 @RequiredArgsConstructor
 public class RatingImplementation implements RatingService {
+    private final RatingCalculationService calculationService;
     private final UserUtil userUtil;
     private final AppRatingRepository appRatingRepository;
     private final UserRepository userRepository;
@@ -66,9 +66,6 @@ public class RatingImplementation implements RatingService {
     private final TripRepository tripRepository;
     private final RatingRepository ratingRepository;
     private final ProfileRepository profileRepository;
-
-    @Value("${application.account.rating.limit}")
-    private Integer ACCOUNT_MIN_RATING_LIMIT;
     private final BusinessProfileRepository businessProfileRepository;
 
     @Override
@@ -219,64 +216,28 @@ public class RatingImplementation implements RatingService {
 
     private void updateUserRating(Profile profile) {
         if(profile.isAssociate()) {
-            List<Rating> ratings = new ArrayList<>();
-            profile.getBusiness().getAssociates().forEach(associate -> ratings.addAll(ratingRepository.findByRated(associate.getId().toString())));
-            double finalRating = getUpdatedRating(ratings);
-
-            profile.getBusiness().setRating(finalRating);
+            List<RatingCalculation> ratings = new ArrayList<>();
+            profile.getBusiness().getAssociates().forEach(associate ->
+                    ratings.addAll(ratingRepository.findByRated(associate.getId().toString())
+                            .stream().map(RatingMapper.INSTANCE::calculation).toList())
+            );
+            profile.getBusiness().setRating(calculationService.getUpdatedRating(ratings));
             businessProfileRepository.save(profile.getBusiness());
         }
 
-        List<Rating> ratings = ratingRepository.findByRated(profile.getId().toString());
-        double finalRating = getUpdatedRating(ratings);
-
-        profile.setRating(finalRating);
+        List<RatingCalculation> ratings = ratingRepository.findByRated(profile.getId().toString())
+                .stream().map(RatingMapper.INSTANCE::calculation).toList();
+        profile.setRating(calculationService.getUpdatedRating(ratings));
         profileRepository.save(profile);
     }
 
-    private double getUpdatedRating(List<Rating> ratings) {
-        double newWeightedAverage = calculateWeightedAverage(ratings);
-
-        double finalRating;
-        if (ratings.size() < ACCOUNT_MIN_RATING_LIMIT) {
-            // Blend the new weighted average with the initial rating of 5.0
-            double initialRating = 5.0;
-            double blendFactor = (double) ratings.size() / ACCOUNT_MIN_RATING_LIMIT;
-            finalRating = initialRating * (1 - blendFactor) + newWeightedAverage * blendFactor;
-        } else {
-            finalRating = newWeightedAverage;
-        }
-        return finalRating;
-    }
-
     private void updateGuestRating(Guest profile) {
-        List<Rating> ratings = ratingRepository.findByRated(profile.getId());
-        double finalRating = getUpdatedRating(ratings);
+        List<RatingCalculation> ratings = ratingRepository.findByRated(profile.getId())
+                .stream().map(RatingMapper.INSTANCE::calculation).toList();
 
-        profile.setRating(finalRating);
+        profile.setRating(calculationService.getUpdatedRating(ratings));
         guestRepository.save(profile);
     }
-
-    private double calculateWeightedAverage(List<Rating> ratings) {
-        double totalWeightedRating = 0.0;
-        double totalWeight = 0.0;
-        LocalDateTime currentTime = LocalDateTime.now();
-
-        for (Rating rating : ratings) {
-            long daysOld = ChronoUnit.DAYS.between(rating.getCreatedAt(), currentTime);
-            double weight = calculateWeight(daysOld);
-            totalWeightedRating += rating.getRating() * weight;
-            totalWeight += weight;
-        }
-
-        return totalWeight == 0 ? 0 : totalWeightedRating / totalWeight;
-    }
-
-    private double calculateWeight(long daysOld) {
-        double decayRate = 0.95;
-        return Math.pow(decayRate, daysOld);
-    }
-
 
     @Override
     public ApiResponse<RatingResponse> rate(RateAppRequest request) {

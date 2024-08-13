@@ -9,10 +9,7 @@ import com.serch.server.models.shared.Guest;
 import com.serch.server.models.trip.*;
 import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.shared.GuestRepository;
-import com.serch.server.repositories.trip.ActiveRepository;
-import com.serch.server.repositories.trip.TripAuthenticationRepository;
-import com.serch.server.repositories.trip.TripRepository;
-import com.serch.server.repositories.trip.TripShareRepository;
+import com.serch.server.repositories.trip.*;
 import com.serch.server.services.trip.requests.*;
 import com.serch.server.services.trip.responses.TripResponse;
 import com.serch.server.services.trip.services.*;
@@ -53,6 +50,7 @@ public class TripShareImplementation implements TripShareService {
     private final ProfileRepository profileRepository;
     private final TripAuthenticationRepository tripAuthenticationRepository;
     private final ActiveRepository activeRepository;
+    private final MapViewRepository mapViewRepository;
 
     @Value("${application.map.search-radius}")
     private String MAP_SEARCH_RADIUS;
@@ -163,16 +161,18 @@ public class TripShareImplementation implements TripShareService {
         );
         if(actives != null && !actives.isEmpty()) {
             actives.forEach(active -> {
-                messaging.convertAndSend(
-                        "/platform/%s".formatted(String.valueOf(active.getProfile().getId())),
-                        historyService.response(trip.getId(), String.valueOf(active.getProfile().getId()), null, false)
-                );
-                notificationService.send(
-                        String.valueOf(active.getProfile().getId()),
-                        String.format("%s wants your service now", userUtil.getUser().getFullName()),
-                        "You have a new shared trip request. Tap to view details",
-                        String.valueOf(userUtil.getUser().getId()), null, false
-                );
+                if(!active.getProfile().isSameAs(trip.getProvider().getId())) {
+                    messaging.convertAndSend(
+                            "/platform/%s".formatted(String.valueOf(active.getProfile().getId())),
+                            historyService.response(trip.getId(), String.valueOf(active.getProfile().getId()), null, false)
+                    );
+                    notificationService.send(
+                            String.valueOf(active.getProfile().getId()),
+                            String.format("%s wants your service now", userUtil.getUser().getFullName()),
+                            "You have a new shared trip request. Tap to view details",
+                            String.valueOf(userUtil.getUser().getId()), null, false
+                    );
+                }
             });
         }
     }
@@ -238,6 +238,10 @@ public class TripShareImplementation implements TripShareService {
             share.setStatus(ACTIVE);
             share.setUpdatedAt(LocalDateTime.now());
             tripShareRepository.save(share);
+
+            MapView mapView = TripMapper.INSTANCE.view(activeService.getLocation(share.getProvider().getUser()));
+            mapView.setSharing(share);
+            mapViewRepository.save(mapView);
 
             timelineService.create(null, share, CONNECTED);
             authenticationService.create(null, share);

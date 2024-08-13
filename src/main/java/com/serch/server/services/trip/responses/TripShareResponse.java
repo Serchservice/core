@@ -32,4 +32,5 @@ public class TripShareResponse extends TripActionResponse {
     private String authentication;
     private UserResponse profile;
     private List<TripTimelineResponse> timelines;
+    private MapViewResponse location;
 }

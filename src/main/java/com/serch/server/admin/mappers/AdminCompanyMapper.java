@@ -16,7 +16,9 @@ public interface AdminCompanyMapper {
     AdminCompanyMapper instance = Mappers.getMapper(AdminCompanyMapper.class);
 
     NewsletterResponse response(Newsletter newsletter);
+
     ComplaintResponse response(Complaint complaint);
+
     SpeakWithSerchScopeResponse response(SpeakWithSerch speakWithSerch);
 
     @Mapping(target = "country", source = "name")

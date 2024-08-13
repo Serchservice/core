@@ -37,6 +37,7 @@ public class TripResponse extends TripActionResponse {
     private List<TripTimelineResponse> timelines;
     private List<QuotationResponse> quotations;
     private String authentication;
+    private MapViewResponse location;
 
     @JsonProperty("is_provider")
     private Boolean isProvider = false;

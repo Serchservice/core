@@ -14,6 +14,7 @@ import com.serch.server.repositories.account.BusinessProfileRepository;
 import com.serch.server.repositories.trip.ActiveRepository;
 import com.serch.server.services.trip.requests.OnlineRequest;
 import com.serch.server.services.trip.responses.ActiveResponse;
+import com.serch.server.services.trip.responses.MapViewResponse;
 import com.serch.server.services.trip.services.ActiveSearchService;
 import com.serch.server.services.trip.services.ActiveService;
 import com.serch.server.utils.UserUtil;
@@ -161,5 +162,16 @@ public class ActiveImplementation implements ActiveService {
                                 );
                             }
                         }));
+    }
+
+    @Override
+    public MapViewResponse getLocation(User user) {
+        Active active = activeRepository.findByProfile_Id(user.getId()).orElse(null);
+
+        if(active != null) {
+            return TripMapper.INSTANCE.view(active);
+        }
+
+        return null;
     }
 }

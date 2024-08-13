@@ -18,6 +18,8 @@ public class SendEmail {
     private String to;
     private String content;
     private EmailType type;
+    private String primary;
+    private String secondary;
 
     @JsonProperty("first_name")
     private String firstName;

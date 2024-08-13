@@ -47,6 +47,15 @@ public interface SharedService {
     ApiResponse<List<SharedLinkResponse>> links();
 
     /**
+     * Build the response of the shared link
+     *
+     * @param link The {@link SharedLink} data
+     *
+     * @return Response of {@link SharedLinkResponse}
+     */
+    SharedLinkResponse buildLink(SharedLink link);
+
+    /**
      * Gets the current status of the shared link
      *
      * @param link The Shared Link

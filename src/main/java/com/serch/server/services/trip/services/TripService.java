@@ -151,4 +151,12 @@ public interface TripService {
      * @param trip The {@link Trip} data
      */
     void updateOthers(Trip trip);
+
+    /**
+     * Update the details of a provider location.
+     *
+     * @param request the trip update request details
+     * @see MapViewRequest
+     */
+    void update(MapViewRequest request);
 }

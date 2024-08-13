@@ -320,7 +320,7 @@ public class WalletImplementation implements WalletService {
     public void checkBalanceForTip2Fix(UUID caller) {
         Wallet wallet = walletRepository.findByUser_Id(caller)
                 .orElseThrow(() -> new WalletException("You need to have a Serch wallet to place T2F calls"));
-        if(wallet.getDeposit().add(wallet.getBalance()).compareTo(BigDecimal.valueOf(TIP2FIX_AMOUNT)) > 0) {
+        if(!(wallet.getDeposit().add(wallet.getBalance()).compareTo(BigDecimal.valueOf(TIP2FIX_AMOUNT)) > 0)) {
             throw new WalletException("Insufficient balance to start tip2fix. Tip2Fix is charged at ₦%s".formatted(TIP2FIX_AMOUNT));
         }
     }

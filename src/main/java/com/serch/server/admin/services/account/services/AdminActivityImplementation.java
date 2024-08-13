@@ -30,7 +30,9 @@ public class AdminActivityImplementation implements AdminActivityService {
     public List<AdminActivityResponse> activities(UUID id) {
         Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AuthException("Admin not found"));
-        List<AdminActivity> activities = adminActivityRepository.findByAdminId(id, admin.getPass());
+        Admin account = adminRepository.findById(id).orElseThrow(() -> new AuthException("Admin not found"));
+
+        List<AdminActivity> activities = adminActivityRepository.findByAdminId(id, account.getPass());
         if(activities == null || activities.isEmpty()) {
             return new ArrayList<>();
         } else {

@@ -5,6 +5,7 @@ import com.serch.server.services.conversation.responses.ChatRoomResponse;
 import com.serch.server.services.schedule.responses.ScheduleResponse;
 import com.serch.server.services.trip.responses.TripResponse;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 public interface NotificationService {
@@ -51,4 +52,13 @@ public interface NotificationService {
      * @param isInvite Whether the notification is from trip invite
      */
     void send(String id, String content, String title, String sender, String trip, boolean isInvite);
+
+    /**
+     * This will send a trip invite or request notification to the preferred device
+     *
+     * @param id The guest receiving the notification
+     * @param isIncome Whether the payment is an income or not
+     * @param amount The amount from the payment
+     */
+    void send(UUID id, boolean isIncome, BigDecimal amount);
 }

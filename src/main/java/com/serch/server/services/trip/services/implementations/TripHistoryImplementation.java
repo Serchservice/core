@@ -168,8 +168,7 @@ public class TripHistoryImplementation implements TripHistoryService {
     private UserResponse buildUserResponse(String id, String trip) {
         UserResponse response = new UserResponse();
         try {
-            profileRepository.findById(UUID.fromString(id))
-                    .ifPresent(profile -> buildUserResponse(profile, trip));
+            profileRepository.findById(UUID.fromString(id)).ifPresent(profile -> buildUserResponse(profile, trip));
         } catch (Exception ignored) {
             Guest guest = guestRepository.findById(id).orElse(null);
             if(guest != null) {
@@ -242,7 +241,7 @@ public class TripHistoryImplementation implements TripHistoryService {
         try {
             User user = userRepository.findById(UUID.fromString(userId)).orElseThrow(() -> new TripException("User not found"));
             if (user.getRole() != USER) {
-                if(trip.getInvited() != null && (trip.getInvited().getProvider().isSameAs(user.getId()) || trip.getInvited().getProvider().isAssociate())) {
+                if(trip.getInvited() != null) {
                     TripShareResponse share = TripMapper.INSTANCE.share(trip.getInvited());
 
                     share.setIsProvider(trip.getInvited().getProvider().isSameAs(user.getId()));
@@ -265,24 +264,24 @@ public class TripHistoryImplementation implements TripHistoryService {
                     if(trip.getInvited().getProvider().isAssociate()) {
                         business = trip.getInvited().getProvider().getBusiness().getId().toString();
                     }
-                } else {
-                    response.setIsProvider(trip.getProvider().isSameAs(user.getId()));
+                }
 
-                    UserResponse userResponse = buildUserResponse(trip.getAccount(), trip.getId());
-                    response.setUser(userResponse);
+                response.setIsProvider(trip.getProvider().isSameAs(user.getId()));
 
-                    if(trip.getAuthentication() != null && response.getIsProvider()) {
-                        response.setAuthentication(DatabaseUtil.decodeData(trip.getAuthentication().getCode()));
-                    }
+                UserResponse userResponse = buildUserResponse(trip.getAccount(), trip.getId());
+                response.setUser(userResponse);
 
-                    if(response.getIsProvider() || trip.getProvider().isAssociate()) {
-                        addInvitedInformation(trip, response);
-                        response.setServiceFee(MoneyUtil.formatToNaira(trip.getServiceFee()));
-                    }
+                if(trip.getAuthentication() != null && response.getIsProvider()) {
+                    response.setAuthentication(DatabaseUtil.decodeData(trip.getAuthentication().getCode()));
+                }
 
-                    if(trip.getProvider().isAssociate()) {
-                        business = trip.getProvider().getBusiness().getId().toString();
-                    }
+                if(response.getIsProvider() || trip.getProvider().isAssociate()) {
+                    addInvitedInformation(trip, response);
+                    response.setServiceFee(MoneyUtil.formatToNaira(trip.getServiceFee()));
+                }
+
+                if(trip.getProvider().isAssociate()) {
+                    business = trip.getProvider().getBusiness().getId().toString();
                 }
             } else {
                 response.setProvider(buildUserResponse(trip.getProvider(), trip.getId()));

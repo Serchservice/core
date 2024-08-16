@@ -12,8 +12,8 @@ import java.util.List;
 
 public interface ComplaintRepository extends JpaRepository<Complaint, String> {
     List<Complaint> findByCreatedAtBefore(@NonNull LocalDateTime createdAt);
-    @Query("SELECT YEAR(c.createdAt) as header, COUNT(c) as count " +
-            "FROM Complaint c GROUP BY YEAR(c.createdAt)")
+
+    @Query("SELECT YEAR(c.createdAt) as header, COUNT(c) as count FROM Complaint c GROUP BY YEAR(c.createdAt)")
     List<MetricProjection> findComplaintMetrics();
 
     List<Complaint> findByEmailAddress(@NonNull String emailAddress);

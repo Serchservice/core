@@ -11,8 +11,11 @@ import java.util.UUID;
 
 public interface BookmarkRepository extends JpaRepository<Bookmark, String> {
     Optional<Bookmark> findByUser_IdAndProvider_Id(@NonNull UUID serchId, @NonNull UUID serchId1);
+
     Optional<Bookmark> findByBookmarkIdAndUser_Id(@NonNull String bookmarkId, @NonNull UUID serchId);
+
     @Query("select b from Bookmark b where b.user.id = ?1 or b.provider.id = ?1 or b.provider.business.id = ?1")
     List<Bookmark> findByUserId(@NonNull UUID serchId);
+
     boolean existsByUser_IdAndProvider_Id(@NonNull UUID id, @NonNull UUID id1);
 }

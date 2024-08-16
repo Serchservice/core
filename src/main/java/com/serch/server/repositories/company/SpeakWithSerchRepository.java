@@ -13,9 +13,10 @@ import java.util.UUID;
 
 public interface SpeakWithSerchRepository extends JpaRepository<SpeakWithSerch, String> {
     List<SpeakWithSerch> findByUser_Id(@NonNull UUID id);
+
     List<SpeakWithSerch> findByCreatedAtBefore(@NonNull LocalDateTime createdAt);
-    @Query("SELECT YEAR(s.createdAt) as header, COUNT(s) as count " +
-            "FROM SpeakWithSerch s GROUP BY YEAR(s.createdAt)")
+
+    @Query("SELECT YEAR(s.createdAt) as header, COUNT(s) as count FROM SpeakWithSerch s GROUP BY YEAR(s.createdAt)")
     List<MetricProjection> findSpeakWithSerchMetrics();
 
     @Query("select s from SpeakWithSerch s where s.assignedAdmin.id = ?1")

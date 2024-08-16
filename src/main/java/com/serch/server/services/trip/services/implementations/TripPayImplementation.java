@@ -1,5 +1,6 @@
 package com.serch.server.services.trip.services.implementations;
 
+import com.serch.server.core.notification.core.NotificationService;
 import com.serch.server.core.payment.core.PaymentService;
 import com.serch.server.core.payment.requests.InitializePaymentRequest;
 import com.serch.server.core.payment.responses.InitializePaymentData;
@@ -48,6 +49,7 @@ public class TripPayImplementation implements TripPayService {
 
     private final PaymentService paymentService;
     private final TripTimelineService timelineService;
+    private final NotificationService notificationService;
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
     private final TripRepository tripRepository;
@@ -79,6 +81,8 @@ public class TripPayImplementation implements TripPayService {
                                 userWallet.setBalance(userWallet.getBalance().add(BigDecimal.valueOf(TRIP_SERVICE_USER)));
                                 userWallet.setUpdatedAt(LocalDateTime.now());
                                 walletRepository.save(userWallet);
+
+                                notificationService.send(trip.getShared().getSharedLink().getUser().getId(), true, BigDecimal.valueOf(TRIP_SERVICE_USER));
                             });
 
                     return true;
@@ -124,6 +128,8 @@ public class TripPayImplementation implements TripPayService {
         trip.setServiceFee(BigDecimal.valueOf(TRIP_SERVICE_FEE));
         trip.setServiceFeeReference(reference);
         tripRepository.save(trip);
+
+        notificationService.send(wallet.getUser().getId(), false, debit);
 
         Transaction transaction = getTransaction(trip, reference);
         return transactionRepository.save(transaction);

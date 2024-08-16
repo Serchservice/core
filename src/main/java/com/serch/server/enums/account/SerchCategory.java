@@ -15,63 +15,63 @@ import lombok.RequiredArgsConstructor;
 public enum SerchCategory {
     MECHANIC(
             "Mechanic",
-            "https://wyvcjsumdfoamsmdzsna.supabase.co/storage/v1/object/public/categories/mechanic.png",
+            "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/categories/mechanic.png",
             "What skills do you have",
             true,
             true
     ),
     PLUMBER(
             "Plumber",
-            "https://wyvcjsumdfoamsmdzsna.supabase.co/storage/v1/object/public/categories/plumber.png",
+            "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/categories/plumber.png",
             "What skills do you have",
             true,
             true
     ),
     ELECTRICIAN(
             "Electrician",
-            "https://wyvcjsumdfoamsmdzsna.supabase.co/storage/v1/object/public/categories/electrician.png",
+            "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/categories/electrician.png",
             "What skills do you have",
             true,
             true
     ),
     BUSINESS(
             "Business",
-            "https://wyvcjsumdfoamsmdzsna.supabase.co/storage/v1/object/public/categories/business.png",
+            "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/categories/business.png",
             "What skills do you have",
             true,
             true
     ),
     PERSONAL_SHOPPER(
             "Personal Shopper",
-            "https://wyvcjsumdfoamsmdzsna.supabase.co/storage/v1/object/public/categories/shopper.png",
+            "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/categories/shopper.png",
             "What skills do you have",
             false,
             false
     ),
     HOUSE_KEEPING(
             "House Keeper",
-            "https://wyvcjsumdfoamsmdzsna.supabase.co/storage/v1/object/public/categories/housekeeper.png",
+            "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/categories/housekeeper.png",
             "What skills do you have",
             false,
             false
     ),
     CARPENTER(
             "Carpenter",
-            "https://wyvcjsumdfoamsmdzsna.supabase.co/storage/v1/object/public/categories/carpenter.png",
+            "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/categories/carpenter.png",
             "What skills do you have",
             true,
             true
     ),
     GUEST(
             "Guest",
-            "https://wyvcjsumdfoamsmdzsna.supabase.co/storage/v1/object/public/categories/guest.png",
+            "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/categories/guest.png",
             "What skills do you have",
             true,
             true
     ),
     USER(
             "User",
-            "https://wyvcjsumdfoamsmdzsna.supabase.co/storage/v1/object/public/categories/user.png",
+            "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/categories/user.png",
             "What skills do you have",
             true,
             true

@@ -3,26 +3,15 @@ package com.serch.server.services.company.controllers;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.services.company.requests.CountryRequest;
 import com.serch.server.services.company.services.CompanyCountryService;
-import com.serch.server.core.storage.responses.Country;
-import com.serch.server.core.storage.services.CountryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/company/countries")
 public class CompanyCountryController {
     private final CompanyCountryService companyCountryService;
-    private final CountryService service;
-
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<Country>>> countries() {
-        ApiResponse<List<Country>> response = service.countries();
-        return new ResponseEntity<>(response, response.getStatus());
-    }
 
     @GetMapping("/verify")
     public ResponseEntity<ApiResponse<String>> verifyMyLocation(

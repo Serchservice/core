@@ -72,8 +72,8 @@ public interface ActiveRepository extends JpaRepository<Active, Long> {
                     "WHEN 'BUSY' THEN 2 " +
                     "WHEN 'OFFLINE' THEN 3 " +
                     "ELSE 4 END, " +
-                    "GREATEST(ts_rank_cd(to_tsvector('english', s.specialty), plainto_tsquery(:query)), " +
-                    "ts_rank_cd(to_tsvector('english', p.serch_category), plainto_tsquery(:query))) DESC, " +
+                    "GREATEST(ts_rank_cd(to_tsvector('english', COALESCE(s.specialty, '')), plainto_tsquery(:query)), " +
+                    "ts_rank_cd(to_tsvector('english', COALESCE(p.serch_category, '')), plainto_tsquery(:query))) DESC, " +
                     "p.rating DESC",
             nativeQuery = true
     )
@@ -109,8 +109,8 @@ public interface ActiveRepository extends JpaRepository<Active, Long> {
                     "WHEN 'BUSY' THEN 2 " +
                     "WHEN 'OFFLINE' THEN 3 " +
                     "ELSE 4 END, " +
-                    "GREATEST(ts_rank_cd(to_tsvector('english', s.specialty), plainto_tsquery(:query)), " +
-                    "ts_rank_cd(to_tsvector('english', p.serch_category), plainto_tsquery(:query))) DESC, " +
+                    "GREATEST(ts_rank_cd(to_tsvector('english', COALESCE(s.specialty, '')), plainto_tsquery(:query)), " +
+                    "ts_rank_cd(to_tsvector('english', COALESCE(p.serch_category, '')), plainto_tsquery(:query))) DESC, " +
                     "p.rating DESC LIMIT 1",
             nativeQuery = true
     )
@@ -145,8 +145,6 @@ public interface ActiveRepository extends JpaRepository<Active, Long> {
                     "WHEN 'BUSY' THEN 2 " +
                     "WHEN 'OFFLINE' THEN 3 " +
                     "ELSE 4 END, " +
-                    "GREATEST(ts_rank_cd(to_tsvector('english', s.specialty), plainto_tsquery(:query)), " +
-                    "ts_rank_cd(to_tsvector('english', p.serch_category), plainto_tsquery(:query))) DESC, " +
                     "p.rating DESC LIMIT 1",
             nativeQuery = true
     )

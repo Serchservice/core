@@ -1,20 +1,8 @@
 package com.serch.server.core.storage.core;
 
 import com.serch.server.core.storage.requests.FileUploadRequest;
-import com.serch.server.core.storage.responses.Country;
-
-import java.util.List;
 
 public interface StorageService {
-    /**
-     * Get the list of countries from a database
-     *
-     * @return List of {@link Country}
-     *
-     * @see Country
-     */
-    List<Country> getCountries();
-
     /**
      * This will upload the given file to Supabase storage
      *

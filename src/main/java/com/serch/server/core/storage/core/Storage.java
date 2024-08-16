@@ -2,10 +2,8 @@ package com.serch.server.core.storage.core;
 
 import com.serch.server.exceptions.others.StorageException;
 import com.serch.server.core.storage.requests.FileUploadRequest;
-import com.serch.server.core.storage.responses.Country;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -32,26 +30,12 @@ public class Storage implements StorageService {
      *
      * @return HttpHeaders containing the necessary headers for API requests.
      */
-    private HttpHeaders headers() {
+    private HttpHeaders headers(MediaType content) {
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setContentType(content);
         headers.add("apiKey", API_KEY);
         headers.add("Authorization", "Bearer "+ API_KEY);
         return headers;
-    }
-
-    @Override
-    public List<Country> getCountries() {
-        HttpEntity<Object> entity = new HttpEntity<>(headers());
-        ResponseEntity<List<Country>> response = rest.exchange(
-                buildUrl("/rest/v1/countries"), HttpMethod.GET, entity,
-                ParameterizedTypeReference.forType(List.class)
-        );
-        if(response.getStatusCode().is2xxSuccessful()) {
-            return response.getBody();
-        } else {
-            return List.of();
-        }
     }
 
     public String upload(FileUploadRequest request, String bucket) {
@@ -75,12 +59,7 @@ public class Storage implements StorageService {
                     ? request.getPath()
                     : String.format("%s.%s", name, extension);
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(content);
-            headers.add("apiKey", API_KEY);
-            headers.add("Authorization", "Bearer "+ API_KEY);
-
-            HttpEntity<byte[]> entity = new HttpEntity<>(request.getBytes(), headers);
+            HttpEntity<byte[]> entity = new HttpEntity<>(request.getBytes(), headers(content));
             String endpoint = buildUrl(String.format("/storage/v1/object/%s/%s", bucket, filename));
             try {
                 ResponseEntity<Object> response = rest.exchange(endpoint, HttpMethod.POST, entity, Object.class);

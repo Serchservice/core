@@ -7,10 +7,12 @@ import com.serch.server.core.notification.requests.Notification;
 import com.serch.server.core.notification.requests.NotificationMessage;
 import com.serch.server.services.schedule.responses.ScheduleResponse;
 import com.serch.server.services.trip.responses.TripResponse;
+import com.serch.server.utils.MoneyUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -163,5 +165,29 @@ public class NotificationImplementation implements NotificationService {
         }
         message.setData(data);
         notificationCoreService.send(message);
+    }
+
+    @Override
+    public void send(UUID id, boolean isIncome, BigDecimal amount) {
+        NotificationMessage<Map<String, Object>> notification = new NotificationMessage<>();
+        notification.setToken(repository.getToken(id.toString()));
+        notification.setNotification(Notification.builder()
+                .title(isIncome
+                        ? String.format("Money In - %s! Keep increasing that wealth", MoneyUtil.formatToNaira(amount))
+                        : String.format("Money out - %s! You were debited", MoneyUtil.formatToNaira(amount))
+                )
+                .body(isIncome
+                        ? String.format("Your Serch wallet just received %s into your withdrawing balance", MoneyUtil.formatToNaira(amount))
+                        : String.format("%s was debited from your wallet for a trip service charge", MoneyUtil.formatToNaira(amount)))
+                .image(repository.getAvatar(id.toString()))
+                .build());
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("snt", "TRANSACTION");
+        data.put("sender_name", repository.getName(id.toString()));
+        data.put("sender_id", id);
+
+        notification.setData(data);
+        notificationCoreService.send(notification);
     }
 }

@@ -14,6 +14,7 @@ import com.serch.server.utils.HelperUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -90,6 +91,7 @@ public class SchedulePayImplementation implements SchedulePayService {
     }
 
     @Override
+    @Transactional
     public void processPayments() {
         transactionRepository.findPendingSchedules().forEach(transaction -> {
             try {

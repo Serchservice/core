@@ -4,7 +4,6 @@ import com.serch.server.models.trip.Trip;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.lang.NonNull;
 
 import java.util.List;
@@ -18,13 +17,13 @@ public interface TripRepository extends JpaRepository<Trip, String> {
     Optional<Trip> findByIdAndProviderId(@NonNull String trip, @NonNull UUID id);
 
     @Query("SELECT COUNT(t) > 0 FROM Trip t left JOIN t.timelines tt left JOIN t.invited ti left JOIN ti.timelines tit " +
-            "WHERE (t.provider.id = :providerId AND tt.status NOT IN (com.serch.server.enums.trip.TripConnectionStatus.CANCELLED, " +
+            "WHERE (t.provider.id = ?1 AND tt.status NOT IN (com.serch.server.enums.trip.TripConnectionStatus.CANCELLED, " +
             "com.serch.server.enums.trip.TripConnectionStatus.COMPLETED, com.serch.server.enums.trip.TripConnectionStatus.LEFT)) or " +
-            "(ti.provider.id = :providerId AND tit.status NOT IN (com.serch.server.enums.trip.TripConnectionStatus.CANCELLED, " +
+            "(ti.provider.id = ?1 AND tit.status NOT IN (com.serch.server.enums.trip.TripConnectionStatus.CANCELLED, " +
             "com.serch.server.enums.trip.TripConnectionStatus.COMPLETED, com.serch.server.enums.trip.TripConnectionStatus.LEFT))" +
             " AND t.isActive = true"
     )
-    boolean existsByProviderIdAndTimelineStatus(@Param("providerId") UUID providerId);
+    boolean existsByProviderIdAndTimelineStatus(UUID id);
 
     @Query("select t from Trip t where t.account = ?1")
     List<Trip> findByAccount(@NonNull String account);
@@ -32,18 +31,18 @@ public interface TripRepository extends JpaRepository<Trip, String> {
     @Query("select t from Trip t where t.account = ?1 and t.linkId = ?2")
     List<Trip> findByAccount(@NonNull String account, @NonNull String linkId);
 
-    @Query("SELECT t from Trip t left JOIN t.timelines tt where t.account = :userId and " +
+    @Query("SELECT t from Trip t left JOIN t.timelines tt where t.account = ?1 and " +
             "tt.status in (com.serch.server.enums.trip.TripConnectionStatus.COMPLETED) " +
             "AND FUNCTION('DATE',t.updatedAt) = FUNCTION('CURRENT_DATE') order by t.updatedAt desc"
     )
-    List<Trip> todayTrips(@Param("userId") String userId);
+    List<Trip> todayTrips(String id);
 
     @Query(
-            "SELECT t from Trip t left JOIN t.timelines tt where (t.provider.id = :userId OR t.provider.business.id = :userId) and " +
+            "SELECT t from Trip t left JOIN t.timelines tt where (t.provider.id = ?1 OR t.provider.business.id = ?1) and " +
                     "tt.status in (com.serch.server.enums.trip.TripConnectionStatus.COMPLETED) " +
             "AND FUNCTION('DATE',t.updatedAt) = FUNCTION('CURRENT_DATE') order by t.updatedAt desc"
     )
-    List<Trip> todayTrips(@Param("userId") UUID userId);
+    List<Trip> todayTrips(UUID id);
 
     @Query("select t from Trip t " +
             "left join t.invited ti " +
@@ -51,16 +50,14 @@ public interface TripRepository extends JpaRepository<Trip, String> {
             "left join p.business b " +
             "left join ti.provider tip " +
             "left join tip.business tib " +
-            "where (p.id = :id or b.id = :id) " +
-            "or (tip.id = :id or tib.id = :id)")
+            "where (p.id = ?1 or b.id = ?1) " +
+            "or (tip.id = ?1 or tib.id = ?1)")
     List<Trip> findByProviderId(@NonNull UUID id);
 
     @Query("SELECT t FROM Trip t left JOIN t.provider p GROUP BY t.id, t.cancelReason, t.invited, t.account, t.access, t.isActive, t.address, t.amount, t.userShare, t.authentication, t.address, t.shared, t.serviceFee, t.provider ORDER BY COUNT(p.category) DESC")
     List<Trip> findPopularCategories(Pageable pageable);
 
-    @Query("SELECT COUNT(t) > 0 FROM Trip t " +
-            "left JOIN t.timelines tt " +
-            "WHERE t.account = ?1 " +
+    @Query("SELECT COUNT(t) > 0 FROM Trip t left JOIN t.timelines tt WHERE t.account = ?1 " +
             "AND tt.status NOT IN (com.serch.server.enums.trip.TripConnectionStatus.CANCELLED, " +
             "com.serch.server.enums.trip.TripConnectionStatus.COMPLETED, " +
             "com.serch.server.enums.trip.TripConnectionStatus.LEFT) AND t.isActive = true")

@@ -9,7 +9,9 @@ import java.util.UUID;
 
 public interface ReferralProgramRepository extends JpaRepository<ReferralProgram, UUID> {
     Optional<ReferralProgram> findByReferralCode(@NonNull String referralCode);
+
     Optional<ReferralProgram> findByReferLink(@NonNull String referLink);
+
     Optional<ReferralProgram> findByUser_Id(@NonNull UUID id);
 
     Optional<ReferralProgram> findByUser_EmailAddress(@NonNull String emailAddress);

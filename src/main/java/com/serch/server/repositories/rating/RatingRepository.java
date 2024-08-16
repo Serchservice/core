@@ -3,7 +3,6 @@ package com.serch.server.repositories.rating;
 import com.serch.server.models.rating.Rating;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.lang.NonNull;
 
 import java.util.List;
@@ -29,7 +28,7 @@ public interface RatingRepository extends JpaRepository<Rating, Long> {
                     "    COALESCE(SUM(r.rating), 0.0) AS total " +
                     "FROM " +
                     "    platform.ratings r " +
-                    "WHERE r.rated = :id" +
+                    "WHERE r.rated = ?1" +
                     "    AND TO_CHAR(r.created_at, 'YYYYMM') >= TO_CHAR(CURRENT_DATE - INTERVAL '2 months', 'YYYYMM')" +
                     "GROUP BY " +
                     "    TO_CHAR(r.created_at, 'Mon'), " +
@@ -39,18 +38,10 @@ public interface RatingRepository extends JpaRepository<Rating, Long> {
     )
     List<Object[]> chart(String id);
 
-    @Query("SELECT AVG(r.rating) FROM Rating r " +
-            "WHERE r.rated = :id " +
-            "AND FUNCTION('DATE', r.createdAt) = FUNCTION('CURRENT_DATE')")
-    Double todayAverage(@Param("id") String id);
+    @Query("SELECT AVG(r.rating) FROM Rating r WHERE r.rated = ?1 AND FUNCTION('DATE', r.createdAt) = FUNCTION('CURRENT_DATE')")
+    Double todayAverage(String id);
 
-    @Query(nativeQuery = true, value =
-            "SELECT " +
-                    "    COALESCE(AVG(r.rating), 0.0) AS average " +
-                    "FROM " +
-                    "    platform.ratings r " +
-                    "WHERE r.rated = :id"
-    )
+    @Query(nativeQuery = true, value = "SELECT COALESCE(AVG(r.rating), 0.0) AS average FROM  platform.ratings r WHERE r.rated = ?1")
     Double getOverallAverageRating(String id);
 
     Optional<Rating> getByRated(@NonNull String rated);

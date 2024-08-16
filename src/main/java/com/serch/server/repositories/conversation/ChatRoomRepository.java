@@ -12,5 +12,6 @@ import java.util.UUID;
 public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
     @Query("select c from chat_rooms c where c.creator = ?1 or c.roommate = ?1")
     List<ChatRoom> findByUserId(@NonNull UUID id);
+
     Optional<ChatRoom> findByRoommate(@NonNull UUID id);
 }

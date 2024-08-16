@@ -81,17 +81,17 @@ public interface ShopRepository extends JpaRepository<Shop, String> {
     );
 
     Optional<Shop> findByIdAndUser_Id(@NonNull String id, @NonNull UUID id1);
-    @Query("SELECT s FROM Shop s JOIN s.weekdays w " +
-            "WHERE s.status != 'SUSPENDED' AND s.status != 'OPEN' AND w.day = :currentDay " +
+
+    @Query("SELECT s FROM Shop s JOIN s.weekdays w WHERE s.status != 'SUSPENDED' AND s.status != 'OPEN' AND w.day = ?1 " +
             "AND w.opening = CURRENT_TIME")
     List<Shop> findShopsWithCurrentOpeningTimeAndDay(Weekday currentDay);
-    @Query("SELECT s FROM Shop s JOIN s.weekdays w " +
-            "WHERE s.status != 'SUSPENDED' AND s.status != 'CLOSED' AND w.day = :currentDay " +
+
+    @Query("SELECT s FROM Shop s JOIN s.weekdays w WHERE s.status != 'SUSPENDED' AND s.status != 'CLOSED' AND w.day = ?1 " +
             "AND w.closing = CURRENT_TIME")
     List<Shop> findShopsWithCurrentClosingTimeAndDay(Weekday currentDay);
 
     List<Shop> findAllByCreatedAtBetween(LocalDateTime start, LocalDateTime localDateTime);
 
-    @Query("select count(s) from Shop s where s.createdAt BETWEEN :startDate AND :endDate")
+    @Query("select count(s) from Shop s where s.createdAt BETWEEN ?1 AND ?2")
     long countByDateRange(LocalDateTime startDate, LocalDateTime endDate);
 }

@@ -16,13 +16,11 @@ public interface SharedLinkRepository extends JpaRepository<SharedLink, String> 
     @Query("select s from SharedLink s where s.user.id = ?1 or s.provider.id = ?1 or s.provider.business.id = ?1")
     List<SharedLink> findByUserId(@NonNull UUID id);
 
-    @Query("SELECT sl FROM SharedLink sl " +
-            "JOIN sl.logins login " +
-            "WHERE login.status = 'USED'")
+    @Query("SELECT sl FROM SharedLink sl JOIN sl.logins login WHERE login.status = 'USED'")
     List<SharedLink> findSharedLinksWithUsedStatus();
 
     List<SharedLink> findAllByCreatedAtBetween(LocalDateTime from, LocalDateTime to);
 
-    @Query("select count(s) from SharedLink s where s.createdAt BETWEEN :startDate AND :endDate")
+    @Query("select count(s) from SharedLink s where s.createdAt BETWEEN ?1 AND ?2")
     long countWithinDateRange(LocalDateTime start, LocalDateTime end);
 }

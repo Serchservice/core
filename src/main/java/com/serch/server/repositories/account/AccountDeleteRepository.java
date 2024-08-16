@@ -9,5 +9,6 @@ import java.util.*;
 
 public interface AccountDeleteRepository extends JpaRepository<AccountDelete, String> {
     Optional<AccountDelete> findByUser_EmailAddress(String emailAddress);
+
     List<AccountDelete> findByStatusInAndCreatedAtBefore(List<IssueStatus> statuses, LocalDateTime cutoffDateTime);
 }

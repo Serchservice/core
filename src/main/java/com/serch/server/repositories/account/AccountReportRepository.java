@@ -9,5 +9,6 @@ import java.util.UUID;
 
 public interface AccountReportRepository extends JpaRepository<AccountReport, String> {
     List<AccountReport> findByAccount(@NonNull String id);
+
     List<AccountReport> findByUser_Id(@NonNull UUID id);
 }

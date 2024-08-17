@@ -32,10 +32,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -115,6 +112,10 @@ public class ActiveSearchImplementation implements ActiveSearchService {
                         bestMatch.getProfile(), bestMatch.getProviderStatus(),
                         HelperUtil.getDistance(latitude, longitude, bestMatch.getLatitude(), bestMatch.getLongitude())
                 ));
+
+                List<ActiveResponse> providers = new ArrayList<>(response.getProviders());
+                providers.removeIf(p -> p.getId().equals(bestMatch.getProfile().getId()));
+                response.setProviders(providers);
             }
         }
         return new ApiResponse<>(response);
@@ -130,19 +131,32 @@ public class ActiveSearchImplementation implements ActiveSearchService {
             if (actives != null && !actives.isEmpty()) {
                 Set<Active> distinct = new HashSet<>();
                 List<ActiveResponse> list = actives.stream()
+                        // Filter based on whether certificates are required and whether the certificate exists
                         .filter(active -> {
                             boolean showOnlyCertified = Optional.ofNullable(setting.get().getShowOnlyCertified()).orElse(false);
-                            return !showOnlyCertified || certificateRepository.existsByUser(active.getProfile().getId());
+                            boolean hasCertificate = certificateRepository.existsByUser(active.getProfile().getId());
+                            System.out.println("showOnlyCertified: " + showOnlyCertified + ", hasCertificate: " + hasCertificate);
+                            return !showOnlyCertified || hasCertificate;
                         })
+                        // Filter based on whether verification is required and whether the user is verified
                         .filter(active -> {
                             boolean showOnlyVerified = Optional.ofNullable(setting.get().getShowOnlyVerified()).orElse(false);
-                            return !showOnlyVerified || Optional.ofNullable(active.getProfile().getUser().getVerification()).map(Verification::isVerified).orElse(false);
+                            boolean isVerified = Optional.ofNullable(active.getProfile().getUser().getVerification())
+                                    .map(Verification::isVerified)
+                                    .orElse(false);
+                            System.out.println("showOnlyVerified: " + showOnlyVerified + ", isVerified: " + isVerified);
+                            return !showOnlyVerified || isVerified;
                         })
+                        // Filter based on gender
                         .filter(active -> {
-                            Gender genderSetting = Optional.ofNullable(setting.get().getGender()).orElse(Gender.NONE);
-                            return genderSetting == Gender.NONE || genderSetting.equals(active.getProfile().getGender());
+                            Gender genderSetting = Optional.ofNullable(setting.get().getGender()).orElse(Gender.ANY);
+                            Gender profileGender = active.getProfile().getGender();
+                            System.out.println("genderSetting: " + genderSetting + ", profileGender: " + profileGender);
+                            return genderSetting == Gender.ANY || genderSetting.equals(profileGender);
                         })
-                        .filter(distinct::add)
+                        // Ensure distinct results if needed (using some form of uniqueness check)
+                        .filter(distinct::add) // Ensure distinct items if you need to avoid duplicates
+                        // Map the results to ActiveResponse
                         .map(activeProvider -> response(
                                 activeProvider.getProfile(),
                                 activeProvider.getProviderStatus(),

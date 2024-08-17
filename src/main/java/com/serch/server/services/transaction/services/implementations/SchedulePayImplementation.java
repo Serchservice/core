@@ -93,32 +93,32 @@ public class SchedulePayImplementation implements SchedulePayService {
     @Override
     @Transactional
     public void processPayments() {
-        transactionRepository.findPendingSchedules().forEach(transaction -> {
-            try {
-                Wallet wallet = wallet(UUID.fromString(transaction.getSender()));
-                if(wallet != null) {
-                    // Check Balance first, then check deposit before checking deposit + balance
-                    if(wallet.getBalance().compareTo(transaction.getAmount()) > 0) {
-                        wallet.setBalance(wallet.getBalance().subtract(transaction.getAmount()));
-                        creditReceiverWallet(transaction);
-                        updateSenderWallet(transaction, wallet);
-                    } else if(wallet.getDeposit().compareTo(transaction.getAmount()) > 0) {
-                        wallet.setDeposit(wallet.getDeposit().subtract(transaction.getAmount()));
-                        creditReceiverWallet(transaction);
-                        updateSenderWallet(transaction, wallet);
-                    } else if(wallet.getDeposit().add(wallet.getBalance()).compareTo(transaction.getAmount()) > 0) {
-                        /// Remove the amount that the deposit can transaction
-                        transaction.setAmount(transaction.getAmount().subtract(wallet.getDeposit()));
-                        /// Debit the amount remaining from the balance
-                        wallet.setBalance(wallet.getBalance().subtract(transaction.getAmount()));
-                        /// Debit all from deposit
-                        wallet.setDeposit(BigDecimal.ZERO);
-                        creditReceiverWallet(transaction);
-                        updateSenderWallet(transaction, wallet);
-                    }
-                }
-            } catch (Exception ignored) { }
-        });
+//        transactionRepository.findPendingSchedules().forEach(transaction -> {
+//            try {
+//                Wallet wallet = wallet(UUID.fromString(transaction.getSender()));
+//                if(wallet != null) {
+//                    // Check Balance first, then check deposit before checking deposit + balance
+//                    if(wallet.getBalance().compareTo(transaction.getAmount()) > 0) {
+//                        wallet.setBalance(wallet.getBalance().subtract(transaction.getAmount()));
+//                        creditReceiverWallet(transaction);
+//                        updateSenderWallet(transaction, wallet);
+//                    } else if(wallet.getDeposit().compareTo(transaction.getAmount()) > 0) {
+//                        wallet.setDeposit(wallet.getDeposit().subtract(transaction.getAmount()));
+//                        creditReceiverWallet(transaction);
+//                        updateSenderWallet(transaction, wallet);
+//                    } else if(wallet.getDeposit().add(wallet.getBalance()).compareTo(transaction.getAmount()) > 0) {
+//                        /// Remove the amount that the deposit can transaction
+//                        transaction.setAmount(transaction.getAmount().subtract(wallet.getDeposit()));
+//                        /// Debit the amount remaining from the balance
+//                        wallet.setBalance(wallet.getBalance().subtract(transaction.getAmount()));
+//                        /// Debit all from deposit
+//                        wallet.setDeposit(BigDecimal.ZERO);
+//                        creditReceiverWallet(transaction);
+//                        updateSenderWallet(transaction, wallet);
+//                    }
+//                }
+//            } catch (Exception ignored) { }
+//        });
     }
 
     private void updateSenderWallet(Transaction transaction, Wallet wallet) {

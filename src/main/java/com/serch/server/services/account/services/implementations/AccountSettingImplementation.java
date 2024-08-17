@@ -1,7 +1,6 @@
 package com.serch.server.services.account.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.enums.account.Gender;
 import com.serch.server.mappers.AccountMapper;
 import com.serch.server.models.account.AccountSetting;
 import com.serch.server.models.auth.User;
@@ -39,17 +38,26 @@ public class AccountSettingImplementation implements AccountSettingService {
     }
 
     @Override
-    public ApiResponse<String> setGenderForTrip(Gender gender) {
+    public ApiResponse<AccountSettingResponse> update(AccountSettingResponse request) {
         AccountSetting setting = accountSettingRepository.findByUser_Id(userUtil.getUser().getId())
                 .orElse(new AccountSetting());
 
-        setting.setGender(gender);
+        if(request.getGender() != null) {
+            setting.setGender(request.getGender());
+        }
+        if(request.getShowOnlyVerified() != null) {
+            setting.setShowOnlyVerified(request.getShowOnlyVerified());
+        }
+        if(request.getShowOnlyCertified() != null) {
+            setting.setShowOnlyCertified(request.getShowOnlyCertified());
+        }
         setting.setUpdatedAt(LocalDateTime.now());
+
         if(setting.getUser() == null) {
             setting.setUser(userUtil.getUser());
         }
         accountSettingRepository.save(setting);
-        return new ApiResponse<>("Settings updated", HttpStatus.OK);
+        return new ApiResponse<>("Settings updated", AccountMapper.INSTANCE.response(setting), HttpStatus.OK);
     }
 
     @Override

@@ -1,7 +1,6 @@
 package com.serch.server.services.account.controllers;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.enums.account.Gender;
 import com.serch.server.services.account.responses.AccountSettingResponse;
 import com.serch.server.services.account.services.AccountSettingService;
 import lombok.RequiredArgsConstructor;
@@ -20,9 +19,9 @@ public class AccountSettingController {
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @PatchMapping("/change/trip/gender")
-    public ResponseEntity<ApiResponse<String>> setGenderForTrip(@RequestParam Gender gender) {
-        ApiResponse<String> response = service.setGenderForTrip(gender);
+    @PatchMapping("/update")
+    public ResponseEntity<ApiResponse<AccountSettingResponse>> update(@RequestBody AccountSettingResponse request) {
+        ApiResponse<AccountSettingResponse> response = service.update(request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 }

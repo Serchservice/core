@@ -19,15 +19,15 @@ public interface AccountSettingService {
     void create(User user);
 
     /**
-     * This sets the gender preference for trip service for the user
+     * This updates preference for trip service for the user
      *
-     * @param gender The preferred gender for trips
+     * @param request The {@link AccountSettingResponse} update data
      *
-     * @return ApiResponse of String
+     * @return ApiResponse of {@link AccountSettingResponse}
      *
      * @see ApiResponse
      */
-    ApiResponse<String> setGenderForTrip(Gender gender);
+    ApiResponse<AccountSettingResponse> update(AccountSettingResponse request);
 
     /**
      * This fetches the account settings for the user

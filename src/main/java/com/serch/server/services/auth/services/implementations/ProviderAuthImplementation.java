@@ -28,6 +28,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service responsible for implementing provider authentication.
@@ -72,6 +73,7 @@ public class ProviderAuthImplementation implements ProviderAuthService {
     private Integer SPECIALTY_LIMIT;
 
     @Override
+    @Transactional
     public ApiResponse<AuthResponse> login(RequestLogin request) {
         var user = userRepository.findByEmailAddressIgnoreCase(request.getEmailAddress())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -87,6 +89,7 @@ public class ProviderAuthImplementation implements ProviderAuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> saveProfile(RequestProviderProfile request) {
         var incomplete = incompleteRepository.findByEmailAddress(request.getEmailAddress())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -112,6 +115,7 @@ public class ProviderAuthImplementation implements ProviderAuthService {
     }
 
     @Override
+    @Transactional
     public void saveProfile(RequestProviderProfile request, Incomplete incomplete) {
         if(request.getReferral() != null && !request.getReferral().isEmpty()) {
             saveReferral(request.getReferral(), incomplete);
@@ -127,6 +131,7 @@ public class ProviderAuthImplementation implements ProviderAuthService {
     }
 
     @Override
+    @Transactional
     public void saveReferral(String code, Incomplete incomplete) {
         User referredBy = referralProgramService.verify(code);
         IncompleteReferral referral = new IncompleteReferral();
@@ -136,6 +141,7 @@ public class ProviderAuthImplementation implements ProviderAuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> saveCategory(RequestSerchCategory category) {
         var incomplete = incompleteRepository.findByEmailAddress(category.getEmailAddress())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -168,6 +174,7 @@ public class ProviderAuthImplementation implements ProviderAuthService {
     }
 
     @Override
+    @Transactional
     public void saveCategory(RequestSerchCategory category, Incomplete incomplete) {
         IncompleteCategory incompleteCategory = new IncompleteCategory();
         incompleteCategory.setCategory(category.getCategory());
@@ -185,6 +192,7 @@ public class ProviderAuthImplementation implements ProviderAuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<AuthResponse> signup(RequestAdditionalInformation request) {
         var incomplete = incompleteRepository.findByEmailAddress(request.getEmailAddress())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));

@@ -76,6 +76,7 @@ public class MFAImplementation implements MFAService {
     }
 
     @Override
+    @Transactional
     public MFADataResponse getMFAData(User user) {
         if(user.getMfaFactor() != null) {
             String secret = DatabaseUtil.decodeData(user.getMfaFactor().getSecret());
@@ -94,6 +95,7 @@ public class MFAImplementation implements MFAService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<AuthResponse> validateCode(RequestMFAChallenge request) {
         var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -137,6 +139,7 @@ public class MFAImplementation implements MFAService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<AuthResponse> validateRecoveryCode(RequestMFAChallenge request) {
         var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -169,6 +172,7 @@ public class MFAImplementation implements MFAService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<MFARecoveryCodeResponse>> getRecoveryCodes() {
         var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -249,6 +253,7 @@ public class MFAImplementation implements MFAService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<AuthResponse> disable(RequestDevice device) {
         var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -274,6 +279,7 @@ public class MFAImplementation implements MFAService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<MFAUsageResponse> usage() {
         var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));

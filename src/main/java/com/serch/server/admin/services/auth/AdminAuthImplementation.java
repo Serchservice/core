@@ -33,6 +33,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -146,6 +147,7 @@ public class AdminAuthImplementation implements AdminAuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> login(AdminLoginRequest request) {
         if(isValidEmail(request.getEmailAddress())) {
             User user = userRepository.findByEmailAddressIgnoreCase(request.getEmailAddress())
@@ -172,6 +174,7 @@ public class AdminAuthImplementation implements AdminAuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<MFADataResponse> signup(AdminSignupRequest request) {
         if(isValidEmail(request.getEmailAddress())) {
             if(isSuperAdminEmail(request.getEmailAddress())) {
@@ -226,6 +229,7 @@ public class AdminAuthImplementation implements AdminAuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> add(AddAdminRequest request) {
         Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AuthException("Admin not found"));
@@ -279,6 +283,7 @@ public class AdminAuthImplementation implements AdminAuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<AuthResponse> finishSignup(FinishAdminSetupRequest request) {
         UUID userId = UUID.fromString(jwtService.getItemFromToken(request.getSecret(), "user"));
         User user = userRepository.findById(userId).orElseThrow(() -> new AuthException("User not found"));
@@ -327,6 +332,7 @@ public class AdminAuthImplementation implements AdminAuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> resend(String emailAddress) {
         User user = userRepository.findByEmailAddressIgnoreCase(emailAddress)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -335,6 +341,7 @@ public class AdminAuthImplementation implements AdminAuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<MFADataResponse> verifyLink(String secret) {
         if(isSecretValid(secret)) {
             UUID userId = UUID.fromString(jwtService.getItemFromToken(secret, "user"));
@@ -350,6 +357,7 @@ public class AdminAuthImplementation implements AdminAuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<AuthResponse> confirm(AdminAuthTokenRequest request) {
         User user = userRepository.findByEmailAddressIgnoreCase(request.getEmailAddress())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -402,6 +410,7 @@ public class AdminAuthImplementation implements AdminAuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> resendInvite(UUID id) {
         Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AuthException("Admin not found"));
@@ -415,6 +424,7 @@ public class AdminAuthImplementation implements AdminAuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> resetPassword(UUID id) {
         Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AuthException("Admin not found"));
@@ -430,6 +440,7 @@ public class AdminAuthImplementation implements AdminAuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> verifyResetLink(String token) {
         if(isSecretValid(token)) {
             UUID userId = UUID.fromString(jwtService.getItemFromToken(token, "user"));
@@ -441,6 +452,7 @@ public class AdminAuthImplementation implements AdminAuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<AuthResponse> resetPassword(AdminResetPasswordRequest request) {
         UUID userId = UUID.fromString(jwtService.getItemFromToken(request.getToken(), "user"));
         User user = userRepository.findById(userId).orElseThrow(() -> new AuthException("User not found"));

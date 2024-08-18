@@ -27,6 +27,7 @@ import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -44,6 +45,7 @@ public class SpeakWithSerchScopeImplementation implements SpeakWithSerchScopeSer
     private final BusinessProfileRepository businessProfileRepository;
 
     @Override
+    @Transactional
     public ApiResponse<SpeakWithSerchOverviewResponse> overview() {
         Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AuthException("Admin not found"));
@@ -132,6 +134,7 @@ public class SpeakWithSerchScopeImplementation implements SpeakWithSerchScopeSer
     }
 
     @Override
+    @Transactional
     public ApiResponse<SpeakWithSerchScopeResponse> reply(IssueRequest request) {
         SpeakWithSerch speakWithSerch = speakWithSerchRepository.findById(request.getTicket())
                 .orElseThrow(() -> new SerchException("Ticket not found"));
@@ -160,6 +163,7 @@ public class SpeakWithSerchScopeImplementation implements SpeakWithSerchScopeSer
     }
 
     @Override
+    @Transactional
     public ApiResponse<SpeakWithSerchScopeResponse> find(String ticket) {
         SpeakWithSerch speakWithSerch = speakWithSerchRepository.findById(ticket)
                 .orElseThrow(() -> new SerchException("Ticket not found"));
@@ -177,6 +181,7 @@ public class SpeakWithSerchScopeImplementation implements SpeakWithSerchScopeSer
     }
 
     @Override
+    @Transactional
     public ApiResponse<SpeakWithSerchScopeResponse> resolve(String ticket) {
         SpeakWithSerch speakWithSerch = speakWithSerchRepository.findById(ticket)
                 .orElseThrow(() -> new SerchException("Ticket not found"));
@@ -198,6 +203,7 @@ public class SpeakWithSerchScopeImplementation implements SpeakWithSerchScopeSer
     }
 
     @Override
+    @Transactional
     public ApiResponse<SpeakWithSerchScopeResponse> assign(String ticket, UUID id) {
         SpeakWithSerch speakWithSerch = speakWithSerchRepository.findById(ticket)
                 .orElseThrow(() -> new SerchException("Ticket not found"));
@@ -209,6 +215,7 @@ public class SpeakWithSerchScopeImplementation implements SpeakWithSerchScopeSer
     }
 
     @Override
+    @Transactional
     public ApiResponse<SpeakWithSerchScopeResponse> close(String ticket) {
         SpeakWithSerch speakWithSerch = speakWithSerchRepository.findById(ticket)
                 .orElseThrow(() -> new SerchException("Ticket not found"));

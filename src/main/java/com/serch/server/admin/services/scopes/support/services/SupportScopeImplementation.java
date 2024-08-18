@@ -11,6 +11,7 @@ import com.serch.server.repositories.company.SpeakWithSerchRepository;
 import com.serch.server.utils.AdminUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -22,6 +23,7 @@ public class SupportScopeImplementation implements SupportScopeService {
     private final SpeakWithSerchRepository speakWithSerchRepository;
 
     @Override
+    @Transactional
     public ApiResponse<SupportScopeResponse> overview() {
         SupportScopeResponse response = new SupportScopeResponse();
 
@@ -84,11 +86,13 @@ public class SupportScopeImplementation implements SupportScopeService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<ChartMetric>> complaint(Integer year) {
         return new ApiResponse<>(prepareComplaint(year));
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<ChartMetric>> speakWithSerch(Integer year) {
         return new ApiResponse<>(prepareSpeakWithSerch(year));
     }

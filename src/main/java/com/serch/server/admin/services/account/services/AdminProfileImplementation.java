@@ -22,6 +22,7 @@ import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -36,6 +37,7 @@ public class AdminProfileImplementation implements AdminProfileService {
     private final UserRepository userRepository;
 
     @Override
+    @Transactional
     public ApiResponse<AdminResponse> get() {
         Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AuthException("Admin not found"));
@@ -52,6 +54,7 @@ public class AdminProfileImplementation implements AdminProfileService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<AdminResponse> update(AdminProfileUpdateRequest request) {
         Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AuthException("Admin not found"));
@@ -69,6 +72,7 @@ public class AdminProfileImplementation implements AdminProfileService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<AdminResponse> uploadAvatar(FileUploadRequest request) {
         Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AuthException("Admin not found"));
@@ -84,6 +88,7 @@ public class AdminProfileImplementation implements AdminProfileService {
     }
 
     @Override
+    @Transactional
     public AdminProfileResponse profile(Admin admin) {
         AdminProfileResponse response = AdminMapper.instance.response(admin.getUser());
         response.setAvatar(admin.getAvatar());
@@ -100,6 +105,7 @@ public class AdminProfileImplementation implements AdminProfileService {
     }
 
     @Override
+    @Transactional
     public AdminTeamResponse team(Admin admin) {
         AdminTeamResponse response = new AdminTeamResponse();
         response.setPosition(admin.getPosition());

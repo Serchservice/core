@@ -62,6 +62,7 @@ public class GuestImplementation implements GuestService {
     protected Integer OTP_EXPIRATION_TIME;
 
     @Override
+    @Transactional
     public ApiResponse<AuthResponse> becomeAUser(GuestToUserRequest request) {
         Guest guest = guestRepository.findById(request.getGuestId())
                 .orElseThrow(() -> new SharedException("Guest not found"));
@@ -106,6 +107,7 @@ public class GuestImplementation implements GuestService {
     }
 
     @Override
+    @Transactional
     public GuestResponse response(SharedLogin login) {
         GuestResponse response = SharedMapper.INSTANCE.guest(login.getGuest());
         response.setGender(login.getGuest().getGender().getType());
@@ -129,6 +131,7 @@ public class GuestImplementation implements GuestService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> updateFcmToken(String token, String guest) {
         guestRepository.findById(guest).ifPresent(profile -> {
             profile.setFcmToken(token);

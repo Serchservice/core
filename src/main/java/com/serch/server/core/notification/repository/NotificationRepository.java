@@ -10,6 +10,7 @@ import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.shared.GuestRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -22,6 +23,7 @@ public class NotificationRepository implements INotificationRepository {
     private final GuestRepository guestRepository;
 
     @Override
+    @Transactional
     public String getToken(String id) {
         try {
             UUID uuid = UUID.fromString(id);
@@ -42,6 +44,7 @@ public class NotificationRepository implements INotificationRepository {
     }
 
     @Override
+    @Transactional
     public String getBusinessToken(UUID id) {
         return profileRepository.findById(id)
                 .map(profile -> profile.isAssociate() ? profile.getBusiness().getFcmToken() : "")
@@ -49,6 +52,7 @@ public class NotificationRepository implements INotificationRepository {
     }
 
     @Override
+    @Transactional
     public String getName(String id) {
         try {
             UUID uuid = UUID.fromString(id);
@@ -63,6 +67,7 @@ public class NotificationRepository implements INotificationRepository {
     }
 
     @Override
+    @Transactional
     public String getAvatar(String id) {
         try {
             UUID uuid = UUID.fromString(id);

@@ -26,6 +26,7 @@ import com.serch.server.repositories.trip.ActiveRepository;
 import com.serch.server.repositories.trip.TripRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -61,6 +62,7 @@ public class AccountRemovalImplementation implements AccountRemovalService {
     private final SpeakWithSerchRepository speakWithSerchRepository;
 
     @Override
+    @Transactional
     public void remove() {
         LocalDateTime date = LocalDateTime.now().minusYears(5);
         List<IssueStatus> statuses = Arrays.asList(IssueStatus.RESOLVED, IssueStatus.CLOSED);

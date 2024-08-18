@@ -37,6 +37,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service implementation for managing authentication-related operations.
@@ -74,6 +75,7 @@ public class AuthImplementation implements AuthService {
     protected Integer MAXIMUM_OTP_TRIALS;
 
     @Override
+    @Transactional
     public void sendOtp(String emailAddress) {
         Optional<Incomplete> user = incompleteRepository.findByEmailAddress(emailAddress);
         String otp = tokenService.generateOtp();
@@ -106,6 +108,7 @@ public class AuthImplementation implements AuthService {
     }
 
     @Override
+    @Transactional
     public void sendEmail(String emailAddress, String otp) {
         SendEmail email = new SendEmail();
         email.setContent(otp);
@@ -124,6 +127,7 @@ public class AuthImplementation implements AuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> checkEmail(String email) {
         var user = userRepository.findByEmailAddressIgnoreCase(email);
         if (user.isPresent()) {
@@ -174,6 +178,7 @@ public class AuthImplementation implements AuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> verifyEmailOtp(@NotNull RequestEmailToken request) {
         Incomplete incomplete = incompleteRepository.findByEmailAddress(request.getEmailAddress())
                 .orElseThrow(() -> new AuthException("User not found", ExceptionCodes.USER_NOT_FOUND));
@@ -195,6 +200,7 @@ public class AuthImplementation implements AuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<AuthResponse> authenticate(RequestLogin request, User user) {
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
                 request.getEmailAddress(),
@@ -206,6 +212,7 @@ public class AuthImplementation implements AuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<AuthResponse> getAuthResponse(RequestLogin request, User user) {
         user.setLastSignedIn(LocalDateTime.now());
         user.setCountry(request.getCountry());
@@ -224,6 +231,7 @@ public class AuthImplementation implements AuthService {
     }
 
     @Override
+    @Transactional
     public User getUserFromIncomplete(Incomplete incomplete, Role role) {
         User saved = createNewUser(incomplete, role);
         trackerService.create(saved);

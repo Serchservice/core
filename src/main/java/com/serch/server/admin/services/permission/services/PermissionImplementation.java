@@ -52,6 +52,7 @@ public class PermissionImplementation implements PermissionService {
     private final UserUtil userUtil;
 
     @Override
+    @Transactional
     public GrantedPermissionScope create(PermissionScope scope, Admin admin, String account) {
         assert scope != null;
 
@@ -78,6 +79,7 @@ public class PermissionImplementation implements PermissionService {
     }
 
     @Override
+    @Transactional
     public GrantedPermission create(GrantedPermissionScope scope, Permission permission) {
         Optional<GrantedPermission> existing = grantedPermissionRepository.findByScope_IdAndPermission(scope.getId(), permission);
         if(existing.isPresent()) {
@@ -91,6 +93,7 @@ public class PermissionImplementation implements PermissionService {
     }
 
     @Override
+    @Transactional
     public void attach(Admin parent, Admin child) {
         if (parent.getScopes() == null || parent.getScopes().isEmpty()) {
             return;
@@ -107,6 +110,7 @@ public class PermissionImplementation implements PermissionService {
     }
 
     @Override
+    @Transactional
     public void create(List<PermissionScopeRequest> scopes, Admin admin) {
         if (scopes == null || scopes.isEmpty()) {
             return;
@@ -126,6 +130,7 @@ public class PermissionImplementation implements PermissionService {
     }
 
     @Override
+    @Transactional
     public List<PermissionScopeResponse> getScopes(Admin admin, PermissionType type) {
         if(admin.getScopes() != null && !admin.getScopes().isEmpty()) {
             if(type == PermissionType.CLUSTER) {
@@ -203,6 +208,7 @@ public class PermissionImplementation implements PermissionService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> request(PermissionRequest request) {
         Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AuthException("Admin not found"));
@@ -225,6 +231,7 @@ public class PermissionImplementation implements PermissionService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> grant(Long id) {
         Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new PermissionException("Admin not found"));
@@ -263,6 +270,7 @@ public class PermissionImplementation implements PermissionService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> decline(Long id) {
         Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new PermissionException("Admin not found"));
@@ -299,6 +307,7 @@ public class PermissionImplementation implements PermissionService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<PermissionRequestGroupResponse>> requests() {
         Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new PermissionException("Admin not found"));
@@ -366,7 +375,8 @@ public class PermissionImplementation implements PermissionService {
         return new ApiResponse<>("Permissions updated successfully");
     }
 
-    private void updateScopes(List<GrantedPermissionScope> current, List<PermissionScopeResponse> newScopes, Admin user) {
+    @Transactional
+    protected void updateScopes(List<GrantedPermissionScope> current, List<PermissionScopeResponse> newScopes, Admin user) {
         Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AuthException("Admin not found"));
 
@@ -416,7 +426,8 @@ public class PermissionImplementation implements PermissionService {
         }
     }
 
-    private void updateScopePermissions(GrantedPermissionScope scope, List<PermissionResponse> newPermissions) {
+    @Transactional
+    protected void updateScopePermissions(GrantedPermissionScope scope, List<PermissionResponse> newPermissions) {
         Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AuthException("Admin not found"));
 

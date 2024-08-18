@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -67,6 +68,7 @@ public class GuestAuthImplementation implements GuestAuthService {
     protected Integer OTP_EXPIRATION_TIME;
 
     @Override
+    @Transactional
     public ApiResponse<SharedLinkData> verifyLink(String link) {
         SharedLink sharedLink = sharedLinkRepository.findByLink(link.trim())
                 .orElseThrow(() -> new SharedException("Link not found"));
@@ -74,6 +76,7 @@ public class GuestAuthImplementation implements GuestAuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> askToVerifyEmail(VerifyEmailRequest request) {
         Guest guest = guestRepository.findByEmailAddressIgnoreCase(request.getEmailAddress())
                 .orElseThrow(() -> new SharedException("Guest not found"));
@@ -91,6 +94,7 @@ public class GuestAuthImplementation implements GuestAuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<GuestResponse> verifyEmailWithToken(VerifyEmailRequest request) {
         Guest guest = guestRepository.findByEmailAddressIgnoreCase(request.getEmailAddress())
                 .orElseThrow(() -> new SharedException("Guest not found"));
@@ -113,6 +117,7 @@ public class GuestAuthImplementation implements GuestAuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<GuestResponse> login(VerifyEmailRequest request) {
         Guest guest = guestRepository.findByEmailAddressIgnoreCase(request.getEmailAddress())
                 .orElseThrow(() -> new SharedException("Guest not found"));
@@ -141,6 +146,7 @@ public class GuestAuthImplementation implements GuestAuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<GuestResponse> create(CreateGuestRequest request) {
         Optional<User> user = userRepository.findByEmailAddressIgnoreCase(request.getEmailAddress());
         SharedLink sharedLink = sharedLinkRepository.findByLink(request.getLink())
@@ -177,7 +183,8 @@ public class GuestAuthImplementation implements GuestAuthService {
         }
     }
 
-    private Guest getNewGuest(CreateGuestRequest request, String image) {
+    @Transactional
+    protected Guest getNewGuest(CreateGuestRequest request, String image) {
         String avatar;
         if(image != null) {
             avatar = image;
@@ -198,7 +205,8 @@ public class GuestAuthImplementation implements GuestAuthService {
         return guestRepository.save(guest);
     }
 
-    private SharedLogin getNewLogin(SharedLink sharedLink, Guest guest) {
+    @Transactional
+    protected SharedLogin getNewLogin(SharedLink sharedLink, Guest guest) {
         SharedLogin newLogin = new SharedLogin();
         newLogin.setGuest(guest);
         newLogin.setSharedLink(sharedLink);
@@ -207,6 +215,7 @@ public class GuestAuthImplementation implements GuestAuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<GuestResponse> createFromExistingUser(CreateGuestFromUserRequest request) {
         User user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new SharedException("User not found"));
@@ -246,7 +255,8 @@ public class GuestAuthImplementation implements GuestAuthService {
         }
     }
 
-    private String getProfileImage(CreateGuestFromUserRequest request, Profile profile) {
+    @Transactional
+    protected String getProfileImage(CreateGuestFromUserRequest request, Profile profile) {
         if(profile.getAvatar() != null && !profile.getAvatar().isEmpty()) {
             return profile.getAvatar();
         } else {

@@ -15,6 +15,7 @@ import com.serch.server.utils.AdminUtil;
 import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.TextStyle;
@@ -31,6 +32,7 @@ public class CallScopeImplementation implements CallScopeService {
     private final CallRepository callRepository;
 
     @Override
+    @Transactional
     public ApiResponse<CallScopeOverviewResponse> overview() {
         CallScopeOverviewResponse response = new CallScopeOverviewResponse();
         response.setOverview(summary());
@@ -120,26 +122,31 @@ public class CallScopeImplementation implements CallScopeService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<ChartMetric>> fetchTip2FixChart(Integer year) {
         return new ApiResponse<>(tip2fixChart(year));
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<ChartMetric>> fetchVoiceChart(Integer year) {
         return new ApiResponse<>(voiceChart(year));
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<ChartMetric>> fetchTip2FixPerformance(Integer year) {
         return new ApiResponse<>(tip2fixPerformance(year));
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<CallScopeResponse>> voiceCalls() {
         return getCallList(VOICE);
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<CallScopeResponse>> tip2fixCalls() {
         return getCallList(T2F);
     }

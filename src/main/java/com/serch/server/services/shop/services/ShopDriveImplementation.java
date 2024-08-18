@@ -14,6 +14,7 @@ import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,6 +28,7 @@ public class ShopDriveImplementation implements ShopDriveService {
     private final ShopDriveRepository shopDriveRepository;
 
     @Override
+    @Transactional
     public ApiResponse<String> drive(ShopDriveRequest request) {
         Shop shop = shopRepository.findById(request.getShopId()).orElseThrow(() -> new ShopException("Shop not found"));
 
@@ -39,6 +41,7 @@ public class ShopDriveImplementation implements ShopDriveService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> rateShop(Long id, Double rating) {
         ShopDrive drive = shopDriveRepository.findById(id).orElseThrow(() -> new ShopException("Drive not found"));
 

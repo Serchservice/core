@@ -27,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -59,6 +60,7 @@ public class UserAuthImplementation implements UserAuthService {
     private final IncompleteRepository incompleteRepository;
 
     @Override
+    @Transactional
     public ApiResponse<AuthResponse> login(RequestLogin request) {
         var user = userRepository.findByEmailAddressIgnoreCase(request.getEmailAddress())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -71,6 +73,7 @@ public class UserAuthImplementation implements UserAuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<AuthResponse> signup(RequestProfile request) {
         var user = userRepository.findByEmailAddressIgnoreCase(request.getEmailAddress());
         if(user.isPresent()) {
@@ -91,7 +94,8 @@ public class UserAuthImplementation implements UserAuthService {
         }
     }
 
-    private ApiResponse<AuthResponse> getSignupAuthResponse(RequestProfile request, Incomplete incomplete) {
+    @Transactional
+    protected ApiResponse<AuthResponse> getSignupAuthResponse(RequestProfile request, Incomplete incomplete) {
         User referral = null;
         if(request.getReferral() != null && !request.getReferral().isEmpty()) {
             referral = referralProgramService.verify(request.getReferral());
@@ -116,6 +120,7 @@ public class UserAuthImplementation implements UserAuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<AuthResponse> getAuthResponse(RequestProfile request, User newUser) {
         RequestSession requestSession = new RequestSession();
         requestSession.setMethod(AuthMethod.PASSWORD);
@@ -126,6 +131,7 @@ public class UserAuthImplementation implements UserAuthService {
     }
 
     @Override
+    @Transactional
     public User getNewUser(RequestProfile profile, LocalDateTime confirmedAt) {
         User saved = createNewUser(profile, confirmedAt);
         trackerService.create(saved);
@@ -148,6 +154,7 @@ public class UserAuthImplementation implements UserAuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<AuthResponse> becomeAUser(RequestLogin login) {
         var incomplete = incompleteRepository.findByEmailAddress(login.getEmailAddress())
                 .orElseThrow(() -> new AuthException("User does not exist", ExceptionCodes.USER_NOT_FOUND));

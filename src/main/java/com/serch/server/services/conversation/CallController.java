@@ -40,7 +40,7 @@ public class CallController {
     @MessageMapping("/end")
     public void end(@Payload UpdateCallRequest request, SimpMessageHeaderAccessor header) {
         socket.authenticate(header);
-        service.end(request.getChannel());
+        service.end(request.getChannel(), request.getTime());
     }
 
     @MessageMapping("/decline")

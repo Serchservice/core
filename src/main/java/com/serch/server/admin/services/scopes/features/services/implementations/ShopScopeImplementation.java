@@ -19,6 +19,7 @@ import com.serch.server.services.shop.services.ShopService;
 import com.serch.server.utils.AdminUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.TextStyle;
@@ -36,6 +37,7 @@ public class ShopScopeImplementation implements ShopScopeService {
     private final BusinessProfileRepository businessProfileRepository;
 
     @Override
+    @Transactional
     public ApiResponse<ShopScopeOverviewResponse> overview() {
         ShopScopeOverviewResponse response = new ShopScopeOverviewResponse();
         response.setYears(AdminUtil.years());
@@ -85,11 +87,13 @@ public class ShopScopeImplementation implements ShopScopeService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<ChartMetric>> chart(Integer year) {
         return new ApiResponse<>(chartByYear(year));
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<ShopScopeResponse>> list() {
         List<Shop> list = shopRepository.findAll();
 
@@ -122,6 +126,7 @@ public class ShopScopeImplementation implements ShopScopeService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<ShopScopeResponse> find(String id) {
         Shop shop = shopRepository.findById(id).orElseThrow(() -> new ShopException("Shop not found"));
 

@@ -11,6 +11,7 @@ import com.serch.server.repositories.company.NewsletterRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -21,6 +22,7 @@ public class MarketingScopeImplementation implements MarketingScopeService {
     private final NewsletterRepository newsletterRepository;
 
     @Override
+    @Transactional
     public ApiResponse<MarketingResponse> overview() {
         List<Newsletter> newsletters = newsletterRepository.findAll(PageRequest.of(0, 10)).toList();
 
@@ -59,6 +61,7 @@ public class MarketingScopeImplementation implements MarketingScopeService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<NewsletterResponse>> newsletters() {
         List<Newsletter> newsletters = newsletterRepository.findAll();
         return new ApiResponse<>(newsletters.stream()
@@ -68,6 +71,7 @@ public class MarketingScopeImplementation implements MarketingScopeService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<NewsletterResponse>> update(Long id) {
         Newsletter letter = newsletterRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid id"));

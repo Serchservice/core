@@ -13,6 +13,7 @@ import com.serch.server.services.shared.services.SharedService;
 import com.serch.server.utils.AdminUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.TextStyle;
@@ -28,6 +29,7 @@ public class ProvideSharingScopeImplementation implements ProvideSharingScopeSer
     private final SharedLinkRepository sharedLinkRepository;
 
     @Override
+    @Transactional
     public ApiResponse<ProvideSharingScopeOverviewResponse> overview() {
         ProvideSharingScopeOverviewResponse response = new ProvideSharingScopeOverviewResponse();
         response.setYears(AdminUtil.years());
@@ -78,11 +80,13 @@ public class ProvideSharingScopeImplementation implements ProvideSharingScopeSer
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<ChartMetric>> chart(Integer year) {
         return new ApiResponse<>(chartByYear(year));
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<SharedLinkResponse>> list() {
         List<SharedLinkResponse> list = sharedLinkRepository.findAll()
                 .stream()

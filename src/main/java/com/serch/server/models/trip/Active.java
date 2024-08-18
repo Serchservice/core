@@ -40,7 +40,7 @@ public class Active extends BaseModel {
     @Column(name = "status")
     @Enumerated(value = EnumType.STRING)
     @SerchEnum(message = "TripStatus must be an enum")
-    private ProviderStatus providerStatus = ProviderStatus.ONLINE;
+    private ProviderStatus status = ProviderStatus.ONLINE;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(
@@ -50,4 +50,8 @@ public class Active extends BaseModel {
             foreignKey = @ForeignKey(name = "active_serch_id_fkey")
     )
     private Profile profile;
+
+    public boolean isActive() {
+        return status == ProviderStatus.ONLINE;
+    }
 }

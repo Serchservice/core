@@ -13,6 +13,7 @@ import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -27,6 +28,7 @@ public class AdminNotificationImplementation implements AdminNotificationService
     private final AdminRepository adminRepository;
 
     @Override
+    @Transactional
     public void create(String message, String event, AdminNotificationType type, User user) {
         assert user != null && message != null;
         assert type != AdminNotificationType.PERMISSION_REQUEST || event != null;
@@ -43,6 +45,7 @@ public class AdminNotificationImplementation implements AdminNotificationService
     }
 
     @Override
+    @Transactional
     public void notifications() {
         User user = userUtil.getUser();
         if(user.isAdmin()) {

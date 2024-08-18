@@ -25,6 +25,7 @@ import com.serch.server.utils.HelperUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -41,6 +42,7 @@ public class BusinessAssociateAuthImplementation implements BusinessAssociateAut
     private final PendingRepository pendingRepository;
 
     @Override
+    @Transactional
     public ApiResponse<VerifiedInviteResponse> verifyLink(String token) {
         UUID businessId = UUID.fromString(jwtService.getItemFromToken(token, "business"));
         UUID userId = UUID.fromString(jwtService.getItemFromToken(token, "user"));
@@ -70,6 +72,7 @@ public class BusinessAssociateAuthImplementation implements BusinessAssociateAut
     }
 
     @Override
+    @Transactional
     public ApiResponse<AuthResponse> acceptInvite(ChangePasswordInviteRequest request) {
         Pending pending = pendingRepository.findByUser_EmailAddressIgnoreCase(request.getEmailAddress())
                 .orElseThrow(() -> new AccountException("Account not found"));

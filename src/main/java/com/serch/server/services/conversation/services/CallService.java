@@ -65,9 +65,10 @@ public interface CallService {
      * End an active call and send updated {@link ActiveCallResponse} containing the APP ID and other details
      * to both users in the call channel
      *
+     * @param time The time spent for the call
      * @param channel The call channel to join
      */
-    void end(String channel);
+    void end(String channel, String time);
 
     /**
      * Check the call session periodically to notify any changes or end the call for both users in the call channel

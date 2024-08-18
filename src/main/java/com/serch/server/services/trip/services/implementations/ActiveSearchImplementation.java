@@ -31,6 +31,7 @@ import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -70,6 +71,7 @@ public class ActiveSearchImplementation implements ActiveSearchService {
     }
 
     @Override
+    @Transactional
     public ActiveResponse response(Profile profile, ProviderStatus status, double distance) {
         ActiveResponse response = TripMapper.INSTANCE.response(profile);
         response.setStatus(status);
@@ -101,6 +103,7 @@ public class ActiveSearchImplementation implements ActiveSearchService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<SearchResponse> search(SerchCategory category, Double longitude, Double latitude, Double radius, Boolean autoConnect) {
         List<Active> actives = activeRepository.sortAllWithinDistance(latitude, longitude, getSearchRadius(radius), category.name());
 
@@ -109,7 +112,7 @@ public class ActiveSearchImplementation implements ActiveSearchService {
             Active bestMatch = activeRepository.findBestMatchWithCategory(latitude, longitude, category.name(), getSearchRadius(radius));
             if(bestMatch != null) {
                 response.setBest(response(
-                        bestMatch.getProfile(), bestMatch.getProviderStatus(),
+                        bestMatch.getProfile(), bestMatch.getStatus(),
                         HelperUtil.getDistance(latitude, longitude, bestMatch.getLatitude(), bestMatch.getLongitude())
                 ));
 
@@ -121,7 +124,8 @@ public class ActiveSearchImplementation implements ActiveSearchService {
         return new ApiResponse<>(response);
     }
 
-    private SearchResponse prepareResponse(Double longitude, Double latitude, List<Active> actives) {
+    @Transactional
+    protected SearchResponse prepareResponse(Double longitude, Double latitude, List<Active> actives) {
         AtomicReference<AccountSetting> setting = new AtomicReference<>();
         userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .ifPresent(user -> setting.set(user.getSetting()));
@@ -159,7 +163,7 @@ public class ActiveSearchImplementation implements ActiveSearchService {
                         // Map the results to ActiveResponse
                         .map(activeProvider -> response(
                                 activeProvider.getProfile(),
-                                activeProvider.getProviderStatus(),
+                                activeProvider.getStatus(),
                                 HelperUtil.getDistance(latitude, longitude, activeProvider.getLatitude(), activeProvider.getLongitude())
                         ))
                         .toList();
@@ -172,7 +176,7 @@ public class ActiveSearchImplementation implements ActiveSearchService {
                         .filter(distinct::add)
                         .map(activeProvider -> response(
                                 activeProvider.getProfile(),
-                                activeProvider.getProviderStatus(),
+                                activeProvider.getStatus(),
                                 HelperUtil.getDistance(latitude, longitude, activeProvider.getLatitude(), activeProvider.getLongitude())
                         ))
                         .toList();
@@ -183,6 +187,7 @@ public class ActiveSearchImplementation implements ActiveSearchService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<SearchResponse> search(String query, Double longitude, Double latitude, Double radius, Boolean autoConnect) {
         List<Active> actives = activeRepository.fullTextSearchWithinDistance(latitude, longitude, query, getSearchRadius(radius));
         List<SearchShopResponse> shops = shopService.list(query, null, longitude, latitude, getSearchRadius(radius));
@@ -193,7 +198,7 @@ public class ActiveSearchImplementation implements ActiveSearchService {
             Active bestMatch = activeRepository.findBestMatchWithQuery(latitude, longitude, query, getSearchRadius(radius));
             if(bestMatch != null) {
                 response.setBest(response(
-                        bestMatch.getProfile(), bestMatch.getProviderStatus(),
+                        bestMatch.getProfile(), bestMatch.getStatus(),
                         HelperUtil.getDistance(latitude, longitude, bestMatch.getLatitude(), bestMatch.getLongitude())
                 ));
             }

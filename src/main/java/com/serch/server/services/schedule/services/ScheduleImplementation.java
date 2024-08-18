@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -76,6 +77,7 @@ public class ScheduleImplementation implements ScheduleService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<ScheduleResponse> schedule(ScheduleRequest request) {
         Profile provider = profileRepository.findById(request.getProvider())
                 .orElseThrow(() -> new ScheduleException("Provider not found"));
@@ -170,6 +172,7 @@ public class ScheduleImplementation implements ScheduleService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> accept(String id) {
         Schedule schedule = scheduleRepository.findById(id)
                 .orElseThrow(() -> new ScheduleException("Schedule not found"));
@@ -199,6 +202,7 @@ public class ScheduleImplementation implements ScheduleService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> cancel(String id) {
         Schedule schedule = scheduleRepository.findById(id)
                 .orElseThrow(() -> new ScheduleException("Schedule not found"));
@@ -228,6 +232,7 @@ public class ScheduleImplementation implements ScheduleService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> close(String id) {
         Schedule schedule = scheduleRepository.findById(id)
                 .orElseThrow(() -> new ScheduleException("Schedule not found"));
@@ -300,6 +305,7 @@ public class ScheduleImplementation implements ScheduleService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<TripResponse> start(String id) {
         Schedule schedule = scheduleRepository.findById(id)
                 .orElseThrow(() -> new ScheduleException("Schedule not found"));
@@ -325,6 +331,7 @@ public class ScheduleImplementation implements ScheduleService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> decline(ScheduleDeclineRequest request) {
         Schedule schedule = scheduleRepository.findById(request.getId())
                 .orElseThrow(() -> new ScheduleException("Schedule not found"));
@@ -356,6 +363,7 @@ public class ScheduleImplementation implements ScheduleService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<ScheduleResponse>> active() {
         return new ApiResponse<>(active(userUtil.getUser().getId()));
     }
@@ -378,6 +386,7 @@ public class ScheduleImplementation implements ScheduleService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<ScheduleGroupResponse>> schedules() {
         return new ApiResponse<>(schedules(userUtil.getUser().getId()));
     }
@@ -411,6 +420,7 @@ public class ScheduleImplementation implements ScheduleService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<ScheduleTimeResponse>> times(UUID id) {
         LocalDateTime currentTime = LocalDateTime.now();
         List<Schedule> schedules = getSchedules(id);
@@ -477,6 +487,7 @@ public class ScheduleImplementation implements ScheduleService {
     }
 
     @Override
+    @Transactional
     public void notifySchedules() {
         LocalDate today = LocalDate.now();
         scheduleRepository.findByCreatedAtBetween(today.atStartOfDay(), today.atTime(23, 59, 59))
@@ -498,6 +509,7 @@ public class ScheduleImplementation implements ScheduleService {
     }
 
     @Override
+    @Transactional
     public void closePastUnaccepted() {
         LocalDateTime current = LocalDateTime.now();
         scheduleRepository.findByStatusAndCreatedAtBefore(PENDING, current)
@@ -511,7 +523,8 @@ public class ScheduleImplementation implements ScheduleService {
         closePendingOrAcceptedForTheDay(current);
     }
 
-    private void closePendingOrAcceptedForTheDay(LocalDateTime current) {
+    @Transactional
+    protected void closePendingOrAcceptedForTheDay(LocalDateTime current) {
         LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
         LocalDateTime endOfDay = LocalDate.now().atTime(LocalTime.MAX);
         scheduleRepository.findByCreatedAtBetween(startOfDay, endOfDay)
@@ -520,7 +533,8 @@ public class ScheduleImplementation implements ScheduleService {
                 .forEach(schedule -> performCloseAction(current, schedule));
     }
 
-    private void performCloseAction(LocalDateTime current, Schedule schedule) {
+    @Transactional
+    protected void performCloseAction(LocalDateTime current, Schedule schedule) {
         LocalDate today = LocalDate.now();
         LocalDateTime currentTime = LocalDateTime.now();
         LocalDateTime requestedTime = LocalDateTime.of(today, LocalTime.parse(schedule.getTime().toUpperCase(), formatter));

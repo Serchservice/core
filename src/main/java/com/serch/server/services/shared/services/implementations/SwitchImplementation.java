@@ -25,6 +25,7 @@ import com.serch.server.services.shared.services.SwitchService;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -51,6 +52,7 @@ public class SwitchImplementation implements SwitchService {
     private final SharedLinkRepository sharedLinkRepository;
 
     @Override
+    @Transactional
     public ApiResponse<GuestResponse> switchToGuest(SwitchRequest request) {
         SharedLink sharedLink = sharedLinkRepository.findById(request.getLinkId())
                 .orElseThrow(() -> new SharedException("Link not found"));
@@ -81,6 +83,7 @@ public class SwitchImplementation implements SwitchService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<AuthResponse> switchToUser(SwitchRequest request) {
         User user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new SharedException("Sign in as user to be able to switch easily"));
@@ -91,7 +94,8 @@ public class SwitchImplementation implements SwitchService {
         return userAuthService.getAuthResponse(profile, user);
     }
 
-    private void checkRequest(SwitchRequest request) {
+    @Transactional
+    protected void checkRequest(SwitchRequest request) {
         String id = guestRepository.findById(request.getId())
                 .orElseThrow(() -> new SharedException("Guest not found"))
                 .getId();

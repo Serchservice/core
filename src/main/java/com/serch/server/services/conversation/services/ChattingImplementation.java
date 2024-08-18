@@ -9,12 +9,14 @@ import com.serch.server.models.auth.User;
 import com.serch.server.models.bookmark.Bookmark;
 import com.serch.server.models.conversation.ChatMessage;
 import com.serch.server.models.conversation.ChatRoom;
+import com.serch.server.models.trip.Active;
 import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.bookmark.BookmarkRepository;
 import com.serch.server.repositories.conversation.ChatMessageRepository;
 import com.serch.server.repositories.conversation.ChatRoomRepository;
 import com.serch.server.repositories.schedule.ScheduleRepository;
+import com.serch.server.repositories.trip.ActiveRepository;
 import com.serch.server.services.conversation.requests.SendMessageRequest;
 import com.serch.server.services.conversation.requests.UpdateMessageRequest;
 import com.serch.server.services.conversation.responses.*;
@@ -49,6 +51,7 @@ public class ChattingImplementation implements ChattingService {
     private final UserRepository userRepository;
     private final BookmarkRepository bookmarkRepository;
     private final ScheduleRepository scheduleRepository;
+    private final ActiveRepository activeRepository;
 
     private boolean isCurrentUser(UUID id) {
         return userUtil.getUser().isUser(id);
@@ -134,12 +137,14 @@ public class ChattingImplementation implements ChattingService {
         }
     }
 
-    public void sendMessage(ChatRoom room, boolean notify) {
+    @Transactional
+    protected void sendMessage(ChatRoom room, boolean notify) {
         sendToSender(room);
         sendToReceiver(room, notify);
     }
 
-    private void sendToSender(ChatRoom room) {
+    @Transactional
+    protected void sendToSender(ChatRoom room) {
         ChatRoomResponse response =  getChatRoomResponse(
                 room, isCurrentUser(room.getCreator()) ? room.getRoommate() : room.getCreator(),
                 userUtil.getUser().getId()
@@ -148,7 +153,8 @@ public class ChattingImplementation implements ChattingService {
         template.convertAndSend("/platform/%s".formatted(String.valueOf(userUtil.getUser().getId())), response);
     }
 
-    private void sendToReceiver(ChatRoom room, boolean notify) {
+    @Transactional
+    protected void sendToReceiver(ChatRoom room, boolean notify) {
         UUID id = isCurrentUser(room.getCreator()) ? room.getRoommate() : room.getCreator();
         ChatRoomResponse response =  getChatRoomResponse(room, userUtil.getUser().getId(), id);
         template.convertAndSend("/platform/%s/%s".formatted(room.getId(), String.valueOf(id)), response);
@@ -181,7 +187,8 @@ public class ChattingImplementation implements ChattingService {
         }
     }
 
-    private ChatRoomResponse getChatRoomResponse(ChatRoom room, UUID id, UUID count) {
+    @Transactional
+    protected ChatRoomResponse getChatRoomResponse(ChatRoom room, UUID id, UUID count) {
         List<ChatMessage> roomMessages = chatMessageRepository.findByChatRoom_Id(room.getId());
         List<ChatMessage> messages = roomMessages != null && !roomMessages.isEmpty()
                 ? roomMessages : new ArrayList<>();
@@ -189,10 +196,11 @@ public class ChattingImplementation implements ChattingService {
         return response(room, id, count);
     }
 
-    private ChatRoomResponse response(ChatRoom room, UUID id, UUID count) {
+    @Transactional
+    protected ChatRoomResponse response(ChatRoom room, UUID id, UUID count) {
         ChatRoomResponse response = new ChatRoomResponse();
 
-        prepareResponse(id, response);
+        prepareRoomResponse(id, response);
         response.setUser(id);
         response.setRoom(room.getId());
 
@@ -209,16 +217,19 @@ public class ChattingImplementation implements ChattingService {
         return updateResponse(room, response, profileRepository.findById(count).map(profile -> profile.getUser().isProvider()).orElse(false));
     }
 
-    private void prepareResponse(UUID id, ChatRoomResponse response) {
+    private void prepareRoomResponse(UUID id, ChatRoomResponse response) {
         response.setAvatar(profileRepository.findById(id).map(Profile::getAvatar).orElse(""));
         response.setCategory(profileRepository.findById(id).map(Profile::getCategory).orElse(USER).getType());
         response.setImage(profileRepository.findById(id).map(Profile::getCategory).orElse(USER).getImage());
         response.setLastSeen(TimeUtil.formatLastSignedIn(userRepository.findById(id).map(User::getLastSignedIn).orElse(LocalDateTime.now()), false));
         response.setName(profileRepository.findById(id).map(Profile::getFullName).orElse(""));
         response.setRoommate(id);
+        response.setIsActive(activeRepository.findByProfile_Id(id).map(Active::isActive).orElse(false));
+        response.setTrip(activeRepository.findByProfile_Id(id).map(active -> active.getStatus().getType()).orElse(""));
     }
 
     @Override
+    @Transactional
     public ChatRoomResponse updateResponse(ChatRoom room, ChatRoomResponse response, boolean isProvider) {
         response.setIsBookmarked(
                 bookmarkRepository.existsByUser_IdAndProvider_Id(room.getRoommate(), room.getCreator())
@@ -264,7 +275,7 @@ public class ChattingImplementation implements ChattingService {
 
                     List<ChatMessageResponse> messageList = chats.stream()
                             .sorted(Comparator.comparing(ChatMessage::getCreatedAt))
-                            .map(msg -> response(msg, id))
+                            .map(msg -> prepareMessageResponse(msg, id))
                             .collect(Collectors.toList());
                     chat.setMessages(messageList);
                     response.add(chat);
@@ -275,19 +286,19 @@ public class ChattingImplementation implements ChattingService {
         }
     }
 
-    private ChatMessageResponse response(ChatMessage message, UUID id) {
+    private ChatMessageResponse prepareMessageResponse(ChatMessage message, UUID id) {
         ChatMessageResponse response = ConversationMapper.INSTANCE.response(message);
         response.setLabel(TimeUtil.formatTime(message.getCreatedAt()));
         response.setHasOnlyEmojis(ChatUtil.containsOnlyEmojis(message.getMessage()));
         response.setHasOnlyOneEmoji(ChatUtil.containsOnlyOneEmoji(message.getMessage()));
         response.setIsSentByCurrentUser(!message.getSender().equals(id));
-        response.setReply(replied(message.getReplied(), id));
+        response.setReply(prepareRepliedResponse(message.getReplied(), id));
         response.setName(profileRepository.findById(message.getSender()).map(Profile::getFullName).orElse(""));
         response.setRoom(message.getChatRoom().getId());
         return response;
     }
 
-    private ChatReplyResponse replied(ChatMessage message, UUID id) {
+    private ChatReplyResponse prepareRepliedResponse(ChatMessage message, UUID id) {
         if(message != null) {
             ChatReplyResponse response = ConversationMapper.INSTANCE.reply(message);
             response.setMessage(ChatUtil.formatRepliedMessage(message.getMessage(), message.getDuration(), message.getType()));
@@ -303,6 +314,7 @@ public class ChattingImplementation implements ChattingService {
     }
 
     @Override
+    @Transactional
     public ChatMessage getLastMessage(List<ChatMessage> messages) {
         if(messages == null || messages.isEmpty()) {
             return null;
@@ -316,6 +328,7 @@ public class ChattingImplementation implements ChattingService {
     }
 
     @Override
+    @Transactional
     public List<ChatRoomResponse> response(UUID id) {
         List<ChatRoom> rooms = chatRoomRepository.findByUserId(id);
         if(rooms == null || rooms.isEmpty()) {
@@ -324,10 +337,10 @@ public class ChattingImplementation implements ChattingService {
             return rooms.stream()
                     .filter(room -> room.getMessages() != null && !room.getMessages().isEmpty())
                     .filter(room -> !room.getMessages().stream().allMatch(msg -> msg.getState() == MessageState.DELETED))
-//                    .filter(room -> room.getUpdatedAt().toLocalDate().equals(LocalDate.now())
-//                            || bookmarkRepository.existsByUser_IdAndProvider_Id(room.getCreator(), room.getRoommate())
-//                            || bookmarkRepository.existsByUser_IdAndProvider_Id(room.getRoommate(), room.getCreator())
-//                    )
+                    .filter(room -> room.getUpdatedAt().toLocalDate().equals(LocalDate.now())
+                            || bookmarkRepository.existsByUser_IdAndProvider_Id(room.getCreator(), room.getRoommate())
+                            || bookmarkRepository.existsByUser_IdAndProvider_Id(room.getRoommate(), room.getCreator())
+                    )
                     .map(this::response)
                     .sorted(Comparator.comparing(ChatRoomResponse::getSentAt))
                     .toList();
@@ -335,11 +348,12 @@ public class ChattingImplementation implements ChattingService {
     }
 
     @Override
+    @Transactional
     public ChatRoomResponse response(ChatRoom room) {
         ChatRoomResponse response = new ChatRoomResponse();
         UUID id = isCurrentUser(room.getCreator()) ? room.getRoommate() : room.getCreator();
 
-        prepareResponse(id, response);
+        prepareRoomResponse(id, response);
         response.setUser(userUtil.getUser().getId());
         response.setRoom(room.getId());
 

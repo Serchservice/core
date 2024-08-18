@@ -13,6 +13,7 @@ import com.serch.server.repositories.transaction.TransactionRepository;
 import com.serch.server.utils.AdminUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -30,6 +31,7 @@ public class CommonAccountAnalysisImplementation implements CommonAccountAnalysi
     private final SessionRepository sessionRepository;
 
     @Override
+    @Transactional
     public List<ChartMetric> accountStatus(User user, Integer year) {
         LocalDateTime start = AdminUtil.getStartYear(year);
         LocalDateTime end = start.plusYears(1);
@@ -60,6 +62,7 @@ public class CommonAccountAnalysisImplementation implements CommonAccountAnalysi
     }
 
     @Override
+    @Transactional
     public List<Integer> years(User user) {
         int start = user.getCreatedAt().getYear();
         int current = LocalDateTime.now().getYear();
@@ -99,6 +102,7 @@ public class CommonAccountAnalysisImplementation implements CommonAccountAnalysi
     }
 
     @Override
+    @Transactional
     public List<ChartMetric> wallet(User user, Integer year) {
         LocalDateTime start = AdminUtil.getStartYear(year);
         LocalDateTime end = start.plusYears(1);
@@ -129,6 +133,7 @@ public class CommonAccountAnalysisImplementation implements CommonAccountAnalysi
     }
 
     @Override
+    @Transactional
     public List<ChartMetric> transaction(User user, Integer year) {
         LocalDateTime start = AdminUtil.getStartYear(year);
         LocalDateTime end = start.plusYears(1);
@@ -145,11 +150,13 @@ public class CommonAccountAnalysisImplementation implements CommonAccountAnalysi
     }
 
     @Override
+    @Transactional
     public List<ChartMetric> activity(User user, Integer year) {
         return List.of();
     }
 
     @Override
+    @Transactional
     public List<ChartMetric> auth(User user, Integer year) {
         LocalDateTime start = AdminUtil.getStartYear(year);
 
@@ -175,21 +182,25 @@ public class CommonAccountAnalysisImplementation implements CommonAccountAnalysi
     }
 
     @Override
+    @Transactional
     public List<ChartMetric> account(User user, Integer year) {
         return List.of();
     }
 
     @Override
+    @Transactional
     public List<ChartMetric> associates(User user, Integer year) {
         return List.of();
     }
 
     @Override
+    @Transactional
     public List<ChartMetric> subscriptions(User user, Integer year) {
         return List.of();
     }
 
     @Override
+    @Transactional
     public List<ChartMetric> subscribed(User user, Integer year) {
         return List.of();
     }

@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -42,6 +43,7 @@ public class AccountReportImplementation implements AccountReportService {
     private Integer REPORT_LIMIT;
 
     @Override
+    @Transactional
     public ApiResponse<String> report(AccountReportRequest request) {
         if(request.getContent() != null && !request.getContent().isEmpty()) {
             if(request.getShop() != null && !request.getShop().isEmpty()) {

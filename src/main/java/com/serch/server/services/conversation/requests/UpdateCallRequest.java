@@ -8,4 +8,5 @@ public class UpdateCallRequest {
     private String channel;
     private Integer duration;
     private CallStatus status;
+    private String time;
 }

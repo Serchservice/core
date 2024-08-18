@@ -14,7 +14,7 @@ FROM amazoncorretto:21.0.2-alpine3.19
 WORKDIR /app
 LABEL authors="iamevaristus"
 EXPOSE 8080
-COPY --from=build /app/target/*.jar ./server-0.0.1.jar
+COPY --from=build /app/target/*.jar ./serchServer.jar
 #COPY src/main/resources/init.sql ./init.sql
 #
 ## Install PostgreSQL client for executing the SQL script
@@ -24,5 +24,5 @@ COPY --from=build /app/target/*.jar ./server-0.0.1.jar
 #RUN psql -U postgres -h localhost -f init.sql
 
 # Command to run the application
-#CMD ["java", "-Xms512m", "-Xmx1024m", "-jar", "server-0.0.1.jar"]
-CMD ["java", "-jar", "server-0.0.1.jar"]
+#CMD ["java", "-Xms512m", "-Xmx1024m", "-jar", "serchServer.jar"]
+CMD ["java", "-jar", "serchServer.jar"]

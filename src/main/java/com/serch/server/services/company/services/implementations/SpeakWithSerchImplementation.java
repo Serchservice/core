@@ -18,6 +18,7 @@ import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -32,6 +33,7 @@ public class SpeakWithSerchImplementation implements SpeakWithSerchService {
     private final IssueRepository issueRepository;
 
     @Override
+    @Transactional
     public ApiResponse<SpeakWithSerchResponse> lodgeIssue(IssueRequest request) {
         User user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new CompanyException("User not found"));
@@ -87,6 +89,7 @@ public class SpeakWithSerchImplementation implements SpeakWithSerchService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<SpeakWithSerchResponse>> message() {
         User user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new CompanyException("User not found"));
@@ -104,6 +107,7 @@ public class SpeakWithSerchImplementation implements SpeakWithSerchService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<SpeakWithSerchResponse>> markRead(String ticket) {
         User user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new CompanyException("User not found"));
@@ -121,6 +125,7 @@ public class SpeakWithSerchImplementation implements SpeakWithSerchService {
     }
 
     @Override
+    @Transactional
     public void removeOldContents() {
         LocalDateTime date = LocalDateTime.now().minusYears(5);
         List<SpeakWithSerch> list = speakWithSerchRepository.findByCreatedAtBefore(date);

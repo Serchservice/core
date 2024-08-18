@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.validator.internal.util.DomainNameUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
@@ -63,6 +64,7 @@ public class NewsletterImplementation implements NewsletterService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> subscribe(String emailAddress) {
         if(emailAddress == null || emailAddress.isEmpty()) {
             return new ApiResponse<>("Email address must not be empty");
@@ -83,6 +85,7 @@ public class NewsletterImplementation implements NewsletterService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> unsubscribe(String emailAddress) {
         if(emailAddress == null || emailAddress.isEmpty()) {
             return new ApiResponse<>("Email address must not be empty");

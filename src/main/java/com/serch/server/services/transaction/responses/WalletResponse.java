@@ -17,6 +17,9 @@ public class WalletResponse {
     private String uncleared;
     private Integer payday;
 
+    @JsonProperty("next_payday")
+    private String nextPayday;
+
     @JsonProperty("payout_on_payday")
     private Boolean payoutOnPayday;
 }

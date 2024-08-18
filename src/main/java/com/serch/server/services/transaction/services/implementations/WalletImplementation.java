@@ -38,11 +38,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -78,6 +80,7 @@ public class WalletImplementation implements WalletService {
     private static final Integer PAYDAY = 3;
 
     @Override
+    @Transactional
     public void create(User user) {
         if(walletRepository.existsByUser_Id(user.getId())) {
             return;
@@ -93,11 +96,13 @@ public class WalletImplementation implements WalletService {
     }
 
     @Override
+    @Transactional
     public void undo(User user) {
         walletRepository.findByUser_Id(user.getId()).ifPresent(walletRepository::delete);
     }
 
     @Override
+    @Transactional
     public ApiResponse<InitializePaymentData> fund(FundWalletRequest request) {
         Wallet wallet = walletRepository.findByUser_Id(userUtil.getUser().getId())
                 .orElseThrow(() -> new WalletException("User wallet not found"));
@@ -110,7 +115,8 @@ public class WalletImplementation implements WalletService {
         }
     }
 
-    private void saveCreditTransaction(FundWalletRequest request, Wallet wallet, InitializePaymentData data) {
+    @Transactional
+    protected void saveCreditTransaction(FundWalletRequest request, Wallet wallet, InitializePaymentData data) {
         Transaction transaction = new Transaction();
         transaction.setAmount(BigDecimal.valueOf(request.getAmount()));
         transaction.setType(TransactionType.FUNDING);
@@ -123,7 +129,8 @@ public class WalletImplementation implements WalletService {
         transactionRepository.save(transaction);
     }
 
-    private InitializePaymentData initializePayment(FundWalletRequest request, Wallet wallet) {
+    @Transactional
+    protected InitializePaymentData initializePayment(FundWalletRequest request, Wallet wallet) {
         InitializePaymentRequest paymentRequest = new InitializePaymentRequest();
         paymentRequest.setAmount(String.valueOf(request.getAmount()));
         paymentRequest.setEmail(wallet.getUser().getEmailAddress());
@@ -132,6 +139,7 @@ public class WalletImplementation implements WalletService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<WalletResponse> verify(String reference) {
         Transaction transaction = transactionRepository.findByReference(reference)
                 .orElseThrow(() -> new WalletException("Transaction not found"));
@@ -164,7 +172,8 @@ public class WalletImplementation implements WalletService {
         }
     }
 
-    private void creditWallet(BigDecimal amount) {
+    @Transactional
+    protected void creditWallet(BigDecimal amount) {
         walletRepository.findByUser_Id(userUtil.getUser().getId())
                 .ifPresent(wallet -> {
                     wallet.setDeposit(wallet.getDeposit().add(amount));
@@ -174,6 +183,7 @@ public class WalletImplementation implements WalletService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> withdraw(WithdrawRequest request) {
         Wallet wallet = walletRepository.findByUser_Id(userUtil.getUser().getId())
                 .orElseThrow(() -> new WalletException("User wallet not found"));
@@ -197,7 +207,8 @@ public class WalletImplementation implements WalletService {
         }
     }
 
-    private void saveDebitTransaction(BigDecimal amount, Wallet wallet) {
+    @Transactional
+    protected void saveDebitTransaction(BigDecimal amount, Wallet wallet) {
         Transaction transaction = new Transaction();
         transaction.setSender(String.valueOf(userUtil.getUser().getId()));
         transaction.setType(TransactionType.WITHDRAW);
@@ -216,6 +227,7 @@ public class WalletImplementation implements WalletService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<WalletResponse> view() {
         Wallet wallet = walletRepository.findByUser_Id(userUtil.getUser().getId())
                 .orElseThrow(() -> new WalletException("User wallet not found"));
@@ -226,6 +238,7 @@ public class WalletImplementation implements WalletService {
         response.setUncleared(MoneyUtil.formatToNaira(wallet.getUncleared()));
         response.setPayout(MoneyUtil.formatToNaira(wallet.getPayout()));
         response.setWallet(wallet(wallet.getId()));
+        response.setNextPayday(formatNextPayday(wallet));
         return new ApiResponse<>(response);
     }
 
@@ -238,6 +251,7 @@ public class WalletImplementation implements WalletService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> update(WalletUpdateRequest request) {
         Wallet wallet = walletRepository.findByUser_Id(userUtil.getUser().getId())
                 .orElseThrow(() -> new WalletException("User wallet not found"));
@@ -274,6 +288,7 @@ public class WalletImplementation implements WalletService {
     }
 
     @Override
+    @Transactional
     public void processTip2FixCallPayment(String channel, UUID sender, Profile receiver) {
         UUID recipientId = receiver.getId();
         if(receiver.isAssociate()) {
@@ -282,7 +297,13 @@ public class WalletImplementation implements WalletService {
 
         Transaction transaction = getTip2FixTransaction(sender, recipientId, channel);
         walletRepository.findByUser_Id(sender).ifPresentOrElse(wallet -> {
-            wallet.setBalance(wallet.getBalance().subtract(transaction.getAmount()));
+            if(wallet.getDeposit().compareTo(transaction.getAmount()) > 0) {
+                wallet.setDeposit(wallet.getDeposit().subtract(transaction.getAmount()));
+            } else {
+                BigDecimal debit = transaction.getAmount().subtract(wallet.getDeposit());
+                wallet.setBalance(wallet.getBalance().subtract(debit));
+                wallet.setDeposit(BigDecimal.ZERO);
+            }
             wallet.setUpdatedAt(LocalDateTime.now());
             walletRepository.save(wallet);
         }, () -> {
@@ -302,7 +323,8 @@ public class WalletImplementation implements WalletService {
         transactionRepository.save(transaction);
     }
 
-    private Transaction getTip2FixTransaction(UUID sender, UUID recipientId, String channel) {
+    @Transactional
+    protected Transaction getTip2FixTransaction(UUID sender, UUID recipientId, String channel) {
         Transaction transaction = new Transaction();
         transaction.setSender(String.valueOf(sender));
         transaction.setType(TransactionType.TIP2FIX);
@@ -317,6 +339,7 @@ public class WalletImplementation implements WalletService {
     }
 
     @Override
+    @Transactional
     public void checkBalanceForTip2Fix(UUID caller) {
         Wallet wallet = walletRepository.findByUser_Id(caller)
                 .orElseThrow(() -> new WalletException("You need to have a Serch wallet to place T2F calls"));
@@ -336,6 +359,7 @@ public class WalletImplementation implements WalletService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<TransactionGroupResponse>> recent() {
         Pageable pageable = PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Transaction> page = transactionRepository.findRecentBySenderOrReceiver(String.valueOf(userUtil.getUser().getId()), pageable);
@@ -362,7 +386,8 @@ public class WalletImplementation implements WalletService {
         return new ApiResponse<>(list);
     }
 
-    private TransactionResponse response(Transaction transaction) {
+    @Transactional
+    protected TransactionResponse response(Transaction transaction) {
         return switch (transaction.getType()) {
             case FUNDING -> prepareFundingTransactionResponse(transaction);
             case WITHDRAW -> prepareWithdrawTransactionResponse(transaction);
@@ -374,7 +399,8 @@ public class WalletImplementation implements WalletService {
         };
     }
 
-    private TransactionResponse prepareFundingTransactionResponse(Transaction transaction) {
+    @Transactional
+    protected TransactionResponse prepareFundingTransactionResponse(Transaction transaction) {
         TransactionResponse response = new TransactionResponse();
         response.setIsIncoming(true);
         response.setLabel(TimeUtil.formatDay(transaction.getCreatedAt()));
@@ -420,7 +446,8 @@ public class WalletImplementation implements WalletService {
         return response;
     }
 
-    private TransactionResponse prepareScheduleTransactionResponse(Transaction transaction) {
+    @Transactional
+    protected TransactionResponse prepareScheduleTransactionResponse(Transaction transaction) {
         boolean isIncoming = String.valueOf(userUtil.getUser().getId()).equals(transaction.getAccount());
         TransactionResponse response = getResponse(transaction, isIncoming);
 
@@ -437,7 +464,8 @@ public class WalletImplementation implements WalletService {
         return response;
     }
 
-    private TransactionResponse getResponse(Transaction transaction, boolean isIncoming) {
+    @Transactional
+    protected TransactionResponse getResponse(Transaction transaction, boolean isIncoming) {
         String account = walletRepository.findByUser_Id(UUID.fromString(transaction.getAccount()))
                 .map(wallet -> wallet(wallet.getId()))
                 .orElse("Wallet");
@@ -452,7 +480,8 @@ public class WalletImplementation implements WalletService {
         return response;
     }
 
-    private String prepareScheduleDescription(Transaction transaction, boolean isIncoming) {
+    @Transactional
+    protected String prepareScheduleDescription(Transaction transaction, boolean isIncoming) {
         if(isIncoming) {
             if(transaction.getVerified() && transaction.getStatus() == TransactionStatus.SUCCESSFUL) {
                 return String.format(
@@ -508,7 +537,8 @@ public class WalletImplementation implements WalletService {
         }
     }
 
-    private String getScheduleParticipant(Transaction transaction) {
+    @Transactional
+    protected String getScheduleParticipant(Transaction transaction) {
         return scheduleRepository.findById(transaction.getEvent()).map(schedule -> {
             /// If user is the same person that closed the schedule
             if(schedule.getUser().isSameAs(schedule.getClosedBy()) ) {
@@ -540,7 +570,8 @@ public class WalletImplementation implements WalletService {
         ));
     }
 
-    private TransactionResponse prepareTip2FixTransactionResponse(Transaction transaction) {
+    @Transactional
+    protected TransactionResponse prepareTip2FixTransactionResponse(Transaction transaction) {
         boolean isIncoming = userUtil.getUser().getRole() != Role.USER;
         TransactionResponse response = getResponse(transaction, isIncoming);
 
@@ -557,7 +588,8 @@ public class WalletImplementation implements WalletService {
         return response;
     }
 
-    private String prepareCallDescription(Transaction transaction, boolean isIncoming) {
+    @Transactional
+    protected String prepareCallDescription(Transaction transaction, boolean isIncoming) {
         if(isIncoming) {
             if(transaction.getVerified() && transaction.getStatus() == TransactionStatus.SUCCESSFUL) {
                 return String.format(
@@ -603,7 +635,8 @@ public class WalletImplementation implements WalletService {
         }
     }
 
-    private TransactionResponse prepareTripShareTransactionResponse(Transaction transaction) {
+    @Transactional
+    protected TransactionResponse prepareTripShareTransactionResponse(Transaction transaction) {
         boolean isIncoming = String.valueOf(userUtil.getUser().getId()).equals(transaction.getAccount());
         TransactionResponse response = getResponse(transaction, isIncoming);
 
@@ -620,7 +653,8 @@ public class WalletImplementation implements WalletService {
         return response;
     }
 
-    private String prepareTripShareDescription(Transaction transaction) {
+    @Transactional
+    protected String prepareTripShareDescription(Transaction transaction) {
         if(userUtil.getUser().isBusiness()) {
             return String.format(
                     "This is the amount sent to the user that shared %s based on the attended trip %s",
@@ -634,7 +668,8 @@ public class WalletImplementation implements WalletService {
         }
     }
 
-    private TransactionResponse prepareTripChargeTransactionResponse(Transaction transaction) {
+    @Transactional
+    protected TransactionResponse prepareTripChargeTransactionResponse(Transaction transaction) {
         TransactionResponse response = getResponse(transaction, false);
         response.setRecipient("Service Fee");
 
@@ -652,7 +687,8 @@ public class WalletImplementation implements WalletService {
         return response;
     }
 
-    private String prepareTripChargeDescription(Transaction transaction) {
+    @Transactional
+    protected String prepareTripChargeDescription(Transaction transaction) {
         if(userUtil.getUser().isBusiness()) {
             return String.format(
                     "This is a trip charge for %s based on the attended trip %s",
@@ -665,6 +701,7 @@ public class WalletImplementation implements WalletService {
     }
 
     @Override
+    @Transactional
     public void processPaydays() {
         List<Wallet> wallets = walletRepository.findAll();
         if(!wallets.isEmpty()) {
@@ -684,8 +721,26 @@ public class WalletImplementation implements WalletService {
     }
 
     private boolean isPayday(Wallet wallet, LocalDate today) {
-        long daysSinceLastPayday = ChronoUnit.DAYS.between(wallet.getLastPayday(), today);
+        LocalDate nextPayday = getNextPayday(wallet, today);
+        return !today.isBefore(nextPayday) && today.isEqual(nextPayday);
+    }
+
+    private LocalDate getNextPayday(Wallet wallet, LocalDate today) {
+        LocalDate lastPayday = wallet.getLastPayday() != null ? wallet.getLastPayday() : today.minusDays(365);
+        long daysSinceLastPayday = ChronoUnit.DAYS.between(lastPayday, today);
         long daysToNextPayday = wallet.getPayday() - (daysSinceLastPayday % wallet.getPayday());
-        return daysToNextPayday <= PAYDAY;
+        LocalDate nextPayday = lastPayday.plusDays(daysToNextPayday);
+        return nextPayday.isBefore(today) ? nextPayday.plusDays(wallet.getPayday()) : nextPayday;
+    }
+
+    public String formatNextPayday(Wallet wallet) {
+        if(wallet.getPayoutOnPayday()) {
+            LocalDate today = LocalDate.now();
+            LocalDate nextPayday = getNextPayday(wallet, today);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d'th', MMMM, yyyy");
+            return nextPayday.format(formatter);
+        } else {
+            return "not set";
+        }
     }
 }

@@ -14,6 +14,7 @@ import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -27,6 +28,7 @@ public class AdminActivityImplementation implements AdminActivityService {
     private final AdminRepository adminRepository;
 
     @Override
+    @Transactional
     public List<AdminActivityResponse> activities(UUID id) {
         Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AuthException("Admin not found"));
@@ -45,6 +47,7 @@ public class AdminActivityImplementation implements AdminActivityService {
     }
 
     @Override
+    @Transactional
     public List<AdminActivityResponse> activities() {
         Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AuthException("Admin not found"));
@@ -154,6 +157,7 @@ public class AdminActivityImplementation implements AdminActivityService {
     }
 
     @Override
+    @Transactional
     public void create(ActivityMode mode, String associated, String account, Admin admin) {
         AdminActivity activity = new AdminActivity();
         activity.setAdmin(admin);
@@ -164,6 +168,7 @@ public class AdminActivityImplementation implements AdminActivityService {
     }
 
     @Override
+    @Transactional
     public void create(ActivityMode mode, String associated, String account, User user) {
         Admin admin = adminRepository.findById(user.getId())
                 .orElseThrow(() -> new AuthException("Admin not found"));

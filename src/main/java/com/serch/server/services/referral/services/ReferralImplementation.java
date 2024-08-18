@@ -13,6 +13,7 @@ import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -33,6 +34,7 @@ public class ReferralImplementation implements ReferralService {
     private final BusinessProfileRepository businessProfileRepository;
 
     @Override
+    @Transactional
     public void create(User referral, User referredBy) {
         Referral refer = new Referral();
         refer.setReferral(referral);
@@ -41,11 +43,13 @@ public class ReferralImplementation implements ReferralService {
     }
 
     @Override
+    @Transactional
     public void undo(User user) {
         referralRepository.findByReferral_Id(user.getId()).ifPresent(referralRepository::delete);
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<ReferralResponse>> viewReferrals() {
         List<Referral> referrals = referralRepository.findByReferredBy_User_EmailAddress(UserUtil.getLoginUser());
         List<ReferralResponse> list = new ArrayList<>();
@@ -71,6 +75,7 @@ public class ReferralImplementation implements ReferralService {
     }
 
     @Override
+    @Transactional
     public String getAvatar(User user) {
         return profileRepository.findById(user.getId())
                 .map(Profile::getAvatar)

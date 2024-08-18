@@ -33,6 +33,7 @@ import io.jsonwebtoken.MalformedJwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -60,6 +61,7 @@ public class SessionImplementation implements SessionService {
     private final AdminRepository adminRepository;
 
     @Override
+    @Transactional
     public void revokeAllRefreshTokens(UUID userId) {
         var refreshTokens = refreshTokenRepository.findByUser_Id(userId);
         if(!refreshTokens.isEmpty()) {
@@ -74,6 +76,7 @@ public class SessionImplementation implements SessionService {
     }
 
     @Override
+    @Transactional
     public void revokeAllSessions(UUID userId) {
         var sessions = sessionRepository.findByUser_Id(userId);
         if(!sessions.isEmpty()) {
@@ -108,6 +111,7 @@ public class SessionImplementation implements SessionService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<AuthResponse> generateSession(RequestSession request) {
         request.getUser().check();
         revokeAllSessions(request.getUser().getId());
@@ -181,6 +185,7 @@ public class SessionImplementation implements SessionService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<SessionResponse> refreshSession(String token) {
         try {
             var userId = UUID.fromString(jwtService.getItemFromToken(token, "serch_id"));
@@ -231,6 +236,7 @@ public class SessionImplementation implements SessionService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> validateSession(String token, String state, String country) {
         try {
             if(jwtService.isTokenExpired(token)) {
@@ -286,11 +292,13 @@ public class SessionImplementation implements SessionService {
     }
 
     @Override
+    @Transactional
     public User validate(String token) {
         return null;
     }
 
     @Override
+    @Transactional
     public void signOut() {
         var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AuthException("User not found", ExceptionCodes.USER_NOT_FOUND));
@@ -299,6 +307,7 @@ public class SessionImplementation implements SessionService {
     }
 
     @Override
+    @Transactional
     public void updateLastSignedIn() {
         userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser()).ifPresent(user -> {
             user.setLastSignedIn(LocalDateTime.now());

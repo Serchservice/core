@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -47,18 +48,19 @@ public class ActiveImplementation implements ActiveService {
     private final BusinessProfileRepository businessProfileRepository;
 
     @Override
+    @Transactional
     public ApiResponse<ProviderStatus> toggleStatus(OnlineRequest request) {
         if(userUtil.getUser().isProvider()) {
             Optional<Active> existing = activeRepository.findByProfile_Id(userUtil.getUser().getId());
             if(existing.isPresent()) {
-                if(existing.get().getProviderStatus() == ProviderStatus.ONLINE) {
-                    existing.get().setProviderStatus(ProviderStatus.OFFLINE);
+                if(existing.get().getStatus() == ProviderStatus.ONLINE) {
+                    existing.get().setStatus(ProviderStatus.OFFLINE);
                     existing.get().setUpdatedAt(LocalDateTime.now());
                     updateActive(request, existing.get());
                     activeRepository.save(existing.get());
                     return new ApiResponse<>(ProviderStatus.OFFLINE);
-                } else if(existing.get().getProviderStatus() == ProviderStatus.OFFLINE) {
-                    existing.get().setProviderStatus(ProviderStatus.ONLINE);
+                } else if(existing.get().getStatus() == ProviderStatus.OFFLINE) {
+                    existing.get().setStatus(ProviderStatus.ONLINE);
                     existing.get().setUpdatedAt(LocalDateTime.now());
                     updateActive(request, existing.get());
                     activeRepository.save(existing.get());
@@ -70,7 +72,7 @@ public class ActiveImplementation implements ActiveService {
                 Profile profile = profileRepository.findById(userUtil.getUser().getId())
                         .orElseThrow(() -> new TripException("Profile not found"));
                 Active active = TripMapper.INSTANCE.active(request);
-                active.setProviderStatus(ProviderStatus.ONLINE);
+                active.setStatus(ProviderStatus.ONLINE);
                 active.setProfile(profile);
                 activeRepository.save(active);
                 return new ApiResponse<>("Success", ProviderStatus.ONLINE, HttpStatus.CREATED);
@@ -98,17 +100,19 @@ public class ActiveImplementation implements ActiveService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<ProviderStatus> fetchStatus() {
         return new ApiResponse<>(
                 "Success",
                 activeRepository.findByProfile_Id(userUtil.getUser().getId())
-                        .map(Active::getProviderStatus)
+                        .map(Active::getStatus)
                         .orElse(ProviderStatus.OFFLINE),
                 HttpStatus.OK
         );
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<ActiveResponse>> activeList() {
         BusinessProfile business = businessProfileRepository.findById(userUtil.getUser().getId())
                 .orElseThrow(() -> new AccountException("Access denied"));
@@ -121,7 +125,7 @@ public class ActiveImplementation implements ActiveService {
                         ActiveResponse response = new ActiveResponse();
                         response.setName(profile.getFullName());
                         response.setAvatar(profile.getAvatar());
-                        response.setStatus(active != null ? active.getProviderStatus() : ProviderStatus.OFFLINE);
+                        response.setStatus(active != null ? active.getStatus() : ProviderStatus.OFFLINE);
                         response.setCategory(profile.getCategory().getType());
                         response.setImage(profile.getCategory().getImage());
                         return response;
@@ -134,10 +138,11 @@ public class ActiveImplementation implements ActiveService {
     }
 
     @Override
+    @Transactional
     public void toggle(User user, ProviderStatus status, OnlineRequest request) {
         activeRepository.findByProfile_Id(user.getId())
                 .ifPresentOrElse(active -> {
-                    active.setProviderStatus(status);
+                    active.setStatus(status);
                     active.setUpdatedAt(LocalDateTime.now());
 
                     if(request != null) {
@@ -152,7 +157,7 @@ public class ActiveImplementation implements ActiveService {
                         .ifPresent(profile -> {
                             if(request != null) {
                                 Active active = TripMapper.INSTANCE.active(request);
-                                active.setProviderStatus(status);
+                                active.setStatus(status);
                                 active.setProfile(profile);
                                 activeRepository.save(active);
 
@@ -165,6 +170,7 @@ public class ActiveImplementation implements ActiveService {
     }
 
     @Override
+    @Transactional
     public MapViewResponse getLocation(User user) {
         Active active = activeRepository.findByProfile_Id(user.getId()).orElse(null);
 

@@ -14,6 +14,7 @@ import com.serch.server.repositories.company.ComplaintRepository;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -28,6 +29,7 @@ public class ComplaintScopeImplementation implements ComplaintScopeService {
     private final AdminRepository adminRepository;
 
     @Override
+    @Transactional
     public ApiResponse<List<ComplaintScopeResponse>> complaints() {
         List<Complaint> complaintList = complaintRepository.findAll();
 
@@ -65,6 +67,7 @@ public class ComplaintScopeImplementation implements ComplaintScopeService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<ComplaintScopeResponse>> resolve(String id) {
         Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AuthException("Admin not found"));
@@ -78,6 +81,7 @@ public class ComplaintScopeImplementation implements ComplaintScopeService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<ComplaintScopeResponse> complaint(String emailAddress) {
         List<Complaint> complaintList = complaintRepository.findByEmailAddress(emailAddress);
         if(complaintList.isEmpty()) {

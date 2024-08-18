@@ -13,6 +13,7 @@ import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -32,6 +33,7 @@ public class BookmarkImplementation implements BookmarkService {
     private final BookmarkRepository bookmarkRepository;
 
     @Override
+    @Transactional
     public ApiResponse<String> add(AddBookmarkRequest request) {
         Profile user = profileRepository.findById(userUtil.getUser().getId())
                 .orElseThrow(() -> new BookmarkException("User profile not found"));
@@ -53,6 +55,7 @@ public class BookmarkImplementation implements BookmarkService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> remove(String bookmarkId) {
         bookmarkRepository.findByBookmarkIdAndUser_Id(bookmarkId, userUtil.getUser().getId())
                 .ifPresentOrElse(
@@ -64,6 +67,7 @@ public class BookmarkImplementation implements BookmarkService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<BookmarkResponse>> bookmarks() {
         List<BookmarkResponse> list = new ArrayList<>();
 

@@ -29,6 +29,7 @@ import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -69,6 +70,7 @@ public class RatingImplementation implements RatingService {
     private final BusinessProfileRepository businessProfileRepository;
 
     @Override
+    @Transactional
     public ApiResponse<String> rate(RateRequest request) {
         callRepository.findById(request.getId())
                 .ifPresentOrElse(call -> rateCall(call, request), () -> tripRepository.findById(request.getId())
@@ -240,6 +242,7 @@ public class RatingImplementation implements RatingService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<RatingResponse> rate(RateAppRequest request) {
         String account = getAccount(request.getAccount());
         if(request.getRating() != null) {
@@ -286,12 +289,14 @@ public class RatingImplementation implements RatingService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<RatingResponse>> view() {
         List<Rating> ratings = ratingRepository.findByRated(String.valueOf(userUtil.getUser().getId()));
         return ratings(ratings);
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<RatingResponse>> good(String id) {
         String user = id == null ? String.valueOf(userUtil.getUser().getId()) : id;
         List<Rating> ratings = ratingRepository.findGood(user);
@@ -299,6 +304,7 @@ public class RatingImplementation implements RatingService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<RatingResponse>> ratings(List<Rating> ratings) {
         List<RatingResponse> list = new ArrayList<>();
 
@@ -328,6 +334,7 @@ public class RatingImplementation implements RatingService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<RatingResponse>> bad(String id) {
         String user = id == null ? String.valueOf(userUtil.getUser().getId()) : id;
         List<Rating> ratings = ratingRepository.findBad(user);
@@ -335,6 +342,7 @@ public class RatingImplementation implements RatingService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<RatingChartResponse>> chart(String id) {
         String user = id == null ? String.valueOf(userUtil.getUser().getId()) : id;
         List<Object[]> resultList = ratingRepository.chart(user);
@@ -372,6 +380,7 @@ public class RatingImplementation implements RatingService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<RatingResponse> app(String account) {
         AppRating rating = appRatingRepository.findByAccount(getAccount(account))
                 .orElse(new AppRating());

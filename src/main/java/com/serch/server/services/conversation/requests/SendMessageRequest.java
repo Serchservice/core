@@ -10,6 +10,6 @@ public class SendMessageRequest {
     private String message;
     private FileUploadRequest file;
     private MessageType type = MessageType.TEXT;
-    private String duration = null;
-    private String replied = null;
+    private String duration;
+    private String replied;
 }

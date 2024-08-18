@@ -27,6 +27,7 @@ import com.serch.server.utils.AdminUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -44,6 +45,7 @@ public class CountriesInSerchImplementation implements CountriesInSerchService {
     private final GuestRepository guestRepository;
 
     @Override
+    @Transactional
     public ApiResponse<CountriesInSerchResponse> overview() {
         CountriesInSerchResponse response = new CountriesInSerchResponse();
 
@@ -83,6 +85,7 @@ public class CountriesInSerchImplementation implements CountriesInSerchService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<ChartMetric>> launchedCountryChart(Integer year) {
         List<ChartMetric> chartMetrics = new ArrayList<>();
         List<LaunchedCountry> launchedCountries = launchedCountryRepository.findAll();
@@ -111,6 +114,7 @@ public class CountriesInSerchImplementation implements CountriesInSerchService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<ChartMetric>> launchedStateChart(Integer year) {
         List<ChartMetric> chartMetrics = new ArrayList<>();
         List<LaunchedState> launchedStates = launchedStateRepository.findAll();
@@ -129,6 +133,7 @@ public class CountriesInSerchImplementation implements CountriesInSerchService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<ChartMetric>> requestedCountryChart(Integer year) {
         List<ChartMetric> chartMetrics = new ArrayList<>();
         List<RequestedCountry> requestedCountries = requestedCountryRepository.findAll();
@@ -147,6 +152,7 @@ public class CountriesInSerchImplementation implements CountriesInSerchService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<ChartMetric>> requestedStateChart(Integer year) {
         List<ChartMetric> chartMetrics = new ArrayList<>();
         List<RequestedState> requestedStates = requestedStateRepository.findAll();
@@ -165,6 +171,7 @@ public class CountriesInSerchImplementation implements CountriesInSerchService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<CountryInSerchResponse>> launchedCountries() {
         List<CountryInSerchResponse> response = launchedCountryRepository.findAll()
                 .stream()
@@ -175,6 +182,7 @@ public class CountriesInSerchImplementation implements CountriesInSerchService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<CountryInSerchResponse>> requestedCountries() {
         List<CountryInSerchResponse> response = requestedCountryRepository.findAll()
                 .stream()
@@ -185,6 +193,7 @@ public class CountriesInSerchImplementation implements CountriesInSerchService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<CountryInSerchResponse>> add(AddCountryRequest request) {
         LaunchedCountry country = AdminCompanyMapper.instance.country(request);
         launchedCountryRepository.save(country);
@@ -201,6 +210,7 @@ public class CountriesInSerchImplementation implements CountriesInSerchService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<CountryInSerchResponse> add(AddStateRequest request) {
         LaunchedCountry country = launchedCountryRepository.findById(request.getId())
                 .orElseThrow(() -> new SerchException("Country not found"));
@@ -218,6 +228,7 @@ public class CountriesInSerchImplementation implements CountriesInSerchService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<CountryInSerchResponse> toggleStatus(Long id) {
         LaunchedCountry country = launchedCountryRepository.findById(id)
                 .orElseThrow(() -> new SerchException("Country not found"));
@@ -236,6 +247,7 @@ public class CountriesInSerchImplementation implements CountriesInSerchService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<CountryInSerchResponse>> deleteLaunchedCountry(Long id) {
         LaunchedCountry country = launchedCountryRepository.findById(id)
                 .orElseThrow(() -> new SerchException("Country not found"));
@@ -253,6 +265,7 @@ public class CountriesInSerchImplementation implements CountriesInSerchService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<CountryInSerchResponse> deleteLaunched(Long id) {
         LaunchedState state = launchedStateRepository.findById(id)
                 .orElseThrow(() -> new SerchException("State not found"));
@@ -278,6 +291,7 @@ public class CountriesInSerchImplementation implements CountriesInSerchService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<CountryInSerchResponse>> deleteRequestedCountry(Long id) {
         RequestedCountry country = requestedCountryRepository.findById(id)
                 .orElseThrow(() -> new SerchException("Country not found"));
@@ -295,6 +309,7 @@ public class CountriesInSerchImplementation implements CountriesInSerchService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<CountryInSerchResponse> deleteRequested(Long id) {
         RequestedState state = requestedStateRepository.findById(id)
                 .orElseThrow(() -> new SerchException("State not found"));

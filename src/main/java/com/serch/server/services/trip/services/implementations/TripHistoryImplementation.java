@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -76,6 +77,7 @@ public class TripHistoryImplementation implements TripHistoryService {
     private String MAP_SEARCH_RADIUS;
 
     @Override
+    @Transactional
     public TripResponse response(String id, String userId) {
         TripInvite invite = tripInviteRepository.findById(id).orElseThrow(() -> new TripException("Invite not found"));
         TripResponse response = TripMapper.INSTANCE.response(invite);
@@ -165,7 +167,8 @@ public class TripHistoryImplementation implements TripHistoryService {
                 .toList();
     }
 
-    private UserResponse buildUserResponse(String id, String trip) {
+    @Transactional
+    protected UserResponse buildUserResponse(String id, String trip) {
         UserResponse response = new UserResponse();
         try {
             profileRepository.findById(UUID.fromString(id)).ifPresent(profile -> buildUserResponse(profile, trip));
@@ -187,7 +190,8 @@ public class TripHistoryImplementation implements TripHistoryService {
         return response;
     }
 
-    private UserResponse buildUserResponse(Profile profile, String trip) {
+    @Transactional
+    protected UserResponse buildUserResponse(Profile profile, String trip) {
         UserResponse response = new UserResponse();
         response.setAvatar(profile.getAvatar());
         response.setName(profile.getFullName());
@@ -214,6 +218,7 @@ public class TripHistoryImplementation implements TripHistoryService {
     }
 
     @Override
+    @Transactional
     public TripResponse response(String id, String userId, @Nullable InitializePaymentData payment, boolean sendUpdate) {
         Trip trip = tripRepository.findById(id).orElseThrow(() -> new TripException("Trip not found"));
 
@@ -322,7 +327,8 @@ public class TripHistoryImplementation implements TripHistoryService {
         return response;
     }
 
-    private void addInvitedInformation(Trip trip, TripResponse response) {
+    @Transactional
+    protected void addInvitedInformation(Trip trip, TripResponse response) {
         if(trip.getInvited() != null) {
             TripShareResponse share = TripMapper.INSTANCE.share(trip.getInvited());
             if(trip.getInvited().getProvider() != null) {
@@ -358,7 +364,8 @@ public class TripHistoryImplementation implements TripHistoryService {
         return profile;
     }
 
-    private List<TripTimelineResponse> timeline(List<TripTimeline> timelines, TripActionResponse action, TripShare share) {
+    @Transactional
+    protected List<TripTimelineResponse> timeline(List<TripTimeline> timelines, TripActionResponse action, TripShare share) {
         boolean containsCancelled = matchesTimelineStatus(CANCELLED, timelines);
         boolean containsShareAccessGranted = matchesTimelineStatus(SHARE_ACCESS_GRANTED, timelines);
         boolean containsShareAccessDenied = matchesTimelineStatus(SHARE_ACCESS_DENIED, timelines);
@@ -439,6 +446,7 @@ public class TripHistoryImplementation implements TripHistoryService {
     }
 
     @Override
+    @Transactional
     public List<TripResponse> inviteHistory(String guestId, UUID userId, String linkId) {
         List<TripResponse> invites = new ArrayList<>();
 
@@ -494,7 +502,8 @@ public class TripHistoryImplementation implements TripHistoryService {
         return invites;
     }
 
-    private void buildUserList(List<TripResponse> invites, User user) {
+    @Transactional
+    protected void buildUserList(List<TripResponse> invites, User user) {
         invites.addAll(tripInviteRepository.findByAccount(String.valueOf(user.getId()))
                 .stream()
                 .sorted(Comparator.comparing(TripInvite::getUpdatedAt).reversed())
@@ -509,7 +518,8 @@ public class TripHistoryImplementation implements TripHistoryService {
                 .toList());
     }
 
-    private void buildProviderWaitingList(SerchCategory category, List<TripResponse> invites, User user) {
+    @Transactional
+    protected void buildProviderWaitingList(SerchCategory category, List<TripResponse> invites, User user) {
         invites.addAll(tripInviteRepository.sortAllWithinDistance(Double.parseDouble(MAP_SEARCH_RADIUS), category.name())
                 .stream()
                 .filter(invite -> invite.getSelected() == null)
@@ -532,6 +542,7 @@ public class TripHistoryImplementation implements TripHistoryService {
 
 
     @Override
+    @Transactional
     public ApiResponse<List<TripResponse>> history(String guest, String linkId, boolean sendUpdate, String tripId) {
         List<TripResponse> list;
 
@@ -568,6 +579,7 @@ public class TripHistoryImplementation implements TripHistoryService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<TripResponse>> history(String guest, String linkId) {
         return history(guest, linkId, false, null);
     }

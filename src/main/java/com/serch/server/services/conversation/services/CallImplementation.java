@@ -57,6 +57,7 @@ public class CallImplementation implements CallService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<ActiveCallResponse> start(StartCallRequest request) {
         Profile caller = profileRepository.findById(userUtil.getUser().getId())
                 .orElseThrow(() -> new CallException("User not found"));
@@ -112,6 +113,7 @@ public class CallImplementation implements CallService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> auth() {
         String token = User.createToken(String.valueOf(userUtil.getUser().getId()), null, null);
 
@@ -119,6 +121,7 @@ public class CallImplementation implements CallService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> auth(String channel) {
         Call call = callRepository.findById(channel).orElseThrow(() -> new CallException("Call not found"));
 
@@ -158,6 +161,7 @@ public class CallImplementation implements CallService {
                         return;
                     }
                 }
+
                 call.setStatus(CallStatus.ON_CALL);
                 call.setUpdatedAt(LocalDateTime.now());
                 callRepository.save(call);
@@ -212,7 +216,6 @@ public class CallImplementation implements CallService {
             try {
                 call.checkIfActive();
             } catch (Exception e) {
-                System.out.println(e);
                 sendError(e.getMessage(), call.getChannel());
             }
 
@@ -247,7 +250,7 @@ public class CallImplementation implements CallService {
 
     @Override
     @Transactional
-    public void end(String channel) {
+    public void end(String channel, String time) {
         Call call = callRepository.findById(channel).orElse(null);
         if(call == null) {
             sendError("Call not found", null);
@@ -259,7 +262,7 @@ public class CallImplementation implements CallService {
             }
             if(call.getCaller().isSameAs(userUtil.getUser().getId()) || call.getCalled().isSameAs(userUtil.getUser().getId())) {
                 call.setStatus(CallStatus.CLOSED);
-                call.setDuration(CallUtil.formatCallTimeFromDate(call.getUpdatedAt()));
+                call.setDuration(time);
                 call.setUpdatedAt(LocalDateTime.now());
                 callRepository.save(call);
 
@@ -278,8 +281,7 @@ public class CallImplementation implements CallService {
         if(call == null) {
             sendError("Call not found", null);
         } else {
-            int hours = CallUtil.getHours(duration);
-            if (hours >= 1 && hours > call.getSession()) {
+            if (CallUtil.isSession(duration)) {
                 try {
                     walletService.checkBalanceForTip2Fix(call.getCaller().getId());
                     walletService.processTip2FixCallPayment(call.getChannel(), call.getCaller().getId(), call.getCalled());
@@ -298,7 +300,20 @@ public class CallImplementation implements CallService {
                     call.setUpdatedAt(LocalDateTime.now());
                     callRepository.save(call);
 
-                    sendError(e.getMessage(), call.getChannel());
+                    if(call.getRetries() == 3) {
+                        sendError(
+                                "This call will automatically end due to insufficient funds to update call session.",
+                                call.getChannel()
+                        );
+                    } else {
+                        sendError(
+                                String.format(
+                                        "Couldn't process call session update due to insufficient funds. %s try.",
+                                        call.getRetries() == 1 ? "First" : "Second"
+                                ),
+                                call.getChannel()
+                        );
+                    }
 
                     if(call.getStatus() == CallStatus.CLOSED) {
                         sendToChannelMember(call, true);
@@ -310,6 +325,7 @@ public class CallImplementation implements CallService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<CallResponse>> logs() {
         List<CallResponse> list = new ArrayList<>();
 
@@ -321,7 +337,10 @@ public class CallImplementation implements CallService {
 
                     Call recent = calls.get(0);
                     response.setRecent(createCallInformation(recent));
-                    response.setMember(createCallMemberData(recent.getCalled()));
+                    response.setMember(recent.getCalled().isSameAs(userUtil.getUser().getId())
+                            ? createCallMemberData(recent.getCaller())
+                            : createCallMemberData(recent.getCalled())
+                    );
 
                     List<CallInformation> history = new ArrayList<>();
                     history.add(response.getRecent());
@@ -360,6 +379,7 @@ public class CallImplementation implements CallService {
     }
 
     @Override
+    @Transactional
     public void closeRingingCalls() {
         List<Call> calls  = callRepository.findAllRinging();
         if(calls != null && !calls.isEmpty()) {

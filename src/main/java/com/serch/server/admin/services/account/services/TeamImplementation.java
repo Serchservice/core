@@ -12,6 +12,7 @@ import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,6 +29,7 @@ public class TeamImplementation implements TeamService {
     private final AdminRepository adminRepository;
 
     @Override
+    @Transactional
     public ApiResponse<TeamOverviewResponse> overview() {
         TeamOverviewResponse response = new TeamOverviewResponse();
         response.setOverview(getOverview());
@@ -63,6 +65,7 @@ public class TeamImplementation implements TeamService {
     }
 
     @Override
+    @Transactional
     public CompanyStructure team() {
         Admin superAdmin = adminRepository.findByUser_Role(SUPER_ADMIN)
                 .orElseThrow(() -> new AdminException("Super admin not found"));
@@ -101,6 +104,7 @@ public class TeamImplementation implements TeamService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<AdminListResponse> admins() {
         AdminListResponse response = new AdminListResponse();
         response.setAdmins(groups());

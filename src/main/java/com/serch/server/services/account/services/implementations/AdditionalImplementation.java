@@ -14,6 +14,7 @@ import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This class implements the AdditionalService interface
@@ -32,6 +33,7 @@ public class AdditionalImplementation implements AdditionalService {
     private final AdditionalInformationRepository additionalInformationRepository;
 
     @Override
+    @Transactional
     public void createAdditional(RequestAdditionalInformation additional, Profile profile) {
         AdditionalInformation information = AuthMapper.INSTANCE.additional(additional);
         information.setProfile(profile);
@@ -39,6 +41,7 @@ public class AdditionalImplementation implements AdditionalService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<AdditionalInformationResponse> view() {
         AdditionalInformation information = additionalInformationRepository.findByProfile_Id(userUtil.getUser().getId())
                 .orElseThrow(() -> new AccountException("User has no additional profile"));

@@ -19,6 +19,7 @@ import com.serch.server.services.auth.services.SessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service implementation for managing authentication-related operations specific to businesses.
@@ -40,6 +41,7 @@ public class BusinessAuthImplementation implements BusinessAuthService {
     private final IncompleteRepository incompleteRepository;
 
     @Override
+    @Transactional
     public ApiResponse<AuthResponse> login(RequestLogin request) {
         var user = userRepository.findByEmailAddressIgnoreCase(request.getEmailAddress())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -52,6 +54,7 @@ public class BusinessAuthImplementation implements BusinessAuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<AuthResponse> signup(RequestBusinessProfile profile) {
         var incomplete = incompleteRepository.findByEmailAddress(profile.getEmailAddress())
                 .orElseThrow(() -> new AuthException("User not found"));

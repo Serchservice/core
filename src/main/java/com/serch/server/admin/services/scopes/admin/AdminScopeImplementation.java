@@ -27,6 +27,7 @@ import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -46,6 +47,7 @@ public class AdminScopeImplementation implements AdminScopeService {
     private final UserRepository userRepository;
 
     @Override
+    @Transactional
     public ApiResponse<AdminScopeResponse> fetch(UUID id) {
         Admin admin = adminRepository.findById(id)
                 .orElseThrow(() -> new AdminException("Admin not found"));
@@ -69,6 +71,7 @@ public class AdminScopeImplementation implements AdminScopeService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<ChartMetric>> fetchAuthChart(UUID id, Integer year) {
         Admin admin = adminRepository.findById(id)
                 .orElseThrow(() -> new AdminException("Admin not found"));
@@ -76,6 +79,7 @@ public class AdminScopeImplementation implements AdminScopeService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<ChartMetric>> fetchAccountStatusChart(UUID id, Integer year) {
         Admin admin = adminRepository.findById(id)
                 .orElseThrow(() -> new AdminException("Admin not found"));
@@ -83,6 +87,7 @@ public class AdminScopeImplementation implements AdminScopeService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> changeAvatar(FileUploadRequest request, UUID id) {
         Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AuthException("Admin not found"));
@@ -100,6 +105,7 @@ public class AdminScopeImplementation implements AdminScopeService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> changeStatus(ChangeStatusRequest request) {
         Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AuthException("Admin not found"));
@@ -116,6 +122,7 @@ public class AdminScopeImplementation implements AdminScopeService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> changeRole(ChangeRoleRequest request) {
         Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AuthException("Admin not found"));
@@ -145,6 +152,7 @@ public class AdminScopeImplementation implements AdminScopeService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<Boolean> toggle(UUID id) {
         Admin user = adminRepository.findById(id).orElseThrow(() -> new AuthException("Admin not found"));
         if(user.getMustHaveMFA()) {
@@ -161,6 +169,7 @@ public class AdminScopeImplementation implements AdminScopeService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> update(AdminProfileUpdateRequest request, UUID id) {
         Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AuthException("Admin not found"));
@@ -181,6 +190,7 @@ public class AdminScopeImplementation implements AdminScopeService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> delete(UUID id) {
         Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AuthException("Admin not found"));

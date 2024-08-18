@@ -12,6 +12,7 @@ import com.serch.server.repositories.trip.TripShareRepository;
 import com.serch.server.utils.AdminUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.TextStyle;
@@ -23,6 +24,7 @@ public class RequestSharingScopeImplementation implements RequestSharingScopeSer
     private final TripShareRepository tripShareRepository;
 
     @Override
+    @Transactional
     public ApiResponse<RequestSharingScopeOverviewResponse> overview() {
         RequestSharingScopeOverviewResponse response = new RequestSharingScopeOverviewResponse();
         response.setYears(AdminUtil.years());
@@ -96,16 +98,19 @@ public class RequestSharingScopeImplementation implements RequestSharingScopeSer
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<ChartMetric>> fetchOnlineChart(Integer year) {
         return new ApiResponse<>(onlineChart(year));
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<ChartMetric>> fetchOfflineChart(Integer year) {
         return new ApiResponse<>(offlineChart(year));
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<RequestSharingScopeResponse>> onlineList() {
         List<RequestSharingScopeResponse> list = new ArrayList<>();
         List<TripShare> shares = tripShareRepository.findByProviderNotNull();
@@ -126,6 +131,7 @@ public class RequestSharingScopeImplementation implements RequestSharingScopeSer
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<RequestSharingScopeResponse>> offlineList() {
         List<RequestSharingScopeResponse> list = new ArrayList<>();
         List<TripShare> shares = tripShareRepository.findByProviderNull();

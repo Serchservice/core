@@ -9,6 +9,7 @@ import com.serch.server.services.company.services.ComplaintService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,6 +20,7 @@ public class ComplaintImplementation implements ComplaintService {
     private final ComplaintRepository complaintRepository;
 
     @Override
+    @Transactional
     public ApiResponse<String> complain(ComplaintRequest request) {
         Complaint complaint = CompanyMapper.INSTANCE.complaint(request);
         complaintRepository.save(complaint);
@@ -26,6 +28,7 @@ public class ComplaintImplementation implements ComplaintService {
     }
 
     @Override
+    @Transactional
     public void removeOldContents() {
         LocalDateTime date = LocalDateTime.now().minusYears(5);
         List<Complaint> list = complaintRepository.findByCreatedAtBefore(date);

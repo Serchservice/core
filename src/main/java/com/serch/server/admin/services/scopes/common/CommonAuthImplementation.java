@@ -13,6 +13,7 @@ import com.serch.server.repositories.auth.SessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -27,6 +28,7 @@ public class CommonAuthImplementation implements CommonAuthService {
     private final SessionRepository sessionRepository;
 
     @Override
+    @Transactional
     public AccountMFAResponse mfa(User user) {
         if(user.getMfaFactor() == null) {
             return new AccountMFAResponse();
@@ -36,6 +38,7 @@ public class CommonAuthImplementation implements CommonAuthService {
     }
 
     @Override
+    @Transactional
     public List<AccountMFAChallengeResponse> challenges(User user) {
         if(user.getMfaFactor() == null) {
             return new ArrayList<>();
@@ -51,6 +54,7 @@ public class CommonAuthImplementation implements CommonAuthService {
     }
 
     @Override
+    @Transactional
     public List<AccountSessionResponse> sessions(User user) {
         List<Session> sessions = user.getSessions();
         if(sessions == null || sessions.isEmpty()) {
@@ -62,6 +66,7 @@ public class CommonAuthImplementation implements CommonAuthService {
     }
 
     @Override
+    @Transactional
     public AccountAuthResponse auth(User user) {
         AccountAuthResponse response = new AccountAuthResponse();
         response.setHasMFA(user.hasMFA());

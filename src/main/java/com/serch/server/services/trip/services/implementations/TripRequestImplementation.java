@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -73,6 +74,7 @@ public class TripRequestImplementation implements TripRequestService {
     private String MAP_SEARCH_RADIUS;
 
     @Override
+    @Transactional
     public ApiResponse<TripResponse> invite(TripInviteRequest request) {
         if(request.getCategory() != null) {
             validateInviteRequest(request);
@@ -105,7 +107,8 @@ public class TripRequestImplementation implements TripRequestService {
         }
     }
 
-    private TripInvite create(TripInviteRequest request, String account, TripMode mode, String linkId) {
+    @Transactional
+    protected TripInvite create(TripInviteRequest request, String account, TripMode mode, String linkId) {
         TripInvite trip = TripMapper.INSTANCE.request(request);
         trip.setAccount(account);
         trip.setMode(mode);
@@ -118,7 +121,8 @@ public class TripRequestImplementation implements TripRequestService {
         return tripInviteRepository.save(trip);
     }
 
-    private void saveShoppingData(TripInviteRequest request, TripInvite trip) {
+    @Transactional
+    protected void saveShoppingData(TripInviteRequest request, TripInvite trip) {
         if(request.getShoppingLocation() != null) {
             ShoppingLocation shoppingLocation = TripMapper.INSTANCE.shopping(request.getShoppingLocation());
             shoppingLocation.setInvite(trip);
@@ -133,7 +137,8 @@ public class TripRequestImplementation implements TripRequestService {
         });
     }
 
-    private void pingServiceProviders(TripInviteRequest request, TripInvite trip, String name, String account) {
+    @Transactional
+    protected void pingServiceProviders(TripInviteRequest request, TripInvite trip, String name, String account) {
         CompletableFuture.runAsync(() -> {
             List<Active> actives = activeRepository.sortAllWithinDistance(
                     request.getLatitude(), request.getLongitude(),
@@ -158,6 +163,7 @@ public class TripRequestImplementation implements TripRequestService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<TripResponse> invite(String guestId, String linkId, TripInviteRequest request) {
         validateInviteRequest(request);
 
@@ -196,6 +202,7 @@ public class TripRequestImplementation implements TripRequestService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<TripResponse> sendQuotation(QuotationRequest request) {
         if(request.getAmount() != null) {
             TripInvite trip = tripInviteRepository.findById(request.getId())
@@ -264,7 +271,8 @@ public class TripRequestImplementation implements TripRequestService {
         }
     }
 
-    private TripResponse response(String trip, String acct, String name, QuotationRequest req) {
+    @Transactional
+    protected TripResponse response(String trip, String acct, String name, QuotationRequest req) {
         BigDecimal amount = BigDecimal.valueOf(req.getAmount());
         TripInviteQuotation quote = tripInviteQuotationRepository
                 .findByIdAndInvite_Id(req.getQuoteId(), req.getId())
@@ -293,6 +301,7 @@ public class TripRequestImplementation implements TripRequestService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<TripResponse> accept(TripAcceptRequest request) {
         TripInviteQuotation quote;
         String account;
@@ -330,7 +339,8 @@ public class TripRequestImplementation implements TripRequestService {
         return new ApiResponse<>(historyService.response(saved.getId(), account, data, true));
     }
 
-    private Trip buildTripFromRequest(TripInviteQuotation quote) {
+    @Transactional
+    protected Trip buildTripFromRequest(TripInviteQuotation quote) {
         Trip trip = TripMapper.INSTANCE.trip(quote.getInvite());
         trip.setType(REQUEST);
         trip.setStatus(ACTIVE);
@@ -341,6 +351,7 @@ public class TripRequestImplementation implements TripRequestService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> cancel(TripCancelRequest request) {
         TripInvite trip = tripInviteRepository.findById(request.getTrip())
                 .orElseThrow(() -> new TripException("Trip request not found"));
@@ -356,7 +367,8 @@ public class TripRequestImplementation implements TripRequestService {
         throw new TripException("Error while cancelling trip request. Request might not be made by you");
     }
 
-    private ApiResponse<String> updateListWhenCancelled(TripInvite trip) {
+    @Transactional
+    protected ApiResponse<String> updateListWhenCancelled(TripInvite trip) {
         if(trip.getQuotes() != null && !trip.getQuotes().isEmpty()) {
             trip.getQuotes().forEach(q -> messaging.convertAndSend(
                     "/platform/%s".formatted(String.valueOf(q.getProvider().getId())),
@@ -369,6 +381,7 @@ public class TripRequestImplementation implements TripRequestService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> cancel(TripCancelRequest request, Long quoteId) {
         TripInviteQuotation quote = tripInviteQuotationRepository.findById(quoteId)
                 .orElseThrow(() -> new TripException("No trip found for quote " + quoteId));
@@ -394,6 +407,7 @@ public class TripRequestImplementation implements TripRequestService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<TripResponse>> history(String guestId, String linkId) {
         return new ApiResponse<>(historyService.inviteHistory(guestId, null, linkId));
     }

@@ -24,6 +24,10 @@ public class ChatRoomResponse {
     private MessageStatus status;
     private Long count;
     private String bookmark;
+    private String trip;
+
+    @JsonProperty("is_active")
+    private Boolean isActive;
 
     @JsonProperty("message_id")
     private String messageId;

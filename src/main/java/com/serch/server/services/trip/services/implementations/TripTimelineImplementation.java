@@ -9,6 +9,7 @@ import com.serch.server.services.trip.responses.TripTimelineResponse;
 import com.serch.server.services.trip.services.TripTimelineService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,6 +20,7 @@ public class TripTimelineImplementation implements TripTimelineService {
     private final TripTimelineRepository tripTimelineRepository;
 
     @Override
+    @Transactional
     public void create(Trip trip, TripShare share, TripConnectionStatus status) {
         if(share != null) {
             tripTimelineRepository.findByStatusAndSharing_Id(status, share.getId())
@@ -48,11 +50,13 @@ public class TripTimelineImplementation implements TripTimelineService {
     }
 
     @Override
+    @Transactional
     public TripTimelineResponse response(TripTimeline timeline) {
         return null;
     }
 
     @Override
+    @Transactional
     public List<TripTimelineResponse> response(Trip trip) {
         return List.of();
     }

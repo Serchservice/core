@@ -23,6 +23,7 @@ import com.serch.server.utils.HelperUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -58,6 +59,7 @@ public class TripPayImplementation implements TripPayService {
     private final GuestRepository guestRepository;
 
     @Override
+    @Transactional
     public Boolean processPayment(Trip trip) {
         if(trip.withUserShare()) {
             BigDecimal amount = BigDecimal.valueOf(TRIP_SERVICE_FEE).add(BigDecimal.valueOf(TRIP_SERVICE_USER));
@@ -101,7 +103,8 @@ public class TripPayImplementation implements TripPayService {
         return false;
     }
 
-    private Wallet getWallet(Trip trip) {
+    @Transactional
+    protected Wallet getWallet(Trip trip) {
         Wallet wallet;
 
         if(trip.getProvider().isAssociate()) {
@@ -112,7 +115,8 @@ public class TripPayImplementation implements TripPayService {
         return wallet;
     }
 
-    private Transaction processPayment(Trip trip, Wallet wallet, BigDecimal debit) {
+    @Transactional
+    protected Transaction processPayment(Trip trip, Wallet wallet, BigDecimal debit) {
         String reference = HelperUtil.generateReference("STR-TRIP");
 
         if(wallet.getDeposit().compareTo(debit) >= 0) {
@@ -167,6 +171,7 @@ public class TripPayImplementation implements TripPayService {
     }
 
     @Override
+    @Transactional
     public InitializePaymentData initializeShoppingPayment(Trip trip) {
         if(trip.getShoppingItems() != null && !trip.getShoppingItems().isEmpty()) {
             BigDecimal total = trip.getShoppingItems().stream()
@@ -216,6 +221,7 @@ public class TripPayImplementation implements TripPayService {
     }
 
     @Override
+    @Transactional
     public InitializePaymentData pay(Trip trip, UUID id) {
         List<Trip> trips = tripRepository.findByProvider_Id(id);
 
@@ -244,6 +250,7 @@ public class TripPayImplementation implements TripPayService {
     }
 
     @Override
+    @Transactional
     public Boolean verify(String reference) {
         TripPayment payment = tripPaymentRepository.findByReference(reference).orElse(null);
         Transaction transaction = transactionRepository.findByReference(reference).orElse(null);
@@ -276,6 +283,7 @@ public class TripPayImplementation implements TripPayService {
     }
 
     @Override
+    @Transactional
     public void processCredit(Trip trip) {
         TripPayment payment = trip.getPayment();
         if(payment != null && payment.getStatus() == SUCCESSFUL) {

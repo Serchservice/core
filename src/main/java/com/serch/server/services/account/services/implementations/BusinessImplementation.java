@@ -34,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -80,6 +81,7 @@ public class BusinessImplementation implements BusinessService {
     private Integer ACCOUNT_DURATION;
 
     @Override
+    @Transactional
     public ApiResponse<String> createProfile(Incomplete incomplete, User user, RequestBusinessProfile profile) {
         BusinessProfile businessProfile = saveProfile(incomplete, user, profile);
         savePhoneInformation(incomplete, user);
@@ -116,6 +118,7 @@ public class BusinessImplementation implements BusinessService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<BusinessProfileResponse> profile() {
         BusinessProfile profile = businessProfileRepository.findById(userUtil.getUser().getId())
                 .orElseThrow(() -> new AccountException("Profile not found"));
@@ -169,6 +172,7 @@ public class BusinessImplementation implements BusinessService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<BusinessProfileResponse> update(UpdateBusinessRequest request) {
         User user = userUtil.getUser();
         BusinessProfile profile = businessProfileRepository.findById(user.getId())
@@ -189,7 +193,8 @@ public class BusinessImplementation implements BusinessService {
         }
     }
 
-    public ApiResponse<BusinessProfileResponse> getBusinessUpdateResponse(UpdateBusinessRequest request, User user, BusinessProfile profile) {
+    @Transactional
+    protected ApiResponse<BusinessProfileResponse> getBusinessUpdateResponse(UpdateBusinessRequest request, User user, BusinessProfile profile) {
         updateLastName(request, profile);
         updateFirstName(request, profile);
         updateBusinessAddress(request, profile);
@@ -212,6 +217,7 @@ public class BusinessImplementation implements BusinessService {
     }
 
     @Override
+    @Transactional
     public void undo(String emailAddress) {
         businessProfileRepository.findByUser_EmailAddress(emailAddress)
                 .ifPresent(business -> {

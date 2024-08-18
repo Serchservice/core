@@ -33,6 +33,7 @@ import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -62,6 +63,7 @@ public class SharedImplementation implements SharedService {
     private Integer TRIP_MIN_COUNT_BEFORE_CHARGE;
 
     @Override
+    @Transactional
     public ApiResponse<List<AccountResponse>> accounts(String id) {
         Guest guest = guestRepository.findById(id).orElseThrow(() -> new SharedException("Guest not found"));
         User user = userRepository.findByEmailAddressIgnoreCase(guest.getEmailAddress()).orElse(null);
@@ -79,6 +81,7 @@ public class SharedImplementation implements SharedService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<SharedLinkResponse>> create(String id, Boolean withInvited) {
         Trip trip = tripRepository.findByIdAndAccount(id, String.valueOf(userUtil.getUser().getId()))
                 .orElseThrow(() -> new SharedException("Trip not found"));
@@ -112,7 +115,8 @@ public class SharedImplementation implements SharedService {
         return links();
     }
 
-    private void verifyShareEligibility(Profile profile) {
+    @Transactional
+    protected void verifyShareEligibility(Profile profile) {
         List<Trip> trips = tripRepository.findByProviderId(profile.getUser().getId());
         if(trips.size() < TRIP_MIN_COUNT_BEFORE_CHARGE) {
             int remains = TRIP_MIN_COUNT_BEFORE_CHARGE - trips.size();
@@ -126,6 +130,7 @@ public class SharedImplementation implements SharedService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<SharedLinkResponse>> links() {
         List<SharedLinkResponse> list = sharedLinkRepository.findByUserId(util.getUser().getId())
                 .stream()
@@ -136,6 +141,7 @@ public class SharedImplementation implements SharedService {
     }
 
     @Override
+    @Transactional
     public SharedLinkResponse buildLink(SharedLink link) {
         SharedLinkResponse response = new SharedLinkResponse();
         response.setData(data(link, getCurrentStatus(link)));
@@ -163,6 +169,7 @@ public class SharedImplementation implements SharedService {
     }
 
     @Override
+    @Transactional
     public SharedStatus getCurrentStatus(SharedLink link) {
         if (link.getLogins() != null && !link.getLogins().isEmpty()) {
             return link.getLogins().stream()
@@ -177,6 +184,7 @@ public class SharedImplementation implements SharedService {
 
 
     @Override
+    @Transactional
     public SharedStatus getCurrentStatusForAccount(SharedLogin login) {
         if(login.getStatuses() != null && !login.getStatuses().isEmpty()) {
             List<SharedStatus> statusesForAccount = login.getStatuses().stream()
@@ -193,6 +201,7 @@ public class SharedImplementation implements SharedService {
     }
 
     @Override
+    @Transactional
     public SharedLinkData data(SharedLink link, SharedStatus status) {
         SharedLinkData data = SharedMapper.INSTANCE.shared(link);
 
@@ -213,6 +222,7 @@ public class SharedImplementation implements SharedService {
     }
 
     @Override
+    @Transactional
     public SharedStatusData getStatusData(SharedLink link, SharedStatus status) {
         SharedStatusData data = SharedMapper.INSTANCE.data(status);
         data.setLabel(TimeUtil.formatDay(status.getCreatedAt()));
@@ -231,6 +241,7 @@ public class SharedImplementation implements SharedService {
     }
 
     @Override
+    @Transactional
     public SharedStatus create(String linkId, String account, Trip trip) {
         if(linkId != null && !linkId.isEmpty()) {
             SharedLogin login = sharedLoginRepository.findBySharedLink_IdAndGuest_Id(linkId, account)
@@ -252,6 +263,7 @@ public class SharedImplementation implements SharedService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<AccountResponse>> buildAccountResponse(Guest guest, User user) {
         List<AccountResponse> list = new ArrayList<>();
         if(guest != null) {

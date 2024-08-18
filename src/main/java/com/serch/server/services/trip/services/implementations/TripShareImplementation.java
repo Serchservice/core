@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -56,6 +57,7 @@ public class TripShareImplementation implements TripShareService {
     private String MAP_SEARCH_RADIUS;
 
     @Override
+    @Transactional
     public ApiResponse<TripResponse> access(String guest, String id) {
         String account;
         String name;
@@ -98,6 +100,7 @@ public class TripShareImplementation implements TripShareService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<TripResponse> share(TripShareRequest request) {
         assert request.getOption() == 0 || request.getOption() == 1 : "Option can only be 1 (Online) | 0 (Offline)";
 
@@ -138,7 +141,8 @@ public class TripShareImplementation implements TripShareService {
         }
     }
 
-    private TripShare create(TripShareRequest request, Trip trip) {
+    @Transactional
+    protected TripShare create(TripShareRequest request, Trip trip) {
         TripShare share = TripMapper.INSTANCE.share(request);
         share.setTrip(trip);
 
@@ -154,7 +158,8 @@ public class TripShareImplementation implements TripShareService {
         return tripShareRepository.save(share);
     }
 
-    private void pingServiceProviders(Trip trip, String category) {
+    @Transactional
+    protected void pingServiceProviders(Trip trip, String category) {
         List<Active> actives = activeRepository.sortAllWithinDistance(
                 trip.getLatitude(), trip.getLongitude(),
                 Double.parseDouble(MAP_SEARCH_RADIUS), category.toUpperCase()
@@ -178,6 +183,7 @@ public class TripShareImplementation implements TripShareService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> cancel(TripCancelRequest request) {
         TripShare share;
 
@@ -222,6 +228,7 @@ public class TripShareImplementation implements TripShareService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<TripResponse> accept(TripAcceptRequest request) {
         TripShare share = tripShareRepository.findByIdAndTrip_Id(request.getQuoteId(), request.getTrip())
                 .orElseThrow(() -> new TripException("No shared found for trip " + request.getTrip()));
@@ -270,6 +277,7 @@ public class TripShareImplementation implements TripShareService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<TripResponse> auth(TripAuthRequest request) {
         TripShare share;
         String account;
@@ -319,6 +327,7 @@ public class TripShareImplementation implements TripShareService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<TripResponse>> end(String id) {
         TripShare share = tripShareRepository.findByTrip_IdAndProvider_Id(id, userUtil.getUser().getId())
                 .orElseThrow(() -> new TripException("No shared found for trip " + id));
@@ -343,6 +352,7 @@ public class TripShareImplementation implements TripShareService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<List<TripResponse>> leave(String id) {
         TripShare share = tripShareRepository.findByTrip_IdAndProvider_Id(id, userUtil.getUser().getId())
                 .orElseThrow(() -> new TripException("No shared found for trip " + id));

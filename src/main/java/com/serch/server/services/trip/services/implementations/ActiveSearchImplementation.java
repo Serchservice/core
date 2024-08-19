@@ -110,16 +110,7 @@ public class ActiveSearchImplementation implements ActiveSearchService {
         SearchResponse response = prepareResponse(longitude, latitude, actives);
         if(autoConnect != null && autoConnect) {
             Active bestMatch = activeRepository.findBestMatchWithCategory(latitude, longitude, category.name(), getSearchRadius(radius));
-            if(bestMatch != null) {
-                response.setBest(response(
-                        bestMatch.getProfile(), bestMatch.getStatus(),
-                        HelperUtil.getDistance(latitude, longitude, bestMatch.getLatitude(), bestMatch.getLongitude())
-                ));
-
-                List<ActiveResponse> providers = new ArrayList<>(response.getProviders());
-                providers.removeIf(p -> p.getId().equals(bestMatch.getProfile().getId()));
-                response.setProviders(providers);
-            }
+            addBestMatch(longitude, latitude, response, bestMatch);
         }
         return new ApiResponse<>(response);
     }
@@ -192,17 +183,29 @@ public class ActiveSearchImplementation implements ActiveSearchService {
         List<Active> actives = activeRepository.fullTextSearchWithinDistance(latitude, longitude, query, getSearchRadius(radius));
         List<SearchShopResponse> shops = shopService.list(query, null, longitude, latitude, getSearchRadius(radius));
 
+        System.out.println(actives);
+        System.out.println(shops);
+
         SearchResponse response = prepareResponse(longitude, latitude, actives);
         response.setShops(shops);
         if(autoConnect != null && autoConnect) {
             Active bestMatch = activeRepository.findBestMatchWithQuery(latitude, longitude, query, getSearchRadius(radius));
-            if(bestMatch != null) {
-                response.setBest(response(
-                        bestMatch.getProfile(), bestMatch.getStatus(),
-                        HelperUtil.getDistance(latitude, longitude, bestMatch.getLatitude(), bestMatch.getLongitude())
-                ));
-            }
+            addBestMatch(longitude, latitude, response, bestMatch);
         }
         return new ApiResponse<>(response);
+    }
+
+    @Transactional
+    protected void addBestMatch(Double longitude, Double latitude, SearchResponse response, Active bestMatch) {
+        if(bestMatch != null) {
+            response.setBest(response(
+                    bestMatch.getProfile(), bestMatch.getStatus(),
+                    HelperUtil.getDistance(latitude, longitude, bestMatch.getLatitude(), bestMatch.getLongitude())
+            ));
+
+            List<ActiveResponse> providers = new ArrayList<>(response.getProviders());
+            providers.removeIf(p -> p.getId().equals(bestMatch.getProfile().getId()));
+            response.setProviders(providers);
+        }
     }
 }

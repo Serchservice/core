@@ -40,7 +40,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.serch.server.enums.account.SerchCategory.GUEST;
-import static com.serch.server.enums.auth.Role.USER;
 import static com.serch.server.enums.transaction.TransactionStatus.SUCCESSFUL;
 import static com.serch.server.enums.trip.TripConnectionStatus.*;
 import static com.serch.server.enums.trip.TripStatus.WAITING;
@@ -90,16 +89,17 @@ public class TripHistoryImplementation implements TripHistoryService {
             }).toList());
         }
 
+        UserResponse userResponse = buildUserResponse(invite.getAccount(), invite.getId());
+        response.setUser(userResponse);
+
         try {
             User user = userRepository.findById(UUID.fromString(userId)).orElseThrow(() -> new TripException("User not found"));
 
-            if(user.getRole() == USER) {
+            if(user.isUser()) {
                 if(invite.getQuotes() != null && !invite.getQuotes().isEmpty()) {
                     response.setQuotations(buildQuotationList(invite));
                 }
             } else {
-                UserResponse userResponse = buildUserResponse(invite.getAccount(), invite.getId());
-                response.setUser(userResponse);
                 if(invite.getQuotes() != null && !invite.getQuotes().isEmpty()) {
                     response.setQuotations(buildQuotationList(invite, user, userResponse));
                     response.setWaitingForQuotationResponse(invite.getQuotes()
@@ -205,7 +205,7 @@ public class TripHistoryImplementation implements TripHistoryService {
 
         try {
             User user = userUtil.getUser();
-            if(user.getRole() == USER) {
+            if(user.isUser()) {
                 response.setBookmark(bookmarkRepository.findByUser_IdAndProvider_Id(user.getId(), profile.getId()).map(Bookmark::getBookmarkId).orElse(""));
             } else {
                 response.setBookmark("");
@@ -243,9 +243,12 @@ public class TripHistoryImplementation implements TripHistoryService {
             }
         }
 
+        UserResponse userResponse = buildUserResponse(trip.getAccount(), trip.getId());
+        response.setUser(userResponse);
+
         try {
             User user = userRepository.findById(UUID.fromString(userId)).orElseThrow(() -> new TripException("User not found"));
-            if (user.getRole() != USER) {
+            if (!user.isUser()) {
                 if(trip.getInvited() != null) {
                     TripShareResponse share = TripMapper.INSTANCE.share(trip.getInvited());
 
@@ -272,9 +275,6 @@ public class TripHistoryImplementation implements TripHistoryService {
                 }
 
                 response.setIsProvider(trip.getProvider().isSameAs(user.getId()));
-
-                UserResponse userResponse = buildUserResponse(trip.getAccount(), trip.getId());
-                response.setUser(userResponse);
 
                 if(trip.getAuthentication() != null && response.getIsProvider()) {
                     response.setAuthentication(DatabaseUtil.decodeData(trip.getAuthentication().getCode()));
@@ -471,7 +471,7 @@ public class TripHistoryImplementation implements TripHistoryService {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new TripException("User not found"));
 
-            if (user.getRole() == USER) {
+            if (user.isUser()) {
                 buildUserList(invites, user);
             } else {
                 SerchCategory category = profileRepository.findById(userId)
@@ -485,7 +485,7 @@ public class TripHistoryImplementation implements TripHistoryService {
         } else {
             User currentUser = userUtil.getUser();
 
-            if (currentUser.getRole() == USER) {
+            if (currentUser.isUser()) {
                 buildUserList(invites, currentUser);
             } else {
                 SerchCategory category = profileRepository.findById(currentUser.getId())
@@ -552,7 +552,7 @@ public class TripHistoryImplementation implements TripHistoryService {
                     .sorted(Comparator.comparing(Trip::getUpdatedAt).reversed())
                     .map(trip -> response(trip.getId(), guest, null, sendUpdate))
                     .toList();
-        } else if(userUtil.getUser().getRole() == USER) {
+        } else if(userUtil.getUser().isUser()) {
             list = tripRepository.findByAccount(String.valueOf(userUtil.getUser().getId()))
                     .stream()
                     .sorted(Comparator.comparing(Trip::getUpdatedAt).reversed())

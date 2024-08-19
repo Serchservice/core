@@ -29,9 +29,8 @@ public class NotificationImplementation implements NotificationService {
         NotificationMessage<Map<String, Object>> message = new NotificationMessage<>();
         message.setToken(repository.getToken(String.valueOf(receiver)));
         message.setNotification(Notification.builder()
-                .title(String.format("%s (%s)", response.getName(), response.getCategory()))
+                .title(String.format("%s (%s) sent you a message", response.getName(), response.getCategory()))
                 .body(response.getMessage())
-                .image(response.getImage())
                 .build());
 
         Map<String, Object> data = getChatNotification(response);

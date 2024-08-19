@@ -96,7 +96,7 @@ public class TripShareImplementation implements TripShareService {
         timelineService.create(trip, null, trip.getAccess() == GRANTED ? SHARE_ACCESS_GRANTED : SHARE_ACCESS_DENIED);
 
         tripService.updateOthers(trip);
-        return new ApiResponse<>(historyService.response(trip.getId(), account, null, true));
+        return new ApiResponse<>(historyService.response(trip.getId(), account, null, true, null));
     }
 
     @Override
@@ -132,7 +132,7 @@ public class TripShareImplementation implements TripShareService {
                 pingServiceProviders(trip, share.getCategory());
 
                 tripService.updateOthers(trip);
-                return new ApiResponse<>(historyService.response(trip.getId(), String.valueOf(userUtil.getUser().getId()), null, true));
+                return new ApiResponse<>(historyService.response(trip.getId(), String.valueOf(userUtil.getUser().getId()), null, true, null));
             } else {
                 throw new TripException("You cannot share a trip more than once.");
             }
@@ -169,7 +169,7 @@ public class TripShareImplementation implements TripShareService {
                 if(!active.getProfile().isSameAs(trip.getProvider().getId())) {
                     messaging.convertAndSend(
                             "/platform/%s".formatted(String.valueOf(active.getProfile().getId())),
-                            historyService.response(trip.getId(), String.valueOf(active.getProfile().getId()), null, false)
+                            historyService.response(trip.getId(), String.valueOf(active.getProfile().getId()), null, false, null)
                     );
                     notificationService.send(
                             String.valueOf(active.getProfile().getId()),
@@ -221,7 +221,7 @@ public class TripShareImplementation implements TripShareService {
         );
 
         tripService.updateOthers(share.getTrip());
-        historyService.response(share.getTrip().getId(), account, null, true);
+        historyService.response(share.getTrip().getId(), account, null, true, null);
 
         tripShareRepository.delete(share);
         return new ApiResponse<>("Shared trip cancelled", HttpStatus.OK);
@@ -270,7 +270,7 @@ public class TripShareImplementation implements TripShareService {
             );
 
             tripService.updateOthers(share.getTrip());
-            return new ApiResponse<>(historyService.response(share.getTrip().getId(), String.valueOf(userUtil.getUser().getId()),  null, true));
+            return new ApiResponse<>(historyService.response(share.getTrip().getId(), String.valueOf(userUtil.getUser().getId()),  null, true, null));
         } else {
             throw new TripException("This trip has been accepted by another provider");
         }
@@ -317,7 +317,7 @@ public class TripShareImplementation implements TripShareService {
                 timelineService.create(null, share, ON_TRIP);
 
                 tripService.updateOthers(share.getTrip());
-                return new ApiResponse<>(historyService.response(share.getTrip().getId(), account, null, true));
+                return new ApiResponse<>(historyService.response(share.getTrip().getId(), account, null, true, null));
             } else {
                 throw new TripException("Wrong authentication code");
             }

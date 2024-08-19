@@ -37,7 +37,7 @@ public interface TripHistoryService {
      *
      * @return {@link TripResponse}
      */
-    TripResponse response(String id, String userId, @Nullable InitializePaymentData payment, boolean sendUpdate);
+    TripResponse response(String id, String userId, @Nullable InitializePaymentData payment, boolean sendUpdate, String requestedId);
 
     /**
      * This returns a list of pending trips the logged-in user or provider.

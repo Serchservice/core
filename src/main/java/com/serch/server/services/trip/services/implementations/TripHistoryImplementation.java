@@ -90,6 +90,7 @@ public class TripHistoryImplementation implements TripHistoryService {
         }
 
         UserResponse userResponse = buildUserResponse(invite.getAccount(), invite.getId());
+        System.out.println(userResponse);
         response.setUser(userResponse);
 
         try {
@@ -219,7 +220,7 @@ public class TripHistoryImplementation implements TripHistoryService {
 
     @Override
     @Transactional
-    public TripResponse response(String id, String userId, @Nullable InitializePaymentData payment, boolean sendUpdate) {
+    public TripResponse response(String id, String userId, @Nullable InitializePaymentData payment, boolean sendUpdate, String requestedId) {
         Trip trip = tripRepository.findById(id).orElseThrow(() -> new TripException("Trip not found"));
 
         TripResponse response = TripMapper.INSTANCE.response(trip);
@@ -244,6 +245,7 @@ public class TripHistoryImplementation implements TripHistoryService {
         }
 
         UserResponse userResponse = buildUserResponse(trip.getAccount(), trip.getId());
+        System.out.println(userResponse);
         response.setUser(userResponse);
 
         try {
@@ -322,6 +324,10 @@ public class TripHistoryImplementation implements TripHistoryService {
                 messaging.convertAndSend("/platform/%s".formatted(business), response);
                 messaging.convertAndSend("/platform/%s/%s".formatted(response.getId(), business), response);
             }
+        }
+
+        if(requestedId != null) {
+            response.setRequestedId(requestedId);
         }
 
         return response;
@@ -464,7 +470,7 @@ public class TripHistoryImplementation implements TripHistoryService {
                     .stream()
                     .filter(trip -> trip.getStatus() == WAITING)
                     .sorted(Comparator.comparing(Trip::getUpdatedAt).reversed())
-                    .map(trip -> response(trip.getId(), guestId, null, false))
+                    .map(trip -> response(trip.getId(), guestId, null, false, null))
                     .toList());
 
         } else if (userId != null) {
@@ -514,7 +520,7 @@ public class TripHistoryImplementation implements TripHistoryService {
                 .stream()
                 .filter(trip -> trip.getStatus() == WAITING)
                 .sorted(Comparator.comparing(Trip::getUpdatedAt).reversed())
-                .map(trip -> response(trip.getId(), String.valueOf(user.getId()), null, false))
+                .map(trip -> response(trip.getId(), String.valueOf(user.getId()), null, false, null))
                 .toList());
     }
 
@@ -536,7 +542,7 @@ public class TripHistoryImplementation implements TripHistoryService {
                 .stream()
                 .filter(trip -> trip.getStatus() == WAITING)
                 .sorted(Comparator.comparing(Trip::getUpdatedAt).reversed())
-                .map(trip -> response(trip.getId(), String.valueOf(user.getId()), null, false))
+                .map(trip -> response(trip.getId(), String.valueOf(user.getId()), null, false, null))
                 .toList());
     }
 
@@ -550,29 +556,29 @@ public class TripHistoryImplementation implements TripHistoryService {
             list = tripRepository.findByAccount(guest, linkId)
                     .stream()
                     .sorted(Comparator.comparing(Trip::getUpdatedAt).reversed())
-                    .map(trip -> response(trip.getId(), guest, null, sendUpdate))
+                    .map(trip -> response(trip.getId(), guest, null, sendUpdate, null))
                     .toList();
         } else if(userUtil.getUser().isUser()) {
             list = tripRepository.findByAccount(String.valueOf(userUtil.getUser().getId()))
                     .stream()
                     .sorted(Comparator.comparing(Trip::getUpdatedAt).reversed())
-                    .map(trip -> response(trip.getId(), String.valueOf(userUtil.getUser().getId()), null, sendUpdate))
+                    .map(trip -> response(trip.getId(), String.valueOf(userUtil.getUser().getId()), null, sendUpdate, null))
                     .toList();
         } else {
             list = tripRepository.findByProviderId(userUtil.getUser().getId())
                     .stream()
                     .sorted(Comparator.comparing(Trip::getUpdatedAt).reversed())
-                    .map(trip -> response(trip.getId(), String.valueOf(userUtil.getUser().getId()), null, sendUpdate))
+                    .map(trip -> response(trip.getId(), String.valueOf(userUtil.getUser().getId()), null, sendUpdate, null))
                     .toList();
         }
 
         if(tripId != null && !tripId.isEmpty()) {
             Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new TripException("Trip not found"));
-            response(tripId, trip.getAccount(), null, sendUpdate);
-            response(tripId, trip.getProvider().getId().toString(), null, sendUpdate);
+            response(tripId, trip.getAccount(), null, sendUpdate, null);
+            response(tripId, trip.getProvider().getId().toString(), null, sendUpdate, null);
 
             if(trip.getInvited() != null && trip.getInvited().getProvider() != null) {
-                response(tripId, trip.getInvited().getProvider().getId().toString(), null, sendUpdate);
+                response(tripId, trip.getInvited().getProvider().getId().toString(), null, sendUpdate, null);
             }
         }
         return new ApiResponse<>(list);

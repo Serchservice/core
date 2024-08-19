@@ -39,6 +39,9 @@ public class TripResponse extends TripActionResponse {
     private String authentication;
     private MapViewResponse location;
 
+    @JsonProperty("requested_id")
+    private String requestedId;
+
     @JsonProperty("is_provider")
     private Boolean isProvider = false;
 

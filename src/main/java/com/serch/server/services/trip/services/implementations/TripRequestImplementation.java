@@ -322,6 +322,7 @@ public class TripRequestImplementation implements TripRequestService {
             account = String.valueOf(userUtil.getUser().getId());
         }
 
+        String requestedId = quote.getInvite().getId();
         Trip saved = buildTripFromRequest(quote);
         tripInviteRepository.delete(quote.getInvite());
         tripInviteQuotationRepository.delete(quote);
@@ -336,7 +337,7 @@ public class TripRequestImplementation implements TripRequestService {
         activeService.toggle(saved.getProvider().getUser(), BUSY, null);
 
         tripService.updateOthers(saved);
-        return new ApiResponse<>(historyService.response(saved.getId(), account, data, true));
+        return new ApiResponse<>(historyService.response(saved.getId(), account, data, true, requestedId));
     }
 
     @Transactional

@@ -165,8 +165,7 @@ public class CallImplementation implements CallService {
                 call.setStatus(CallStatus.ON_CALL);
                 call.setUpdatedAt(LocalDateTime.now());
                 callRepository.save(call);
-                sendToChannelMember(call, false);
-                sendToChannelMember(call, true);
+                sendToChannelMembers(call);
             }
         }
     }
@@ -187,10 +186,16 @@ public class CallImplementation implements CallService {
         }
     }
 
-    private void sendToChannelMember(Call call, boolean isCaller) {
-        Profile profile = isCaller ? call.getCaller() : call.getCalled();
+    private void sendToChannelMembers(Call call) {
+        ActiveCallResponse response = getCallResponse(call, call.getCaller());
+        template.convertAndSend("/platform/%s/%s".formatted(call.getChannel(), String.valueOf(call.getCalled().getId())), response);
 
-        ActiveCallResponse response = ActiveCallResponse.builder()
+        response = getCallResponse(call, call.getCalled());
+        template.convertAndSend("/platform/%s/%s".formatted(call.getChannel(), String.valueOf(call.getCaller().getId())), response);
+    }
+
+    private ActiveCallResponse getCallResponse(Call call, Profile profile) {
+        return ActiveCallResponse.builder()
                 .status(call.getStatus())
                 .app(CALL_APP_KEY)
                 .channel(call.getChannel())
@@ -198,12 +203,11 @@ public class CallImplementation implements CallService {
                 .type(call.getType())
                 .user(profile.getId())
                 .avatar(profile.getAvatar())
-                .isCaller(isCaller)
+                .isCaller(profile.isSameAs(call.getCaller().getId()))
                 .image(profile.getCategory().getImage())
                 .session(call.getSession())
                 .category(profile.getCategory().getType())
                 .build();
-        template.convertAndSend("/platform/%s/%s".formatted(call.getChannel(), String.valueOf(profile.getId())), response);
     }
 
     @Override
@@ -223,8 +227,7 @@ public class CallImplementation implements CallService {
             call.setUpdatedAt(LocalDateTime.now());
             callRepository.save(call);
 
-            sendToChannelMember(call, true);
-            sendToChannelMember(call, false);
+            sendToChannelMembers(call);
         }
     }
 
@@ -266,8 +269,7 @@ public class CallImplementation implements CallService {
                 call.setUpdatedAt(LocalDateTime.now());
                 callRepository.save(call);
 
-                sendToChannelMember(call, true);
-                sendToChannelMember(call, false);
+                sendToChannelMembers(call);
             } else {
                 sendError("You cannot cancel calls you didn't start", call.getChannel());
             }
@@ -289,8 +291,7 @@ public class CallImplementation implements CallService {
                     call.setUpdatedAt(LocalDateTime.now());
                     callRepository.save(call);
 
-                    sendToChannelMember(call, true);
-                    sendToChannelMember(call, false);
+                    sendToChannelMembers(call);
                 } catch (Exception e) {
                     if(call.getRetries() == 3) {
                         call.setStatus(CallStatus.CLOSED);
@@ -316,8 +317,7 @@ public class CallImplementation implements CallService {
                     }
 
                     if(call.getStatus() == CallStatus.CLOSED) {
-                        sendToChannelMember(call, true);
-                        sendToChannelMember(call, false);
+                        sendToChannelMembers(call);
                     }
                 }
             }

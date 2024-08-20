@@ -39,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static com.serch.server.enums.account.SerchCategory.GUEST;
@@ -94,7 +95,6 @@ public class TripHistoryImplementation implements TripHistoryService {
         }
 
         UserResponse userResponse = buildUserResponse(invite.getAccount(), invite.getId());
-        log.info("USER RESPONSE DATA", userResponse);
         response.setUser(userResponse);
 
         try {
@@ -175,28 +175,25 @@ public class TripHistoryImplementation implements TripHistoryService {
     @Transactional
     protected UserResponse buildUserResponse(String id, String trip) {
         log.info(id);
-        UserResponse response = new UserResponse();
+        AtomicReference<UserResponse> response = new AtomicReference<>(new UserResponse());
         try {
-            profileRepository.findById(UUID.fromString(id)).ifPresent(profile -> {
-                log.info("PROFILE DATA", profile);
-                buildUserResponse(profile, trip);
-            });
+            profileRepository.findById(UUID.fromString(id)).ifPresent(profile -> response.set(buildUserResponse(profile, trip)));
         } catch (Exception ignored) {
             Guest guest = guestRepository.findById(id).orElse(null);
             if(guest != null) {
-                response.setAvatar(guest.getAvatar());
-                response.setName(guest.getFullName());
-                response.setRating(guest.getRating());
-                response.setId(guest.getId());
-                response.setImage(GUEST.getImage());
-                response.setCategory(GUEST.getType());
-                response.setRole(GUEST.name());
-                response.setBookmark("");
-                response.setTripRating(ratingRepository.findByEventAndRated(trip, id).map(Rating::getRating).orElse(null));
-                response.setPhone(guest.getPhoneNumber());
+                response.get().setAvatar(guest.getAvatar());
+                response.get().setName(guest.getFullName());
+                response.get().setRating(guest.getRating());
+                response.get().setId(guest.getId());
+                response.get().setImage(GUEST.getImage());
+                response.get().setCategory(GUEST.getType());
+                response.get().setRole(GUEST.name());
+                response.get().setBookmark("");
+                response.get().setTripRating(ratingRepository.findByEventAndRated(trip, id).map(Rating::getRating).orElse(null));
+                response.get().setPhone(guest.getPhoneNumber());
             }
         }
-        return response;
+        return response.get();
     }
 
     @Transactional
@@ -253,7 +250,6 @@ public class TripHistoryImplementation implements TripHistoryService {
         }
 
         UserResponse userResponse = buildUserResponse(trip.getAccount(), trip.getId());
-        log.info("USER RESPONSE DATA", userResponse);
         response.setUser(userResponse);
 
         try {

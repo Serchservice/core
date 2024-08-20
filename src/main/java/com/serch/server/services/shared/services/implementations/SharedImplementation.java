@@ -77,7 +77,7 @@ public class SharedImplementation implements SharedService {
                 .replaceAll("-", "")
                 .replaceAll("_", "");
         String cat = category.toLowerCase().replaceAll(" ", "-");
-        return "https://www.serchservice.com/service/request?category=%s&shared_by=%s".formatted(cat, code);
+        return "https://www.serchservice.com/provider/request?category=%s&shared_by=%s".formatted(cat, code);
     }
 
     @Override

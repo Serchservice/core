@@ -114,7 +114,7 @@ public class TripImplementation implements TripService {
 
         return new ApiResponse<>(
                 "Request created, waiting for response",
-                historyService.response(trip.getId(), String.valueOf(user.getId()), null, false, null),
+                historyService.response(trip.getId(), String.valueOf(user.getId()), null, true, null),
                 HttpStatus.OK
         );
     }

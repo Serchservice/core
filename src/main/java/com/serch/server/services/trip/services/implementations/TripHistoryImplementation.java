@@ -29,6 +29,8 @@ import com.serch.server.services.trip.responses.*;
 import com.serch.server.services.trip.services.TripHistoryService;
 import com.serch.server.utils.*;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -57,6 +59,8 @@ import static com.serch.server.enums.trip.TripType.REQUEST;
 @Service
 @RequiredArgsConstructor
 public class TripHistoryImplementation implements TripHistoryService {
+    private static final Logger log = LoggerFactory.getLogger(TripHistoryImplementation.class);
+
     private final UserUtil userUtil;
     private final SimpMessagingTemplate messaging;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM d ' | ' h:mma");
@@ -90,7 +94,7 @@ public class TripHistoryImplementation implements TripHistoryService {
         }
 
         UserResponse userResponse = buildUserResponse(invite.getAccount(), invite.getId());
-        System.out.println(userResponse);
+        log.info("USER RESPONSE DATA", userResponse);
         response.setUser(userResponse);
 
         try {
@@ -170,9 +174,13 @@ public class TripHistoryImplementation implements TripHistoryService {
 
     @Transactional
     protected UserResponse buildUserResponse(String id, String trip) {
+        log.info(id);
         UserResponse response = new UserResponse();
         try {
-            profileRepository.findById(UUID.fromString(id)).ifPresent(profile -> buildUserResponse(profile, trip));
+            profileRepository.findById(UUID.fromString(id)).ifPresent(profile -> {
+                log.info("PROFILE DATA", profile);
+                buildUserResponse(profile, trip);
+            });
         } catch (Exception ignored) {
             Guest guest = guestRepository.findById(id).orElse(null);
             if(guest != null) {
@@ -245,7 +253,7 @@ public class TripHistoryImplementation implements TripHistoryService {
         }
 
         UserResponse userResponse = buildUserResponse(trip.getAccount(), trip.getId());
-        System.out.println(userResponse);
+        log.info("USER RESPONSE DATA", userResponse);
         response.setUser(userResponse);
 
         try {

@@ -12,6 +12,8 @@ import com.serch.server.services.verified.responses.VerificationStage;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +27,8 @@ import static com.serch.server.enums.verified.VerificationType.CONSENT;
 @Service
 @RequiredArgsConstructor
 public class VerificationImplementation implements VerificationService {
+    private static final Logger log = LoggerFactory.getLogger(VerificationImplementation.class);
+
     private final UserUtil userUtil;
     private final VerificationRepository verificationRepository;
 
@@ -71,7 +75,8 @@ public class VerificationImplementation implements VerificationService {
             }
             response.setConsent(buildConsent(verification));
         }
-        System.out.println(response);
+
+        log.debug(String.valueOf(response), "VERIFICATION RESPONSE");
         return response;
     }
 

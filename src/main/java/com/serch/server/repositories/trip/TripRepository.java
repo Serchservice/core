@@ -16,14 +16,18 @@ public interface TripRepository extends JpaRepository<Trip, String> {
     @Query("select t from Trip t where t.id = ?1 and t.provider.id = ?2")
     Optional<Trip> findByIdAndProviderId(@NonNull String trip, @NonNull UUID id);
 
-    @Query("SELECT COUNT(t) > 0 FROM Trip t left JOIN t.timelines tt left JOIN t.invited ti left JOIN ti.timelines tit " +
-            "WHERE (t.provider.id = ?1 AND tt.status NOT IN (com.serch.server.enums.trip.TripConnectionStatus.CANCELLED, " +
-            "com.serch.server.enums.trip.TripConnectionStatus.COMPLETED, com.serch.server.enums.trip.TripConnectionStatus.LEFT)) or " +
-            "(ti.provider.id = ?1 AND tit.status NOT IN (com.serch.server.enums.trip.TripConnectionStatus.CANCELLED, " +
-            "com.serch.server.enums.trip.TripConnectionStatus.COMPLETED, com.serch.server.enums.trip.TripConnectionStatus.LEFT))" +
-            " AND t.isActive = true"
+    @Query("SELECT COUNT(t) > 0 FROM Trip t " +
+            "LEFT JOIN t.timelines tt " +
+            "LEFT JOIN t.invited ti " +
+            "LEFT JOIN ti.timelines tit " +
+            "WHERE t.isActive = true " +
+            "AND ((t.provider.id = ?1 AND tt.status NOT IN (com.serch.server.enums.trip.TripConnectionStatus.CANCELLED, " +
+            "com.serch.server.enums.trip.TripConnectionStatus.COMPLETED, com.serch.server.enums.trip.TripConnectionStatus.LEFT)) " +
+            "OR (ti.provider.id = ?1 AND tit.status NOT IN (com.serch.server.enums.trip.TripConnectionStatus.CANCELLED, " +
+            "com.serch.server.enums.trip.TripConnectionStatus.COMPLETED, com.serch.server.enums.trip.TripConnectionStatus.LEFT)))"
     )
     boolean existsByProviderIdAndTimelineStatus(UUID id);
+
 
     @Query("select t from Trip t where t.account = ?1")
     List<Trip> findByAccount(@NonNull String account);

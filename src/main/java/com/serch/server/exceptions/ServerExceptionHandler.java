@@ -26,7 +26,8 @@ import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.UnexpectedTypeException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
@@ -34,6 +35,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.jdbc.datasource.lookup.DataSourceLookupFailureException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -211,10 +213,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @see ResponseEntityExceptionHandler
  * @see ApiResponse
  */
-@Slf4j
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
+    private static final Logger log = LoggerFactory.getLogger(ServerExceptionHandler.class);
+
     private final SimpMessagingTemplate simpMessagingTemplate;
 
     @ExceptionHandler(AdminException.class)
@@ -707,6 +710,16 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
         log.error(exception.getMessage());
         return new ApiResponse<>(
                 exception.getMessage(),
+                ExceptionCodes.IMPROPER_USER_ID_FORMAT,
+                HttpStatus.NOT_ACCEPTABLE
+        );
+    }
+
+    @ExceptionHandler(DataSourceLookupFailureException.class)
+    public ApiResponse<String> handleDataSourceLookupFailureException(DataSourceLookupFailureException exception){
+        log.error(exception.getMessage());
+        return new ApiResponse<>(
+                "An error occurred while fetching data, please try again",
                 ExceptionCodes.IMPROPER_USER_ID_FORMAT,
                 HttpStatus.NOT_ACCEPTABLE
         );

@@ -13,6 +13,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,8 +23,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import java.util.Arrays;
 
 /**
  * The JwtAuthenticationFilter class is responsible for authenticating requests using JWT (JSON Web Token).
@@ -40,6 +40,8 @@ import java.util.Arrays;
 @Configuration
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+    private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+
     /**
      * Service for retrieving user details.
      */
@@ -65,10 +67,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     @SneakyThrows
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) {
-        System.out.println(request.getRequestURL());
-        System.out.println(request.getRequestURI());
-        request.getParameterMap().forEach((key, value) -> System.out.println(key + ": " + Arrays.toString(value)));
-        System.out.println(request.getRemoteAddr());
+        log.trace(String.valueOf(request.getRequestURL()), "JWT AUTHENTICATION FILTER - URL");
+        log.trace(request.getRequestURI(), "JWT AUTHENTICATION FILTER - URI");
+        log.trace(request.getRemoteAddr(), "JWT AUTHENTICATION FILTER - REMOTE ADDRESS");
+        request.getParameterMap().forEach(log::trace);
+
         // Extract JWT token from the Authorization header
         String header = request.getHeader("Authorization");
 

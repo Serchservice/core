@@ -23,11 +23,11 @@ public class Socket implements SocketService {
 
     @Override
     public void authenticate(SimpMessageHeaderAccessor accessor) {
-        log.info(accessor.getDestination(), "SOCKET AUTHENTICATE - DESTINATION");
-        log.info(accessor.getSessionId(), "SOCKET AUTHENTICATE - SESSION ID");
-        log.info(accessor.getSubscriptionId(),  "SOCKET AUTHENTICATE - SUBSCRIPTION ID");
-        log.info(String.valueOf(accessor.getId()), "SOCKET AUTHENTICATE - ID");
-        Objects.requireNonNull(accessor.getSessionAttributes()).forEach(log::info);
+        log.info(String.format("%s::: %s", "SOCKET AUTHENTICATE - DESTINATION", accessor.getDestination()));
+        log.info(String.format("%s::: %s", "SOCKET AUTHENTICATE - SESSION ID", accessor.getSessionId()));
+        log.info(String.format("%s::: %s", "SOCKET AUTHENTICATE - SUBSCRIPTION ID", accessor.getSubscriptionId()));
+        log.info(String.format("%s::: %s", "SOCKET AUTHENTICATE - ID", accessor.getId()));
+        Objects.requireNonNull(accessor.getSessionAttributes()).forEach((a, b) -> log.info(String.format("%s::: Key=%s | Value=%s", "SOCKET ATTRIBUTE", a, b)));
 
         String authHeader = accessor.getFirstNativeHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {

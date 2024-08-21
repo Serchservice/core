@@ -24,6 +24,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import java.util.Arrays;
+
 /**
  * The JwtAuthenticationFilter class is responsible for authenticating requests using JWT (JSON Web Token).
  * It extends OncePerRequestFilter, ensuring that it is only executed once per request.
@@ -67,10 +69,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     @SneakyThrows
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) {
-        log.info(String.valueOf(request.getRequestURL()), "JWT AUTHENTICATION FILTER - URL");
-        log.info(request.getRequestURI(), "JWT AUTHENTICATION FILTER - URI");
-        log.info(request.getRemoteAddr(), "JWT AUTHENTICATION FILTER - REMOTE ADDRESS");
-        request.getParameterMap().forEach(log::info);
+        log.info(String.format("%s::: %s", "JWT AUTHENTICATION FILTER - URL", request.getRequestURL()));
+        log.info(String.format("%s::: %s", "JWT AUTHENTICATION FILTER - URI", request.getRequestURI()));
+        log.info(String.format("%s::: %s", "JWT AUTHENTICATION FILTER - REMOTE ADDRESS", request.getRemoteAddr()));
+        request.getParameterMap().forEach((a, b) -> log.info(String.format("%s::: Key=%s | Value=%s", "JWT REQUEST PARAMS", a, Arrays.toString(b))));
 
         // Extract JWT token from the Authorization header
         String header = request.getHeader("Authorization");

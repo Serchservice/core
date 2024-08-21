@@ -67,10 +67,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     @SneakyThrows
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) {
-        log.trace(String.valueOf(request.getRequestURL()), "JWT AUTHENTICATION FILTER - URL");
-        log.trace(request.getRequestURI(), "JWT AUTHENTICATION FILTER - URI");
-        log.trace(request.getRemoteAddr(), "JWT AUTHENTICATION FILTER - REMOTE ADDRESS");
-        request.getParameterMap().forEach(log::trace);
+        log.info(String.valueOf(request.getRequestURL()), "JWT AUTHENTICATION FILTER - URL");
+        log.info(request.getRequestURI(), "JWT AUTHENTICATION FILTER - URI");
+        log.info(request.getRemoteAddr(), "JWT AUTHENTICATION FILTER - REMOTE ADDRESS");
+        request.getParameterMap().forEach(log::info);
 
         // Extract JWT token from the Authorization header
         String header = request.getHeader("Authorization");

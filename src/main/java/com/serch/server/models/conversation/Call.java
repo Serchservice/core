@@ -42,7 +42,7 @@ public class Call extends BaseDateTime {
     private String channel;
 
     @Column(name = "duration", columnDefinition = "TEXT", nullable = false)
-    private String duration = "00:00:00";
+    private String duration = "";
 
     @Column(nullable = false)
     private Integer session = 0;

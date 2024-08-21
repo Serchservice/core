@@ -76,7 +76,7 @@ public class VerificationImplementation implements VerificationService {
             response.setConsent(buildConsent(verification));
         }
 
-        log.debug(String.valueOf(response), "VERIFICATION RESPONSE");
+        log.debug(String.format("VERIFICATION RESPONSE::: ID=%s | Data=%s", userId, response));
         return response;
     }
 

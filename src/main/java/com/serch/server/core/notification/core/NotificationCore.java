@@ -38,12 +38,13 @@ public class NotificationCore implements NotificationCoreService {
         CompletableFuture.runAsync(() -> {
             FCM fcm = new FCM();
             fcm.setMessage(request);
+            log.info(String.valueOf(fcm), "NOTIFICATION CORE REQUEST");
 
             HttpEntity<FCM> entity = new HttpEntity<>(fcm, headers());
             ResponseEntity<Object> response = template.exchange(NOTIFICATION_BASE_URL, HttpMethod.POST, entity, Object.class);
-            System.out.println(response);
-            System.out.println(response.getStatusCode());
-            System.out.println(response.getBody());
+            log.info(String.valueOf(response), "NOTIFICATION CORE RESPONSE");
+            log.info(String.valueOf(response.getStatusCode()), "NOTIFICATION CORE RESPONSE STATUS CODE");
+            log.info(String.valueOf(response.getBody()), "NOTIFICATION CORE RESPONSE BODY");
         });
     }
 }

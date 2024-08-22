@@ -22,6 +22,7 @@ import com.serch.server.services.shared.responses.GuestResponse;
 import com.serch.server.services.shared.services.GuestAuthService;
 import com.serch.server.services.shared.services.GuestService;
 import com.serch.server.services.shared.services.SwitchService;
+import com.serch.server.utils.CallUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -67,7 +68,7 @@ public class SwitchImplementation implements SwitchService {
                 if(tripRepository.existsByStatusAndAccount(String.valueOf(user.get().getId()))) {
                     throw new SharedException("Can't switch account when you are on a trip");
                 } else {
-                    List<Call> calls = callRepository.findByUserId(user.get().getId());
+                    List<Call> calls = callRepository.findByUserId(user.get().getId(), CallUtil.getPeriod().getStart(), CallUtil.getPeriod().getEnd());
                     if(calls.stream().anyMatch(call ->
                             call.getStatus() == CallStatus.ON_CALL || call.getStatus() == CallStatus.RINGING
                                     || call.getStatus() == CallStatus.CALLING

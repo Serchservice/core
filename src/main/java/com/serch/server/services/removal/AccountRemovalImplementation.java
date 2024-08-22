@@ -24,6 +24,7 @@ import com.serch.server.repositories.transaction.TransactionRepository;
 import com.serch.server.repositories.transaction.WalletRepository;
 import com.serch.server.repositories.trip.ActiveRepository;
 import com.serch.server.repositories.trip.TripRepository;
+import com.serch.server.utils.CallUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -101,7 +102,7 @@ public class AccountRemovalImplementation implements AccountRemovalService {
         /// TODO::: Add Conversation Models and Certificate, Verified
         bookmarkRepository.deleteAll(bookmarkRepository.findByUserId(user.getId()));
         speakWithSerchRepository.deleteAll(speakWithSerchRepository.findByUser_Id(user.getId()));
-        callRepository.deleteAll(callRepository.findByUserId(user.getId()));
+        callRepository.deleteAll(callRepository.findByUserId(user.getId(), CallUtil.getPeriod().getStart(), CallUtil.getPeriod().getEnd()));
         chatMessageRepository.deleteAll(chatMessageRepository.findBySender(user.getId()));
         chatRoomRepository.deleteAll(chatRoomRepository.findByUserId(user.getId()));
         ratingRepository.deleteAll(ratingRepository.findByRated(String.valueOf(user.getId())));

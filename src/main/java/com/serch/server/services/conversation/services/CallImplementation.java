@@ -51,7 +51,8 @@ public class CallImplementation implements CallService {
     private Integer TIP2FIX_AMOUNT;
 
     private boolean userIsOnCall(UUID id) {
-        return callRepository.findByUserId(id).stream().anyMatch(call -> call.getStatus() == CallStatus.ON_CALL);
+        return callRepository.findByUserId(id, CallUtil.getPeriod().getStart(), CallUtil.getPeriod().getEnd())
+                .stream().anyMatch(call -> call.getStatus() == CallStatus.ON_CALL);
     }
 
     @Override
@@ -326,7 +327,7 @@ public class CallImplementation implements CallService {
     public ApiResponse<List<CallResponse>> logs() {
         List<CallResponse> list = new ArrayList<>();
 
-        callRepository.findByUserId(userUtil.getUser().getId())
+        callRepository.findByUserId(userUtil.getUser().getId(), CallUtil.getPeriod().getStart(), CallUtil.getPeriod().getEnd())
                 .stream()
                 .collect(Collectors.groupingBy(call -> call.getCalled().getId()))
                 .forEach((user, calls) -> {

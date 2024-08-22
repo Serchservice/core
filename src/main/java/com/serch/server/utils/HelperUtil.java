@@ -54,4 +54,21 @@ public class HelperUtil {
     public static String generateReference(String prefix) {
         return "%s%s".formatted(prefix, UUID.randomUUID().toString().substring(0, 8));
     }
+
+    public static String textWithAorAn(String text) {
+        if (text == null || text.isEmpty()) {
+            return "";
+        }
+
+        // Convert the text to lowercase for comparison.
+        text = text.toLowerCase();
+
+        // Check if the text starts with a vowel.
+        if (text.matches("^[aeiou].*")) {
+            return "an " + text;
+        } else {
+            return "a " + text;
+        }
+    }
+
 }

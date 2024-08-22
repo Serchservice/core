@@ -38,9 +38,8 @@ public class NotificationCore implements NotificationCoreService {
         CompletableFuture.runAsync(() -> {
             FCM fcm = new FCM();
             fcm.setMessage(request);
-            log.info(String.format("%s::: %s", "NOTIFICATION CORE REQUEST", fcm));
-
             HttpEntity<FCM> entity = new HttpEntity<>(fcm, headers());
+
             ResponseEntity<Object> response = template.exchange(NOTIFICATION_BASE_URL, HttpMethod.POST, entity, Object.class);
             log.info(String.format("%s::: %s", "NOTIFICATION CORE RESPONSE", response));
             log.info(String.format("%s::: %s", "NOTIFICATION CORE RESPONSE STATUS CODE", response.getStatusCode()));

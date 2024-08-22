@@ -16,7 +16,6 @@ import com.serch.server.services.conversation.responses.CallInformation;
 import com.serch.server.services.conversation.responses.CallMemberData;
 import com.serch.server.services.conversation.responses.CallResponse;
 import com.serch.server.services.conversation.responses.ActiveCallResponse;
-import com.serch.server.core.notification.core.NotificationService;
 import com.serch.server.services.transaction.services.WalletService;
 import com.serch.server.utils.*;
 import io.getstream.chat.java.models.User;
@@ -39,7 +38,6 @@ public class CallImplementation implements CallService {
     private final UserUtil userUtil;
     private final SimpMessagingTemplate template;
     private final WalletService walletService;
-    private final NotificationService notificationService;
     private final CallRepository callRepository;
     private final ProfileRepository profileRepository;
 
@@ -86,10 +84,8 @@ public class CallImplementation implements CallService {
                     call.setAmount(BigDecimal.valueOf(TIP2FIX_AMOUNT));
                     call.setSession(1);
                 }
-                Call update = callRepository.save(call);
 
-                notificationService.send(request.getUser(), prepareResponse(update));
-                return new ApiResponse<>(prepareResponse(update));
+                return new ApiResponse<>(prepareResponse(callRepository.save(call)));
             }
         }
     }

@@ -12,7 +12,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface CallRepository extends JpaRepository<Call, String> {
-    @Query("SELECT c from calls c where (c.called.id = ?1 OR c.caller.id = ?1 OR c.called.business.id = ?1 OR c.caller.business.id = ?1) and c.updatedAt = CURRENT DATE order by c.createdAt desc")
+    @Query("SELECT c FROM calls c WHERE (c.called.id = ?1 OR c.caller.id = ?1 OR c.called.business.id = ?1 OR c.caller.business.id = ?1) AND DATE(c.updatedAt) = CURRENT_DATE ORDER BY c.createdAt DESC")
     List<Call> findByUserId(UUID userId);
 
     Optional<Call> findByChannelAndCalled_Id(@NonNull String channel, @NonNull UUID id);

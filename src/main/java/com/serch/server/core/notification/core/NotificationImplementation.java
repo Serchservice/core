@@ -7,6 +7,7 @@ import com.serch.server.core.notification.requests.Notification;
 import com.serch.server.core.notification.requests.NotificationMessage;
 import com.serch.server.services.schedule.responses.ScheduleResponse;
 import com.serch.server.services.trip.responses.TripResponse;
+import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.MoneyUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,8 +30,8 @@ public class NotificationImplementation implements NotificationService {
         NotificationMessage<Map<String, Object>> message = new NotificationMessage<>();
         message.setToken(repository.getToken(String.valueOf(receiver)));
         message.setNotification(Notification.builder()
-                .title(String.format("%s (%s) sent you a message", response.getName(), response.getCategory()))
-                .body(response.getMessage())
+                .title(String.format("New message from %s", HelperUtil.textWithAorAn(response.getCategory())))
+                .body(String.format("%s sent you a message", response.getName()))
                 .build());
 
         Map<String, Object> data = getChatNotification(response);

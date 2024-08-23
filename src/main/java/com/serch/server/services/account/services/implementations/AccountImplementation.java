@@ -28,7 +28,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -67,7 +66,6 @@ public class AccountImplementation implements AccountService {
     private final TripShareRepository tripShareRepository;
 
     @Override
-    @Transactional
     public ApiResponse<List<AccountResponse>> accounts() {
         Guest guest = guestRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElse(null);
@@ -81,7 +79,6 @@ public class AccountImplementation implements AccountService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<String> lastPasswordUpdateAt() {
         String time = TimeUtil.formatDay(userUtil.getUser().getLastUpdatedAt());
         return new ApiResponse<>("Success", time, HttpStatus.OK);
@@ -125,7 +122,6 @@ public class AccountImplementation implements AccountService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<DashboardResponse> dashboard() {
         return new ApiResponse<>(
                 DashboardResponse.builder()
@@ -139,7 +135,6 @@ public class AccountImplementation implements AccountService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<List<DashboardResponse>> dashboards() {
         BusinessProfile business = businessProfileRepository.findById(userUtil.getUser().getId())
                 .orElseThrow(() -> new AccountException("Access denied"));
@@ -200,7 +195,6 @@ public class AccountImplementation implements AccountService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<String> updateFcmToken(String token) {
         profileRepository.findById(userUtil.getUser().getId()).ifPresentOrElse(profile -> {
             profile.setFcmToken(token);

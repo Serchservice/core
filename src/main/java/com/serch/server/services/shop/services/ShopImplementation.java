@@ -24,7 +24,6 @@ import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
@@ -62,7 +61,6 @@ public class ShopImplementation implements ShopService {
     }
 
     @Override
-    @Transactional
     public ShopResponse response(Shop shop) {
         ShopResponse response = ShopMapper.INSTANCE.shop(shop);
         response.setOpen(shop.getStatus() == ShopStatus.OPEN);
@@ -97,7 +95,6 @@ public class ShopImplementation implements ShopService {
                 .build();
     }
 
-    @Transactional
     protected ApiResponse<ShopResponse> getUpdatedShopResponse(String shopId) {
         Shop updatedShop = shopRepository.findByIdAndUser_Id(shopId, userUtil.getUser().getId())
                 .orElseThrow(() -> new ShopException("Shop not found"));
@@ -105,7 +102,6 @@ public class ShopImplementation implements ShopService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<List<ShopResponse>> createShop(CreateShopRequest request) {
         if(HelperUtil.isUploadEmpty(request.getUpload())) {
             throw new ShopException("Shop logo or image is needed");
@@ -143,7 +139,6 @@ public class ShopImplementation implements ShopService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<ShopResponse> createWeekday(String shopId, ShopWeekdayRequest request) {
         Shop shop = shopRepository.findByIdAndUser_Id(shopId, userUtil.getUser().getId())
                 .orElseThrow(() -> new ShopException("Shop not found"));
@@ -158,7 +153,6 @@ public class ShopImplementation implements ShopService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<ShopResponse> createService(String shopId, String service) {
         Shop shop = shopRepository.findByIdAndUser_Id(shopId, userUtil.getUser().getId())
                 .orElseThrow(() -> new ShopException("Shop not found"));
@@ -171,7 +165,6 @@ public class ShopImplementation implements ShopService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<ShopResponse> updateShop(UpdateShopRequest request) {
         Shop shop = shopRepository.findByIdAndUser_Id(request.getShop(), userUtil.getUser().getId())
                 .orElseThrow(() -> new ShopException("Shop not found"));
@@ -200,7 +193,6 @@ public class ShopImplementation implements ShopService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<ShopResponse> updateWeekday(Long id, String shopId, ShopWeekdayRequest request) {
         ShopWeekday weekday = shopWeekdayRepository.findByIdAndShop_Id(id, shopId)
                 .orElseThrow(() -> new ShopException("Weekday not found"));
@@ -216,7 +208,6 @@ public class ShopImplementation implements ShopService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<ShopResponse> updateService(Long id, String shopId, String service) {
         ShopSpecialty shopSpecialty = shopServiceRepository.findByIdAndShop_Id(id, shopId)
                 .orElseThrow(() -> new ShopException("Service not found"));
@@ -229,7 +220,6 @@ public class ShopImplementation implements ShopService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<List<ShopResponse>> fetchShops() {
         List<Shop> shops = shopRepository.findByUser_Id(userUtil.getUser().getId());
         List<ShopResponse> list = shops == null || shops.isEmpty() ? List.of() : shops
@@ -240,28 +230,24 @@ public class ShopImplementation implements ShopService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<ShopResponse> removeService(Long id, String shopId) {
         shopServiceRepository.findByIdAndShop_Id(id, shopId).ifPresent(shopServiceRepository::delete);
         return getUpdatedShopResponse(shopId);
     }
 
     @Override
-    @Transactional
     public ApiResponse<List<ShopResponse>> removeShop(String shopId) {
         shopRepository.findByIdAndUser_Id(shopId, userUtil.getUser().getId()).ifPresent(shopRepository::delete);
         return fetchShops();
     }
 
     @Override
-    @Transactional
     public ApiResponse<ShopResponse> removeWeekday(Long id, String shopId) {
         shopWeekdayRepository.findByIdAndShop_Id(id, shopId).ifPresent(shopWeekdayRepository::delete);
         return getUpdatedShopResponse(shopId);
     }
 
     @Override
-    @Transactional
     public ApiResponse<ShopResponse> changeStatus(String shopId, ShopStatus status) {
         Shop shop = shopRepository.findByIdAndUser_Id(shopId, userUtil.getUser().getId())
                 .orElseThrow(() -> new ShopException("Shop not found"));
@@ -272,7 +258,6 @@ public class ShopImplementation implements ShopService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<List<ShopResponse>> changeAllStatus() {
         List<Shop> shops = shopRepository.findByUser_Id(userUtil.getUser().getId());
         if(shops != null && !shops.isEmpty()) {
@@ -291,7 +276,6 @@ public class ShopImplementation implements ShopService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<List<SearchShopResponse>> drive(String query, String category, Double longitude, Double latitude, Double radius) {
         double searchRadius = radius == null ? Double.parseDouble(MAP_SEARCH_RADIUS) : radius;
         List<SearchShopResponse> list = list(query, category, longitude, latitude, searchRadius);
@@ -299,7 +283,6 @@ public class ShopImplementation implements ShopService {
     }
 
     @Override
-    @Transactional
     public List<SearchShopResponse> list(String query, String category, Double longitude, Double latitude, Double radius) {
         if((query == null || query.isEmpty()) && (category == null || category.isEmpty()) ) {
             throw new ShopException("Query and category cannot be null or empty");
@@ -329,7 +312,6 @@ public class ShopImplementation implements ShopService {
     }
 
     @Override
-    @Transactional
     public void openOrCloseShops() {
         List<Shop> openingShops = shopRepository.findShopsWithCurrentOpeningTimeAndDay(Weekday.valueOf(LocalDateTime.now().getDayOfWeek().name()));
         if(openingShops != null && !openingShops.isEmpty()) {

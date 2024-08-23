@@ -22,7 +22,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -48,7 +47,6 @@ public class ActiveImplementation implements ActiveService {
     private final BusinessProfileRepository businessProfileRepository;
 
     @Override
-    @Transactional
     public ApiResponse<ProviderStatus> toggleStatus(OnlineRequest request) {
         if(userUtil.getUser().isProvider()) {
             Optional<Active> existing = activeRepository.findByProfile_Id(userUtil.getUser().getId());
@@ -100,7 +98,6 @@ public class ActiveImplementation implements ActiveService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<ProviderStatus> fetchStatus() {
         return new ApiResponse<>(
                 "Success",
@@ -112,7 +109,6 @@ public class ActiveImplementation implements ActiveService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<List<ActiveResponse>> activeList() {
         BusinessProfile business = businessProfileRepository.findById(userUtil.getUser().getId())
                 .orElseThrow(() -> new AccountException("Access denied"));
@@ -138,7 +134,6 @@ public class ActiveImplementation implements ActiveService {
     }
 
     @Override
-    @Transactional
     public void toggle(User user, ProviderStatus status, OnlineRequest request) {
         activeRepository.findByProfile_Id(user.getId())
                 .ifPresentOrElse(active -> {
@@ -170,7 +165,6 @@ public class ActiveImplementation implements ActiveService {
     }
 
     @Override
-    @Transactional
     public MapViewResponse getLocation(User user) {
         Active active = activeRepository.findByProfile_Id(user.getId()).orElse(null);
 

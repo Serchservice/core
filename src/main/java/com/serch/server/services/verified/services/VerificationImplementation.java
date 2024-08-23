@@ -16,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -39,13 +38,11 @@ public class VerificationImplementation implements VerificationService {
     private Integer VERIFICATION_WAIT_EXPIRATION_TIME;
 
     @Override
-    @Transactional
     public ApiResponse<VerificationResponse> verification() {
         return new ApiResponse<>(buildResponse(userUtil.getUser().getId()));
     }
 
     @Override
-    @Transactional
     public VerificationResponse buildResponse(UUID userId) {
         Verification verification = verificationRepository.findById(userId).orElse(null);
 
@@ -148,7 +145,6 @@ public class VerificationImplementation implements VerificationService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<VerificationResponse> consent() {
         Verification verification = verificationRepository.findById(userUtil.getUser().getId()).orElse(null);
         if(verification == null) {

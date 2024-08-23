@@ -11,7 +11,6 @@ import com.serch.server.services.company.services.SuggestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 
@@ -21,7 +20,6 @@ public class SuggestImplementation implements SuggestService {
     private final ServiceSuggestRepository serviceSuggestRepository;
 
     @Override
-    @Transactional
     public ApiResponse<String> suggest(ServiceSuggestRequest request) {
         if(Arrays.stream(SerchCategory.values()).anyMatch(category -> request.getService().equalsIgnoreCase(category.getType()))) {
             throw new CompanyException("Service already exists in the Serch platform");

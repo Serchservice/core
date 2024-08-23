@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
@@ -21,7 +20,6 @@ public class CategoryImplementation implements CategoryService {
     private final TripRepository tripRepository;
 
     @Override
-    @Transactional
     public ApiResponse<List<SerchCategoryResponse>> categories() {
         return new ApiResponse<>(getSerchCategoryResponses());
     }
@@ -43,7 +41,6 @@ public class CategoryImplementation implements CategoryService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<List<SerchCategoryResponse>> popular() {
         Pageable pageable = PageRequest.of(0, 3);
 

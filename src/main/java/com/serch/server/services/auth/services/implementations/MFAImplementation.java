@@ -32,7 +32,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -64,7 +63,6 @@ public class MFAImplementation implements MFAService {
     private final MFAAuthenticatorService authenticatorService;
 
     @Override
-    @Transactional
     public ApiResponse<MFADataResponse> getMFAData() {
         var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -76,7 +74,6 @@ public class MFAImplementation implements MFAService {
     }
 
     @Override
-    @Transactional
     public MFADataResponse getMFAData(User user) {
         if(user.getMfaFactor() != null) {
             String secret = DatabaseUtil.decodeData(user.getMfaFactor().getSecret());
@@ -95,7 +92,6 @@ public class MFAImplementation implements MFAService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<AuthResponse> validateCode(RequestMFAChallenge request) {
         var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -139,7 +135,6 @@ public class MFAImplementation implements MFAService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<AuthResponse> validateRecoveryCode(RequestMFAChallenge request) {
         var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -172,7 +167,6 @@ public class MFAImplementation implements MFAService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<List<MFARecoveryCodeResponse>> getRecoveryCodes() {
         var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -253,7 +247,6 @@ public class MFAImplementation implements MFAService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<AuthResponse> disable(RequestDevice device) {
         var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -279,7 +272,6 @@ public class MFAImplementation implements MFAService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<MFAUsageResponse> usage() {
         var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));

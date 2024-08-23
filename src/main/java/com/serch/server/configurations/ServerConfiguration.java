@@ -3,6 +3,8 @@ package com.serch.server.configurations;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseOptions;
 import com.mailersend.sdk.MailerSend;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.utils.ServerUtil;
@@ -164,6 +166,12 @@ public class ServerConfiguration {
         credentials.refreshIfExpired();
 
         return credentials;
+    }
+
+    @Bean
+    public FirebaseApp firebase() {
+        FirebaseOptions options = FirebaseOptions.builder().setCredentials(credentials()).build();
+        return FirebaseApp.initializeApp(options);
     }
 
     @Bean

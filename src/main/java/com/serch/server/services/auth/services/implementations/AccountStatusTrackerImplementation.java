@@ -6,7 +6,6 @@ import com.serch.server.repositories.auth.AccountStatusTrackerRepository;
 import com.serch.server.services.auth.services.AccountStatusTrackerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -14,7 +13,6 @@ public class AccountStatusTrackerImplementation implements AccountStatusTrackerS
     private final AccountStatusTrackerRepository accountStatusTrackerRepository;
 
     @Override
-    @Transactional
     public void create(User user) {
         AccountStatusTracker tracker = new AccountStatusTracker();
         tracker.setUser(user);

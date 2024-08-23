@@ -12,7 +12,6 @@ import com.serch.server.services.company.services.CompanyCountryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service implementation for managing country-related operations.
@@ -32,7 +31,6 @@ public class CompanyCountryImplementation implements CompanyCountryService {
     private final RequestCityRepository requestCityRepository;
 
     @Override
-    @Transactional
     public ApiResponse<String> checkMyLocation(CountryRequest request) {
         LaunchedCountry country = launchedCountryRepository.findByNameIgnoreCase(request.getCountry())
                 .orElseThrow(() -> new CompanyException("Serch is not launched in %s".formatted(request.getCountry())));
@@ -108,7 +106,6 @@ public class CompanyCountryImplementation implements CompanyCountryService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<String> requestMyLocation(CountryRequest request) {
         if(request.getCity() != null && request.getState() == null) {
             throw new CompanyException("Cannot get your state");

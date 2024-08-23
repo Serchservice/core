@@ -56,8 +56,8 @@ public interface ActiveRepository extends JpaRepository<Active, Long> {
                     "LEFT JOIN account.specializations s ON p.serch_id = s.serch_id " +
                     "WHERE " +
                     "SQRT(POWER(:latitude - ap.latitude, 2) + POWER(:longitude - ap.longitude, 2)) * 111.325 < :radius / 1000 " +
-                    "AND (to_tsvector('english', s.specialty) @@ plainto_tsquery(:query) " +
-                    "OR to_tsvector('english', COALESCE(p.serch_category, '')) @@ plainto_tsquery(:query)) " +
+                    "AND (to_tsvector('english', s.specialty) @@ to_tsquery(:query) " +
+                    "OR to_tsvector('english', COALESCE(p.serch_category, '')) @@ to_tsquery(:query)) " +
                     "GROUP BY ap.id, s.specialty, p.serch_category, verify.status, verifyBusi.status, ap.latitude, ap.longitude, ap.status, p.rating " +
                     "ORDER BY " +
                     "SQRT(POWER(:latitude - ap.latitude, 2) + POWER(:longitude - ap.longitude, 2)) * 111.325, " +
@@ -72,8 +72,8 @@ public interface ActiveRepository extends JpaRepository<Active, Long> {
                     "WHEN 'BUSY' THEN 2 " +
                     "WHEN 'OFFLINE' THEN 3 " +
                     "ELSE 4 END, " +
-                    "GREATEST(ts_rank_cd(to_tsvector('english', s.specialty), plainto_tsquery(:query)), " +
-                    "ts_rank_cd(to_tsvector('english', COALESCE(p.serch_category, '')), plainto_tsquery(:query))) DESC, " +
+                    "GREATEST(ts_rank_cd(to_tsvector('english', s.specialty), to_tsquery(:query)), " +
+                    "ts_rank_cd(to_tsvector('english', COALESCE(p.serch_category, '')), to_tsquery(:query))) DESC, " +
                     "p.rating DESC",
             nativeQuery = true
     )

@@ -28,7 +28,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -57,7 +56,6 @@ public class PasswordImplementation implements PasswordService {
     protected Integer OTP_EXPIRATION_TIME;
 
     @Override
-    @Transactional
     public ApiResponse<String> checkEmail(String emailAddress) {
         var user = userRepository.findByEmailAddressIgnoreCase(emailAddress)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -91,7 +89,6 @@ public class PasswordImplementation implements PasswordService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<String> verifyToken(RequestResetPasswordVerify verify) {
         var user = userRepository.findByEmailAddressIgnoreCase(verify.getEmailAddress())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -118,7 +115,6 @@ public class PasswordImplementation implements PasswordService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<String> resetPassword(RequestResetPassword resetPassword) {
         var user = userRepository.findByEmailAddressIgnoreCase(resetPassword.getEmailAddress())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -152,7 +148,6 @@ public class PasswordImplementation implements PasswordService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<AuthResponse> changePassword(RequestPasswordChange request) {
         var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));

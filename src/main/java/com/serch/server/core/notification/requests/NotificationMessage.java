@@ -5,7 +5,6 @@ import lombok.Data;
 @Data
 public class NotificationMessage<T> {
     private String token;
-    private Notification notification;
+    private String snt;
     private SerchNotification<T> data;
-    private NotificationAndroid android = new NotificationAndroid();
 }

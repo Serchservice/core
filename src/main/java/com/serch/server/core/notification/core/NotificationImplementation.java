@@ -27,28 +27,33 @@ public class NotificationImplementation implements NotificationService {
 
     @Override
     public void send(UUID receiver, ChatRoomResponse response) {
-        NotificationMessage<Map<String, Object>> message = new NotificationMessage<>();
-        message.setToken(repository.getToken(String.valueOf(receiver)));
+        SerchNotification<Map<String, String>> notification = new SerchNotification<>();
 
-        SerchNotification<Map<String, Object>> notification = new SerchNotification<>();
-        notification.setTitle(String.format("New message from %s", HelperUtil.textWithAorAn(response.getCategory())));
+        if(response.getCategory().equalsIgnoreCase("user")) {
+            notification.setTitle("New message");
+        } else {
+            notification.setTitle(String.format("New message from %s", HelperUtil.textWithAorAn(response.getCategory())));
+        }
         notification.setBody(String.format("%s sent you a message", response.getName()));
         notification.setData(getChatNotification(response));
 
+        NotificationMessage<Map<String, String>> message = new NotificationMessage<>();
+        message.setToken(repository.getToken(String.valueOf(receiver)));
         message.setData(notification);
+        message.setSnt("CHAT");
         notificationCoreService.send(message);
     }
 
-    private static Map<String, Object> getChatNotification(ChatRoomResponse response) {
+    private static Map<String, String> getChatNotification(ChatRoomResponse response) {
         String summary = response.getCount() > 1
                 ? "%s messages".formatted(response.getCount())
                 : "%s message".formatted(response.getCount());
         String shortRoomName = response.getRoom().substring(0, 6).replaceAll("-", "");
 
-        Map<String, Object> data = new HashMap<>();
+        Map<String, String> data = new HashMap<>();
         data.put("room", response.getRoom());
         data.put("id", response.getMessageId());
-        data.put("roommate", response.getRoommate());
+        data.put("roommate", response.getRoommate().toString());
         data.put("image", response.getAvatar());
         data.put("category", response.getCategory());
         data.put("summary", String.format("%s from %s", summary, shortRoomName));
@@ -60,16 +65,16 @@ public class NotificationImplementation implements NotificationService {
     public void send(UUID id, ActiveCallResponse response) {
         response.setSnt("CALL");
 
-        NotificationMessage<ActiveCallResponse> message = new NotificationMessage<>();
-        message.setToken(repository.getToken(String.valueOf(id)));
-
         SerchNotification<ActiveCallResponse> notification = new SerchNotification<>();
         notification.setTitle(String.format("Incoming %s call", response.getType().getType()));
         notification.setBody(String.format("From %s (%s)", response.getName(), response.getCategory()));
         notification.setBody(response.getAvatar());
         notification.setData(response);
 
+        NotificationMessage<ActiveCallResponse> message = new NotificationMessage<>();
+        message.setToken(repository.getToken(String.valueOf(id)));
         message.setData(notification);
+        message.setSnt("CALL");
         notificationCoreService.send(message);
     }
 
@@ -80,11 +85,13 @@ public class NotificationImplementation implements NotificationService {
         NotificationMessage<ScheduleResponse> message = new NotificationMessage<>();
         message.setToken(repository.getToken(String.valueOf(id)));
         message.setData(getScheduleNotification(response, false));
+        message.setSnt("SCHEDULE");
         notificationCoreService.send(message);
 
         if(!repository.getBusinessToken(id).isEmpty()) {
             message.setToken(repository.getBusinessToken(id));
             message.setData(getScheduleNotification(response, true));
+            message.setSnt("SCHEDULE");
             notificationCoreService.send(message);
         }
     }
@@ -186,41 +193,38 @@ public class NotificationImplementation implements NotificationService {
 
     @Override
     public void send(String id, String content, String title, String sender, String trip, boolean isInvite) {
-        NotificationMessage<Map<String, Object>> message = new NotificationMessage<>();
-        message.setToken(repository.getToken(id));
-
-        Map<String, Object> data = new HashMap<>();
+        Map<String, String> data = new HashMap<>();
         data.put("snt", "TRIP_MESSAGE");
         data.put("sender_name", repository.getName(sender));
         data.put("sender_id", sender);
-        data.put("can_act", trip != null);
-        data.put("is_request", isInvite);
+        data.put("can_act", String.valueOf(trip != null));
+        data.put("is_request", String.valueOf(isInvite));
 
         if(trip != null) {
             data.put("trip_id", trip);
         }
 
-        SerchNotification<Map<String, Object>> notification = new SerchNotification<>();
+        SerchNotification<Map<String, String>> notification = new SerchNotification<>();
         notification.setTitle(title);
         notification.setBody(content);
         notification.setImage(repository.getAvatar(sender));
         notification.setData(data);
 
+        NotificationMessage<Map<String, String>> message = new NotificationMessage<>();
+        message.setToken(repository.getToken(id));
         message.setData(notification);
+        message.setSnt("TRIP_MESSAGE");
         notificationCoreService.send(message);
     }
 
     @Override
     public void send(UUID id, boolean isIncome, BigDecimal amount) {
-        NotificationMessage<Map<String, Object>> message = new NotificationMessage<>();
-        message.setToken(repository.getToken(id.toString()));
-
-        Map<String, Object> data = new HashMap<>();
+        Map<String, String> data = new HashMap<>();
         data.put("snt", "TRANSACTION");
         data.put("sender_name", repository.getName(id.toString()));
-        data.put("sender_id", id);
+        data.put("sender_id", String.valueOf(id));
 
-        SerchNotification<Map<String, Object>> notification = new SerchNotification<>();
+        SerchNotification<Map<String, String>> notification = new SerchNotification<>();
         notification.setTitle(isIncome
                 ? String.format("Money In - %s! Keep increasing that wealth", MoneyUtil.formatToNaira(amount))
                 : String.format("Money out - %s! You were debited", MoneyUtil.formatToNaira(amount)));
@@ -230,7 +234,10 @@ public class NotificationImplementation implements NotificationService {
         notification.setImage(repository.getAvatar(id.toString()));
         notification.setData(data);
 
+        NotificationMessage<Map<String, String>> message = new NotificationMessage<>();
+        message.setToken(repository.getToken(id.toString()));
         message.setData(notification);
+        message.setSnt("TRANSACTION");
         notificationCoreService.send(message);
     }
 }

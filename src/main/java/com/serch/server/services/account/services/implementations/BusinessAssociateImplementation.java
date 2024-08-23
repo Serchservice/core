@@ -36,7 +36,6 @@ import com.serch.server.services.rating.services.RatingService;
 import com.serch.server.services.referral.services.ReferralProgramService;
 import com.serch.server.services.referral.services.ReferralService;
 import com.serch.server.utils.UserUtil;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -86,7 +85,6 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
     private String ASSOCIATE_INVITE_LINK;
 
     @Override
-    @Transactional
     public BusinessAssociateResponse response(Profile profile) {
         BusinessAssociateResponse response = new BusinessAssociateResponse();
         response.setBad(ratingService.bad(String.valueOf(profile.getId())).getData());
@@ -113,7 +111,6 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
     }
 
     @Override
-    @Transactional
     public ApiResponse<List<BusinessAssociateResponse>> add(AddAssociateRequest request) {
         BusinessProfile business = businessProfileRepository.findById(util.getUser().getId())
                 .orElseThrow(() -> new AccountException("Business not found"));
@@ -149,7 +146,6 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
     }
 
     @Override
-    @Transactional
     public ApiResponse<String> resendInvite(UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new AccountException("User does not exist"));
@@ -233,7 +229,6 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
     }
 
     @Override
-    @Transactional
     public ApiResponse<List<BusinessAssociateResponse>> delete(UUID id) {
         BusinessProfile business = businessProfileRepository.findById(util.getUser().getId())
                 .orElseThrow(() -> new AccountException("Business not found"));
@@ -259,7 +254,6 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
     }
 
     @Override
-    @Transactional
     public ApiResponse<BusinessAssociateResponse> deactivate(UUID id) {
         BusinessProfile business = businessProfileRepository.findById(util.getUser().getId())
                 .orElseThrow(() -> new AccountException("Business not found"));
@@ -283,7 +277,6 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
     }
 
     @Override
-    @Transactional
     public ApiResponse<BusinessAssociateResponse> activate(UUID id) {
         BusinessProfile business = businessProfileRepository.findById(util.getUser().getId())
                 .orElseThrow(() -> new AccountException("Business not found"));
@@ -318,7 +311,6 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
     }
 
     @Override
-    @Transactional
     public ApiResponse<List<BusinessAssociateResponse>> all() {
         return new ApiResponse<>(associates());
     }

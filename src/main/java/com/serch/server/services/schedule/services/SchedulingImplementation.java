@@ -8,7 +8,6 @@ import com.serch.server.services.schedule.responses.ScheduleResponse;
 import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import static com.serch.server.enums.schedule.ScheduleStatus.*;
 
@@ -18,7 +17,6 @@ public class SchedulingImplementation implements SchedulingService {
     private final ProfileRepository profileRepository;
 
     @Override
-    @Transactional
     public ScheduleResponse response(Schedule schedule, boolean isProvider, boolean isNotBusiness) {
         Profile profile = isProvider ? schedule.getUser() : schedule.getProvider();
 

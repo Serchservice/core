@@ -30,7 +30,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.Optional;
@@ -62,7 +61,6 @@ public class GuestImplementation implements GuestService {
     protected Integer OTP_EXPIRATION_TIME;
 
     @Override
-    @Transactional
     public ApiResponse<AuthResponse> becomeAUser(GuestToUserRequest request) {
         Guest guest = guestRepository.findById(request.getGuestId())
                 .orElseThrow(() -> new SharedException("Guest not found"));
@@ -98,7 +96,6 @@ public class GuestImplementation implements GuestService {
     }
 
     @Override
-    @Transactional
     public void refresh(SwitchRequest request) {
         sharedLoginRepository.findBySharedLink_IdAndGuest_Id(request.getLinkId(), request.getId())
                 .ifPresent(login -> messaging.convertAndSend(
@@ -107,7 +104,6 @@ public class GuestImplementation implements GuestService {
     }
 
     @Override
-    @Transactional
     public GuestResponse response(SharedLogin login) {
         GuestResponse response = SharedMapper.INSTANCE.guest(login.getGuest());
         response.setGender(login.getGuest().getGender().getType());
@@ -131,7 +127,6 @@ public class GuestImplementation implements GuestService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<String> updateFcmToken(String token, String guest) {
         guestRepository.findById(guest).ifPresent(profile -> {
             profile.setFcmToken(token);

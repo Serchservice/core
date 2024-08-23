@@ -1,49 +1,58 @@
 package com.serch.server.core.notification.core;
 
-import com.google.auth.oauth2.GoogleCredentials;
-import com.serch.server.core.notification.requests.FCM;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.FirebaseMessagingException;
+import com.google.firebase.messaging.Message;
 import com.serch.server.core.notification.requests.NotificationMessage;
+import com.serch.server.core.notification.requests.SerchNotification;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class NotificationCore implements NotificationCoreService {
-    private final RestTemplate template;
-    private final GoogleCredentials credentials;
-
-    @Value("${application.notification.base-url}")
-    private String NOTIFICATION_BASE_URL;
-
-    @SneakyThrows
-    private HttpHeaders headers() {
-        credentials.refreshIfExpired();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.add("Authorization", "Bearer "+ credentials.getAccessToken().getTokenValue());
-        return headers;
-    }
+    private final ObjectMapper objectMapper;
 
     @Override
     public void send(NotificationMessage<?> request) {
-        CompletableFuture.runAsync(() -> {
-            FCM fcm = new FCM();
-            fcm.setMessage(request);
-            HttpEntity<FCM> entity = new HttpEntity<>(fcm, headers());
+        Message message = Message.builder()
+                .setToken(request.getToken())
+                .putAllData(toMap(request.getData(), request.getSnt()))
+                .build();
+        log.info(String.format("%s::: %s", "NOTIFICATION SDK REQUEST", request.getToken()));
 
-            ResponseEntity<Object> response = template.exchange(NOTIFICATION_BASE_URL, HttpMethod.POST, entity, Object.class);
-            log.info(String.format("%s::: %s", "NOTIFICATION CORE RESPONSE", response));
-            log.info(String.format("%s::: %s", "NOTIFICATION CORE RESPONSE STATUS CODE", response.getStatusCode()));
-            log.info(String.format("%s::: %s", "NOTIFICATION CORE RESPONSE BODY", response.getBody()));
-        });
+        try {
+            String response = FirebaseMessaging.getInstance().send(message);
+            log.info(String.format("%s::: %s", "NOTIFICATION SDK RESPONSE", response));
+        } catch (FirebaseMessagingException e) {
+            log.error(String.format("%s::: %s", "NOTIFICATION SDK EXCEPTION", e));
+        }
     }
+
+    @SneakyThrows
+    private Map<String, String> toMap(SerchNotification<?> data, String snt) {
+        Map<String, String> map = new HashMap<>();
+
+        // Convert data field if it's not null
+        if (data != null) {
+            // Manually convert important fields
+            map.put("title", data.getTitle());
+            map.put("body", data.getBody());
+            map.put("snt", snt);
+            if (data.getImage() != null) {
+                map.put("image", data.getImage());
+            }
+            map.put("data", objectMapper.writeValueAsString(data.getData()));
+        }
+
+        return map;
+    }
+
 }

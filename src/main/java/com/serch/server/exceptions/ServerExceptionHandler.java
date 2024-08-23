@@ -22,6 +22,7 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.SignatureException;
+import jakarta.transaction.SystemException;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.UnexpectedTypeException;
 import lombok.NonNull;
@@ -717,6 +718,16 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(DataSourceLookupFailureException.class)
     public ApiResponse<String> handleDataSourceLookupFailureException(DataSourceLookupFailureException exception){
+        log.error(exception.getMessage());
+        return new ApiResponse<>(
+                "An error occurred while fetching data, please try again",
+                ExceptionCodes.IMPROPER_USER_ID_FORMAT,
+                HttpStatus.NOT_ACCEPTABLE
+        );
+    }
+
+    @ExceptionHandler(SystemException.class)
+    public ApiResponse<String> handleSystemException(SystemException exception){
         log.error(exception.getMessage());
         return new ApiResponse<>(
                 "An error occurred while fetching data, please try again",

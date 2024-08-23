@@ -11,7 +11,6 @@ import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -29,7 +28,6 @@ public class AccountSettingImplementation implements AccountSettingService {
     private final AccountSettingRepository accountSettingRepository;
 
     @Override
-    @Transactional
     public void create(User user) {
         Optional<AccountSetting> existing = accountSettingRepository.findByUser_Id(user.getId());
         if(existing.isEmpty()) {
@@ -40,7 +38,6 @@ public class AccountSettingImplementation implements AccountSettingService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<AccountSettingResponse> update(AccountSettingResponse request) {
         AccountSetting setting = accountSettingRepository.findByUser_Id(userUtil.getUser().getId())
                 .orElse(new AccountSetting());
@@ -64,7 +61,6 @@ public class AccountSettingImplementation implements AccountSettingService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<AccountSettingResponse> settings() {
         AccountSetting setting = accountSettingRepository.findByUser_Id(userUtil.getUser().getId())
                 .orElse(new AccountSetting());

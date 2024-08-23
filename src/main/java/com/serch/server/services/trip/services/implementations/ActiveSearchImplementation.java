@@ -18,6 +18,7 @@ import com.serch.server.repositories.rating.RatingRepository;
 import com.serch.server.repositories.shared.SharedLinkRepository;
 import com.serch.server.repositories.shop.ShopRepository;
 import com.serch.server.repositories.trip.ActiveRepository;
+import com.serch.server.repositories.trip.TripRepository;
 import com.serch.server.services.account.responses.MoreProfileData;
 import com.serch.server.services.account.services.ProfileService;
 import com.serch.server.services.account.services.SpecialtyService;
@@ -29,9 +30,10 @@ import com.serch.server.services.trip.services.ActiveSearchService;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -51,6 +53,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @Service
 @RequiredArgsConstructor
 public class ActiveSearchImplementation implements ActiveSearchService {
+    private static final Logger log = LoggerFactory.getLogger(ActiveSearchImplementation.class);
     private final ProfileService profileService;
     private final SpecialtyService specialtyService;
     private final ShopService shopService;
@@ -64,6 +67,7 @@ public class ActiveSearchImplementation implements ActiveSearchService {
 
     @Value("${application.map.search-radius}")
     private String MAP_SEARCH_RADIUS;
+    private final TripRepository tripRepository;
 
     @Override
     public Double getSearchRadius(Double radius) {
@@ -71,7 +75,6 @@ public class ActiveSearchImplementation implements ActiveSearchService {
     }
 
     @Override
-    @Transactional
     public ActiveResponse response(Profile profile, ProviderStatus status, double distance) {
         ActiveResponse response = TripMapper.INSTANCE.response(profile);
         response.setStatus(status);
@@ -95,7 +98,7 @@ public class ActiveSearchImplementation implements ActiveSearchService {
         );
         MoreProfileData more = profileService.moreInformation(profile.getUser());
         more.setTotalShared(sharedLinkRepository.findByUserId(profile.getId()).size());
-        more.setTotalServiceTrips(0);
+        more.setTotalServiceTrips(tripRepository.findCompletedProviderTrips(profile.getId()).size());
         more.setNumberOfShops(shopRepository.findByUser_Id(profile.getUser().getId()).size());
         more.setNumberOfRating(ratingRepository.findByRated(String.valueOf(profile.getId())).size());
         response.setMore(more);
@@ -103,7 +106,6 @@ public class ActiveSearchImplementation implements ActiveSearchService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<SearchResponse> search(SerchCategory category, Double longitude, Double latitude, Double radius, Boolean autoConnect) {
         List<Active> actives = activeRepository.sortAllWithinDistance(latitude, longitude, getSearchRadius(radius), category.name());
 
@@ -115,7 +117,6 @@ public class ActiveSearchImplementation implements ActiveSearchService {
         return new ApiResponse<>(response);
     }
 
-    @Transactional
     protected SearchResponse prepareResponse(Double longitude, Double latitude, List<Active> actives) {
         AtomicReference<AccountSetting> setting = new AtomicReference<>();
         userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
@@ -130,7 +131,7 @@ public class ActiveSearchImplementation implements ActiveSearchService {
                         .filter(active -> {
                             boolean showOnlyCertified = Optional.ofNullable(setting.get().getShowOnlyCertified()).orElse(false);
                             boolean hasCertificate = certificateRepository.existsByUser(active.getProfile().getId());
-                            System.out.println("showOnlyCertified: " + showOnlyCertified + ", hasCertificate: " + hasCertificate);
+                            log.info(String.format("ACTIVE SEARCH ::: Show Only Certified=%s | Has Certificate=%s", showOnlyCertified, hasCertificate));
                             return !showOnlyCertified || hasCertificate;
                         })
                         // Filter based on whether verification is required and whether the user is verified
@@ -139,14 +140,14 @@ public class ActiveSearchImplementation implements ActiveSearchService {
                             boolean isVerified = Optional.ofNullable(active.getProfile().getUser().getVerification())
                                     .map(Verification::isVerified)
                                     .orElse(false);
-                            System.out.println("showOnlyVerified: " + showOnlyVerified + ", isVerified: " + isVerified);
+                            log.info(String.format("ACTIVE SEARCH ::: Show Only Verified=%s | Is Verified=%s", showOnlyVerified, isVerified));
                             return !showOnlyVerified || isVerified;
                         })
                         // Filter based on gender
                         .filter(active -> {
                             Gender genderSetting = Optional.ofNullable(setting.get().getGender()).orElse(Gender.ANY);
                             Gender profileGender = active.getProfile().getGender();
-                            System.out.println("genderSetting: " + genderSetting + ", profileGender: " + profileGender);
+                            log.info(String.format("ACTIVE SEARCH ::: Selected Trip Gender=%s | User Gender=%s", genderSetting, profileGender));
                             return genderSetting == Gender.ANY || genderSetting.equals(profileGender);
                         })
                         // Ensure distinct results if needed (using some form of uniqueness check)
@@ -178,13 +179,9 @@ public class ActiveSearchImplementation implements ActiveSearchService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<SearchResponse> search(String query, Double longitude, Double latitude, Double radius, Boolean autoConnect) {
         List<Active> actives = activeRepository.fullTextSearchWithinDistance(latitude, longitude, query, getSearchRadius(radius));
         List<SearchShopResponse> shops = shopService.list(query, null, longitude, latitude, getSearchRadius(radius));
-
-        System.out.println(actives);
-        System.out.println(shops);
 
         SearchResponse response = prepareResponse(longitude, latitude, actives);
         response.setShops(shops);
@@ -195,7 +192,6 @@ public class ActiveSearchImplementation implements ActiveSearchService {
         return new ApiResponse<>(response);
     }
 
-    @Transactional
     protected void addBestMatch(Double longitude, Double latitude, SearchResponse response, Active bestMatch) {
         if(bestMatch != null) {
             response.setBest(response(

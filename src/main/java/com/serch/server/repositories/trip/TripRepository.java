@@ -48,6 +48,12 @@ public interface TripRepository extends JpaRepository<Trip, String> {
     )
     List<Trip> todayTrips(UUID id);
 
+    @Query(
+            "SELECT t from Trip t left JOIN t.timelines tt where (t.provider.id = ?1 OR t.provider.business.id = ?1) and " +
+                    "tt.status in (com.serch.server.enums.trip.TripConnectionStatus.COMPLETED) order by t.updatedAt desc"
+    )
+    List<Trip> findCompletedProviderTrips(UUID id);
+
     @Query("select t from Trip t " +
             "left join t.invited ti " +
             "left join t.provider p " +

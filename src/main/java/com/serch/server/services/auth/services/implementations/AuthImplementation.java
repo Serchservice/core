@@ -37,7 +37,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service implementation for managing authentication-related operations.
@@ -75,7 +74,6 @@ public class AuthImplementation implements AuthService {
     protected Integer MAXIMUM_OTP_TRIALS;
 
     @Override
-    @Transactional
     public void sendOtp(String emailAddress) {
         Optional<Incomplete> user = incompleteRepository.findByEmailAddress(emailAddress);
         String otp = tokenService.generateOtp();
@@ -101,14 +99,12 @@ public class AuthImplementation implements AuthService {
                 );
             }
         } else {
-            Incomplete saved = getIncomplete(emailAddress, otp);
-            incompleteRepository.save(saved);
+            createIncomplete(emailAddress, otp);
             sendEmail(emailAddress, otp);
         }
     }
 
     @Override
-    @Transactional
     public void sendEmail(String emailAddress, String otp) {
         SendEmail email = new SendEmail();
         email.setContent(otp);
@@ -117,17 +113,17 @@ public class AuthImplementation implements AuthService {
         emailService.send(email);
     }
 
-    private Incomplete getIncomplete(String emailAddress, String otp) {
+    private void createIncomplete(String emailAddress, String otp) {
         Incomplete incomplete = new Incomplete();
         incomplete.setEmailAddress(emailAddress);
         incomplete.setToken(passwordEncoder.encode(otp));
         incomplete.setTrials(1);
         incomplete.setTokenExpiresAt(LocalDateTime.now().plusMinutes(OTP_EXPIRATION_TIME));
-        return incompleteRepository.save(incomplete);
+        System.out.println(incomplete);
+        incompleteRepository.save(incomplete);
     }
 
     @Override
-    @Transactional
     public ApiResponse<String> checkEmail(String email) {
         var user = userRepository.findByEmailAddressIgnoreCase(email);
         if (user.isPresent()) {
@@ -178,7 +174,6 @@ public class AuthImplementation implements AuthService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<String> verifyEmailOtp(@NotNull RequestEmailToken request) {
         Incomplete incomplete = incompleteRepository.findByEmailAddress(request.getEmailAddress())
                 .orElseThrow(() -> new AuthException("User not found", ExceptionCodes.USER_NOT_FOUND));
@@ -200,7 +195,6 @@ public class AuthImplementation implements AuthService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<AuthResponse> authenticate(RequestLogin request, User user) {
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
                 request.getEmailAddress(),
@@ -212,7 +206,6 @@ public class AuthImplementation implements AuthService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<AuthResponse> getAuthResponse(RequestLogin request, User user) {
         user.setLastSignedIn(LocalDateTime.now());
         user.setCountry(request.getCountry());
@@ -231,7 +224,6 @@ public class AuthImplementation implements AuthService {
     }
 
     @Override
-    @Transactional
     public User getUserFromIncomplete(Incomplete incomplete, Role role) {
         User saved = createNewUser(incomplete, role);
         trackerService.create(saved);

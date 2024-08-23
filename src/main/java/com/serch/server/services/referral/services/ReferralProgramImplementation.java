@@ -17,7 +17,6 @@ import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -75,7 +74,6 @@ public class ReferralProgramImplementation implements ReferralProgramService {
     }
 
     @Override
-    @Transactional
     public void create(User user) {
         String referralLink = generateReferralLink(user.getRole());
 
@@ -87,7 +85,6 @@ public class ReferralProgramImplementation implements ReferralProgramService {
     }
 
     @Override
-    @Transactional
     public User verify(String code) {
         return referralProgramRepository.findByReferralCode(code)
                 .map(ReferralProgram::getUser)
@@ -95,7 +92,6 @@ public class ReferralProgramImplementation implements ReferralProgramService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<ReferralProgramResponse> verifyLink(String link) {
         ReferralProgram program = referralProgramRepository.findByReferLink(link)
                 .orElseThrow(() -> new ReferralException("Referral not found"));
@@ -122,7 +118,6 @@ public class ReferralProgramImplementation implements ReferralProgramService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<ReferralProgramResponse> verifyCode(String code) {
         ReferralProgram program = referralProgramRepository.findByReferralCode(code)
                 .orElseThrow(() -> new ReferralException("Referral not found"));
@@ -132,7 +127,6 @@ public class ReferralProgramImplementation implements ReferralProgramService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<ReferralProgramResponse> program() {
         ReferralProgram program = referralProgramRepository.findByUser_EmailAddress(UserUtil.getLoginUser())
                 .orElseThrow(() -> new ReferralException("Referral not found"));

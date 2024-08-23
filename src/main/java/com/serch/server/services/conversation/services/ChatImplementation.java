@@ -37,7 +37,7 @@ public class ChatImplementation implements ChatService {
     @Override
     @Transactional
     public ApiResponse<ChatRoomResponse> room(UUID roommate) {
-        ChatRoom room = chatRoomRepository.findByRoommate(roommate)
+        ChatRoom room = chatRoomRepository.findByRoommateAndCreator(roommate, userUtil.getUser().getId())
                 .orElseGet(() -> {
                     ChatRoom newRoom = new ChatRoom();
                     newRoom.setCreator(userUtil.getUser().getId());

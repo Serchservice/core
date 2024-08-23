@@ -14,7 +14,6 @@ import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -38,7 +37,6 @@ public class AccountDeleteImplementation implements AccountDeleteService {
     private final UserRepository userRepository;
 
     @Override
-    @Transactional
     public ApiResponse<String> delete(UUID id) {
         if(userUtil.getUser().isProfile()) {
             throw new AccountException("Cannot access this resource. Access denied");
@@ -56,7 +54,6 @@ public class AccountDeleteImplementation implements AccountDeleteService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<String> delete() {
         return getDeleteResponse(userUtil.getUser());
     }

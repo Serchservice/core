@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -37,7 +36,6 @@ public class SpecialtyImplementation implements SpecialtyService {
     private Integer SPECIALTY_LIMIT;
 
     @Override
-    @Transactional
     public void createSpecialties(Incomplete incomplete, Profile profile) {
         if(!incomplete.getSpecializations().isEmpty()) {
             incomplete.getSpecializations().forEach(specialty -> {
@@ -50,7 +48,6 @@ public class SpecialtyImplementation implements SpecialtyService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<SpecialtyResponse> add(String specialty) {
         Profile profile = profileRepository.findById(userUtil.getUser().getId())
                 .orElseThrow(() -> new AccountException("Profile not found"));
@@ -73,7 +70,6 @@ public class SpecialtyImplementation implements SpecialtyService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<String> delete(Long id) {
         specialtyRepository.findByIdAndProfile_Id(id, userUtil.getUser().getId())
                 .ifPresentOrElse(specialtyRepository::delete, () -> {
@@ -83,7 +79,6 @@ public class SpecialtyImplementation implements SpecialtyService {
     }
 
     @Override
-    @Transactional
     public SpecialtyResponse response(Specialty specialty) {
         return SpecialtyResponse.builder()
                 .id(specialty.getId())
@@ -95,7 +90,6 @@ public class SpecialtyImplementation implements SpecialtyService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<List<SpecialtyResponse>> search(String query) {
         List<Specialty> specialties = specialtyRepository.fullTextSearch(query.toLowerCase());
         if(specialties != null && !specialties.isEmpty()) {

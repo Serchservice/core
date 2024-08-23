@@ -38,7 +38,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -82,7 +81,6 @@ public class ProfileImplementation implements ProfileService {
     private Integer ACCOUNT_DURATION;
 
     @Override
-    @Transactional
     public ApiResponse<Profile> createProfile(RequestCreateProfile request) {
         var user = profileRepository.findById(request.getUser().getId());
         if(user.isPresent()) {
@@ -112,7 +110,6 @@ public class ProfileImplementation implements ProfileService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<Profile> createProviderProfile(Incomplete incomplete, User user) {
         RequestCreateProfile createProfile = new RequestCreateProfile();
         createProfile.setUser(user);
@@ -134,7 +131,6 @@ public class ProfileImplementation implements ProfileService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<Profile> createUserProfile(RequestProfile request, User user, User referral) {
         RequestCreateProfile createProfile = new RequestCreateProfile();
         createProfile.setUser(user);
@@ -145,7 +141,6 @@ public class ProfileImplementation implements ProfileService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<ProfileResponse> profile() {
         Profile profile = profileRepository.findById(userUtil.getUser().getId())
                 .orElseThrow(() -> new AccountException("Profile not found"));
@@ -154,7 +149,6 @@ public class ProfileImplementation implements ProfileService {
     }
 
     @Override
-    @Transactional
     public ProfileResponse profile(Profile profile) {
         ProfileResponse response = AccountMapper.INSTANCE.profile(profile);
         response.setCertificate(certificateRepository.findByUser(profile.getId()).map(Certificate::getDocument).orElse(""));
@@ -185,7 +179,6 @@ public class ProfileImplementation implements ProfileService {
     }
 
     @Override
-    @Transactional
     public MoreProfileData moreInformation(User user) {
         MoreProfileData more = new MoreProfileData();
         more.setNumberOfRating(ratingRepository.findByRated(String.valueOf(user.getId())).size());
@@ -202,7 +195,6 @@ public class ProfileImplementation implements ProfileService {
     }
 
     @Override
-    @Transactional
     public void undo(String emailAddress) {
         profileRepository.findByUser_EmailAddress(emailAddress)
                 .ifPresent(profile -> {
@@ -215,7 +207,6 @@ public class ProfileImplementation implements ProfileService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<ProfileResponse> update(UpdateProfileRequest request) {
         User user = userUtil.getUser();
         Profile profile = profileRepository.findById(user.getId())
@@ -238,7 +229,6 @@ public class ProfileImplementation implements ProfileService {
         }
     }
 
-    @Transactional
     protected ApiResponse<ProfileResponse> getProfileUpdateResponse(UpdateProfileRequest request, User user, Profile profile) {
         updateLastName(request, profile);
         updateFirstName(request, profile);
@@ -253,7 +243,6 @@ public class ProfileImplementation implements ProfileService {
     }
 
     @Override
-    @Transactional
     public void updatePhoneInformation(RequestPhoneInformation request, User user) {
         if(request != null) {
             phoneInformationRepository.findByUser_Id(user.getId())

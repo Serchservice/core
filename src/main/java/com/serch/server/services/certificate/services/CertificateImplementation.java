@@ -34,7 +34,6 @@ import lombok.SneakyThrows;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -67,7 +66,6 @@ public class CertificateImplementation implements CertificateService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<CertificateData> generate() {
         User user = userUtil.getUser();
         Optional<Certificate> cert = certificateRepository.findByUser(user.getId());
@@ -114,7 +112,6 @@ public class CertificateImplementation implements CertificateService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<CertificateResponse> fetch() {
         Optional<Certificate> cert = certificateRepository.findByUser(userUtil.getUser().getId());
         CertificateResponse response = new CertificateResponse();
@@ -181,7 +178,6 @@ public class CertificateImplementation implements CertificateService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<CertificateResponse> upload(FileUploadRequest request) {
         String bucket = userUtil.getUser().isBusiness() ? "certificate/business" : "certificate/provider";
         String url = storageService.upload(request, bucket);
@@ -311,7 +307,6 @@ public class CertificateImplementation implements CertificateService {
     }
 
     @Override
-    @Transactional
     public ApiResponse<VerifyCertificateResponse> verify(String token) {
         Certificate certificate = null;
         List<Certificate> certificates = certificateRepository.findAll();

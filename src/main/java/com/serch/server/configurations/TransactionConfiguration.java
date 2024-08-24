@@ -11,8 +11,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
-import javax.sql.DataSource;
-
 @Configuration
 @RequiredArgsConstructor
 public class TransactionConfiguration {
@@ -35,9 +33,25 @@ public class TransactionConfiguration {
 
     @Bean("securityCheckDataSource")
     public AbstractDataSourceBean securityCheckDataSource(Environment env) {
-        String profile = env.getActiveProfiles()[0]; // Get the active profile
+        String profile;
+        try {
+            profile = env.getActiveProfiles()[0]; // Get the active profile
+        } catch (Exception e) {
+            profile = "default";
+        }
         log.info(String.format("CURRENT PROFILE::: %s", profile));
 
+        PGXADataSource pg = getPgxaDataSource(profile);
+
+        AtomikosDataSourceBean source = new AtomikosDataSourceBean();
+        source.setUniqueResourceName("SJTADB");
+        source.setMaxPoolSize(200);
+        source.setXaDataSource(pg);
+
+        return source;
+    }
+
+    private PGXADataSource getPgxaDataSource(String profile) {
         String finalUrl;
         String finalUser;
         String finalPassword;
@@ -60,12 +74,6 @@ public class TransactionConfiguration {
         pg.setUrl(finalUrl);
         pg.setUser(finalUser);
         pg.setPassword(finalPassword);
-
-        AtomikosDataSourceBean source = new AtomikosDataSourceBean();
-        source.setUniqueResourceName("SJTADB");
-        source.setMaxPoolSize(200);
-        source.setXaDataSource(pg);
-
-        return source;
+        return pg;
     }
 }

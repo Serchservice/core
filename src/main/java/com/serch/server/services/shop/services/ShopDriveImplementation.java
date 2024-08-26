@@ -51,7 +51,7 @@ public class ShopDriveImplementation implements ShopDriveService {
                     .stream()
                     .filter(shop -> shop.getRating() != null)
                     .map(ShopMapper.INSTANCE::calculation).toList();
-            drive.getShop().setRating(calculationService.getUpdatedRating(ratings));
+            drive.getShop().setRating(calculationService.getUpdatedRating(ratings, drive.getShop().getRating()));
             drive.getShop().setUpdatedAt(LocalDateTime.now());
             shopRepository.save(drive.getShop());
 

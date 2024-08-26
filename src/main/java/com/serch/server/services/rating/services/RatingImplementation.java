@@ -221,13 +221,13 @@ public class RatingImplementation implements RatingService {
                     ratings.addAll(ratingRepository.findByRated(associate.getId().toString())
                             .stream().map(RatingMapper.INSTANCE::calculation).toList())
             );
-            profile.getBusiness().setRating(calculationService.getUpdatedRating(ratings));
+            profile.getBusiness().setRating(calculationService.getUpdatedRating(ratings, profile.getBusiness().getRating()));
             businessProfileRepository.save(profile.getBusiness());
         }
 
         List<RatingCalculation> ratings = ratingRepository.findByRated(profile.getId().toString())
                 .stream().map(RatingMapper.INSTANCE::calculation).toList();
-        profile.setRating(calculationService.getUpdatedRating(ratings));
+        profile.setRating(calculationService.getUpdatedRating(ratings, profile.getRating()));
         profileRepository.save(profile);
     }
 
@@ -235,7 +235,7 @@ public class RatingImplementation implements RatingService {
         List<RatingCalculation> ratings = ratingRepository.findByRated(profile.getId())
                 .stream().map(RatingMapper.INSTANCE::calculation).toList();
 
-        profile.setRating(calculationService.getUpdatedRating(ratings));
+        profile.setRating(calculationService.getUpdatedRating(ratings, profile.getRating()));
         guestRepository.save(profile);
     }
 

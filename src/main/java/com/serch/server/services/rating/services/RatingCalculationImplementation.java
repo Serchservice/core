@@ -16,7 +16,7 @@ public class RatingCalculationImplementation implements RatingCalculationService
     private Integer ACCOUNT_MIN_RATING_LIMIT;
 
     @Override
-    public double getUpdatedRating(List<RatingCalculation> ratings) {
+    public double getUpdatedRating(List<RatingCalculation> ratings, Double avg) {
         double newWeightedAverage = calculateWeightedAverage(ratings);
 
         double finalRating;
@@ -28,8 +28,18 @@ public class RatingCalculationImplementation implements RatingCalculationService
         } else {
             finalRating = newWeightedAverage;
         }
+
+        // Cap the maximum decrease from the previous rating
+        finalRating = capRatingDecrease(finalRating, avg != null ? avg : 5.0);
+
         return finalRating;
     }
+
+    private double capRatingDecrease(double newRating, double previousRating) {
+        double maxDecrease = 0.5; // Set the maximum allowable decrease
+        return Math.max(newRating, previousRating - maxDecrease);
+    }
+
 
     @Override
     public double calculateWeightedAverage(List<RatingCalculation> ratings) {

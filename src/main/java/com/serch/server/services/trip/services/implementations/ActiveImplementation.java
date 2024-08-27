@@ -19,6 +19,8 @@ import com.serch.server.services.trip.services.ActiveSearchService;
 import com.serch.server.services.trip.services.ActiveService;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -40,6 +42,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class ActiveImplementation implements ActiveService {
+    private static final Logger log = LoggerFactory.getLogger(ActiveImplementation.class);
     private final UserUtil userUtil;
     private final SimpMessagingTemplate messaging;
     private final ActiveRepository activeRepository;
@@ -48,6 +51,8 @@ public class ActiveImplementation implements ActiveService {
 
     @Override
     public ApiResponse<ProviderStatus> toggleStatus(OnlineRequest request) {
+        log.info(String.format("ACTIVE TOGGLE STATUS::: %s", request));
+
         if(userUtil.getUser().isProvider()) {
             Optional<Active> existing = activeRepository.findByProfile_Id(userUtil.getUser().getId());
             if(existing.isPresent()) {

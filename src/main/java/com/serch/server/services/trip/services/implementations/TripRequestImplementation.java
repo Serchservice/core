@@ -27,6 +27,8 @@ import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.MoneyUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -49,6 +51,7 @@ import static com.serch.server.enums.trip.TripType.REQUEST;
 @Service
 @RequiredArgsConstructor
 public class TripRequestImplementation implements TripRequestService {
+    private static final Logger log = LoggerFactory.getLogger(TripRequestImplementation.class);
     private final StorageService storageService;
     private final NotificationService notificationService;
     private final TripHistoryService historyService;
@@ -150,7 +153,7 @@ public class TripRequestImplementation implements TripRequestService {
                             "/platform/%s".formatted(String.valueOf(active.getProfile().getId())),
                             historyService.response(trip.getId(), String.valueOf(active.getProfile().getId()))
                     );
-                    System.out.println("Hello");
+                    log.info(String.format("Sending notification trip invitation ping request to %s", active.getProfile().getId()));
                     notificationService.send(
                             String.valueOf(active.getProfile().getId()),
                             String.format("%s wants your service now", name),

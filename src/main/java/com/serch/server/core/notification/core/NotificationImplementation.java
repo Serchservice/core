@@ -27,6 +27,8 @@ public class NotificationImplementation implements NotificationService {
 
     @Override
     public void send(UUID receiver, ChatRoomResponse response) {
+        log.info(String.format("Preparing chat notification for %s to %s", response.getRoom(), receiver));
+
         SerchNotification<Map<String, String>> notification = new SerchNotification<>();
 
         if(response.getCategory().equalsIgnoreCase("user")) {
@@ -80,6 +82,7 @@ public class NotificationImplementation implements NotificationService {
 
     @Override
     public void send(UUID id, ScheduleResponse response) {
+        log.info(String.format("Preparing schedule notification for %s, Category: %s to %s", response.getId(), response.getCategory(), id));
         response.setSnt("SCHEDULE");
 
         NotificationMessage<ScheduleResponse> message = new NotificationMessage<>();
@@ -193,6 +196,8 @@ public class NotificationImplementation implements NotificationService {
 
     @Override
     public void send(String id, String content, String title, String sender, String trip, boolean isInvite) {
+        log.info(String.format("Preparing trip notification for %s from %s to %s", trip, sender, id));
+
         Map<String, String> data = new HashMap<>();
         data.put("snt", "TRIP_MESSAGE");
         data.put("sender_name", repository.getName(sender));
@@ -219,6 +224,8 @@ public class NotificationImplementation implements NotificationService {
 
     @Override
     public void send(UUID id, boolean isIncome, BigDecimal amount) {
+        log.info(String.format("Preparing transaction notification for %s to %s", amount, id));
+
         Map<String, String> data = new HashMap<>();
         data.put("snt", "TRANSACTION");
         data.put("sender_name", repository.getName(id.toString()));
@@ -230,7 +237,7 @@ public class NotificationImplementation implements NotificationService {
                 : String.format("Money out - %s! You were debited", MoneyUtil.formatToNaira(amount)));
         notification.setBody(isIncome
                 ? String.format("Your Serch wallet just received %s into your withdrawing balance", MoneyUtil.formatToNaira(amount))
-                : String.format("%s was debited from your wallet for a trip service charge", MoneyUtil.formatToNaira(amount)));
+                : String.format("%s was debited from your wallet. See details in your history.", MoneyUtil.formatToNaira(amount)));
         notification.setImage(repository.getAvatar(id.toString()));
         notification.setData(data);
 

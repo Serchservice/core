@@ -109,4 +109,9 @@ public interface WalletService {
      * This will automate the transfer of balance to different user accounts on their specific paydays
      */
     void processPaydays();
+
+    /**
+     * This will automate the verification of pending transactions
+     */
+    void processPendingVerifications();
 }

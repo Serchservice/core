@@ -17,13 +17,22 @@ public class WalletJobs {
     private final WalletService service;
 
     /**
-     * Executes the remove method periodically, to remove incomplete authentication accounts created
-     * one year ago.
+     * Executes the remove method periodically, to process paydays
      * This method is scheduled to run every midnight.
      */
     @Scheduled(cron = "0 0 0 * * ?")
     public void processPayouts() {
-//        log.info("Running scheduled task for remove in %s on %s".formatted(WalletService.class, TimeUtil.log()));
+        log.info("Processing paydays in WALLET SERVICE for %s".formatted(TimeUtil.log()));
         service.processPaydays();
+    }
+
+    /**
+     * Executes the remove method periodically, to check and verify pending transactions
+     * This method is scheduled to run every midnight.
+     */
+    @Scheduled(cron = "0 0/10 * * * ?")
+    public void processPendingTransactions() {
+        log.info("Processing pending transactions in WALLET SERVICE for %s".formatted(TimeUtil.log()));
+        service.processPendingVerifications();
     }
 }

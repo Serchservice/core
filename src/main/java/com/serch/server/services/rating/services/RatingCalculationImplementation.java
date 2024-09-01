@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -32,7 +34,10 @@ public class RatingCalculationImplementation implements RatingCalculationService
         // Cap the maximum decrease from the previous rating
         finalRating = capRatingDecrease(finalRating, avg != null ? avg : 5.0);
 
-        return finalRating;
+        // Round the final rating to two decimal places
+        BigDecimal roundedRating = BigDecimal.valueOf(finalRating).setScale(2, RoundingMode.HALF_UP);
+
+        return roundedRating.doubleValue();
     }
 
     private double capRatingDecrease(double newRating, double previousRating) {

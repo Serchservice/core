@@ -1,5 +1,6 @@
 package com.serch.server.services.transaction.services.implementations;
 
+import com.serch.server.core.notification.core.NotificationService;
 import com.serch.server.enums.transaction.TransactionStatus;
 import com.serch.server.enums.transaction.TransactionType;
 import com.serch.server.models.account.Profile;
@@ -27,6 +28,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class SchedulePayImplementation implements SchedulePayService {
+    private final NotificationService notificationService;
     private final WalletRepository walletRepository;
     private final ProfileRepository profileRepository;
     private final TransactionRepository transactionRepository;
@@ -124,6 +126,8 @@ public class SchedulePayImplementation implements SchedulePayService {
         wallet.setUncleared(wallet.getUncleared().subtract(transaction.getAmount()));
         walletRepository.save(wallet);
 
+        notificationService.send(wallet.getUser().getId(), false, transaction.getAmount());
+
         transaction.setStatus(TransactionStatus.SUCCESSFUL);
         transaction.setUpdatedAt(LocalDateTime.now());
         transaction.setVerified(true);
@@ -137,6 +141,7 @@ public class SchedulePayImplementation implements SchedulePayService {
             wallet.setBalance(wallet.getBalance().add(transaction.getAmount()));
             wallet.setUpdatedAt(LocalDateTime.now());
             walletRepository.save(wallet);
+            notificationService.send(id, true, transaction.getAmount());
         }
     }
 }

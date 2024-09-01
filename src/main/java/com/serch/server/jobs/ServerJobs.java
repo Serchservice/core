@@ -50,13 +50,13 @@ public class ServerJobs {
 
     @Scheduled(cron = "0 * * * * *") // Runs every minute
     public void updateShops() {
-//        log.info("Running schedule task for updateShops in %s on %s".formatted(ShopService.class, TimeUtil.log()));
+        log.info("Running schedule task for updateShops in %s on %s".formatted(ShopService.class, TimeUtil.log()));
         shopService.openOrCloseShops();
     }
 
     @Scheduled(cron = "0 0 0 * * *") // Runs every minute
     public void closeRingingCalls() {
-//        log.info("Running schedule task for closeRingingCalls in %s on %s".formatted(CallService.class, TimeUtil.log()));
+        log.info("Running schedule task for closeRingingCalls in %s on %s".formatted(CallService.class, TimeUtil.log()));
         callService.closeRingingCalls();
     }
 }

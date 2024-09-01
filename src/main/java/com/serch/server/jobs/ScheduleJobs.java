@@ -2,6 +2,7 @@ package com.serch.server.jobs;
 
 import com.serch.server.services.schedule.services.ScheduleService;
 import com.serch.server.services.transaction.services.SchedulePayService;
+import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
@@ -54,11 +55,11 @@ public class ScheduleJobs {
      * This runs every minute because the first * denotes every second, the second * denotes every minute,
      * and *\1 in the third position denotes every hour.
      * <p></p>
-     * So, it effectively means "every minute of every hour, every day."
+     * So, it effectively means "every minute of every hour, every day." /cron = "* * *\1 * * ?"
      */
-    @Scheduled(cron = "* * */1 * * ?")
+    @Scheduled(cron = "0 0 * * * ?")
     public void payScheduleUnclearedDebts() {
-//        log.info("Running schedule task for pay method in %s on %s".formatted(SchedulePayService.class, TimeUtil.log()));
+        log.info("Running schedule task for pay method in %s on %s".formatted(SchedulePayService.class, TimeUtil.log()));
         schedulePayService.processPayments();
     }
 
@@ -69,7 +70,7 @@ public class ScheduleJobs {
      */
     @Scheduled(cron = "0 0 * * * ?")
     public void notifySchedulerAndScheduledWhenItIsTimeForTheSchedule() {
-//        log.info("Running schedule task for notifySchedules method in %s on %s".formatted(ScheduleService.class, TimeUtil.log()));
+        log.info("Running schedule task for notifySchedules method in %s on %s".formatted(ScheduleService.class, TimeUtil.log()));
         scheduleService.notifySchedules();
     }
 
@@ -80,7 +81,7 @@ public class ScheduleJobs {
      */
     @Scheduled(fixedRate = 5400000)
     public void closeAnyScheduleThatIsNotCreatedForTheCurrentDayAndStillPending() {
-//        log.info("Running schedule task for closePastUnaccepted method in %s on %s".formatted(ScheduleService.class, TimeUtil.log()));
+        log.info("Running schedule task for closePastUnaccepted method in %s on %s".formatted(ScheduleService.class, TimeUtil.log()));
         scheduleService.closePastUnaccepted();
     }
 }

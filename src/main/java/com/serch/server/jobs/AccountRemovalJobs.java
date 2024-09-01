@@ -58,7 +58,7 @@ public class AccountRemovalJobs {
      */
     @Scheduled(cron = "0 0 0 * * ?")
     public void removeIncompleteAccountsCreatedOneYearAgoFromCurrentYear() {
-//        log.info("Running scheduled task for remove in %s on %s".formatted(IncompleteRemovalService.class, TimeUtil.log()));
+        log.info("Running scheduled task for remove in %s on %s".formatted(IncompleteRemovalService.class, TimeUtil.log()));
         incompleteRemovalService.remove();
     }
 
@@ -68,7 +68,7 @@ public class AccountRemovalJobs {
      */
     @Scheduled(cron = "0 0 0 * * ?")
     public void removeGuestsWithLessThanAYearActiveTrip() {
-//        log.info("Running scheduled task for remove in %s on %s".formatted(GuestRemovalService.class, TimeUtil.log()));
+        log.info("Running scheduled task for remove in %s on %s".formatted(GuestRemovalService.class, TimeUtil.log()));
         guestRemovalService.remove();
     }
 
@@ -78,7 +78,7 @@ public class AccountRemovalJobs {
      */
     @Scheduled(cron = "0 0 0 * * ?")
     public void removeAccountsAfter5YearsOfDeletionRequestGranted() {
-//        log.info("Running scheduled task for remove in %s on %s".formatted(AccountRemovalService.class, TimeUtil.log()));
+        log.info("Running scheduled task for remove in %s on %s".formatted(AccountRemovalService.class, TimeUtil.log()));
         accountRemovalService.remove();
     }
 }

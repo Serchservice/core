@@ -55,9 +55,9 @@ public class ScheduleJobs {
      * This runs every minute because the first * denotes every second, the second * denotes every minute,
      * and *\1 in the third position denotes every hour.
      * <p></p>
-     * So, it effectively means "every minute of every hour, every day."
+     * So, it effectively means "every minute of every hour, every day." /cron = "* * *\1 * * ?"
      */
-    @Scheduled(cron = "* * */1 * * ?")
+    @Scheduled(cron = "0 0 * * * ?")
     public void payScheduleUnclearedDebts() {
         log.info("Running schedule task for pay method in %s on %s".formatted(SchedulePayService.class, TimeUtil.log()));
         schedulePayService.processPayments();

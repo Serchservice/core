@@ -25,7 +25,7 @@ public class CompanyJobs {
      */
     @Scheduled(cron = "0 0 0 * * ?")
     public void removeComplaints() {
-//        log.info("Running scheduled task for remove in %s on %s".formatted(ComplaintService.class, TimeUtil.log()));
+        log.info("Running scheduled task for remove in %s on %s".formatted(ComplaintService.class, TimeUtil.log()));
         complaintService.removeOldContents();
     }
 
@@ -36,7 +36,7 @@ public class CompanyJobs {
      */
     @Scheduled(cron = "0 0 0 * * ?")
     public void removeSpeakWithSerch() {
-//        log.info("Running scheduled task for remove in %s on %s".formatted(SpeakWithSerchService.class, TimeUtil.log()));
+        log.info("Running scheduled task for remove in %s on %s".formatted(SpeakWithSerchService.class, TimeUtil.log()));
         serchService.removeOldContents();
     }
 }

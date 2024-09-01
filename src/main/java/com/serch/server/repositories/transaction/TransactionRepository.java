@@ -17,7 +17,9 @@ public interface TransactionRepository extends JpaRepository<Transaction, String
 
     List<Transaction> findByAccount(@NonNull String account);
 
-    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t WHERE (t.account = ?1) AND t.status = 'SUCCESSFUL' AND t.createdAt >= ?2 AND t.createdAt <= ?3")
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t WHERE (t.account = ?1) AND t.status = 'SUCCESSFUL'" +
+            " AND (t.type = 'FUNDING' OR (t.type = 'SCHEDULE' AND t.account = ?1) OR (t.type = 'TIP2FIX' AND t.account = ?1)) " +
+            "AND t.createdAt >= ?2 AND t.createdAt <= ?3")
     BigDecimal totalToday(String id, LocalDateTime startOfDay, LocalDateTime endOfDay);
 
     @Query("select t from Transaction t where t.sender = ?1 or t.account = ?1")
@@ -33,4 +35,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, String
     List<Transaction> findByUserAndDateRange(String userId, LocalDateTime startDate, LocalDateTime endDate);
 
     Optional<Transaction> findByEvent(@NonNull String event);
+
+    @Query("SELECT t FROM Transaction t WHERE t.status = 'PENDING'")
+    List<Transaction> findAllPending();
 }

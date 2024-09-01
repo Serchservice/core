@@ -1,6 +1,7 @@
 package com.serch.server.services.transaction.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.core.notification.core.NotificationService;
 import com.serch.server.enums.auth.Role;
 import com.serch.server.enums.transaction.TransactionStatus;
 import com.serch.server.enums.transaction.TransactionType;
@@ -61,6 +62,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class WalletImplementation implements WalletService {
     private final PaymentService paymentService;
+    private final NotificationService notificationService;
     private final UserUtil userUtil;
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
@@ -143,7 +145,7 @@ public class WalletImplementation implements WalletService {
             } else {
                 try {
                     paymentService.verify(transaction.getReference());
-                    creditWallet(transaction.getAmount());
+                    creditWallet(transaction.getAmount(), userUtil.getUser().getId());
                     transaction.setStatus(TransactionStatus.SUCCESSFUL);
                     transaction.setVerified(true);
                     transaction.setUpdatedAt(LocalDateTime.now());
@@ -165,8 +167,8 @@ public class WalletImplementation implements WalletService {
         }
     }
 
-    protected void creditWallet(BigDecimal amount) {
-        walletRepository.findByUser_Id(userUtil.getUser().getId())
+    protected void creditWallet(BigDecimal amount, UUID receiver) {
+        walletRepository.findByUser_Id(receiver)
                 .ifPresent(wallet -> {
                     wallet.setDeposit(wallet.getDeposit().add(amount));
                     wallet.setUpdatedAt(LocalDateTime.now());
@@ -293,6 +295,8 @@ public class WalletImplementation implements WalletService {
             }
             wallet.setUpdatedAt(LocalDateTime.now());
             walletRepository.save(wallet);
+
+            notificationService.send(sender, false, transaction.getAmount());
         }, () -> {
             throw new WalletException("Couldn't process Tip2Fix payment. Try again");
         });
@@ -300,6 +304,8 @@ public class WalletImplementation implements WalletService {
             wallet.setBalance(wallet.getBalance().add(transaction.getAmount()));
             wallet.setUpdatedAt(LocalDateTime.now());
             walletRepository.save(wallet);
+
+            notificationService.send(wallet.getUser().getId(), true, transaction.getAmount());
         }, () -> {
             throw new WalletException("Couldn't process Tip2Fix payment. Try again");
         });
@@ -713,5 +719,31 @@ public class WalletImplementation implements WalletService {
         } else {
             return "not set";
         }
+    }
+
+    @Override
+    public void processPendingVerifications() {
+        List<Transaction> transactions = transactionRepository.findAllPending();
+        transactions.forEach(transaction -> {
+            if(transaction.getType() == TransactionType.FUNDING) {
+                try {
+                    paymentService.verify(transaction.getReference());
+
+                    creditWallet(transaction.getAmount(), UUID.fromString(transaction.getSender()));
+                    transaction.setStatus(TransactionStatus.SUCCESSFUL);
+                    transaction.setVerified(true);
+                    transaction.setUpdatedAt(LocalDateTime.now());
+                    transactionRepository.save(transaction);
+
+                    notificationService.send(UUID.fromString(transaction.getSender()), true, transaction.getAmount());
+                } catch (Exception e) {
+                    transaction.setStatus(TransactionStatus.FAILED);
+                    transaction.setVerified(false);
+                    transaction.setReason("Error in verification");
+                    transaction.setUpdatedAt(LocalDateTime.now());
+                    transactionRepository.save(transaction);
+                }
+            }
+        });
     }
 }

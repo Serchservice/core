@@ -25,7 +25,6 @@ import com.serch.server.services.auth.services.TokenService;
 import com.serch.server.services.referral.services.ReferralProgramService;
 import com.serch.server.utils.TimeUtil;
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
@@ -80,21 +79,21 @@ public class AuthImplementation implements AuthService {
         if (user.isPresent()) {
             if(user.get().getTrials() < MAXIMUM_OTP_TRIALS) {
                 user.get().setToken(passwordEncoder.encode(otp));
-                user.get().setUpdatedAt(LocalDateTime.now());
+                user.get().setUpdatedAt(TimeUtil.now());
                 user.get().setTrials(user.get().getTrials() + 1);
-                user.get().setTokenExpiresAt(LocalDateTime.now().plusMinutes(OTP_EXPIRATION_TIME));
+                user.get().setTokenExpiresAt(TimeUtil.now().plusMinutes(OTP_EXPIRATION_TIME));
                 incompleteRepository.save(user.get());
                 sendEmail(emailAddress, otp);
-            } else if(TimeUtil.isOtpExpired(user.get().getTokenExpiresAt(), OTP_EXPIRATION_TIME)) {
+            } else if(TimeUtil.isOtpExpired(user.get().getTokenExpiresAt(), "", OTP_EXPIRATION_TIME)) {
                 user.get().setToken(passwordEncoder.encode(otp));
-                user.get().setUpdatedAt(LocalDateTime.now());
+                user.get().setUpdatedAt(TimeUtil.now());
                 user.get().setTrials(1);
-                user.get().setTokenExpiresAt(LocalDateTime.now().plusMinutes(OTP_EXPIRATION_TIME));
+                user.get().setTokenExpiresAt(TimeUtil.now().plusMinutes(OTP_EXPIRATION_TIME));
                 incompleteRepository.save(user.get());
                 sendEmail(emailAddress, otp);
             } else {
                 throw new AuthException(
-                        "You can request a new token in %s".formatted(TimeUtil.formatFutureTime(user.get().getTokenExpiresAt())),
+                        "You can request a new token in %s".formatted(TimeUtil.formatFutureTime(user.get().getTokenExpiresAt(), "")),
                         ExceptionCodes.EMAIL_NOT_VERIFIED
                 );
             }
@@ -118,7 +117,7 @@ public class AuthImplementation implements AuthService {
         incomplete.setEmailAddress(emailAddress);
         incomplete.setToken(passwordEncoder.encode(otp));
         incomplete.setTrials(1);
-        incomplete.setTokenExpiresAt(LocalDateTime.now().plusMinutes(OTP_EXPIRATION_TIME));
+        incomplete.setTokenExpiresAt(TimeUtil.now().plusMinutes(OTP_EXPIRATION_TIME));
         System.out.println(incomplete);
         incompleteRepository.save(incomplete);
     }
@@ -177,15 +176,15 @@ public class AuthImplementation implements AuthService {
     public ApiResponse<String> verifyEmailOtp(@NotNull RequestEmailToken request) {
         Incomplete incomplete = incompleteRepository.findByEmailAddress(request.getEmailAddress())
                 .orElseThrow(() -> new AuthException("User not found", ExceptionCodes.USER_NOT_FOUND));
-        if (TimeUtil.isOtpExpired(incomplete.getTokenExpiresAt(), OTP_EXPIRATION_TIME)) {
+        if (TimeUtil.isOtpExpired(incomplete.getTokenExpiresAt(), "", OTP_EXPIRATION_TIME)) {
             throw new AuthException(
                     "OTP is expired. Request for another.",
                     ExceptionCodes.INCORRECT_TOKEN
             );
         } else {
             if (passwordEncoder.matches(request.getToken(), incomplete.getToken())) {
-                incomplete.setTokenConfirmedAt(LocalDateTime.now());
-                incomplete.setUpdatedAt(LocalDateTime.now());
+                incomplete.setTokenConfirmedAt(TimeUtil.now());
+                incomplete.setUpdatedAt(TimeUtil.now());
                 incompleteRepository.save(incomplete);
                 return new ApiResponse<>("OTP confirmed", HttpStatus.OK);
             } else {
@@ -207,7 +206,7 @@ public class AuthImplementation implements AuthService {
 
     @Override
     public ApiResponse<AuthResponse> getAuthResponse(RequestLogin request, User user) {
-        user.setLastSignedIn(LocalDateTime.now());
+        user.setLastSignedIn(TimeUtil.now());
         user.setCountry(request.getCountry());
         user.setState(request.getState());
         user.setPasswordRecoveryToken(null);

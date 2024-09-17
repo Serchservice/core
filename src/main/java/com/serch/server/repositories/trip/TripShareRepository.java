@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.lang.NonNull;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,13 +22,13 @@ public interface TripShareRepository extends JpaRepository<TripShare, Long> {
 
   Optional<TripShare> findByIdAndTrip_Id(@NonNull Long id, @NonNull String id1);
 
-  List<TripShare> findAllByCreatedAtBetween(LocalDateTime start, LocalDateTime localDateTime);
+  List<TripShare> findAllByCreatedAtBetween(ZonedDateTime start, ZonedDateTime localDateTime);
 
   @Query("select count(t) from TripShare t where t.createdAt BETWEEN ?1 AND ?2 AND t.provider is not null")
-  long countOnlineWithinDateRange(LocalDateTime startDate, LocalDateTime endDate);
+  long countOnlineWithinDateRange(ZonedDateTime startDate, ZonedDateTime endDate);
 
   @Query("select count(t) from TripShare t where t.createdAt BETWEEN ?1 AND ?2 AND t.provider is null")
-  long countOfflineWithinDateRange(LocalDateTime startDate, LocalDateTime endDate);
+  long countOfflineWithinDateRange(ZonedDateTime startDate, ZonedDateTime endDate);
 
   @Query("select t from TripShare t where t.provider is null")
   List<TripShare> findByProviderNull();

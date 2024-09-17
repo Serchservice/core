@@ -24,12 +24,12 @@ import com.serch.server.repositories.company.RequestedCountryRepository;
 import com.serch.server.repositories.company.RequestedStateRepository;
 import com.serch.server.repositories.shared.GuestRepository;
 import com.serch.server.utils.AdminUtil;
+import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -237,7 +237,7 @@ public class CountriesInSerchImplementation implements CountriesInSerchService {
         } else {
             country.setStatus(AccountStatus.SUSPENDED);
         }
-        country.setUpdatedAt(LocalDateTime.now());
+        country.setUpdatedAt(TimeUtil.now());
         launchedCountryRepository.save(country);
         return new ApiResponse<>(
                 "%s is now %s".formatted(country.getName(), country.getStatus().getType().toLowerCase()),

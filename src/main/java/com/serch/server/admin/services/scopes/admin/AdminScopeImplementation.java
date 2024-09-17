@@ -23,13 +23,13 @@ import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.core.storage.core.StorageService;
 import com.serch.server.core.storage.requests.FileUploadRequest;
 import com.serch.server.utils.HelperUtil;
+import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -97,7 +97,7 @@ public class AdminScopeImplementation implements AdminScopeService {
         } else {
             String url = supabase.upload(request, "user");
             user.setAvatar(url);
-            user.setUpdatedAt(LocalDateTime.now());
+            user.setUpdatedAt(TimeUtil.now());
             adminRepository.save(user);
             activityService.create(ActivityMode.AVATAR_CHANGE, user.getPass(), null, admin);
             return new ApiResponse<>("Avatar uploaded", url, HttpStatus.OK);
@@ -113,7 +113,7 @@ public class AdminScopeImplementation implements AdminScopeService {
 
         if(request.getStatus() != null) {
             user.getUser().setStatus(request.getStatus());
-            user.getUser().setUpdatedAt(LocalDateTime.now());
+            user.getUser().setUpdatedAt(TimeUtil.now());
             userRepository.save(user.getUser());
             activityService.create(ActivityMode.STATUS_CHANGE, user.getPass(), null, admin);
             return new ApiResponse<>("Status changed", request.getStatus().getType(), HttpStatus.OK);
@@ -133,17 +133,17 @@ public class AdminScopeImplementation implements AdminScopeService {
         } else {
             if(request.getRole() != null) {
                 user.getUser().setRole(request.getRole());
-                user.getUser().setUpdatedAt(LocalDateTime.now());
+                user.getUser().setUpdatedAt(TimeUtil.now());
                 userRepository.save(user.getUser());
             }
             if(request.getDepartment() != null) {
                 user.setDepartment(request.getDepartment());
-                user.setUpdatedAt(LocalDateTime.now());
+                user.setUpdatedAt(TimeUtil.now());
                 adminRepository.save(user);
             }
             if(request.getPosition() != null) {
                 user.setPosition(request.getPosition());
-                user.setUpdatedAt(LocalDateTime.now());
+                user.setUpdatedAt(TimeUtil.now());
                 adminRepository.save(user);
             }
             activityService.create(ActivityMode.ROLE_CHANGE, user.getPass(), null, admin);
@@ -157,12 +157,12 @@ public class AdminScopeImplementation implements AdminScopeService {
         Admin user = adminRepository.findById(id).orElseThrow(() -> new AuthException("Admin not found"));
         if(user.getMustHaveMFA()) {
             user.setMustHaveMFA(false);
-            user.setUpdatedAt(LocalDateTime.now());
+            user.setUpdatedAt(TimeUtil.now());
             adminRepository.save(user);
             return new ApiResponse<>("MFA constraint is now removed", false, HttpStatus.OK);
         } else {
             user.setMustHaveMFA(true);
-            user.setUpdatedAt(LocalDateTime.now());
+            user.setUpdatedAt(TimeUtil.now());
             adminRepository.save(user);
             return new ApiResponse<>("MFA constraint is now invoked", true, HttpStatus.OK);
         }
@@ -177,12 +177,12 @@ public class AdminScopeImplementation implements AdminScopeService {
                 .orElseThrow(() -> new AuthException("Admin not found"));
         if(!Objects.equals(user.getUser().getLastName(), request.getLastName()) && !request.getLastName().isEmpty()) {
             user.getUser().setLastName(request.getLastName());
-            user.getUser().setUpdatedAt(LocalDateTime.now());
+            user.getUser().setUpdatedAt(TimeUtil.now());
             userRepository.save(user.getUser());
         }
         if(!Objects.equals(user.getUser().getFirstName(), request.getFirstName()) && !request.getFirstName().isEmpty()) {
             user.getUser().setFirstName(request.getFirstName());
-            user.getUser().setUpdatedAt(LocalDateTime.now());
+            user.getUser().setUpdatedAt(TimeUtil.now());
             userRepository.save(user.getUser());
         }
         activityService.create(ActivityMode.PROFILE_UPDATE, user.getPass(), null, admin);
@@ -197,7 +197,7 @@ public class AdminScopeImplementation implements AdminScopeService {
         Admin user = adminRepository.findById(id).orElseThrow(() -> new AuthException("Admin not found"));
 
         user.getUser().setStatus(AccountStatus.DELETED);
-        user.getUser().setUpdatedAt(LocalDateTime.now());
+        user.getUser().setUpdatedAt(TimeUtil.now());
         userRepository.save(user.getUser());
         activityService.create(ActivityMode.ACCOUNT_DELETE, user.getUser().getFullName(), null, admin);
         return new ApiResponse<>("Account deleted", HttpStatus.OK);

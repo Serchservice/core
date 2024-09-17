@@ -3,6 +3,7 @@ package com.serch.server.utils;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Year;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.IntStream;
@@ -43,14 +44,14 @@ public class AdminUtil {
      *
      * @param year The year to start with
      *
-     * @return {@link LocalDateTime} of year
+     * @return {@link java.time.ZonedDateTime} of year
      */
-    public static LocalDateTime getStartYear(Integer year) {
+    public static ZonedDateTime getStartYear(Integer year) {
         if (year != null) {
-            return LocalDateTime.of(year, 1, 1, 0, 0);
+            return ZonedDateTime.of(LocalDateTime.of(year, 1, 1, 0, 0), TimeUtil.defaultZone());
         } else {
             LocalDate now = LocalDate.now();
-            return LocalDateTime.of(now.getYear(), 1, 1, 0, 0);
+            return ZonedDateTime.of(LocalDateTime.of(now.getYear(), 1, 1, 0, 0), TimeUtil.defaultZone());
         }
     }
 }

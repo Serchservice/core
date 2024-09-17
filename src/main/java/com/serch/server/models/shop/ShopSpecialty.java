@@ -11,15 +11,6 @@ import lombok.Setter;
  * The ShopService class represents a service offered by a shop in the platform.
  * It stores information such as the service name and the shop it belongs to.
  * <p></p>
- * Annotations:
- * <ul>
- *     <li>{@link Getter}</li>
- *     <li>{@link Setter}</li>
- *     <li>{@link AllArgsConstructor}</li>
- *     <li>{@link NoArgsConstructor}</li>
- *     <li>{@link Entity}</li>
- *     <li>{@link Table}</li>
- * </ul>
  * Relationships:
  * <ul>
  *     <li>Many-to-one with {@link Shop} as the shop.</li>

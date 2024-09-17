@@ -60,12 +60,12 @@ public class AdminProfileImplementation implements AdminProfileService {
                 .orElseThrow(() -> new AuthException("Admin not found"));
         if(!Objects.equals(admin.getUser().getFirstName(), request.getFirstName()) && !request.getFirstName().isEmpty()) {
             admin.getUser().setFirstName(request.getFirstName());
-            admin.getUser().setUpdatedAt(LocalDateTime.now());
+            admin.getUser().setUpdatedAt(TimeUtil.now());
             userRepository.save(admin.getUser());
         }
         if(!Objects.equals(admin.getUser().getLastName(), request.getLastName()) && !request.getLastName().isEmpty()) {
             admin.getUser().setLastName(request.getLastName());
-            admin.getUser().setUpdatedAt(LocalDateTime.now());
+            admin.getUser().setUpdatedAt(TimeUtil.now());
             userRepository.save(admin.getUser());
         }
         return new ApiResponse<>("Profile updated", prepare(admin), HttpStatus.OK);
@@ -81,7 +81,7 @@ public class AdminProfileImplementation implements AdminProfileService {
         } else {
             String url = supabase.upload(request, "admin");
             admin.setAvatar(url);
-            admin.setUpdatedAt(LocalDateTime.now());
+            admin.setUpdatedAt(TimeUtil.now());
             adminRepository.save(admin);
             return new ApiResponse<>("Avatar uploaded", prepare(admin), HttpStatus.OK);
         }
@@ -94,13 +94,13 @@ public class AdminProfileImplementation implements AdminProfileService {
         response.setAvatar(admin.getAvatar());
         response.setEmpId(admin.getPass());
         response.setShouldResendInvite(admin.getUser().getAction() == UserAction.INVITE);
-        response.setProfileUpdatedAt(TimeUtil.formatDay(admin.getUpdatedAt()));
-        response.setProfileCreatedAt(TimeUtil.formatDay(admin.getCreatedAt()));
-        response.setAccountCreatedAt(TimeUtil.formatDay(admin.getUser().getCreatedAt()));
-        response.setAccountUpdatedAt(TimeUtil.formatDay(admin.getUser().getUpdatedAt()));
-        response.setEmailConfirmedAt(TimeUtil.formatDay(admin.getUser().getEmailConfirmedAt()));
-        response.setPasswordUpdatedAt(TimeUtil.formatDay(admin.getUser().getLastUpdatedAt()));
-        response.setLastSignedIn(TimeUtil.formatLastSignedIn(admin.getUser().getLastSignedIn(), false));
+        response.setProfileUpdatedAt(TimeUtil.formatDay(admin.getUpdatedAt(), admin.getUser().getTimezone()));
+        response.setProfileCreatedAt(TimeUtil.formatDay(admin.getCreatedAt(), admin.getUser().getTimezone()));
+        response.setAccountCreatedAt(TimeUtil.formatDay(admin.getUser().getCreatedAt(), admin.getUser().getTimezone()));
+        response.setAccountUpdatedAt(TimeUtil.formatDay(admin.getUser().getUpdatedAt(), admin.getUser().getTimezone()));
+        response.setEmailConfirmedAt(TimeUtil.formatDay(admin.getUser().getEmailConfirmedAt(), admin.getUser().getTimezone()));
+        response.setPasswordUpdatedAt(TimeUtil.formatDay(admin.getUser().getLastUpdatedAt(), admin.getUser().getTimezone()));
+        response.setLastSignedIn(TimeUtil.formatLastSignedIn(admin.getUser().getLastSignedIn(), admin.getUser().getTimezone(), false));
         return response;
     }
 

@@ -30,9 +30,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -80,7 +78,7 @@ public class AccountImplementation implements AccountService {
 
     @Override
     public ApiResponse<String> lastPasswordUpdateAt() {
-        String time = TimeUtil.formatDay(userUtil.getUser().getLastUpdatedAt());
+        String time = TimeUtil.formatDay(userUtil.getUser().getLastUpdatedAt(), userUtil.getUser().getTimezone());
         return new ApiResponse<>("Success", time, HttpStatus.OK);
     }
 
@@ -89,7 +87,7 @@ public class AccountImplementation implements AccountService {
                 scheduleRepository.active(id)
                         .stream()
                         .filter(schedule -> schedule.getStatus() == ScheduleStatus.ACCEPTED)
-                        .filter(schedule -> schedule.getCreatedAt().isBefore(LocalDateTime.now().plusDays(1)))
+                        .filter(schedule -> schedule.getCreatedAt().isBefore(TimeUtil.now().plusDays(1)))
                         .toList()
                         .size()
         );
@@ -99,8 +97,8 @@ public class AccountImplementation implements AccountService {
         return MoneyUtil.formatToNaira(
                 transactionRepository.totalToday(
                         String.valueOf(id),
-                        LocalDateTime.of(LocalDate.now(), LocalTime.MIN),
-                        LocalDateTime.of(LocalDate.now(), LocalTime.MAX)
+                        ZonedDateTime.of(LocalDateTime.of(LocalDate.now(), LocalTime.MIN), ZoneOffset.UTC),
+                        ZonedDateTime.of(LocalDateTime.of(LocalDate.now(), LocalTime.MAX), ZoneOffset.UTC)
                 )
         );
     }
@@ -217,5 +215,18 @@ public class AccountImplementation implements AccountService {
         return Optional.ofNullable(value)
                 .map(Integer::parseInt)
                 .orElse(0);
+    }
+
+    @Override
+    public ApiResponse<String> updateTimezone(String timezone) {
+        profileRepository.findById(userUtil.getUser().getId()).ifPresentOrElse(profile -> {
+                    profile.getUser().setTimezone(timezone);
+                    profileRepository.save(profile);
+                }, () -> businessProfileRepository.findById(userUtil.getUser().getId()).ifPresent(business -> {
+                    business.getUser().setTimezone(timezone);
+                    businessProfileRepository.save(business);
+                })
+        );
+        return new ApiResponse<>("Successfully updated timezone", HttpStatus.OK);
     }
 }

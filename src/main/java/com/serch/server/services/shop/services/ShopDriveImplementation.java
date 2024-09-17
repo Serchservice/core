@@ -10,12 +10,12 @@ import com.serch.server.repositories.shop.ShopRepository;
 import com.serch.server.services.rating.requests.RatingCalculation;
 import com.serch.server.services.rating.services.RatingCalculationService;
 import com.serch.server.services.shop.requests.ShopDriveRequest;
+import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -44,7 +44,7 @@ public class ShopDriveImplementation implements ShopDriveService {
 
         if(drive.getUser().isUser(userUtil.getUser().getId())) {
             drive.setRating(rating);
-            drive.setUpdatedAt(LocalDateTime.now());
+            drive.setUpdatedAt(TimeUtil.now());
             shopDriveRepository.save(drive);
 
             List<RatingCalculation> ratings = shopDriveRepository.findByShop_Id(drive.getShop().getId())
@@ -52,7 +52,7 @@ public class ShopDriveImplementation implements ShopDriveService {
                     .filter(shop -> shop.getRating() != null)
                     .map(ShopMapper.INSTANCE::calculation).toList();
             drive.getShop().setRating(calculationService.getUpdatedRating(ratings, drive.getShop().getRating()));
-            drive.getShop().setUpdatedAt(LocalDateTime.now());
+            drive.getShop().setUpdatedAt(TimeUtil.now());
             shopRepository.save(drive.getShop());
 
             return new ApiResponse<>("Rating saved", HttpStatus.OK);

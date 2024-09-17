@@ -14,11 +14,6 @@ import lombok.ToString;
  * <ul>
  *     <li>{@link Incomplete} - The incomplete object associated with the incomplete specialty.</li>
  * </ul>
- * Annotations:
- * <ul>
- *     <li>{@link ManyToOne}</li>
- *     <li>{@link JoinColumn}</li>
- * </ul>
  * @see BaseModel
  */
 @ToString

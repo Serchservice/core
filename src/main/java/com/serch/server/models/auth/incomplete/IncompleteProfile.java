@@ -20,15 +20,6 @@ import lombok.ToString;
  * <ul>
  *     <li>{@link Incomplete} - The incomplete object associated with the incomplete referral.</li>
  * </ul>
- * Annotations:
- * <ul>
- *     <li>{@link Column}</li>
- *     <li>{@link Size}</li>
- *     <li>{@link NotBlank}</li>
- *     <li>{@link Enumerated}</li>
- *     <li>{@link OneToOne}</li>
- *     <li>{@link JoinColumn}</li>
- * </ul>
  * @see BaseModel
  */
 @ToString

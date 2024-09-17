@@ -98,4 +98,14 @@ public class SpecialtyImplementation implements SpecialtyService {
             return new ApiResponse<>(List.of());
         }
     }
+
+    @Override
+    public ApiResponse<List<String>> specialties() {
+        List<String> response = specialtyRepository.findAll()
+                .stream()
+                .map(Specialty::getSpecialty)
+                .toList();
+
+        return new ApiResponse<>(response);
+    }
 }

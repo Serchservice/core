@@ -7,14 +7,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.lang.NonNull;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
 public interface SpeakWithSerchRepository extends JpaRepository<SpeakWithSerch, String> {
     List<SpeakWithSerch> findByUser_Id(@NonNull UUID id);
 
-    List<SpeakWithSerch> findByCreatedAtBefore(@NonNull LocalDateTime createdAt);
+    List<SpeakWithSerch> findByCreatedAtBefore(@NonNull ZonedDateTime createdAt);
 
     @Query("SELECT YEAR(s.createdAt) as header, COUNT(s) as count FROM SpeakWithSerch s GROUP BY YEAR(s.createdAt)")
     List<MetricProjection> findSpeakWithSerchMetrics();

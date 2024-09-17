@@ -12,15 +12,6 @@ import java.util.List;
  * The LaunchedCountry class represents a launched country entity in the system.
  * It stores information about launched countries, including the name, flag, dial code, status, and the states it contains.
  * <p></p>
- * Annotations:
- * <ul>
- *     <li>{@link Column}</li>
- *     <li>{@link Enumerated}</li>
- *     <li>{@link OneToMany}</li>
- *     <li>{@link JoinColumn}</li>
- *     <li>{@link Entity}</li>
- *     <li>{@link Table}</li>
- * </ul>
  * Enums:
  * <ul>
  *     <li>{@link AccountStatus}</li>

@@ -6,7 +6,7 @@ import com.serch.server.services.auth.requests.RequestLogin;
 import com.serch.server.services.auth.requests.RequestProfile;
 import com.serch.server.services.auth.responses.AuthResponse;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 /**
  * Service interface for managing user authentication.
@@ -61,7 +61,7 @@ public interface UserAuthService {
      * @see RequestProfile
      * @see User
      */
-    User getNewUser(RequestProfile profile, LocalDateTime confirmedAt);
+    User getNewUser(RequestProfile profile, ZonedDateTime confirmedAt);
 
     /**
      * Generates an authentication response for the provided user profile and authentication request.

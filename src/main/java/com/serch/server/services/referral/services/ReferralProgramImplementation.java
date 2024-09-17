@@ -48,12 +48,14 @@ public class ReferralProgramImplementation implements ReferralProgramService {
      * @return The generated referral link.
      */
     private String generateReferralLink(Role category) {
+        String BASE_URL = "https://www.serchservice.com/app/join";
+
         if(category == Role.USER) {
-            return "https://serchservice.com/app/join/user?ref=%s".formatted(tokenService.generate(6));
+            return "%s/user?ref=%s".formatted(BASE_URL, tokenService.generate(6));
         } else if(category == Role.BUSINESS) {
-            return "https://serchservice.com/app/join/business?ref=%s".formatted(tokenService.generate(6));
+            return "%s/business?ref=%s".formatted(BASE_URL, tokenService.generate(6));
         } else {
-            return "https://serchservice.com/app/join/provider?ref=%s".formatted(tokenService.generate(6));
+            return "%s/provider?ref=%s".formatted(BASE_URL, tokenService.generate(6));
         }
     }
 

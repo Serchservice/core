@@ -420,7 +420,10 @@ public class TripHistoryImplementation implements TripHistoryService {
                     response.setIsOver(matchingTimeline != null);
                     response.setCreatedAt(matchingTimeline != null ? matchingTimeline.getCreatedAt() : null);
                     response.setUpdatedAt(matchingTimeline != null ? matchingTimeline.getUpdatedAt() : null);
-                    response.setLabel(matchingTimeline != null ? TimeUtil.formatTime(matchingTimeline.getCreatedAt()) : "");
+                    response.setLabel(matchingTimeline != null
+                            ? TimeUtil.formatTime(matchingTimeline.getCreatedAt(), matchingTimeline.getTrip().getProvider().getUser().getTimezone())
+                            : ""
+                    );
 
                     return response;
                 })
@@ -503,8 +506,12 @@ public class TripHistoryImplementation implements TripHistoryService {
             }
         }
 
-        invites.sort(Comparator.comparing(TripResponse::getUpdatedAt).reversed());
-        return invites;
+        return invites.stream()
+                .collect(Collectors.toMap(TripResponse::getId, response -> response, (existing, replacement) -> existing))
+                .values()
+                .stream()
+                .sorted(Comparator.comparing(TripResponse::getUpdatedAt).reversed())
+                .collect(Collectors.toList());
     }
 
     @Transactional

@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.lang.NonNull;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,7 +20,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, String
     @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t WHERE (t.account = ?1) AND t.status = 'SUCCESSFUL'" +
             " AND (t.type = 'FUNDING' OR (t.type = 'SCHEDULE' AND t.account = ?1) OR (t.type = 'TIP2FIX' AND t.account = ?1)) " +
             "AND t.createdAt >= ?2 AND t.createdAt <= ?3")
-    BigDecimal totalToday(String id, LocalDateTime startOfDay, LocalDateTime endOfDay);
+    BigDecimal totalToday(String id, ZonedDateTime startOfDay, ZonedDateTime endOfDay);
 
     @Query("select t from Transaction t where t.sender = ?1 or t.account = ?1")
     List<Transaction> findBySenderOrReceiver(@NonNull String account);
@@ -32,7 +32,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, String
     Page<Transaction> findRecentBySenderOrReceiver(@NonNull String account, Pageable pageable);
 
     @Query("SELECT t FROM Transaction t WHERE (t.account = ?1 OR t.sender = ?1) AND t.createdAt BETWEEN ?2 AND ?3")
-    List<Transaction> findByUserAndDateRange(String userId, LocalDateTime startDate, LocalDateTime endDate);
+    List<Transaction> findByUserAndDateRange(String userId, ZonedDateTime startDate, ZonedDateTime endDate);
 
     Optional<Transaction> findByEvent(@NonNull String event);
 

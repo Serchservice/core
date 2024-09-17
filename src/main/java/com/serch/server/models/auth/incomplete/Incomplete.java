@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Email;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 /**
@@ -59,11 +59,11 @@ public class Incomplete extends BaseModel {
     @Enumerated(value = EnumType.STRING)
     private Role role = Role.USER;
 
-    @Column(name = "token_expires_at")
-    private LocalDateTime tokenExpiresAt = null;
+    @Column(name = "token_expires_at", columnDefinition = "timestamptz")
+    private ZonedDateTime tokenExpiresAt = null;
 
-    @Column(name = "token_confirmed_at")
-    private LocalDateTime tokenConfirmedAt = null;
+    @Column(name = "token_confirmed_at", columnDefinition = "timestamptz")
+    private ZonedDateTime tokenConfirmedAt = null;
 
     @OneToOne(mappedBy = "incomplete", cascade = CascadeType.REMOVE)
     private IncompleteProfile profile;

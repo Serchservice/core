@@ -27,13 +27,13 @@ import com.serch.server.services.auth.services.MFAService;
 import com.serch.server.services.auth.services.SessionService;
 import com.serch.server.services.auth.services.TokenService;
 import com.serch.server.utils.DatabaseUtil;
+import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -102,14 +102,14 @@ public class MFAImplementation implements MFAService {
             if(authenticatorService.isValid(request.getCode(), DatabaseUtil.decodeData(user.getMfaFactor().getSecret()))) {
                 if(!user.getMfaEnabled()) {
                     user.setMfaEnabled(true);
-                    user.setUpdatedAt(LocalDateTime.now());
+                    user.setUpdatedAt(TimeUtil.now());
                     userRepository.save(user);
 
                     if(user.isAdmin()) {
                         activityService.create(ActivityMode.MFA_LOGIN, null, null, user);
                     }
 
-                    challenge.setVerifiedAt(LocalDateTime.now());
+                    challenge.setVerifiedAt(TimeUtil.now());
                     mFAChallengeRepository.save(challenge);
                 }
                 return sessionResponse(request, user);
@@ -146,10 +146,10 @@ public class MFAImplementation implements MFAService {
                         throw new AuthException("Token is already used. Get another");
                     } else {
                         code.setIsUsed(true);
-                        code.setUpdatedAt(LocalDateTime.now());
+                        code.setUpdatedAt(TimeUtil.now());
                         mFARecoveryCodeRepository.save(code);
                         MFAChallenge challenge = saveMFAChallenge(request, factor);
-                        challenge.setVerifiedAt(LocalDateTime.now());
+                        challenge.setVerifiedAt(TimeUtil.now());
                         mFAChallengeRepository.save(challenge);
 
                         if(user.isAdmin()) {
@@ -217,7 +217,7 @@ public class MFAImplementation implements MFAService {
         List<String> codes = generateRecoveryCodes();
         codes.forEach(code -> saveRecoveryCode(user, code));
         user.setRecoveryCodeEnabled(true);
-        user.setUpdatedAt(LocalDateTime.now());
+        user.setUpdatedAt(TimeUtil.now());
 
         if(!user.getRecoveryCodeEnabled()) {
             user.setRecoveryCodeEnabled(true);
@@ -257,7 +257,7 @@ public class MFAImplementation implements MFAService {
 
             user.setMfaEnabled(false);
             user.setRecoveryCodeEnabled(false);
-            user.setUpdatedAt(LocalDateTime.now());
+            user.setUpdatedAt(TimeUtil.now());
             userRepository.save(user);
 
             RequestSession requestSession = new RequestSession();

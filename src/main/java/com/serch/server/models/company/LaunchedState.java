@@ -12,16 +12,6 @@ import java.util.List;
  * The LaunchedState class represents a launched state entity in the system.
  * It stores information about launched states, including the name, status, the country it belongs to, and the cities within it.
  * <p></p>
- * Annotations:
- * <ul>
- *     <li>{@link Column}</li>
- *     <li>{@link Enumerated}</li>
- *     <li>{@link ManyToOne}</li>
- *     <li>{@link OneToMany}</li>
- *     <li>{@link JoinColumn}</li>
- *     <li>{@link Entity}</li>
- *     <li>{@link Table}</li>
- * </ul>
  * Enums:
  * <ul>
  *     <li>{@link AccountStatus}</li>

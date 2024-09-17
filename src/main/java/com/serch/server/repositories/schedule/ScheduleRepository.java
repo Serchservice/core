@@ -6,13 +6,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.lang.NonNull;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface ScheduleRepository extends JpaRepository<Schedule, String> {
-    List<Schedule> findByProvider_IdAndCreatedAtBetween(UUID serchId, LocalDateTime start, LocalDateTime end);
+    List<Schedule> findByProvider_IdAndCreatedAtBetween(UUID serchId, ZonedDateTime start, ZonedDateTime end);
 
     List<Schedule> findByClosedByAndClosedOnTime(UUID closedBy, Boolean closedOnTime);
     @Query("SELECT s from Schedule s where (s.user.id = ?1 OR s.provider.id = ?1 or s.provider.business.id = ?1) " +
@@ -25,9 +25,9 @@ public interface ScheduleRepository extends JpaRepository<Schedule, String> {
     )
     List<Schedule> schedules(UUID userId);
 
-    List<Schedule> findByCreatedAtBetween(LocalDateTime createdAt, LocalDateTime createdAt2);
+    List<Schedule> findByCreatedAtBetween(ZonedDateTime createdAt, ZonedDateTime createdAt2);
 
-    List<Schedule> findByStatusAndCreatedAtBefore(@NonNull ScheduleStatus status, @NonNull LocalDateTime createdAt);
+    List<Schedule> findByStatusAndCreatedAtBefore(@NonNull ScheduleStatus status, @NonNull ZonedDateTime createdAt);
 
     @Query("select s from Schedule s where s.user.id = ?1 or s.provider.id = ?1 or s.user.business.id = ?1 or s.provider.business.id = ?1")
     List<Schedule> findByUser_Id(@NonNull UUID id);

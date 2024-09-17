@@ -149,7 +149,7 @@ public class SharedImplementation implements SharedService {
                         data.setGender(login.getGuest().getGender());
                         data.setAvatar(login.getGuest().getAvatar());
                         data.setName(login.getGuest().getFullName());
-                        data.setJoinedAt(TimeUtil.formatDay(login.getCreatedAt()));
+                        data.setJoinedAt(TimeUtil.formatDay(login.getCreatedAt(), ""));
                         data.setStatus(login.getStatus().getType());
                         if(login.getStatuses() != null && !login.getStatuses().isEmpty()) {
                             data.setStatuses(login.getStatuses().stream().map(stat -> getStatusData(login.getSharedLink(), stat)).toList());
@@ -205,7 +205,7 @@ public class SharedImplementation implements SharedService {
 
         data.setImage(link.getProvider().getCategory().getImage());
         data.setCategory(link.getProvider().getCategory().getType());
-        data.setLabel(TimeUtil.formatDay(link.getCreatedAt()));
+        data.setLabel(TimeUtil.formatDay(link.getCreatedAt(), ""));
         data.setAmount(MoneyUtil.formatToNaira(link.getAmount()));
         data.setStatus(status != null ? status.getUseStatus().getType() : "No usage");
 
@@ -215,7 +215,7 @@ public class SharedImplementation implements SharedService {
     @Override
     public SharedStatusData getStatusData(SharedLink link, SharedStatus status) {
         SharedStatusData data = SharedMapper.INSTANCE.data(status);
-        data.setLabel(TimeUtil.formatDay(status.getCreatedAt()));
+        data.setLabel(TimeUtil.formatDay(status.getCreatedAt(), ""));
         data.setStatus(status.getUseStatus().getType());
         data.setRating(ratingRepository.getByRated(status.getTrip().getId()).map(Rating::getRating).orElse(0.0));
         data.setAmount(MoneyUtil.formatToNaira(status.getTrip().getAmount()));

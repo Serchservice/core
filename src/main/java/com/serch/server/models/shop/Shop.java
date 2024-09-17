@@ -15,7 +15,6 @@ import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * The Shop class represents a shop in the platform.
@@ -90,8 +89,4 @@ public class Shop extends BaseDateTime {
 
     @OneToMany(mappedBy = "shop", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ShopWeekday> weekdays;
-
-    public boolean isUser(UUID user) {
-        return getUser().getId() == user;
-    }
 }

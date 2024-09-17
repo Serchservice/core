@@ -1,5 +1,6 @@
 package com.serch.server.services.conversation.services;
 
+import com.serch.server.bases.BaseUser;
 import com.serch.server.enums.chat.MessageState;
 import com.serch.server.enums.chat.MessageStatus;
 import com.serch.server.enums.chat.MessageType;
@@ -33,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -98,12 +100,12 @@ public class ChattingImplementation implements ChattingService {
         if(message != null && room != null) {
             if(request.getState() != null && isCurrentUser(message.getSender())) {
                 message.setState(MessageState.DELETED);
-                message.setUpdatedAt(LocalDateTime.now());
+                message.setUpdatedAt(TimeUtil.now());
                 chatMessageRepository.save(message);
                 sendMessage(room, false);
             } else if(!isCurrentUser(message.getSender())) {
                 message.setStatus(request.getStatus());
-                message.setUpdatedAt(LocalDateTime.now());
+                message.setUpdatedAt(TimeUtil.now());
                 chatMessageRepository.save(message);
                 sendMessage(room, false);
             }
@@ -120,7 +122,7 @@ public class ChattingImplementation implements ChattingService {
                         .filter(message -> isCurrentUser(message.getSender()))
                         .forEach(message -> {
                             message.setState(MessageState.DELETED);
-                            message.setUpdatedAt(LocalDateTime.now());
+                            message.setUpdatedAt(TimeUtil.now());
                             chatMessageRepository.save(message);
                         });
                 sendMessage(room, false);
@@ -129,7 +131,7 @@ public class ChattingImplementation implements ChattingService {
                         .filter(message -> !isCurrentUser(message.getSender()))
                         .forEach(message -> {
                             message.setState(request.getState());
-                            message.setUpdatedAt(LocalDateTime.now());
+                            message.setUpdatedAt(TimeUtil.now());
                             chatMessageRepository.save(message);
                         });
                 sendMessage(room, false);
@@ -175,7 +177,7 @@ public class ChattingImplementation implements ChattingService {
             if(messages != null && !messages.isEmpty()) {
                 messages.forEach(message -> {
                     message.setStatus(MessageStatus.DELIVERED);
-                    message.setUpdatedAt(LocalDateTime.now());
+                    message.setUpdatedAt(TimeUtil.now());
                     chatMessageRepository.save(message);
                 });
             }
@@ -205,8 +207,10 @@ public class ChattingImplementation implements ChattingService {
         response.setRoom(room.getId());
 
         ChatMessage message = getLastMessage(room.getMessages());
+        User account = profileRepository.findById(count).map(BaseUser::getUser).orElse(null);
+
         if(message != null) {
-            response.setLabel(TimeUtil.formatDay(message.getCreatedAt()));
+            response.setLabel(TimeUtil.formatDay(message.getCreatedAt(), account != null ? account.getTimezone() : ""));
             response.setStatus(message.getStatus());
             response.setMessage(ChatUtil.formatRoomMessage(message.getMessage(), message.getType(), !message.getSender().equals(id), response.getName()));
             response.setSentAt(message.getCreatedAt());
@@ -214,15 +218,27 @@ public class ChattingImplementation implements ChattingService {
         }
         response.setCount(chatMessageRepository.countMessagesReceivedByUser(room.getId(), count));
         response.setGroups(response(room.getMessages(), id));
-        return updateResponse(room, response, profileRepository.findById(count).map(profile -> profile.getUser().isProvider()).orElse(false));
+
+        return updateResponse(room, response, account != null && account.isProvider());
     }
 
     private void prepareRoomResponse(UUID id, ChatRoomResponse response) {
-        response.setAvatar(profileRepository.findById(id).map(Profile::getAvatar).orElse(""));
-        response.setCategory(profileRepository.findById(id).map(Profile::getCategory).orElse(USER).getType());
-        response.setImage(profileRepository.findById(id).map(Profile::getCategory).orElse(USER).getImage());
-        response.setLastSeen(TimeUtil.formatLastSignedIn(userRepository.findById(id).map(User::getLastSignedIn).orElse(LocalDateTime.now()), false));
-        response.setName(profileRepository.findById(id).map(Profile::getFullName).orElse(""));
+        Profile profile = profileRepository.findById(id).orElse(null);
+
+        if (profile != null) {
+            response.setAvatar(profile.getAvatar());
+            response.setCategory(profile.getCategory().getType());
+            response.setImage(profile.getCategory().getImage());
+            response.setLastSeen(TimeUtil.formatLastSignedIn(profile.getUser().getLastSignedIn(), profile.getUser().getTimezone(), false));
+            response.setName(profile.getFullName());
+        } else {
+            response.setAvatar("");
+            response.setCategory(USER.getType());
+            response.setImage(USER.getImage());
+            response.setLastSeen(TimeUtil.formatLastSignedIn(TimeUtil.now(), "", false));
+            response.setName("");
+        }
+
         response.setRoommate(id);
         response.setIsActive(activeRepository.findByProfile_Id(id).map(Active::isActive).orElse(false));
         response.setTrip(activeRepository.findByProfile_Id(id).map(active -> active.getStatus().getType()).orElse(""));
@@ -270,8 +286,10 @@ public class ChattingImplementation implements ChattingService {
                 List<ChatGroupMessageResponse> response = new ArrayList<>();
                 messagesByDate.forEach((date, chats) -> {
                     ChatGroupMessageResponse chat = new ChatGroupMessageResponse();
-                    chat.setLabel(TimeUtil.formatChatLabel(LocalDateTime.of(date, LocalTime.now())));
-                    chat.setTime(LocalDateTime.of(date, LocalTime.now()));
+
+                    String timezone = userRepository.findById(id).map(User::getTimezone).orElse("");
+                    chat.setLabel(TimeUtil.formatChatLabel(LocalDateTime.of(date, LocalTime.now()), timezone));
+                    chat.setTime(ZonedDateTime.of(LocalDateTime.of(date, LocalTime.now()), TimeUtil.zoneId(timezone)));
 
                     List<ChatMessageResponse> messageList = chats.stream()
                             .sorted(Comparator.comparing(ChatMessage::getCreatedAt))
@@ -288,7 +306,7 @@ public class ChattingImplementation implements ChattingService {
 
     private ChatMessageResponse prepareMessageResponse(ChatMessage message, UUID id) {
         ChatMessageResponse response = ConversationMapper.INSTANCE.response(message);
-        response.setLabel(TimeUtil.formatTime(message.getCreatedAt()));
+        response.setLabel(TimeUtil.formatTime(message.getCreatedAt(), profileRepository.findById(id).map(p -> p.getUser().getTimezone()).orElse("")));
         response.setHasOnlyEmojis(ChatUtil.containsOnlyEmojis(message.getMessage()));
         response.setHasOnlyOneEmoji(ChatUtil.containsOnlyOneEmoji(message.getMessage()));
         response.setIsSentByCurrentUser(!message.getSender().equals(id));
@@ -302,7 +320,7 @@ public class ChattingImplementation implements ChattingService {
         if(message != null) {
             ChatReplyResponse response = ConversationMapper.INSTANCE.reply(message);
             response.setMessage(ChatUtil.formatRepliedMessage(message.getMessage(), message.getDuration(), message.getType()));
-            response.setLabel(TimeUtil.formatTime(message.getCreatedAt()));
+            response.setLabel(TimeUtil.formatTime(message.getCreatedAt(), profileRepository.findById(id).map(p -> p.getUser().getTimezone()).orElse("")));
             response.setHasOnlyEmojis(ChatUtil.containsOnlyEmojis(message.getMessage()));
             response.setHasOnlyOneEmoji(ChatUtil.containsOnlyOneEmoji(message.getMessage()));
             response.setIsSentByCurrentUser(!message.getSender().equals(id));
@@ -359,7 +377,7 @@ public class ChattingImplementation implements ChattingService {
 
         ChatMessage message = getLastMessage(room.getMessages());
         if(message != null) {
-            response.setLabel(TimeUtil.formatDay(message.getCreatedAt()));
+            response.setLabel(TimeUtil.formatDay(message.getCreatedAt(), userUtil.getUser().getTimezone()));
             response.setStatus(message.getStatus());
             response.setMessage(ChatUtil.formatRoomMessage(message.getMessage(), message.getType(), isCurrentUser(message.getSender()), response.getName()));
             response.setSentAt(message.getCreatedAt());
@@ -385,8 +403,9 @@ public class ChattingImplementation implements ChattingService {
                 List<ChatGroupMessageResponse> response = new ArrayList<>();
                 messagesByDate.forEach((date, chats) -> {
                     ChatGroupMessageResponse chat = new ChatGroupMessageResponse();
-                    chat.setLabel(TimeUtil.formatChatLabel(LocalDateTime.of(date, LocalTime.now())));
-                    chat.setTime(LocalDateTime.of(date, LocalTime.now()));
+
+                    chat.setLabel(TimeUtil.formatChatLabel(LocalDateTime.of(date, LocalTime.now()), userUtil.getUser().getTimezone()));
+                    chat.setTime(ZonedDateTime.of(LocalDateTime.of(date, LocalTime.now()), TimeUtil.zoneId(userUtil.getUser().getTimezone())));
 
                     List<ChatMessageResponse> messageList = chats.stream()
                             .sorted(Comparator.comparing(ChatMessage::getCreatedAt))
@@ -403,7 +422,7 @@ public class ChattingImplementation implements ChattingService {
 
     private ChatMessageResponse response(ChatMessage message) {
         ChatMessageResponse response = ConversationMapper.INSTANCE.response(message);
-        response.setLabel(TimeUtil.formatTime(message.getCreatedAt()));
+        response.setLabel(TimeUtil.formatTime(message.getCreatedAt(), userUtil.getUser().getTimezone()));
         response.setHasOnlyEmojis(ChatUtil.containsOnlyEmojis(message.getMessage()));
         response.setHasOnlyOneEmoji(ChatUtil.containsOnlyOneEmoji(message.getMessage()));
         response.setIsSentByCurrentUser(isCurrentUser(message.getSender()));
@@ -417,7 +436,7 @@ public class ChattingImplementation implements ChattingService {
         if(message != null) {
             ChatReplyResponse response = ConversationMapper.INSTANCE.reply(message);
             response.setMessage(ChatUtil.formatRepliedMessage(message.getMessage(), message.getDuration(), message.getType()));
-            response.setLabel(TimeUtil.formatTime(message.getCreatedAt()));
+            response.setLabel(TimeUtil.formatTime(message.getCreatedAt(), userUtil.getUser().getTimezone()));
             response.setHasOnlyEmojis(ChatUtil.containsOnlyEmojis(message.getMessage()));
             response.setHasOnlyOneEmoji(ChatUtil.containsOnlyOneEmoji(message.getMessage()));
             response.setIsSentByCurrentUser(isCurrentUser(message.getSender()));
@@ -426,5 +445,11 @@ public class ChattingImplementation implements ChattingService {
         } else {
             return null;
         }
+    }
+
+    @Override
+    @Transactional
+    public void clearChats() {
+        chatMessageRepository.deleteAll(chatMessageRepository.findAllPastMessagesWithoutBookmarkedProvider());
     }
 }

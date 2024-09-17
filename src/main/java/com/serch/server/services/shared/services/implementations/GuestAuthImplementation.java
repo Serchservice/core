@@ -33,7 +33,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 /**
@@ -81,7 +80,7 @@ public class GuestAuthImplementation implements GuestAuthService {
             throw new SharedException("Email address is already verified");
         } else {
             String otp = tokenService.generateOtp();
-            guest.setExpiresAt(LocalDateTime.now().plusMinutes(OTP_EXPIRATION_TIME));
+            guest.setExpiresAt(TimeUtil.now().plusMinutes(OTP_EXPIRATION_TIME));
             guest.setToken(passwordEncoder.encode(otp));
             guest.setEmailAddress(guest.getEmailAddress());
             guestRepository.save(guest);
@@ -94,14 +93,15 @@ public class GuestAuthImplementation implements GuestAuthService {
     public ApiResponse<GuestResponse> verifyEmailWithToken(VerifyEmailRequest request) {
         Guest guest = guestRepository.findByEmailAddressIgnoreCase(request.getEmailAddress())
                 .orElseThrow(() -> new SharedException("Guest not found"));
+
         if(guest.isEmailConfirmed()) {
             throw new SharedException("Email address is already verified");
-        } else if(TimeUtil.isOtpExpired(guest.getExpiresAt(), OTP_EXPIRATION_TIME)) {
+        } else if(TimeUtil.isOtpExpired(guest.getExpiresAt(), guest.getTimezone(), OTP_EXPIRATION_TIME)) {
             throw new SharedException("OTP is expired. Request for another.");
         } else {
             if(passwordEncoder.matches(request.getToken(), guest.getToken())) {
-                guest.setConfirmedAt(LocalDateTime.now());
-                guest.setUpdatedAt(LocalDateTime.now());
+                guest.setConfirmedAt(TimeUtil.now());
+                guest.setUpdatedAt(TimeUtil.now());
                 guest.setToken(null);
                 guest.setExpiresAt(null);
                 guestRepository.save(guest);
@@ -252,7 +252,7 @@ public class GuestAuthImplementation implements GuestAuthService {
         } else {
             String image = supabase.upload(request.getUpload(), UserUtil.getBucket(null));
             profile.setAvatar(image);
-            profile.setUpdatedAt(LocalDateTime.now());
+            profile.setUpdatedAt(TimeUtil.now());
             profileRepository.save(profile);
             return image;
         }

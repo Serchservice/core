@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 /**
  * The MFAChallenge class represents a multifactor authentication challenge in the system.
@@ -15,20 +15,14 @@ import java.time.LocalDateTime;
  * <ul>
  *     <li>{@link MFAFactor} - The multi-factor authentication factor associated with this challenge.</li>
  * </ul>
- * Annotations:
- * <ul>
- *     <li>{@link Column}</li>
- *     <li>{@link ManyToOne}</li>
- *     <li>{@link JoinColumn}</li>
- * </ul>
  */
 @Getter
 @Setter
 @Entity
 @Table(name = "mfa_challenges", schema = "identity")
 public class MFAChallenge extends BaseDevice {
-    @Column(name = "verified_at")
-    private LocalDateTime verifiedAt = null;
+    @Column(name = "verified_at", columnDefinition = "timestamptz")
+    private ZonedDateTime verifiedAt = null;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(

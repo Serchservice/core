@@ -254,6 +254,26 @@
       "name": "application.mail.template.id.invite",
       "type": "java.lang.String",
       "description": "This is the template id for email invite user template."
+    },
+    {
+      "name": "application.call.tip2fix.session",
+      "type": "java.lang.Integer",
+      "description": "The duration for each tip2fix session."
+    },
+    {
+      "name": "application.sms.secret",
+      "type": "java.lang.String",
+      "description": "The account secret for the sms third party sender."
+    },
+    {
+      "name": "application.sms.auth_token",
+      "type": "java.lang.String",
+      "description": "The authentication token for the sms third party sender."
+    },
+    {
+      "name": "application.sms.phone_number",
+      "type": "java.lang.String",
+      "description": "The phone number used for sending sms from the sms third party provider."
     }
   ]
 }

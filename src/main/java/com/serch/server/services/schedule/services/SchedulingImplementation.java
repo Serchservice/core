@@ -26,7 +26,7 @@ public class SchedulingImplementation implements SchedulingService {
         response.setCategory(profile.getCategory().getType());
         response.setImage(profile.getCategory().getImage());
         response.setRating(profile.getRating());
-        response.setLabel(TimeUtil.formatDay(schedule.getCreatedAt()));
+        response.setLabel(TimeUtil.formatDay(schedule.getCreatedAt(), profile.getUser().getTimezone()));
         response.setReason(buildReason(schedule, isProvider, isNotBusiness));
 
         if(schedule.getClosedBy() != null) {
@@ -45,7 +45,7 @@ public class SchedulingImplementation implements SchedulingService {
                             "%s invited you for a scheduled service trip for %s, %s",
                             schedule.getUser().getUser().getFirstName(),
                             schedule.getTime(),
-                            TimeUtil.formatChatLabel(schedule.getCreatedAt())
+                            TimeUtil.formatChatLabel(schedule.getCreatedAt().toLocalDateTime(), "")
                     );
                 } else if(schedule.getStatus() == DECLINED) {
                     if(schedule.getReason() != null && !schedule.getReason().isEmpty()) {
@@ -67,21 +67,21 @@ public class SchedulingImplementation implements SchedulingService {
                             "%s cancelled your scheduled invitation for %s, %s",
                             schedule.getUser().getUser().getFirstName(),
                             schedule.getTime(),
-                            TimeUtil.formatChatLabel(schedule.getCreatedAt())
+                            TimeUtil.formatChatLabel(schedule.getCreatedAt().toLocalDateTime(), "")
                     );
                 } else if(schedule.getStatus() == ACCEPTED) {
                     return String.format(
                             "You accepted %s's scheduled invitation for %s, %s",
                             schedule.getUser().getUser().getFirstName(),
                             schedule.getTime(),
-                            TimeUtil.formatChatLabel(schedule.getCreatedAt())
+                            TimeUtil.formatChatLabel(schedule.getCreatedAt().toLocalDateTime(), "")
                     );
                 } else if(schedule.getStatus() == CLOSED) {
                     return String.format(
                             "%s closed this scheduled invitation for %s, %s",
                             profileRepository.findById(schedule.getClosedBy()).map(Profile::getFullName).orElse(""),
                             schedule.getTime(),
-                            TimeUtil.formatChatLabel(schedule.getCreatedAt())
+                            TimeUtil.formatChatLabel(schedule.getCreatedAt().toLocalDateTime(), "")
                     );
                 } else {
                     return String.format(
@@ -89,7 +89,7 @@ public class SchedulingImplementation implements SchedulingService {
                             schedule.getStatus().getType(),
                             schedule.getUser().getUser().getFirstName(),
                             schedule.getTime(),
-                            TimeUtil.formatChatLabel(schedule.getCreatedAt())
+                            TimeUtil.formatChatLabel(schedule.getCreatedAt().toLocalDateTime(), "")
                     );
                 }
             } else {
@@ -98,7 +98,7 @@ public class SchedulingImplementation implements SchedulingService {
                             "You invited %s for a scheduled service trip for %s, %s",
                             schedule.getProvider().getFullName(),
                             schedule.getTime(),
-                            TimeUtil.formatChatLabel(schedule.getCreatedAt())
+                            TimeUtil.formatChatLabel(schedule.getCreatedAt().toLocalDateTime(), "")
                     );
                 } else if(schedule.getStatus() == DECLINED) {
                     if(schedule.getReason() != null && !schedule.getReason().isEmpty()) {
@@ -120,14 +120,14 @@ public class SchedulingImplementation implements SchedulingService {
                             "You cancelled %s's scheduled invitation for %s, %s",
                             schedule.getProvider().getFullName(),
                             schedule.getTime(),
-                            TimeUtil.formatChatLabel(schedule.getCreatedAt())
+                            TimeUtil.formatChatLabel(schedule.getCreatedAt().toLocalDateTime(), "")
                     );
                 } else if(schedule.getStatus() == ACCEPTED) {
                     return String.format(
                             "%s accepted your scheduled invitation for %s, %s",
                             schedule.getProvider().getFullName(),
                             schedule.getTime(),
-                            TimeUtil.formatChatLabel(schedule.getCreatedAt())
+                            TimeUtil.formatChatLabel(schedule.getCreatedAt().toLocalDateTime(), "")
                     );
                 } else {
                     return buildScheduleReason(schedule);
@@ -140,7 +140,7 @@ public class SchedulingImplementation implements SchedulingService {
                         schedule.getUser().getUser().getFirstName(),
                         schedule.getProvider().getFullName(),
                         schedule.getTime(),
-                        TimeUtil.formatChatLabel(schedule.getCreatedAt())
+                        TimeUtil.formatChatLabel(schedule.getCreatedAt().toLocalDateTime(), "")
                 );
             } else if(schedule.getStatus() == DECLINED) {
                 if(schedule.getReason() != null && !schedule.getReason().isEmpty()) {
@@ -165,7 +165,7 @@ public class SchedulingImplementation implements SchedulingService {
                         schedule.getUser().getUser().getFirstName(),
                         schedule.getProvider().getFullName(),
                         schedule.getTime(),
-                        TimeUtil.formatChatLabel(schedule.getCreatedAt())
+                        TimeUtil.formatChatLabel(schedule.getCreatedAt().toLocalDateTime(), "")
                 );
             } else if(schedule.getStatus() == ACCEPTED) {
                 return String.format(
@@ -173,7 +173,7 @@ public class SchedulingImplementation implements SchedulingService {
                         schedule.getProvider().getFullName(),
                         schedule.getUser().getUser().getFirstName(),
                         schedule.getTime(),
-                        TimeUtil.formatChatLabel(schedule.getCreatedAt())
+                        TimeUtil.formatChatLabel(schedule.getCreatedAt().toLocalDateTime(), "")
                 );
             } else return buildScheduleReason(schedule);
         }
@@ -185,7 +185,7 @@ public class SchedulingImplementation implements SchedulingService {
                     "%s closed this scheduled invitation for %s, %s",
                     profileRepository.findById(schedule.getClosedBy()).map(Profile::getFullName).orElse(""),
                     schedule.getTime(),
-                    TimeUtil.formatChatLabel(schedule.getCreatedAt())
+                    TimeUtil.formatChatLabel(schedule.getCreatedAt().toLocalDateTime(), "")
             );
         } else {
             return String.format(
@@ -194,7 +194,7 @@ public class SchedulingImplementation implements SchedulingService {
                     schedule.getStatus().getType(),
                     schedule.getUser().getUser().getFirstName(),
                     schedule.getTime(),
-                    TimeUtil.formatChatLabel(schedule.getCreatedAt())
+                    TimeUtil.formatChatLabel(schedule.getCreatedAt().toLocalDateTime(), "")
             );
         }
     }

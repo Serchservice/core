@@ -1,6 +1,7 @@
 package com.serch.server.services.report;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.services.report.service.AccountReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

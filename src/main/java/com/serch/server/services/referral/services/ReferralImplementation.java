@@ -61,7 +61,7 @@ public class ReferralImplementation implements ReferralService {
                         response.setRole(referral.getReferral().getRole().getType());
                         response.setName(referral.getReferral().getFullName());
                         response.setReferId(referral.getReferId());
-                        response.setInfo("Joined Serch Platform: " + TimeUtil.formatDay(referral.getReferral().getCreatedAt()));
+                        response.setInfo("Joined Serch Platform: " + TimeUtil.formatDay(referral.getReferral().getCreatedAt(), referral.getReferredBy().getUser().getTimezone()));
 
                         return response;
                     })

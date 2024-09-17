@@ -12,29 +12,16 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 /**
  * The Guest class represents guest profiles in a sharing platform.
  * It stores information such as email address, first name, last name, gender, avatar,
  * messaging token, platform, and shared links.
  * <p></p>
- * Annotations:
- * <ul>
- *     <li>{@link Getter}</li>
- *     <li>{@link Setter}</li>
- *     <li>{@link Entity}</li>
- *     <li>{@link Table}</li>
- * </ul>
  * Relationships:
  * <ul>
  *     <li>{@link SharedLink} - The shared links associated with the guest.</li>
- * </ul>
- * Constraints:
- * <ul>
- *     <li>{@link Email} - Email address validation.</li>
- *     <li>{@link Size} - Minimum size constraints for first name, last name, and gender.</li>
- *     <li>{@link NotBlank} - Not blank constraints for first name, last name, gender, and avatar.</li>
  * </ul>
  * Methods:
  * <ul>
@@ -81,6 +68,9 @@ public class Guest extends BaseDateTime {
     @Column(name = "messaging_token", columnDefinition = "TEXT")
     private String fcmToken = null;
 
+    @Column(columnDefinition = "TEXT default 'Africa/Lagos'")
+    private String timezone = "Africa/Lagos";
+
     @Column(name = "phone_number", columnDefinition = "TEXT")
     private String phoneNumber = null;
 
@@ -93,11 +83,11 @@ public class Guest extends BaseDateTime {
     @Column(nullable = false)
     private Double rating = 5.0;
 
-    @Column(name = "expires_at")
-    private LocalDateTime expiresAt = null;
+    @Column(name = "expires_at", columnDefinition = "timestamptz")
+    private ZonedDateTime expiresAt = null;
 
-    @Column(name = "confirmed_at")
-    private LocalDateTime confirmedAt = null;
+    @Column(name = "confirmed_at", columnDefinition = "timestamptz")
+    private ZonedDateTime confirmedAt = null;
 
     @Column(columnDefinition = "TEXT")
     private String state;

@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.lang.NonNull;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,7 +13,7 @@ public interface GuestRepository extends JpaRepository<Guest, String> {
     Optional<Guest> findByEmailAddressIgnoreCase(@NonNull String emailAddress);
 
     @Query("SELECT sl.guest FROM SharedLogin sl WHERE sl.createdAt <= ?1")
-    List<Guest> findGuestsWithLastTripOneYearAgo(LocalDateTime oneYearAgo);
+    List<Guest> findGuestsWithLastTripOneYearAgo(ZonedDateTime oneYearAgo);
 
     List<Guest> findByCountryLikeIgnoreCase(@NonNull String country);
 

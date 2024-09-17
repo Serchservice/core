@@ -21,19 +21,27 @@ public interface AccountMapper {
     AccountMapper INSTANCE = Mappers.getMapper(AccountMapper.class);
 
     Profile profile(RequestProfile profile);
+
     @Mapping(source = "id", target = "id", ignore = true)
     BusinessProfile profile(IncompleteProfile profile);
+
     PhoneInformation phoneInformation(RequestPhoneInformation phoneInformation);
+
     RequestPhoneInformation phoneInformation(PhoneInformation phoneInformation);
+
     @Mapping(source = "id", target = "id", ignore = true)
     PhoneInformation phoneInformation(IncompletePhoneInformation phoneInformation);
+
     RequestProviderProfile profile(AddAssociateRequest request);
+
     AdditionalInformationResponse additional(AdditionalInformation additionalInformation);
+
     @Mappings({
             @Mapping(target = "category", source = "category", ignore = true),
             @Mapping(target = "id", source = "id")
     })
     ProfileResponse profile(Profile profile);
+
     @Mappings({
             @Mapping(target = "id", source = "id"),
             @Mapping(target = "category", source = "category", ignore = true),
@@ -44,6 +52,7 @@ public interface AccountMapper {
             @Mapping(target = "avatar", source = "avatar")
     })
     BusinessProfileResponse profile(BusinessProfile profile);
+
     @Mappings({
             @Mapping(target = "name", source = "businessName"),
             @Mapping(target = "description", source = "businessDescription"),
@@ -51,5 +60,6 @@ public interface AccountMapper {
             @Mapping(target = "logo", source = "businessLogo"),
     })
     BusinessInformationData business(BusinessProfile profile);
+
     AccountSettingResponse response(AccountSetting setting);
 }

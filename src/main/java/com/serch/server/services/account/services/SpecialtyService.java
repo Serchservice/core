@@ -64,4 +64,6 @@ public interface SpecialtyService {
      * @return {@link ApiResponse} list of {@link SpecialtyResponse}
      */
     ApiResponse<List<SpecialtyResponse>> search(String query);
+
+    ApiResponse<List<String>> specialties();
 }

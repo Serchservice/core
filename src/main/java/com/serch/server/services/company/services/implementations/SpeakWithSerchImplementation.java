@@ -19,7 +19,6 @@ import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -44,7 +43,7 @@ public class SpeakWithSerchImplementation implements SpeakWithSerchService {
                 throw new CompanyException("This ticket has been marked as resolved. Please open a new one");
             } else {
                 saveNewIssue(request, user, existing.get());
-                existing.get().setUpdatedAt(LocalDateTime.now());
+                existing.get().setUpdatedAt(TimeUtil.now());
                 speakWithSerchRepository.save(existing.get());
                 return new ApiResponse<>(prepareSpeakWithSerchResponse(existing.get()));
             }
@@ -69,8 +68,8 @@ public class SpeakWithSerchImplementation implements SpeakWithSerchService {
 
     private SpeakWithSerchResponse prepareSpeakWithSerchResponse(SpeakWithSerch speakWithSerch) {
         SpeakWithSerchResponse response = CompanyMapper.INSTANCE.response(speakWithSerch);
-        response.setLabel(TimeUtil.formatDay(speakWithSerch.getCreatedAt()));
-        response.setTime(TimeUtil.formatDay(speakWithSerch.getUpdatedAt()));
+        response.setLabel(TimeUtil.formatDay(speakWithSerch.getCreatedAt(), ""));
+        response.setTime(TimeUtil.formatDay(speakWithSerch.getUpdatedAt(), ""));
         response.setIssues(
                 speakWithSerch.getIssues() != null
                         ? speakWithSerch.getIssues().stream()
@@ -78,7 +77,7 @@ public class SpeakWithSerchImplementation implements SpeakWithSerchService {
                         .map(issue -> {
                             IssueResponse res = CompanyMapper.INSTANCE.response(issue);
                             res.setIsSerch(!issue.getSender().equals(String.valueOf(speakWithSerch.getUser().getId())));
-                            res.setLabel(TimeUtil.formatDay(issue.getCreatedAt()));
+                            res.setLabel(TimeUtil.formatDay(issue.getCreatedAt(), ""));
                             return res;
                         }).toList()
                         : List.of()
@@ -114,7 +113,7 @@ public class SpeakWithSerchImplementation implements SpeakWithSerchService {
                 .filter(serch -> !serch.getSender().equals(String.valueOf(user.getId())))
                 .forEach(serch -> {
                     serch.setIsRead(true);
-                    serch.setUpdatedAt(LocalDateTime.now());
+                    serch.setUpdatedAt(TimeUtil.now());
                     issueRepository.save(serch);
                 });
         return message();
@@ -122,8 +121,7 @@ public class SpeakWithSerchImplementation implements SpeakWithSerchService {
 
     @Override
     public void removeOldContents() {
-        LocalDateTime date = LocalDateTime.now().minusYears(5);
-        List<SpeakWithSerch> list = speakWithSerchRepository.findByCreatedAtBefore(date);
+        List<SpeakWithSerch> list = speakWithSerchRepository.findByCreatedAtBefore(TimeUtil.now().minusYears(5));
         if(list != null && !list.isEmpty()) {
             speakWithSerchRepository.deleteAll(list);
         }

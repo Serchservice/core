@@ -17,12 +17,6 @@ import lombok.Setter;
  *     <li>{@link User} - The user who referred the incomplete referral.</li>
  *     <li>{@link Incomplete} - The incomplete object associated with the incomplete referral.</li>
  * </ul>
- * Annotations:
- * <ul>
- *     <li>{@link ManyToOne}</li>
- *     <li>{@link OneToOne}</li>
- *     <li>{@link JoinColumn}</li>
- * </ul>
  * @see BaseModel
  */
 @Getter

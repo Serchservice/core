@@ -6,11 +6,11 @@ import com.serch.server.models.company.Complaint;
 import com.serch.server.repositories.company.ComplaintRepository;
 import com.serch.server.services.company.requests.ComplaintRequest;
 import com.serch.server.services.company.services.ComplaintService;
+import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -27,8 +27,7 @@ public class ComplaintImplementation implements ComplaintService {
 
     @Override
     public void removeOldContents() {
-        LocalDateTime date = LocalDateTime.now().minusYears(5);
-        List<Complaint> list = complaintRepository.findByCreatedAtBefore(date);
+        List<Complaint> list = complaintRepository.findByCreatedAtBefore(TimeUtil.now().minusYears(5));
         if(list != null && !list.isEmpty()) {
             complaintRepository.deleteAll(list);
         }

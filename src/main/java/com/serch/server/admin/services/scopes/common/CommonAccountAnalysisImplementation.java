@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.TextStyle;
 import java.util.*;
 
@@ -33,8 +34,8 @@ public class CommonAccountAnalysisImplementation implements CommonAccountAnalysi
     @Override
     @Transactional
     public List<ChartMetric> accountStatus(User user, Integer year) {
-        LocalDateTime start = AdminUtil.getStartYear(year);
-        LocalDateTime end = start.plusYears(1);
+        ZonedDateTime start = AdminUtil.getStartYear(year);
+        ZonedDateTime end = start.plusYears(1);
 
         return Arrays.stream(AccountStatus.values())
                 .filter(status -> {
@@ -104,8 +105,8 @@ public class CommonAccountAnalysisImplementation implements CommonAccountAnalysi
     @Override
     @Transactional
     public List<ChartMetric> wallet(User user, Integer year) {
-        LocalDateTime start = AdminUtil.getStartYear(year);
-        LocalDateTime end = start.plusYears(1);
+        ZonedDateTime start = AdminUtil.getStartYear(year);
+        ZonedDateTime end = start.plusYears(1);
 
         List<Transaction> transactions = transactionRepository
                 .findByUserAndDateRange(String.valueOf(user.getId()), start, end);
@@ -135,8 +136,8 @@ public class CommonAccountAnalysisImplementation implements CommonAccountAnalysi
     @Override
     @Transactional
     public List<ChartMetric> transaction(User user, Integer year) {
-        LocalDateTime start = AdminUtil.getStartYear(year);
-        LocalDateTime end = start.plusYears(1);
+        ZonedDateTime start = AdminUtil.getStartYear(year);
+        ZonedDateTime end = start.plusYears(1);
 
         List<Transaction> transactions = transactionRepository.findByUserAndDateRange(String.valueOf(user.getId()), start, end);
 
@@ -158,12 +159,12 @@ public class CommonAccountAnalysisImplementation implements CommonAccountAnalysi
     @Override
     @Transactional
     public List<ChartMetric> auth(User user, Integer year) {
-        LocalDateTime start = AdminUtil.getStartYear(year);
+        ZonedDateTime start = AdminUtil.getStartYear(year);
 
         List<ChartMetric> metrics = new ArrayList<>();
         for (int month = 1; month <= 12; month++) {
-            LocalDateTime startMonth = start.withMonth(month);
-            LocalDateTime endMonth = startMonth.plusMonths(1).minusSeconds(1);
+            ZonedDateTime startMonth = start.withMonth(month);
+            ZonedDateTime endMonth = startMonth.plusMonths(1).minusSeconds(1);
 
             long challenges = mFAChallengeRepository.countByUserAndDateRange(user.getId(), startMonth, endMonth);
             long sessions = sessionRepository.countByUserAndDateRange(user.getId(), startMonth, endMonth);

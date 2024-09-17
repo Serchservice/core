@@ -25,10 +25,10 @@ import com.serch.server.repositories.transaction.WalletRepository;
 import com.serch.server.repositories.trip.ActiveRepository;
 import com.serch.server.repositories.trip.TripRepository;
 import com.serch.server.utils.CallUtil;
+import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -63,10 +63,9 @@ public class AccountRemovalImplementation implements AccountRemovalService {
 
     @Override
     public void remove() {
-        LocalDateTime date = LocalDateTime.now().minusYears(5);
         List<IssueStatus> statuses = Arrays.asList(IssueStatus.RESOLVED, IssueStatus.CLOSED);
 
-        List<AccountDelete> list = accountDeleteRepository.findByStatusInAndCreatedAtBefore(statuses, date);
+        List<AccountDelete> list = accountDeleteRepository.findByStatusInAndCreatedAtBefore(statuses, TimeUtil.now().minusYears(5));
         if(!list.isEmpty()) {
             list.forEach(accountDelete -> {
                 if(accountDelete.getUser().getRole() == Role.BUSINESS) {

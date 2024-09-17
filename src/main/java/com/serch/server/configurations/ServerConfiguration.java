@@ -6,11 +6,15 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.mailersend.sdk.MailerSend;
+import com.serch.server.core.sms.SmsConfig;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.utils.ServerUtil;
+import com.twilio.Twilio;
 import io.getstream.chat.java.services.framework.DefaultClient;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,6 +53,7 @@ import java.util.Properties;
 @Configuration
 @RequiredArgsConstructor
 public class ServerConfiguration {
+    private static final Logger log = LoggerFactory.getLogger(ServerConfiguration.class);
     private final UserRepository userRepository;
 
     @Value("${spring.mail.password}")
@@ -62,6 +67,15 @@ public class ServerConfiguration {
 
     @Value("${application.call.api-secret}")
     private String CALL_APP_SECRET;
+
+    @Value("${application.sms.secret}")
+    private String SMS_SECRET;
+
+    @Value("${application.sms.auth_token}")
+    private String SMS_AUTH_TOKEN;
+
+    @Value("${application.sms.phone_number}")
+    private String SMS_PHONE_NUMBER;
 
     /**
      * Configures a RestTemplate bean for making RESTful HTTP requests.
@@ -171,7 +185,10 @@ public class ServerConfiguration {
     @Bean
     public FirebaseApp firebase() {
         FirebaseOptions options = FirebaseOptions.builder().setCredentials(credentials()).build();
-        return FirebaseApp.initializeApp(options);
+        FirebaseApp app = FirebaseApp.initializeApp(options);
+        log.info(String.format("SERCH::: Firebase Initialized with app - %s", app.getName()));
+
+        return app;
     }
 
     @Bean
@@ -181,6 +198,7 @@ public class ServerConfiguration {
         properties.put(DefaultClient.API_SECRET_PROP_NAME, CALL_APP_SECRET);
         var client = new DefaultClient(properties);
         DefaultClient.setInstance(client);
+        log.info(String.format("SERCH::: (AGORA INITIALIZATION) Agora initialized with api key %s", client.getApiKey()));
 
         return client;
     }
@@ -188,8 +206,20 @@ public class ServerConfiguration {
     @Bean
     public MailerSend send() {
         MailerSend ms = new MailerSend();
-
         ms.setToken(MAIL_API_KEY);
+
+        log.info(String.format("SERCH::: (MailerSend) Initialized with token %s", ms.getToken()));
         return ms;
+    }
+
+    @Bean
+    public SmsConfig smsConfig() {
+        Twilio.init(SMS_SECRET, SMS_AUTH_TOKEN);
+        log.info(String.format("SERCH::: (Twilio) Initialized with account %s", SMS_SECRET));
+
+        SmsConfig config = new SmsConfig();
+        config.setPhoneNumber(SMS_PHONE_NUMBER);
+
+        return config;
     }
 }

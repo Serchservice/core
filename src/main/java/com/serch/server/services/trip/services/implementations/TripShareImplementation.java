@@ -13,15 +13,17 @@ import com.serch.server.repositories.trip.*;
 import com.serch.server.services.trip.requests.*;
 import com.serch.server.services.trip.responses.TripResponse;
 import com.serch.server.services.trip.services.*;
+import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.serch.server.enums.auth.Role.USER;
@@ -36,6 +38,7 @@ import static com.serch.server.enums.trip.TripStatus.*;
 @Service
 @RequiredArgsConstructor
 public class TripShareImplementation implements TripShareService {
+    private static final Logger log = LoggerFactory.getLogger(TripShareImplementation.class);
     private final NotificationService notificationService;
     private final TripTimelineService timelineService;
     private final TripAuthenticationService authenticationService;
@@ -91,7 +94,7 @@ public class TripShareImplementation implements TripShareService {
                     account, trip.getId(), false
             );
         }
-        trip.setUpdatedAt(LocalDateTime.now());
+        trip.setUpdatedAt(TimeUtil.now());
         tripRepository.save(trip);
         timelineService.create(trip, null, trip.getAccess() == GRANTED ? SHARE_ACCESS_GRANTED : SHARE_ACCESS_DENIED);
 
@@ -102,8 +105,6 @@ public class TripShareImplementation implements TripShareService {
     @Override
     @Transactional
     public ApiResponse<TripResponse> share(TripShareRequest request) {
-        assert request.getOption() == 0 || request.getOption() == 1 : "Option can only be 1 (Online) | 0 (Offline)";
-
         Trip trip = tripRepository.findByIdAndProviderId(request.getTrip(), userUtil.getUser().getId())
                 .orElseThrow(() -> new TripException("No trip found for trip " + request.getTrip()));
 
@@ -111,8 +112,9 @@ public class TripShareImplementation implements TripShareService {
             if(trip.getInvited() == null) {
                 TripShare share = create(request, trip);
 
-                if(request.getOption() == 1) {
+                if(request.isOnline()) {
                     timelineService.create(null, share, REQUESTED);
+                    authenticationService.create(null, share);
                 }
 
                 notificationService.send(
@@ -126,10 +128,12 @@ public class TripShareImplementation implements TripShareService {
                 );
 
                 trip.setInvited(share);
-                trip.setUpdatedAt(LocalDateTime.now());
+                trip.setUpdatedAt(TimeUtil.now());
                 tripRepository.save(trip);
 
-                pingServiceProviders(trip, share.getCategory());
+                if(request.isOnline()) {
+                    pingServiceProviders(trip, request);
+                }
 
                 tripService.updateOthers(trip);
                 return new ApiResponse<>(historyService.response(trip.getId(), String.valueOf(userUtil.getUser().getId()), null, true, null));
@@ -145,12 +149,7 @@ public class TripShareImplementation implements TripShareService {
     protected TripShare create(TripShareRequest request, Trip trip) {
         TripShare share = TripMapper.INSTANCE.share(request);
         share.setTrip(trip);
-
-        if(request.getOption() == 0) {
-            share.setStatus(ACTIVE);
-        } else {
-            share.setStatus(WAITING);
-        }
+        share.setStatus(request.isOnline() ? WAITING : ACTIVE);
 
         if(request.getSerchCategory() != null) {
             share.setCategory(request.getSerchCategory().getType());
@@ -159,12 +158,16 @@ public class TripShareImplementation implements TripShareService {
     }
 
     @Transactional
-    protected void pingServiceProviders(Trip trip, String category) {
-        List<Active> actives = activeRepository.sortAllWithinDistance(
-                trip.getLatitude(), trip.getLongitude(),
-                Double.parseDouble(MAP_SEARCH_RADIUS), category.toUpperCase()
-        );
+    protected void pingServiceProviders(Trip trip, TripShareRequest request) {
+        String category = request.getSerchCategory() != null ? request.getSerchCategory().getType() : "";
+        String filters = String.join(" | ", request.getFilters());
+
+        log.info(String.format("SERCH SHARE TRIP ONLINE PING::: Searching for %s category with filters [%s]", category, filters));
+        List<Active> actives = activeRepository.searchWithinDistance(trip.getLatitude(), trip.getLongitude(), Double.parseDouble(MAP_SEARCH_RADIUS), category, filters);
+
         if(actives != null && !actives.isEmpty()) {
+            log.info(String.format("SERCH SHARE TRIP ONLINE PING::: Found %s active providers", actives.size()));
+
             actives.forEach(active -> {
                 if(!active.getProfile().isSameAs(trip.getProvider().getId())) {
                     messaging.convertAndSend(
@@ -179,6 +182,8 @@ public class TripShareImplementation implements TripShareService {
                     );
                 }
             });
+        } else {
+            log.info(String.format("SERCH SHARE TRIP ONLINE PING::: Found 0 active providers and is null %s", actives == null));
         }
     }
 
@@ -205,18 +210,18 @@ public class TripShareImplementation implements TripShareService {
         notificationService.send(
                 share.getTrip().getAccount(),
                 String.format(
-                        "%s has declined the shared trip request from %s",
+                        "%s has cancelled the shared trip request from %s",
                         userUtil.getUser().getFullName(),
                         share.getTrip().getProvider().getFullName()
                 ),
-                "Trip share declined",
+                "Trip share cancelled",
                 String.valueOf(userUtil.getUser().getId()), null, false
         );
 
         notificationService.send(
                 String.valueOf(share.getTrip().getProvider().getId()),
-                String.format("%s has declined your shared trip request", userUtil.getUser().getFullName()),
-                "Trip share declined",
+                String.format("%s has cancelled your shared trip request", userUtil.getUser().getFullName()),
+                "Trip share cancelled",
                 String.valueOf(userUtil.getUser().getId()), null, false
         );
 
@@ -238,12 +243,12 @@ public class TripShareImplementation implements TripShareService {
                     .orElseThrow(() -> new TripException("User not found"));
 
             share.getTrip().setCategory(profile.getCategory());
-            share.getTrip().setUpdatedAt(LocalDateTime.now());
+            share.getTrip().setUpdatedAt(TimeUtil.now());
             tripRepository.save(share.getTrip());
 
             share.setProvider(profile);
             share.setStatus(ACTIVE);
-            share.setUpdatedAt(LocalDateTime.now());
+            share.setUpdatedAt(TimeUtil.now());
             tripShareRepository.save(share);
 
             MapView mapView = TripMapper.INSTANCE.view(activeService.getLocation(share.getProvider().getUser()));
@@ -296,7 +301,7 @@ public class TripShareImplementation implements TripShareService {
             if(authenticationService.verify(request, share.getAuthentication().getCode())) {
                 TripAuthentication authentication = share.getAuthentication();
                 authentication.setIsVerified(true);
-                authentication.setUpdatedAt(LocalDateTime.now());
+                authentication.setUpdatedAt(TimeUtil.now());
                 tripAuthenticationRepository.save(authentication);
 
                 notificationService.send(
@@ -362,7 +367,7 @@ public class TripShareImplementation implements TripShareService {
         }
 
         share.getTrip().setCategory(share.getProvider().getCategory());
-        share.getTrip().setUpdatedAt(LocalDateTime.now());
+        share.getTrip().setUpdatedAt(TimeUtil.now());
         tripRepository.save(share.getTrip());
 
         timelineService.create(null, share, LEFT);

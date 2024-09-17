@@ -3,7 +3,6 @@ package com.serch.server.models.auth.incomplete;
 import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseModel;
 import com.serch.server.enums.account.SerchCategory;
-import com.serch.server.models.auth.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,12 +15,6 @@ import lombok.ToString;
  * Relationships:
  * <ul>
  *     <li>{@link Incomplete} - The incomplete object associated with the incomplete referral.</li>
- * </ul>
- * Annotations:
- * <ul>
- *     <li>{@link Column}</li>
- *     <li>{@link OneToOne}</li>
- *     <li>{@link JoinColumn}</li>
  * </ul>
  * Enums:
  * <ul>

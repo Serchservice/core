@@ -84,4 +84,9 @@ public interface ChattingService {
      * @return The List of {@link ChatRoomResponse}
      */
     List<ChatRoomResponse> response(UUID id);
+
+    /**
+     * This will clear old chats at the start of the new day, if the provider is not bookmarked
+     */
+    void clearChats();
 }

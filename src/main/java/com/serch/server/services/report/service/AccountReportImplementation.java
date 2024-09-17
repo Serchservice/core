@@ -1,4 +1,4 @@
-package com.serch.server.services.report;
+package com.serch.server.services.report.service;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.account.AccountStatus;
@@ -12,13 +12,13 @@ import com.serch.server.repositories.account.AccountReportRepository;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.shop.ShopRepository;
 import com.serch.server.services.auth.services.AccountStatusTrackerService;
+import com.serch.server.services.report.AccountReportRequest;
+import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
 
 /**
  * Service implementation for reporting user accounts or shops.
@@ -57,7 +57,7 @@ public class AccountReportImplementation implements AccountReportService {
 
                 if(accountReportRepository.findByAccount(reported.getId()).size() >= REPORT_LIMIT) {
                     reported.setStatus(ShopStatus.SUSPENDED);
-                    reported.setUpdatedAt(LocalDateTime.now());
+                    reported.setUpdatedAt(TimeUtil.now());
                     shopRepository.save(reported);
                 }
             } else {
@@ -73,7 +73,7 @@ public class AccountReportImplementation implements AccountReportService {
 
                 if(accountReportRepository.findByAccount(String.valueOf(reported.getId())).size() >= REPORT_LIMIT) {
                     reported.setStatus(AccountStatus.HAS_REPORTED_ISSUES);
-                    reported.setUpdatedAt(LocalDateTime.now());
+                    reported.setUpdatedAt(TimeUtil.now());
                     userRepository.save(reported);
                     trackerService.create(reported);
                 }

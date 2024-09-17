@@ -3,10 +3,10 @@ package com.serch.server.services.removal;
 import com.serch.server.models.shared.Guest;
 import com.serch.server.repositories.shared.GuestRepository;
 import com.serch.server.repositories.shared.SharedLinkRepository;
+import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -17,8 +17,7 @@ public class GuestRemovalImplementation implements GuestRemovalService {
 
     @Override
     public void remove() {
-        LocalDateTime oneYearAgo = LocalDateTime.now().minusYears(1);
-        List<Guest> guests = guestRepository.findGuestsWithLastTripOneYearAgo(oneYearAgo);
+        List<Guest> guests = guestRepository.findGuestsWithLastTripOneYearAgo(TimeUtil.now().minusYears(1));
 
         if(!guests.isEmpty()) {
             guestRepository.deleteAll(guests);

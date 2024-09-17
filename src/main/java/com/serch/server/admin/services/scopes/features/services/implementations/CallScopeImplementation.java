@@ -17,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.TextStyle;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -45,7 +45,7 @@ public class CallScopeImplementation implements CallScopeService {
     }
 
     private List<Metric> summary() {
-        LocalDateTime start = AdminUtil.getStartYear(AdminUtil.currentYear());
+        ZonedDateTime start = AdminUtil.getStartYear(AdminUtil.currentYear());
         List<Call> calls = callRepository.findAllByCreatedAtBetween(start, start.plusYears(1));
         List<Metric> metrics = new ArrayList<>();
 
@@ -75,11 +75,11 @@ public class CallScopeImplementation implements CallScopeService {
     }
 
     private List<ChartMetric> getChartMetrics(CallType callType, Integer year) {
-        LocalDateTime start = AdminUtil.getStartYear(Objects.requireNonNullElseGet(year, AdminUtil::currentYear));
+        ZonedDateTime start = AdminUtil.getStartYear(Objects.requireNonNullElseGet(year, AdminUtil::currentYear));
 
         List<ChartMetric> metrics = new ArrayList<>();
         for (int month = 1; month <= 12; month++) {
-            LocalDateTime startMonth = start.withMonth(month);
+            ZonedDateTime startMonth = start.withMonth(month);
 
             ChartMetric metric = new ChartMetric();
             metric.setLabel(startMonth.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH));
@@ -96,7 +96,7 @@ public class CallScopeImplementation implements CallScopeService {
     }
 
     private List<ChartMetric> tip2fixPerformance(Integer year) {
-        LocalDateTime start= AdminUtil.getStartYear(Objects.requireNonNullElseGet(year, AdminUtil::currentYear));
+        ZonedDateTime start= AdminUtil.getStartYear(Objects.requireNonNullElseGet(year, AdminUtil::currentYear));
         List<Call> list = callRepository.findAllByCreatedAtBetween(start, start.plusYears(1))
                 .stream().filter(call -> !call.isVoice())
                 .toList();
@@ -156,7 +156,7 @@ public class CallScopeImplementation implements CallScopeService {
                 .stream().sorted(Comparator.comparing(Call::getCreatedAt).reversed()).map(call -> {
                     CallScopeResponse response = new CallScopeResponse();
                     response.setChannel(call.getChannel());
-                    response.setLabel(TimeUtil.formatDay(call.getCreatedAt()));
+                    response.setLabel(TimeUtil.formatDay(call.getCreatedAt(), call.getCalled().getUser().getTimezone()));
                     response.setDuration(call.getDuration());
                     response.setOutgoing(false);
                     response.setType(call.getType());

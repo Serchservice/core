@@ -28,6 +28,7 @@ import com.serch.server.services.certificate.responses.VerifyCertificateResponse
 import com.serch.server.services.rating.services.RatingService;
 import com.serch.server.core.storage.core.StorageService;
 import com.serch.server.core.storage.requests.FileUploadRequest;
+import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -38,7 +39,7 @@ import org.springframework.stereotype.Service;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
@@ -60,7 +61,7 @@ public class CertificateImplementation implements CertificateService {
     private final TripRepository tripRepository;
     private final AccountReportRepository accountReportRepository;
 
-    private String date(LocalDateTime date) {
+    private String date(ZonedDateTime date) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy");
         return date.format(formatter);
     }
@@ -76,7 +77,7 @@ public class CertificateImplementation implements CertificateService {
 
                 cert.get().setSecret(encoder.encode(secret));
                 cert.get().setCode(code);
-                cert.get().setUpdatedAt(LocalDateTime.now());
+                cert.get().setUpdatedAt(TimeUtil.now());
                 cert.ifPresent(certificateRepository::save);
 
                 CertificateData data = new CertificateData();
@@ -142,9 +143,9 @@ public class CertificateImplementation implements CertificateService {
         return new ApiResponse<>(response);
     }
 
-    private boolean isThirtyDaysAfter(LocalDateTime createdAt) {
+    private boolean isThirtyDaysAfter(ZonedDateTime createdAt) {
         // Check if the current date and time is 30 days or more after the creation date
-        return LocalDateTime.now().isAfter(createdAt.plusDays(30)) || LocalDateTime.now().isEqual(createdAt.plusDays(30));
+        return TimeUtil.now().isAfter(createdAt.plusDays(30)) || TimeUtil.now().isEqual(createdAt.plusDays(30));
     }
 
     private Map<String, Boolean> instruction(User user, Certificate certificate) {
@@ -184,7 +185,7 @@ public class CertificateImplementation implements CertificateService {
         Certificate certificate = certificateRepository.findByUser(userUtil.getUser().getId())
                 .orElseThrow(() -> new CertificateException("Certificate not found"));
         certificate.setDocument(url);
-        certificate.setUpdatedAt(LocalDateTime.now());
+        certificate.setUpdatedAt(TimeUtil.now());
         certificateRepository.save(certificate);
         return fetch();
     }

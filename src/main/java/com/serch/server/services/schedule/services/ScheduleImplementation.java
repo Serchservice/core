@@ -31,9 +31,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -108,8 +106,11 @@ public class ScheduleImplementation implements ScheduleService {
 
     private List<Schedule> getSchedules(UUID provider) {
         LocalDate today = LocalDate.now();
+
         return scheduleRepository.findByProvider_IdAndCreatedAtBetween(
-                provider, today.atStartOfDay(), today.atTime(23, 59, 59)
+                provider,
+                ZonedDateTime.of(today.atStartOfDay(), TimeUtil.zoneId(userUtil.getUser().getTimezone())),
+                ZonedDateTime.of(today.atTime(23, 59, 59), TimeUtil.zoneId(userUtil.getUser().getTimezone()))
         );
     }
 
@@ -178,7 +179,7 @@ public class ScheduleImplementation implements ScheduleService {
         if(schedule.getProvider().isSameAs(userUtil.getUser().getId())) {
             if(schedule.getStatus() == PENDING) {
                 schedule.setStatus(ACCEPTED);
-                schedule.setUpdatedAt(LocalDateTime.now());
+                schedule.setUpdatedAt(TimeUtil.now());
                 scheduleRepository.save(schedule);
 
                 sendActiveNotification(schedule);
@@ -205,7 +206,7 @@ public class ScheduleImplementation implements ScheduleService {
         if(schedule.getUser().isSameAs(userUtil.getUser().getId())) {
             if(schedule.getStatus() == PENDING) {
                 schedule.setStatus(CANCELLED);
-                schedule.setUpdatedAt(LocalDateTime.now());
+                schedule.setUpdatedAt(TimeUtil.now());
                 scheduleRepository.save(schedule);
 
                 sendInactiveNotification(schedule);
@@ -236,7 +237,7 @@ public class ScheduleImplementation implements ScheduleService {
                 long diff = getDiff(schedule);
 
                 schedule.setStatus(ScheduleStatus.CLOSED);
-                schedule.setUpdatedAt(LocalDateTime.now());
+                schedule.setUpdatedAt(TimeUtil.now());
                 schedule.setClosedAt(TimeUtil.formatTimeDifference(diff));
                 schedule.setClosedBy(userUtil.getUser().getId());
                 schedule.setClosedOnTime(diff <= ACCOUNT_SCHEDULE_CLOSE_DURATION && diff >= 0);
@@ -334,7 +335,7 @@ public class ScheduleImplementation implements ScheduleService {
             if(schedule.getProvider().isSameAs(userUtil.getUser().getId())) {
                 if(schedule.getStatus() == PENDING) {
                     schedule.setStatus(ScheduleStatus.DECLINED);
-                    schedule.setUpdatedAt(LocalDateTime.now());
+                    schedule.setUpdatedAt(TimeUtil.now());
                     scheduleRepository.save(schedule);
 
                     sendInactiveNotification(schedule);
@@ -392,7 +393,7 @@ public class ScheduleImplementation implements ScheduleService {
             listMap.forEach((date, scheduleList) -> {
                 ScheduleGroupResponse response = new ScheduleGroupResponse();
                 response.setTime(LocalDateTime.of(date, LocalTime.now()));
-                response.setLabel(TimeUtil.formatChatLabel(LocalDateTime.of(date, LocalTime.now())));
+                response.setLabel(TimeUtil.formatChatLabel(LocalDateTime.of(date, LocalTime.now()), userUtil.getUser().getTimezone()));
                 response.setSchedules(scheduleList.stream()
                         .sorted(Comparator.comparing(Schedule::getUpdatedAt).reversed())
                         .map(schedule -> schedulingService.response(
@@ -479,7 +480,7 @@ public class ScheduleImplementation implements ScheduleService {
     @Override
     public void notifySchedules() {
         LocalDate today = LocalDate.now();
-        scheduleRepository.findByCreatedAtBetween(today.atStartOfDay(), today.atTime(23, 59, 59))
+        scheduleRepository.findByCreatedAtBetween(ZonedDateTime.of(today.atStartOfDay(), ZoneOffset.UTC), ZonedDateTime.of(today.atTime(23, 59, 59), ZoneOffset.UTC))
                 .forEach(schedule -> {
                     LocalTime currentTime = LocalTime.now();
                     LocalTime time = LocalTime.parse(schedule.getTime(), DateTimeFormatter.ofPattern("h:mma"));
@@ -499,7 +500,8 @@ public class ScheduleImplementation implements ScheduleService {
 
     @Override
     public void closePastUnaccepted() {
-        LocalDateTime current = LocalDateTime.now();
+        ZonedDateTime current = TimeUtil.now();
+
         scheduleRepository.findByStatusAndCreatedAtBefore(PENDING, current)
                 .forEach(schedule -> {
                     schedule.setStatus(ScheduleStatus.UNATTENDED);
@@ -511,19 +513,16 @@ public class ScheduleImplementation implements ScheduleService {
         closePendingOrAcceptedForTheDay(current);
     }
 
-    protected void closePendingOrAcceptedForTheDay(LocalDateTime current) {
-        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
-        LocalDateTime endOfDay = LocalDate.now().atTime(LocalTime.MAX);
-        scheduleRepository.findByCreatedAtBetween(startOfDay, endOfDay)
+    protected void closePendingOrAcceptedForTheDay(ZonedDateTime current) {
+        scheduleRepository.findByCreatedAtBetween(ZonedDateTime.of(LocalDate.now().atStartOfDay(), ZoneOffset.UTC), ZonedDateTime.of(LocalDate.now().atStartOfDay(), ZoneOffset.UTC))
                 .stream()
                 .filter(schedule -> schedule.getStatus() == PENDING || schedule.getStatus() == ACCEPTED)
                 .forEach(schedule -> performCloseAction(current, schedule));
     }
 
-    protected void performCloseAction(LocalDateTime current, Schedule schedule) {
-        LocalDate today = LocalDate.now();
+    protected void performCloseAction(ZonedDateTime current, Schedule schedule) {
         LocalDateTime currentTime = LocalDateTime.now();
-        LocalDateTime requestedTime = LocalDateTime.of(today, LocalTime.parse(schedule.getTime().toUpperCase(), formatter));
+        LocalDateTime requestedTime = LocalDateTime.of(LocalDate.now(), LocalTime.parse(schedule.getTime().toUpperCase(), formatter));
 
         // Check if the requested time has already passed
         if (requestedTime.isBefore(currentTime)) {

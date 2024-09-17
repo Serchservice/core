@@ -25,12 +25,6 @@ import java.util.List;
  *     <li>{@link AuthMethod}</li>
  *     <li>{@link AuthLevel}</li>
  * </ul>
- * Annotations:
- * <ul>
- *     <li>{@link Column}</li>
- *     <li>{@link Enumerated}</li>
- *     <li>{@link JoinColumn}</li>
- * </ul>
  * @see BaseDevice
  * @see SerchEnum
  */

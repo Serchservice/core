@@ -20,10 +20,12 @@ import com.serch.server.services.shop.responses.ShopServiceResponse;
 import com.serch.server.services.shop.responses.ShopWeekdayResponse;
 import com.serch.server.core.storage.core.StorageService;
 import com.serch.server.utils.HelperUtil;
+import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
@@ -187,7 +189,7 @@ public class ShopImplementation implements ShopService {
         if(!shop.getLongitude().equals(request.getLongitude())) {
             shop.setLongitude(request.getLongitude());
         }
-        shop.setUpdatedAt(LocalDateTime.now());
+        shop.setUpdatedAt(TimeUtil.now());
         shopRepository.save(shop);
         return getUpdatedShopResponse(request.getShop());
     }
@@ -202,7 +204,7 @@ public class ShopImplementation implements ShopService {
         if(!weekday.getOpening().equals(toTime(request.getOpening()))) {
             weekday.setOpening(toTime(request.getOpening()));
         }
-        weekday.setUpdatedAt(LocalDateTime.now());
+        weekday.setUpdatedAt(TimeUtil.now());
         shopWeekdayRepository.save(weekday);
         return getUpdatedShopResponse(shopId);
     }
@@ -213,7 +215,7 @@ public class ShopImplementation implements ShopService {
                 .orElseThrow(() -> new ShopException("Service not found"));
         if(!shopSpecialty.getService().equalsIgnoreCase(service)) {
             shopSpecialty.setService(service);
-            shopSpecialty.setUpdatedAt(LocalDateTime.now());
+            shopSpecialty.setUpdatedAt(TimeUtil.now());
             shopServiceRepository.save(shopSpecialty);
         }
         return getUpdatedShopResponse(shopId);
@@ -252,7 +254,7 @@ public class ShopImplementation implements ShopService {
         Shop shop = shopRepository.findByIdAndUser_Id(shopId, userUtil.getUser().getId())
                 .orElseThrow(() -> new ShopException("Shop not found"));
         shop.setStatus(status);
-        shop.setUpdatedAt(LocalDateTime.now());
+        shop.setUpdatedAt(TimeUtil.now());
         shopRepository.save(shop);
         return getUpdatedShopResponse(shopId);
     }
@@ -267,7 +269,7 @@ public class ShopImplementation implements ShopService {
                 } else if(shop.getStatus() == ShopStatus.CLOSED) {
                     shop.setStatus(ShopStatus.OPEN);
                 }
-                shop.setUpdatedAt(LocalDateTime.now());
+                shop.setUpdatedAt(TimeUtil.now());
             }).forEach(shopRepository::save);
             return fetchShops();
         } else {
@@ -312,6 +314,7 @@ public class ShopImplementation implements ShopService {
     }
 
     @Override
+    @Transactional
     public void openOrCloseShops() {
         List<Shop> openingShops = shopRepository.findShopsWithCurrentOpeningTimeAndDay(Weekday.valueOf(LocalDateTime.now().getDayOfWeek().name()));
         if(openingShops != null && !openingShops.isEmpty()) {

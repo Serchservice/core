@@ -35,6 +35,7 @@ import com.serch.server.services.auth.services.ProviderAuthService;
 import com.serch.server.services.rating.services.RatingService;
 import com.serch.server.services.referral.services.ReferralProgramService;
 import com.serch.server.services.referral.services.ReferralService;
+import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,7 +43,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -192,7 +192,7 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
         user.setPassword(business.getDefaultPassword());
         user.setEmailConfirmedAt(null);
         user.setRole(Role.ASSOCIATE_PROVIDER);
-        user.setEmailConfirmedAt(LocalDateTime.now());
+        user.setEmailConfirmedAt(TimeUtil.now());
         user.setIsEmailConfirmed(false);
         user.setLastSignedIn(null);
         user.setStatus(AccountStatus.BUSINESS_DEACTIVATED);
@@ -239,7 +239,7 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
             ApiResponse<String> response = deleteService.delete(provider.getId());
             if(response.getStatus().is2xxSuccessful()) {
                 provider.getUser().setStatus(AccountStatus.BUSINESS_DELETED);
-                provider.getUser().setUpdatedAt(LocalDateTime.now());
+                provider.getUser().setUpdatedAt(TimeUtil.now());
                 userRepository.save(provider.getUser());
                 trackerService.create(provider.getUser());
             }
@@ -262,7 +262,7 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
 
         if(provider.belongsToBusiness(business.getId())) {
             provider.getUser().setStatus(AccountStatus.BUSINESS_DEACTIVATED);
-            provider.getUser().setUpdatedAt(LocalDateTime.now());
+            provider.getUser().setUpdatedAt(TimeUtil.now());
             userRepository.save(provider.getUser());
             trackerService.create(provider.getUser());
 
@@ -287,7 +287,7 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
             if(provider.getUser().getIsEmailConfirmed()) {
                 if(provider.getUser().getStatus() == AccountStatus.BUSINESS_DEACTIVATED) {
                     provider.getUser().setStatus(AccountStatus.ACTIVE);
-                    provider.getUser().setUpdatedAt(LocalDateTime.now());
+                    provider.getUser().setUpdatedAt(TimeUtil.now());
 
                     userRepository.save(provider.getUser());
                     trackerService.create(provider.getUser());

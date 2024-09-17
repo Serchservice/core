@@ -11,7 +11,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 
 /**
  * The BaseDateTime class serves as a base entity for entities that require timestamp tracking,
@@ -38,8 +39,8 @@ public class BaseDateTime {
      */
     @CreatedDate
     @CreationTimestamp
-    @Column(name = "created_at", updatable = false, nullable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @Column(name = "created_at", updatable = false, nullable = false, columnDefinition = "timestamptz")
+    private ZonedDateTime createdAt = ZonedDateTime.now(ZoneOffset.UTC);
 
     /**
      * The timestamp indicating when the entity was last updated.
@@ -47,7 +48,7 @@ public class BaseDateTime {
      */
     @UpdateTimestamp
     @LastModifiedDate
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt = LocalDateTime.now();
+    @Column(name = "updated_at", nullable = false, columnDefinition = "timestamptz")
+    private ZonedDateTime updatedAt = ZonedDateTime.now(ZoneOffset.UTC);
 }
 

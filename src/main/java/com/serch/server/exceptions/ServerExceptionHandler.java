@@ -27,6 +27,8 @@ import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.UnexpectedTypeException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.JDBCException;
+import org.hibernate.exception.JDBCConnectionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.TypeMismatchException;
@@ -279,7 +281,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     public ApiResponse<String> handleCallException(CallException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
-        response.setData(exception.getLocalizedMessage());
+        response.setData(exception.getCode() != null ? exception.getCode() : exception.getLocalizedMessage());
         return response;
     }
 
@@ -593,6 +595,18 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     public ApiResponse<String> handleWriterException(WriterException exception){
         log.error(exception.getMessage());
         return new ApiResponse<>(exception.getMessage());
+    }
+
+    @ExceptionHandler(JDBCException.class)
+    public ApiResponse<String> handleJDBCException(JDBCException exception){
+        log.error(exception.getMessage());
+        return new ApiResponse<>(exception.getSQLException().getMessage());
+    }
+
+    @ExceptionHandler(JDBCConnectionException.class)
+    public ApiResponse<String> handleJDBCConnectionException(JDBCConnectionException exception){
+        log.error(exception.getMessage());
+        return new ApiResponse<>(exception.getSQLException().getMessage());
     }
 
     @ExceptionHandler(IOException.class)

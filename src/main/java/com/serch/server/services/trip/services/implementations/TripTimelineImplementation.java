@@ -7,11 +7,11 @@ import com.serch.server.models.trip.TripTimeline;
 import com.serch.server.repositories.trip.TripTimelineRepository;
 import com.serch.server.services.trip.responses.TripTimelineResponse;
 import com.serch.server.services.trip.services.TripTimelineService;
+import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -25,7 +25,7 @@ public class TripTimelineImplementation implements TripTimelineService {
         if(share != null) {
             tripTimelineRepository.findByStatusAndSharing_Id(status, share.getId())
                     .ifPresentOrElse(timeline -> {
-                        timeline.setUpdatedAt(LocalDateTime.now());
+                        timeline.setUpdatedAt(TimeUtil.now());
                         timeline.setSharing(share);
                         tripTimelineRepository.save(timeline);
                     }, () -> {
@@ -37,7 +37,7 @@ public class TripTimelineImplementation implements TripTimelineService {
         } else {
             tripTimelineRepository.findByStatusAndTrip_Id(status, trip.getId())
                     .ifPresentOrElse(timeline -> {
-                        timeline.setUpdatedAt(LocalDateTime.now());
+                        timeline.setUpdatedAt(TimeUtil.now());
                         timeline.setTrip(trip);
                         tripTimelineRepository.save(timeline);
                     }, () -> {

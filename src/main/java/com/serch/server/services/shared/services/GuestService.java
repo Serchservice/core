@@ -48,4 +48,13 @@ public interface GuestService {
      * @return {@link ApiResponse} of Success or failure
      */
     ApiResponse<String> updateFcmToken(String token, String guest);
+
+    /**
+     * Update the timezone of the logged-in user
+     *
+     * @param timezone The new timezone
+     *
+     * @return {@link ApiResponse} of Success or failure
+     */
+    ApiResponse<String> updateTimezone(String timezone, String guest);
 }

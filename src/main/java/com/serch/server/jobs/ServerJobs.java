@@ -1,6 +1,7 @@
 package com.serch.server.jobs;
 
 import com.serch.server.services.conversation.services.CallService;
+import com.serch.server.services.conversation.services.ChattingService;
 import com.serch.server.services.shop.services.ShopService;
 import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +48,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 public class ServerJobs {
     private final ShopService shopService;
     private final CallService callService;
+    private final ChattingService chatService;
 
     @Scheduled(cron = "0 * * * * *") // Runs every minute
     public void updateShops() {
@@ -54,9 +56,15 @@ public class ServerJobs {
         shopService.openOrCloseShops();
     }
 
-    @Scheduled(cron = "0 0 0 * * *") // Runs every minute
+    @Scheduled(cron = "0 * * * * *") // The cron job is scheduled to run at midnight (00:00:00) every day.
     public void closeRingingCalls() {
         log.info("Running schedule task for closeRingingCalls in %s on %s".formatted(CallService.class, TimeUtil.log()));
         callService.closeRingingCalls();
+    }
+
+    @Scheduled(cron = "0 0 0 * * *") // The cron job is scheduled to run at midnight (00:00:00) every day.
+    public void clearChats() {
+        log.info("Running schedule task for clearChats in %s on %s".formatted(ChattingService.class, TimeUtil.log()));
+        chatService.clearChats();
     }
 }

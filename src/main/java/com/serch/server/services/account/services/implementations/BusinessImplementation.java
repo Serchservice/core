@@ -29,6 +29,7 @@ import com.serch.server.core.storage.core.StorageService;
 import com.serch.server.services.transaction.services.WalletService;
 import com.serch.server.utils.DatabaseUtil;
 import com.serch.server.utils.HelperUtil;
+import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,7 +37,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -178,7 +178,7 @@ public class BusinessImplementation implements BusinessService {
         } else if(user.getProfileLastUpdatedAt() == null) {
             return getBusinessUpdateResponse(request, user, profile);
         } else {
-            Duration duration = Duration.between(user.getProfileLastUpdatedAt(), LocalDateTime.now());
+            Duration duration = Duration.between(user.getProfileLastUpdatedAt(), TimeUtil.now());
             long remaining = ACCOUNT_DURATION - duration.toDays();
 
             if(remaining < 0) {
@@ -248,7 +248,7 @@ public class BusinessImplementation implements BusinessService {
                 && profile.getGender() != request.getGender();
         if(canUpdateGender) {
             profile.setGender(request.getGender());
-            profile.setUpdatedAt(LocalDateTime.now());
+            profile.setUpdatedAt(TimeUtil.now());
             businessProfileRepository.save(profile);
         }
     }
@@ -259,7 +259,7 @@ public class BusinessImplementation implements BusinessService {
                 && !profile.getBusinessName().equalsIgnoreCase(request.getBusinessName());
         if(canUpdateBusinessName) {
             profile.setBusinessName(request.getBusinessName());
-            profile.setUpdatedAt(LocalDateTime.now());
+            profile.setUpdatedAt(TimeUtil.now());
             businessProfileRepository.save(profile);
         }
     }
@@ -270,7 +270,7 @@ public class BusinessImplementation implements BusinessService {
                 && !profile.getBusinessAddress().equalsIgnoreCase(request.getBusinessAddress());
         if(canUpdateBusinessAddress) {
             profile.setBusinessAddress(request.getBusinessAddress());
-            profile.setUpdatedAt(LocalDateTime.now());
+            profile.setUpdatedAt(TimeUtil.now());
             businessProfileRepository.save(profile);
         }
     }
@@ -281,7 +281,7 @@ public class BusinessImplementation implements BusinessService {
                 && !profile.getContact().equalsIgnoreCase(request.getBusinessContact());
         if(canUpdateBusinessContact) {
             profile.setContact(request.getBusinessContact());
-            profile.setUpdatedAt(LocalDateTime.now());
+            profile.setUpdatedAt(TimeUtil.now());
             businessProfileRepository.save(profile);
         }
     }
@@ -292,16 +292,16 @@ public class BusinessImplementation implements BusinessService {
                 && !profile.getBusinessDescription().equalsIgnoreCase(request.getBusinessDescription());
         if(canUpdateBusinessDescription) {
             profile.setBusinessDescription(request.getBusinessDescription());
-            profile.setUpdatedAt(LocalDateTime.now());
+            profile.setUpdatedAt(TimeUtil.now());
             businessProfileRepository.save(profile);
         }
     }
 
     private void updateTimeStamps(User user, BusinessProfile profile) {
-        user.setProfileLastUpdatedAt(LocalDateTime.now());
+        user.setProfileLastUpdatedAt(TimeUtil.now());
         userRepository.save(user);
 
-        profile.setUpdatedAt(LocalDateTime.now());
+        profile.setUpdatedAt(TimeUtil.now());
         businessProfileRepository.save(profile);
     }
 }

@@ -2,10 +2,10 @@ package com.serch.server.services.removal;
 
 import com.serch.server.models.auth.incomplete.Incomplete;
 import com.serch.server.repositories.auth.incomplete.IncompleteRepository;
+import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -15,8 +15,7 @@ public class IncompleteRemovalImplementation implements IncompleteRemovalService
 
     @Override
     public void remove() {
-        LocalDateTime oneYearAgo = LocalDateTime.now().minusYears(1);
-        List<Incomplete> list = incompleteRepository.findByCreatedAtBefore(oneYearAgo);
+        List<Incomplete> list = incompleteRepository.findByCreatedAtBefore(TimeUtil.now().minusYears(1));
 
         if(!list.isEmpty()) {
             incompleteRepository.deleteAll(list);

@@ -10,15 +10,6 @@ import lombok.Setter;
  * The LaunchedCity class represents a launched city entity in the system.
  * It stores information about launched cities, including the name, status, and the state it belongs to.
  * <p></p>
- * Annotations:
- * <ul>
- *     <li>{@link Column}</li>
- *     <li>{@link Enumerated}</li>
- *     <li>{@link ManyToOne}</li>
- *     <li>{@link JoinColumn}</li>
- *     <li>{@link Entity}</li>
- *     <li>{@link Table}</li>
- * </ul>
  * Enums:
  * <ul>
  *     <li>{@link AccountStatus}</li>

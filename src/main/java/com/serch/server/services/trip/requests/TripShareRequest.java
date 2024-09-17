@@ -2,7 +2,11 @@ package com.serch.server.services.trip.requests;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.serch.server.enums.account.SerchCategory;
+import com.serch.server.enums.trip.TripShareOption;
 import lombok.Data;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 public class TripShareRequest {
@@ -21,5 +25,10 @@ public class TripShareRequest {
     private SerchCategory serchCategory;
 
     private String category;
-    private Integer option;
+    private List<String> filters = new ArrayList<>();
+    private TripShareOption option = TripShareOption.ONLINE;
+
+    public boolean isOnline() {
+        return option == TripShareOption.ONLINE;
+    }
 }

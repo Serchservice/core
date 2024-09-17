@@ -5,7 +5,7 @@ import com.serch.server.admin.services.responses.CommonProfileResponse;
 import com.serch.server.services.shop.responses.ShopResponse;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Data
 public class ShopScopeResponse{
@@ -13,8 +13,8 @@ public class ShopScopeResponse{
     private CommonProfileResponse profile;
 
     @JsonProperty("created_at")
-    private LocalDateTime createdAt;
+    private ZonedDateTime createdAt;
 
     @JsonProperty("updated_at")
-    private LocalDateTime updatedAt;
+    private ZonedDateTime updatedAt;
 }

@@ -8,12 +8,12 @@ import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.company.NewsletterStatus;
 import com.serch.server.models.company.Newsletter;
 import com.serch.server.repositories.company.NewsletterRepository;
+import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -75,7 +75,7 @@ public class MarketingScopeImplementation implements MarketingScopeService {
     public ApiResponse<List<NewsletterResponse>> update(Long id) {
         Newsletter letter = newsletterRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid id"));
-        letter.setUpdatedAt(LocalDateTime.now());
+        letter.setUpdatedAt(TimeUtil.now());
         letter.setStatus(letter.getStatus() == NewsletterStatus.COLLECTED ? NewsletterStatus.UNCOLLECTED : NewsletterStatus.COLLECTED);
         newsletterRepository.save(letter);
         return newsletters();

@@ -1,5 +1,6 @@
 package com.serch.server.services.trip.services.implementations;
 
+import com.serch.server.core.sms.implementation.SmsService;
 import com.serch.server.models.trip.Trip;
 import com.serch.server.models.trip.TripAuthentication;
 import com.serch.server.models.trip.TripShare;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class TripAuthenticationImplementation implements TripAuthenticationService {
     private final TokenService tokenService;
+    private final SmsService smsService;
     private final TripAuthenticationRepository tripAuthenticationRepository;
 
     @Override
@@ -28,8 +30,24 @@ public class TripAuthenticationImplementation implements TripAuthenticationServi
             authentication.setTrip(trip);
         }
 
-        authentication.setCode(DatabaseUtil.encodeData(tokenService.generateCode(4)));
+        String code = tokenService.generateCode(4);
+        authentication.setCode(DatabaseUtil.encodeData(code));
         tripAuthenticationRepository.save(authentication);
+
+        if(share != null && share.isOffline()) {
+            String text = String.format("Hello %s %s", share.getFirstName(), share.getLastName()) +
+                    "\n\n" +
+                    String.format("You have been invited to a Serch shared trip by %s.", share.getProvider().getFullName()) +
+                    "Call out the authentication code below when you arrive." +
+                    "\n\n" +
+                    String.format("Location: %s", share.getMapView().getPlace()) +
+                    "\n\n" +
+                    String.format("Click to open: https://www.google.com/maps?q=%s,%s", share.getMapView().getLatitude(), share.getMapView().getLongitude()) +
+                    "\n\n" +
+                    String.format("Authentication Code: %s", code);
+
+            smsService.sendTripAuth(share.getPhoneNumber(), text);
+        }
     }
 
     @Override

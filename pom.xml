@@ -177,6 +177,12 @@
 			<artifactId>stream-chat-java</artifactId>
 			<version>1.24.0</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.twilio.sdk/twilio -->
+		<dependency>
+			<groupId>com.twilio.sdk</groupId>
+			<artifactId>twilio</artifactId>
+			<version>10.5.0</version>
+		</dependency>
 		<!-- https://mvnrepository.com/artifact/com.atomikos/transactions-spring-boot3-starter -->
 <!--		<dependency>-->
 <!--			<groupId>com.atomikos</groupId>-->

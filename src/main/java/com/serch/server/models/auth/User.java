@@ -19,7 +19,8 @@ import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -71,27 +72,27 @@ public class User extends BaseEntity implements UserDetails {
     @NotNull(message = "Role cannot be null")
     private Role role;
 
-    @Column(name = "last_signed_in")
-    private LocalDateTime lastSignedIn = LocalDateTime.now();
+    @Column(name = "last_signed_in", columnDefinition = "timestamptz")
+    private ZonedDateTime lastSignedIn = ZonedDateTime.now(ZoneOffset.UTC);
 
-    @Column(name = "last_updated_at")
-    private LocalDateTime lastUpdatedAt = LocalDateTime.now();
+    @Column(name = "last_updated_at", columnDefinition = "timestamptz")
+    private ZonedDateTime lastUpdatedAt = ZonedDateTime.now(ZoneOffset.UTC);
 
     @Column(name = "profile_last_updated_at")
-    private LocalDateTime profileLastUpdatedAt;
+    private ZonedDateTime profileLastUpdatedAt;
 
-    @Column(name = "email_confirmed_at", updatable = false, nullable = false)
+    @Column(name = "email_confirmed_at", updatable = false, nullable = false, columnDefinition = "timestamptz")
     @NotNull(message = "Email Confirmation Date cannot be null")
-    private LocalDateTime emailConfirmedAt;
+    private ZonedDateTime emailConfirmedAt;
 
     @Column(name = "password_recovery_token", columnDefinition = "TEXT")
     private String passwordRecoveryToken = null;
 
-    @Column(name = "password_recovery_token_expires_at", columnDefinition = "TEXT")
-    private LocalDateTime passwordRecoveryExpiresAt = null;
+    @Column(name = "password_recovery_token_expires_at", columnDefinition = "timestamptz")
+    private ZonedDateTime passwordRecoveryExpiresAt = null;
 
-    @Column(name = "password_recovery_token_confirmed_at")
-    private LocalDateTime passwordRecoveryConfirmedAt = null;
+    @Column(name = "password_recovery_token_confirmed_at", columnDefinition = "timestamptz")
+    private ZonedDateTime passwordRecoveryConfirmedAt = null;
 
     @Enumerated(value = EnumType.STRING)
     private UserAction action;
@@ -99,11 +100,11 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "sign_in_token", columnDefinition = "TEXT")
     private String signInToken = null;
 
-    @Column(name = "sign_in_token_expires_at", columnDefinition = "TEXT")
-    private LocalDateTime signInTokenExpiresAt = null;
+    @Column(name = "sign_in_token_expires_at", columnDefinition = "timestamptz")
+    private ZonedDateTime signInTokenExpiresAt = null;
 
-    @Column(name = "sign_in_token_confirmed_at")
-    private LocalDateTime signInTokenConfirmedAt = null;
+    @Column(name = "sign_in_token_confirmed_at", columnDefinition = "timestamptz")
+    private ZonedDateTime signInTokenConfirmedAt = null;
 
     @Column(name = "status", nullable = false)
     @Enumerated(value = EnumType.STRING)
@@ -123,6 +124,9 @@ public class User extends BaseEntity implements UserDetails {
 
     @Column(columnDefinition = "TEXT")
     private String country;
+
+    @Column(columnDefinition = "TEXT default 'Africa/Lagos'")
+    private String timezone = "Africa/Lagos";
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Session> sessions;

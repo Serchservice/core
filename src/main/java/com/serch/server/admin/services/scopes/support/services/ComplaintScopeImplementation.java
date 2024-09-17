@@ -11,12 +11,12 @@ import com.serch.server.exceptions.auth.AuthException;
 import com.serch.server.exceptions.others.SerchException;
 import com.serch.server.models.company.Complaint;
 import com.serch.server.repositories.company.ComplaintRepository;
+import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -74,7 +74,7 @@ public class ComplaintScopeImplementation implements ComplaintScopeService {
         Complaint complaint = complaintRepository.findById(id)
                 .orElseThrow(() -> new SerchException("Complaint not found"));
         complaint.setStatus(IssueStatus.RESOLVED);
-        complaint.setUpdatedAt(LocalDateTime.now());
+        complaint.setUpdatedAt(TimeUtil.now());
         complaint.setAdmin(admin);
         complaintRepository.save(complaint);
         return complaints();

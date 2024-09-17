@@ -29,6 +29,12 @@ public class GuestController {
         return new ResponseEntity<>(response, response.getStatus());
     }
 
+    @PatchMapping("/update")
+    public ResponseEntity<ApiResponse<String>> updateTimezone(@RequestParam String timezone, @RequestParam String guest) {
+        ApiResponse<String> response = service.updateTimezone(timezone, guest);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
     @MessageMapping("/guest/refresh")
     void refresh(@Payload SwitchRequest request) {
         service.refresh(request);

@@ -13,12 +13,6 @@ import lombok.Setter;
  * <ul>
  *     <li>{@link MFAFactor} - The multi-factor authentication factor associated with the recovery code.</li>
  * </ul>
- * Annotations:
- * <ul>
- *     <li>{@link Column}</li>
- *     <li>{@link ManyToOne}</li>
- *     <li>{@link JoinColumn}</li>
- * </ul>
  * @see BaseModel
  */
 @Getter

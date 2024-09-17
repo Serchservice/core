@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.lang.NonNull;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -90,8 +90,8 @@ public interface ShopRepository extends JpaRepository<Shop, String> {
             "AND w.closing = CURRENT_TIME")
     List<Shop> findShopsWithCurrentClosingTimeAndDay(Weekday currentDay);
 
-    List<Shop> findAllByCreatedAtBetween(LocalDateTime start, LocalDateTime localDateTime);
+    List<Shop> findAllByCreatedAtBetween(ZonedDateTime start, ZonedDateTime localDateTime);
 
     @Query("select count(s) from Shop s where s.createdAt BETWEEN ?1 AND ?2")
-    long countByDateRange(LocalDateTime startDate, LocalDateTime endDate);
+    long countByDateRange(ZonedDateTime startDate, ZonedDateTime endDate);
 }

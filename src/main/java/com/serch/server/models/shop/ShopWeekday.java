@@ -14,15 +14,6 @@ import java.time.LocalTime;
 /**
  * The ShopWeekday class represents the opening and closing time of a shop in Serch platform.
  * <p></p>
- * Annotations:
- * <ul>
- *     <li>{@link Getter}</li>
- *     <li>{@link Setter}</li>
- *     <li>{@link AllArgsConstructor}</li>
- *     <li>{@link NoArgsConstructor}</li>
- *     <li>{@link Entity}</li>
- *     <li>{@link Table}</li>
- * </ul>
  * Relationships:
  * <ul>
  *     <li>Many-to-one with {@link Shop} as the shop.</li>

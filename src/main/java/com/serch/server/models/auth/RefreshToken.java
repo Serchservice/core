@@ -16,13 +16,6 @@ import java.util.List;
  *     <li>{@link User} - The user associated with this refresh token.</li>
  *     <li>{@link Session} - The session associated with this refresh token.</li>
  * </ul>
- * Annotations:
- * <ul>
- *     <li>{@link Column}</li>
- *     <li>{@link OneToMany}</li>
- *     <li>{@link ManyToOne}</li>
- *     <li>{@link JoinColumn}</li>
- * </ul>
  * <p></p>
  * @see BaseEntity
  */

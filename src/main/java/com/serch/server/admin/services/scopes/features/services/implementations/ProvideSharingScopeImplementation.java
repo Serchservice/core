@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.TextStyle;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -40,7 +40,7 @@ public class ProvideSharingScopeImplementation implements ProvideSharingScopeSer
     }
 
     private List<Metric> summary() {
-        LocalDateTime start = AdminUtil.getStartYear(AdminUtil.currentYear());
+        ZonedDateTime start = AdminUtil.getStartYear(AdminUtil.currentYear());
         List<Metric> metrics = new ArrayList<>();
         List<SharedLink> list = sharedLinkRepository.findAllByCreatedAtBetween(start, start.plusYears(1));
 
@@ -62,12 +62,12 @@ public class ProvideSharingScopeImplementation implements ProvideSharingScopeSer
     }
 
     private List<ChartMetric> chartByYear(Integer year) {
-        LocalDateTime start = AdminUtil.getStartYear(Objects.requireNonNullElseGet(year, AdminUtil::currentYear));
+        ZonedDateTime start = AdminUtil.getStartYear(Objects.requireNonNullElseGet(year, AdminUtil::currentYear));
 
         List<ChartMetric> metrics = new ArrayList<>();
 
         for (int month = 1; month <= 12; month++) {
-            LocalDateTime startMonth = start.withMonth(month);
+            ZonedDateTime startMonth = start.withMonth(month);
 
             ChartMetric metric = new ChartMetric();
             metric.setLabel(startMonth.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH));

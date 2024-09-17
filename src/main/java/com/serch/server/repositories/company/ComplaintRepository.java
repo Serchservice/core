@@ -7,11 +7,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.lang.NonNull;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 public interface ComplaintRepository extends JpaRepository<Complaint, String> {
-    List<Complaint> findByCreatedAtBefore(@NonNull LocalDateTime createdAt);
+    List<Complaint> findByCreatedAtBefore(@NonNull ZonedDateTime createdAt);
 
     @Query("SELECT YEAR(c.createdAt) as header, COUNT(c) as count FROM Complaint c GROUP BY YEAR(c.createdAt)")
     List<MetricProjection> findComplaintMetrics();

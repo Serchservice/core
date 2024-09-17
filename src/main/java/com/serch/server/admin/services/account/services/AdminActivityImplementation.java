@@ -94,7 +94,7 @@ public class AdminActivityImplementation implements AdminActivityService {
 
     private AdminActivityResponse response(AdminActivity activity, boolean showAssociated, boolean isLoggedInAdmin) {
         AdminActivityResponse response = AdminMapper.instance.response(activity);
-        response.setLabel(TimeUtil.formatDay(activity.getUpdatedAt()));
+        response.setLabel(TimeUtil.formatDay(activity.getUpdatedAt(), activity.getAdmin().getUser().getTimezone()));
         response.setActivity(activity(isLoggedInAdmin, activity));
         if(!showAssociated) {
             response.setAssociated("");

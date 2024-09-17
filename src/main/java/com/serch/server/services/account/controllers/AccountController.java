@@ -66,4 +66,10 @@ public class AccountController {
         ApiResponse<String> response = service.updateFcmToken(token);
         return new ResponseEntity<>(response, response.getStatus());
     }
+
+    @PatchMapping("/update")
+    public ResponseEntity<ApiResponse<String>> updateTimezone(@RequestParam String timezone) {
+        ApiResponse<String> response = service.updateTimezone(timezone);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
 }

@@ -23,7 +23,9 @@ public class NewsletterImplementation implements NewsletterService {
     private static final int MAX_LOCAL_PART_LENGTH = 64;
 
     private static final String LOCAL_PART_ATOM = "[a-z0-9!#$%&'*+/=?^_`{|}~\u0080-\uFFFF-]";
+
     private static final String LOCAL_PART_INSIDE_QUOTES_ATOM = "(?:[a-z0-9!#$%&'*.(),<>\\[\\]:;  @+/=?^_`{|}~\u0080-\uFFFF-]|\\\\\\\\|\\\\\\\")";
+
     /**
      * Regular expression for the local part of an email address (everything before '@')
      */
@@ -47,8 +49,7 @@ public class NewsletterImplementation implements NewsletterService {
             if (!isValidEmailLocalPart(localPart)) {
                 return false;
             }
-            return DomainNameUtil.isValidEmailDomainAddress( domainPart )
-                    && EMAIL_PATTERN.matcher(emailAddress).matches();
+            return DomainNameUtil.isValidEmailDomainAddress( domainPart ) && EMAIL_PATTERN.matcher(emailAddress).matches();
         } else {
             return false;
         }

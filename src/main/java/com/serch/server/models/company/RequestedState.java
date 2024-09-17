@@ -11,15 +11,6 @@ import java.util.List;
  * The RequestState class represents a requested state entity in the system.
  * It stores information about states that have been requested, including the name, the associated requested country, and the requested cities.
  * <p></p>
- * Annotations:
- * <ul>
- *     <li>{@link Column}</li>
- *     <li>{@link ManyToOne}</li>
- *     <li>{@link OneToMany}</li>
- *     <li>{@link JoinColumn}</li>
- *     <li>{@link Entity}</li>
- *     <li>{@link Table}</li>
- * </ul>
  * Relationships:
  * <ul>
  *     <li>{@link RequestedCountry} - The requested country associated with the state.</li>

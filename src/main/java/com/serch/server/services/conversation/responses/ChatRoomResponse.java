@@ -6,7 +6,7 @@ import com.serch.server.enums.chat.MessageStatus;
 import com.serch.server.services.schedule.responses.ScheduleResponse;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -41,7 +41,7 @@ public class ChatRoomResponse {
     private ScheduleResponse schedule;
 
     @JsonProperty("sent_at")
-    private LocalDateTime sentAt;
+    private ZonedDateTime sentAt;
 
     @JsonIgnore
     private UUID user;

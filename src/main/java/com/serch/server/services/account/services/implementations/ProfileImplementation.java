@@ -40,7 +40,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -190,7 +189,7 @@ public class ProfileImplementation implements ProfileService {
         } else {
             more.setTotalServiceTrips(tripRepository.findByAccount(String.valueOf(user.getId())).size());
         }
-        more.setLastSignedIn(TimeUtil.formatLastSignedIn(user.getLastSignedIn(), false));
+        more.setLastSignedIn(TimeUtil.formatLastSignedIn(user.getLastSignedIn(), user.getTimezone(), false));
         return more;
     }
 
@@ -215,7 +214,7 @@ public class ProfileImplementation implements ProfileService {
             if(user.getProfileLastUpdatedAt() == null) {
                 return getProfileUpdateResponse(request, user, profile);
             } else {
-                Duration duration = Duration.between(user.getProfileLastUpdatedAt(), LocalDateTime.now());
+                Duration duration = Duration.between(user.getProfileLastUpdatedAt(), TimeUtil.now());
                 long remaining = ACCOUNT_DURATION - duration.toDays();
 
                 if(remaining < 0) {
@@ -265,8 +264,8 @@ public class ProfileImplementation implements ProfileService {
                         phone.setUser(user);
                         phoneInformationRepository.save(phone);
                     });
-            user.setUpdatedAt(LocalDateTime.now());
-            user.setLastUpdatedAt(LocalDateTime.now());
+            user.setUpdatedAt(TimeUtil.now());
+            user.setLastUpdatedAt(TimeUtil.now());
             userRepository.save(user);
         }
     }
@@ -296,16 +295,16 @@ public class ProfileImplementation implements ProfileService {
                 && profile.getGender() != request.getGender();
         if(canUpdateGender) {
             profile.setGender(request.getGender());
-            profile.setUpdatedAt(LocalDateTime.now());
+            profile.setUpdatedAt(TimeUtil.now());
             profileRepository.save(profile);
         }
     }
 
     private void updateTimeStamps(User user, Profile profile) {
-        user.setProfileLastUpdatedAt(LocalDateTime.now());
+        user.setProfileLastUpdatedAt(TimeUtil.now());
         userRepository.save(user);
 
-        profile.setUpdatedAt(LocalDateTime.now());
+        profile.setUpdatedAt(TimeUtil.now());
         profileRepository.save(profile);
     }
 }

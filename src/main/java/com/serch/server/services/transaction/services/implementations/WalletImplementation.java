@@ -148,7 +148,7 @@ public class WalletImplementation implements WalletService {
                     creditWallet(transaction.getAmount(), userUtil.getUser().getId());
                     transaction.setStatus(TransactionStatus.SUCCESSFUL);
                     transaction.setVerified(true);
-                    transaction.setUpdatedAt(LocalDateTime.now());
+                    transaction.setUpdatedAt(TimeUtil.now());
                     transactionRepository.save(transaction);
 
                     return view();
@@ -156,7 +156,7 @@ public class WalletImplementation implements WalletService {
                     transaction.setStatus(TransactionStatus.FAILED);
                     transaction.setVerified(false);
                     transaction.setReason("Error in verification");
-                    transaction.setUpdatedAt(LocalDateTime.now());
+                    transaction.setUpdatedAt(TimeUtil.now());
                     transactionRepository.save(transaction);
 
                     throw new WalletException("Couldn't verify transaction. Try again or contact support");
@@ -171,7 +171,7 @@ public class WalletImplementation implements WalletService {
         walletRepository.findByUser_Id(receiver)
                 .ifPresent(wallet -> {
                     wallet.setDeposit(wallet.getDeposit().add(amount));
-                    wallet.setUpdatedAt(LocalDateTime.now());
+                    wallet.setUpdatedAt(TimeUtil.now());
                     walletRepository.save(wallet);
                 });
     }
@@ -214,7 +214,7 @@ public class WalletImplementation implements WalletService {
 
         wallet.setUncleared(wallet.getUncleared().add(transaction.getAmount()));
         wallet.setBalance(wallet.getBalance().subtract(transaction.getAmount()));
-        wallet.setUpdatedAt(LocalDateTime.now());
+        wallet.setUpdatedAt(TimeUtil.now());
         walletRepository.save(wallet);
     }
 
@@ -272,7 +272,7 @@ public class WalletImplementation implements WalletService {
         if(request.getPayoutOnPayday() != null && !request.getPayoutOnPayday().equals(wallet.getPayoutOnPayday())) {
             wallet.setPayoutOnPayday(request.getPayoutOnPayday());
         }
-        wallet.setUpdatedAt(LocalDateTime.now());
+        wallet.setUpdatedAt(TimeUtil.now());
         walletRepository.save(wallet);
         return new ApiResponse<>("Wallet updated", HttpStatus.OK);
     }
@@ -293,7 +293,7 @@ public class WalletImplementation implements WalletService {
                 wallet.setBalance(wallet.getBalance().subtract(debit));
                 wallet.setDeposit(BigDecimal.ZERO);
             }
-            wallet.setUpdatedAt(LocalDateTime.now());
+            wallet.setUpdatedAt(TimeUtil.now());
             walletRepository.save(wallet);
 
             notificationService.send(sender, false, transaction.getAmount());
@@ -302,7 +302,7 @@ public class WalletImplementation implements WalletService {
         });
         walletRepository.findByUser_Id(recipientId).ifPresentOrElse(wallet -> {
             wallet.setBalance(wallet.getBalance().add(transaction.getAmount()));
-            wallet.setUpdatedAt(LocalDateTime.now());
+            wallet.setUpdatedAt(TimeUtil.now());
             walletRepository.save(wallet);
 
             notificationService.send(wallet.getUser().getId(), true, transaction.getAmount());
@@ -310,7 +310,7 @@ public class WalletImplementation implements WalletService {
             throw new WalletException("Couldn't process Tip2Fix payment. Try again");
         });
 
-        transaction.setUpdatedAt(LocalDateTime.now());
+        transaction.setUpdatedAt(TimeUtil.now());
         transaction.setVerified(true);
         transaction.setStatus(TransactionStatus.SUCCESSFUL);
         transactionRepository.save(transaction);
@@ -366,7 +366,7 @@ public class WalletImplementation implements WalletService {
                 .collect(Collectors.groupingBy(transaction -> transaction.getCreatedAt().toLocalDate()));
         map.forEach((date, transactionList) -> {
             TransactionGroupResponse group = new TransactionGroupResponse();
-            group.setLabel(TimeUtil.formatChatLabel(LocalDateTime.of(date, LocalTime.now())));
+            group.setLabel(TimeUtil.formatChatLabel(LocalDateTime.of(date, LocalTime.now()), userUtil.getUser().getTimezone()));
             List<TransactionResponse> response = transactionList.stream()
                     .sorted(Comparator.comparing(Transaction::getCreatedAt).reversed())
                     .map(this::response).toList();
@@ -391,7 +391,7 @@ public class WalletImplementation implements WalletService {
     protected TransactionResponse prepareFundingTransactionResponse(Transaction transaction) {
         TransactionResponse response = new TransactionResponse();
         response.setIsIncoming(true);
-        response.setLabel(TimeUtil.formatDay(transaction.getCreatedAt()));
+        response.setLabel(TimeUtil.formatDay(transaction.getCreatedAt(), userUtil.getUser().getTimezone()));
         response.setType(transaction.getType());
         response.setStatus(transaction.getStatus());
         response.setAmount(MoneyUtil.formatToNaira(transaction.getAmount()));
@@ -407,8 +407,8 @@ public class WalletImplementation implements WalletService {
                 MoneyUtil.formatToNaira(transaction.getAmount()),
                 transaction.getStatus().getSentence()
         ));
-        data.setDate(TimeUtil.formatDay(transaction.getCreatedAt()));
-        data.setUpdatedAt(TimeUtil.formatDay(transaction.getUpdatedAt()));
+        data.setDate(TimeUtil.formatDay(transaction.getCreatedAt(), userUtil.getUser().getTimezone()));
+        data.setUpdatedAt(TimeUtil.formatDay(transaction.getUpdatedAt(), userUtil.getUser().getTimezone()));
         response.setData(data);
         return response;
     }
@@ -416,7 +416,7 @@ public class WalletImplementation implements WalletService {
     private TransactionResponse prepareWithdrawTransactionResponse(Transaction transaction) {
         TransactionResponse response = new TransactionResponse();
         response.setIsIncoming(false);
-        response.setLabel(TimeUtil.formatDay(transaction.getCreatedAt()));
+        response.setLabel(TimeUtil.formatDay(transaction.getCreatedAt(), userUtil.getUser().getTimezone()));
         response.setType(transaction.getType());
         response.setStatus(transaction.getStatus());
         response.setAmount(MoneyUtil.formatToNaira(transaction.getAmount()));
@@ -428,8 +428,8 @@ public class WalletImplementation implements WalletService {
                 MoneyUtil.formatToNaira(transaction.getAmount()),
                 transaction.getStatus().getSentence()
         ));
-        data.setDate(TimeUtil.formatDay(transaction.getCreatedAt()));
-        data.setUpdatedAt(TimeUtil.formatDay(transaction.getUpdatedAt()));
+        data.setDate(TimeUtil.formatDay(transaction.getCreatedAt(), userUtil.getUser().getTimezone()));
+        data.setUpdatedAt(TimeUtil.formatDay(transaction.getUpdatedAt(), userUtil.getUser().getTimezone()));
         response.setData(data);
         return response;
     }
@@ -438,17 +438,22 @@ public class WalletImplementation implements WalletService {
         boolean isIncoming = String.valueOf(userUtil.getUser().getId()).equals(transaction.getAccount());
         TransactionResponse response = getResponse(transaction, isIncoming);
 
-        TransactionData data = TransactionMapper.INSTANCE.data(transaction);
-        data.setHeader("Transaction %s".formatted(transaction.getStatus().getType()));
+        TransactionData data = getData(transaction);
         data.setDescription(prepareScheduleDescription(transaction, isIncoming));
-        data.setDate(TimeUtil.formatDay(transaction.getCreatedAt()));
-        data.setUpdatedAt(TimeUtil.formatDay(transaction.getUpdatedAt()));
         response.setData(data);
 
         if(userUtil.getUser().isBusiness()) {
             addAssociateData(scheduleRepository.findById(transaction.getEvent()).map(Schedule::getProvider), response);
         }
         return response;
+    }
+
+    private TransactionData getData(Transaction transaction) {
+        TransactionData data = TransactionMapper.INSTANCE.data(transaction);
+        data.setHeader("Transaction %s".formatted(transaction.getStatus().getType()));
+        data.setDate(TimeUtil.formatDay(transaction.getCreatedAt(), userUtil.getUser().getTimezone()));
+        data.setUpdatedAt(TimeUtil.formatDay(transaction.getUpdatedAt(), userUtil.getUser().getTimezone()));
+        return data;
     }
 
     protected TransactionResponse getResponse(Transaction transaction, boolean isIncoming) {
@@ -458,7 +463,7 @@ public class WalletImplementation implements WalletService {
 
         TransactionResponse response = new TransactionResponse();
         response.setIsIncoming(isIncoming);
-        response.setLabel(TimeUtil.formatDay(transaction.getCreatedAt()));
+        response.setLabel(TimeUtil.formatDay(transaction.getCreatedAt(), userUtil.getUser().getTimezone()));
         response.setType(transaction.getType());
         response.setStatus(transaction.getStatus());
         response.setAmount(MoneyUtil.formatToNaira(transaction.getAmount()));
@@ -478,7 +483,7 @@ public class WalletImplementation implements WalletService {
                         scheduleRepository.findById(transaction.getEvent()).map(Schedule::getId).orElse(""),
                         getScheduleParticipant(transaction),
                         scheduleRepository.findById(transaction.getEvent()).map(Schedule::getTime).orElse(""),
-                        scheduleRepository.findById(transaction.getEvent()).map(schedule -> TimeUtil.formatDay(schedule.getCreatedAt())).orElse("")
+                        scheduleRepository.findById(transaction.getEvent()).map(schedule -> TimeUtil.formatDay(schedule.getCreatedAt(), userUtil.getUser().getTimezone())).orElse("")
                 );
             } else {
                 return String.format(
@@ -490,7 +495,7 @@ public class WalletImplementation implements WalletService {
                         scheduleRepository.findById(transaction.getEvent()).map(Schedule::getId).orElse(""),
                         getScheduleParticipant(transaction),
                         scheduleRepository.findById(transaction.getEvent()).map(Schedule::getTime).orElse(""),
-                        scheduleRepository.findById(transaction.getEvent()).map(schedule -> TimeUtil.formatDay(schedule.getCreatedAt())).orElse("")
+                        scheduleRepository.findById(transaction.getEvent()).map(schedule -> TimeUtil.formatDay(schedule.getCreatedAt(), userUtil.getUser().getTimezone())).orElse("")
                 );
             }
         } else {
@@ -504,7 +509,7 @@ public class WalletImplementation implements WalletService {
                                 profileRepository.findById(schedule.getClosedBy()).map(Profile::getFullName).orElse("someone")
                         ).orElse("someone"),
                         scheduleRepository.findById(transaction.getEvent()).map(Schedule::getTime).orElse(""),
-                        scheduleRepository.findById(transaction.getEvent()).map(schedule -> TimeUtil.formatDay(schedule.getCreatedAt())).orElse("")
+                        scheduleRepository.findById(transaction.getEvent()).map(schedule -> TimeUtil.formatDay(schedule.getCreatedAt(), userUtil.getUser().getTimezone())).orElse("")
                 );
             } else {
                 return String.format(
@@ -516,7 +521,7 @@ public class WalletImplementation implements WalletService {
                                 profileRepository.findById(schedule.getClosedBy()).map(Profile::getFullName).orElse("someone")
                         ).orElse("someone"),
                         scheduleRepository.findById(transaction.getEvent()).map(Schedule::getTime).orElse(""),
-                        scheduleRepository.findById(transaction.getEvent()).map(schedule -> TimeUtil.formatDay(schedule.getCreatedAt())).orElse("")
+                        scheduleRepository.findById(transaction.getEvent()).map(schedule -> TimeUtil.formatDay(schedule.getCreatedAt(), userUtil.getUser().getTimezone())).orElse("")
                 );
             }
         }
@@ -558,11 +563,8 @@ public class WalletImplementation implements WalletService {
         boolean isIncoming = userUtil.getUser().getRole() != Role.USER;
         TransactionResponse response = getResponse(transaction, isIncoming);
 
-        TransactionData data = TransactionMapper.INSTANCE.data(transaction);
-        data.setHeader("Transaction %s".formatted(transaction.getStatus().getType()));
+        TransactionData data = getData(transaction);
         data.setDescription(prepareCallDescription(transaction, isIncoming));
-        data.setDate(TimeUtil.formatDay(transaction.getCreatedAt()));
-        data.setUpdatedAt(TimeUtil.formatDay(transaction.getUpdatedAt()));
         response.setData(data);
 
         if(userUtil.getUser().isBusiness()) {
@@ -621,11 +623,8 @@ public class WalletImplementation implements WalletService {
         boolean isIncoming = String.valueOf(userUtil.getUser().getId()).equals(transaction.getAccount());
         TransactionResponse response = getResponse(transaction, isIncoming);
 
-        TransactionData data = TransactionMapper.INSTANCE.data(transaction);
-        data.setHeader("Transaction %s".formatted(transaction.getStatus().getType()));
+        TransactionData data = getData(transaction);
         data.setDescription(prepareTripShareDescription(transaction));
-        data.setDate(TimeUtil.formatDay(transaction.getCreatedAt()));
-        data.setUpdatedAt(TimeUtil.formatDay(transaction.getUpdatedAt()));
         response.setData(data);
 
         if(userUtil.getUser().isBusiness()) {
@@ -652,11 +651,8 @@ public class WalletImplementation implements WalletService {
         TransactionResponse response = getResponse(transaction, false);
         response.setRecipient("Service Fee");
 
-        TransactionData data = TransactionMapper.INSTANCE.data(transaction);
-        data.setHeader("Transaction %s".formatted(transaction.getStatus().getType()));
+        TransactionData data = getData(transaction);
         data.setDescription(prepareTripChargeDescription(transaction));
-        data.setDate(TimeUtil.formatDay(transaction.getCreatedAt()));
-        data.setUpdatedAt(TimeUtil.formatDay(transaction.getUpdatedAt()));
         response.setData(data);
 
         if(userUtil.getUser().isBusiness()) {
@@ -732,7 +728,7 @@ public class WalletImplementation implements WalletService {
                     creditWallet(transaction.getAmount(), UUID.fromString(transaction.getSender()));
                     transaction.setStatus(TransactionStatus.SUCCESSFUL);
                     transaction.setVerified(true);
-                    transaction.setUpdatedAt(LocalDateTime.now());
+                    transaction.setUpdatedAt(TimeUtil.now());
                     transactionRepository.save(transaction);
 
                     notificationService.send(UUID.fromString(transaction.getSender()), true, transaction.getAmount());
@@ -740,7 +736,7 @@ public class WalletImplementation implements WalletService {
                     transaction.setStatus(TransactionStatus.FAILED);
                     transaction.setVerified(false);
                     transaction.setReason("Error in verification");
-                    transaction.setUpdatedAt(LocalDateTime.now());
+                    transaction.setUpdatedAt(TimeUtil.now());
                     transactionRepository.save(transaction);
                 }
             }

@@ -9,13 +9,13 @@ import com.serch.server.admin.repositories.AdminNotificationRepository;
 import com.serch.server.admin.repositories.AdminRepository;
 import com.serch.server.enums.auth.Role;
 import com.serch.server.models.auth.User;
+import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -97,7 +97,7 @@ public class AdminNotificationImplementation implements AdminNotificationService
         AdminNotification notification = adminNotificationRepository.findByIdAndUser_Id(id, user.getId()).orElse(null);
         if(notification != null) {
             notification.setStatus(AdminNotificationStatus.READ);
-            notification.setUpdatedAt(LocalDateTime.now());
+            notification.setUpdatedAt(TimeUtil.now());
             adminNotificationRepository.save(notification);
         }
     }

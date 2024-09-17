@@ -12,12 +12,12 @@ import com.serch.server.repositories.transaction.TransactionRepository;
 import com.serch.server.repositories.transaction.WalletRepository;
 import com.serch.server.services.transaction.services.SchedulePayService;
 import com.serch.server.utils.HelperUtil;
+import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -52,7 +52,7 @@ public class SchedulePayImplementation implements SchedulePayService {
             transactionRepository.save(transaction);
 
             wallet.setUncleared(wallet.getUncleared().add(transaction.getAmount()));
-            wallet.setUpdatedAt(LocalDateTime.now());
+            wallet.setUpdatedAt(TimeUtil.now());
             walletRepository.save(wallet);
             return hasSufficientAmount(wallet, transaction.getAmount());
         }
@@ -122,14 +122,14 @@ public class SchedulePayImplementation implements SchedulePayService {
     }
 
     private void updateSenderWallet(Transaction transaction, Wallet wallet) {
-        wallet.setUpdatedAt(LocalDateTime.now());
+        wallet.setUpdatedAt(TimeUtil.now());
         wallet.setUncleared(wallet.getUncleared().subtract(transaction.getAmount()));
         walletRepository.save(wallet);
 
         notificationService.send(wallet.getUser().getId(), false, transaction.getAmount());
 
         transaction.setStatus(TransactionStatus.SUCCESSFUL);
-        transaction.setUpdatedAt(LocalDateTime.now());
+        transaction.setUpdatedAt(TimeUtil.now());
         transaction.setVerified(true);
         transactionRepository.save(transaction);
     }
@@ -139,7 +139,7 @@ public class SchedulePayImplementation implements SchedulePayService {
         Wallet wallet = wallet(id);
         if(wallet != null) {
             wallet.setBalance(wallet.getBalance().add(transaction.getAmount()));
-            wallet.setUpdatedAt(LocalDateTime.now());
+            wallet.setUpdatedAt(TimeUtil.now());
             walletRepository.save(wallet);
             notificationService.send(id, true, transaction.getAmount());
         }

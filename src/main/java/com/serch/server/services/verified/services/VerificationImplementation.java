@@ -58,16 +58,16 @@ public class VerificationImplementation implements VerificationService {
             response = VerifiedMapper.INSTANCE.response(verification);
             if(verification.isVerified()) {
                 response.setMessage("Your verification is complete. You are good to go!");
-                response.setRemaining(TimeUtil.formatDay(verification.getUpdatedAt()));
+                response.setRemaining(TimeUtil.formatDay(verification.getUpdatedAt(), verification.getUser().getTimezone()));
                 response.setLink("");
             } else {
                 response.setMessage("Complete your verification, this is vital");
 
                 if(verification.getLink() == null) {
                     response.setLink("");
-                    response.setRemaining(getRemainingWaitTime(verification.getCreatedAt()));
+                    response.setRemaining(getRemainingWaitTime(verification.getCreatedAt().toLocalDateTime()));
                 } else {
-                    response.setRemaining(getRemainingLinkTime(verification.getUpdatedAt()));
+                    response.setRemaining(getRemainingLinkTime(verification.getUpdatedAt().toLocalDateTime()));
                 }
             }
             response.setConsent(buildConsent(verification));

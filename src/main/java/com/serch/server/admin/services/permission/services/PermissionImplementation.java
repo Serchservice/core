@@ -137,16 +137,16 @@ public class PermissionImplementation implements PermissionService {
                 return admin.getScopes().stream().filter(scope -> scope.getScope() != PermissionScope.INDIVIDUAL)
                         .map(scope -> {
                             PermissionScopeResponse response = AdminMapper.instance.response(scope);
-                            response.setCreatedAt(TimeUtil.formatDay(scope.getCreatedAt()));
-                            response.setUpdatedAt(TimeUtil.formatDay(scope.getUpdatedAt()));
+                            response.setCreatedAt(TimeUtil.formatDay(scope.getCreatedAt(), admin.getUser().getTimezone()));
+                            response.setUpdatedAt(TimeUtil.formatDay(scope.getUpdatedAt(), admin.getUser().getTimezone()));
                             return getGrantedResponse(scope, response);
                         }).toList();
             }
             return admin.getScopes().stream().filter(scope -> scope.getScope() == PermissionScope.INDIVIDUAL)
                     .map(scope -> {
                         PermissionScopeResponse response = AdminMapper.instance.response(scope);
-                        response.setCreatedAt(TimeUtil.formatDay(scope.getCreatedAt()));
-                        response.setUpdatedAt(TimeUtil.formatDay(scope.getUpdatedAt()));
+                        response.setCreatedAt(TimeUtil.formatDay(scope.getCreatedAt(), admin.getUser().getTimezone()));
+                        response.setUpdatedAt(TimeUtil.formatDay(scope.getUpdatedAt(), admin.getUser().getTimezone()));
                         try {
                             String name = userRepository.findById(UUID.fromString(scope.getAccount()))
                                     .map(User::getFullName)
@@ -169,8 +169,8 @@ public class PermissionImplementation implements PermissionService {
             PermissionResponse permit = new PermissionResponse();
             permit.setPermission(permission.getPermission());
             permit.setId(permission.getId());
-            permit.setCreatedAt(TimeUtil.formatDay(permission.getCreatedAt()));
-            permit.setUpdatedAt(TimeUtil.formatDay(permission.getUpdatedAt()));
+            permit.setCreatedAt(TimeUtil.formatDay(permission.getCreatedAt(), scope.getAdmin().getUser().getTimezone()));
+            permit.setUpdatedAt(TimeUtil.formatDay(permission.getUpdatedAt(), scope.getAdmin().getUser().getTimezone()));
             return permit;
         }).toList());
         return response;
@@ -240,7 +240,7 @@ public class PermissionImplementation implements PermissionService {
         if(canAct(requested)) {
             requested.setStatus(PermissionStatus.APPROVED);
             requested.setUpdatedBy(admin);
-            requested.setUpdatedAt(LocalDateTime.now());
+            requested.setUpdatedAt(TimeUtil.now());
             requestedPermissionRepository.save(requested);
 
             GrantedPermissionScope scope = create(requested.getScope(), requested.getAdmin(), requested.getAccount());
@@ -279,7 +279,7 @@ public class PermissionImplementation implements PermissionService {
         if(canAct(requested)) {
             requested.setStatus(PermissionStatus.REJECTED);
             requested.setUpdatedBy(admin);
-            requested.setUpdatedAt(LocalDateTime.now());
+            requested.setUpdatedAt(TimeUtil.now());
             requestedPermissionRepository.save(requested);
 
             activityService.create(
@@ -339,7 +339,7 @@ public class PermissionImplementation implements PermissionService {
                             permission,
                             permission.getAccount() != null ? permission.getAccount() : permission.getScope()
                     ));
-                    request.setLabel(TimeUtil.formatTime(permission.getCreatedAt()));
+                    request.setLabel(TimeUtil.formatTime(permission.getCreatedAt(), permission.getAdmin().getUser().getTimezone()));
                     return request;
                 }).toList());
                 response.add(group);
@@ -445,7 +445,7 @@ public class PermissionImplementation implements PermissionService {
                 GrantedPermission currentPermission = currentMap.get(permission.getId());
                 if (currentPermission != null) {
                     currentPermission.setPermission(permission.getPermission());
-                    currentPermission.setUpdatedAt(LocalDateTime.now());
+                    currentPermission.setUpdatedAt(TimeUtil.now());
                     granted = grantedPermissionRepository.save(currentPermission);
                     currentMap.remove(permission.getId());
                 } else {

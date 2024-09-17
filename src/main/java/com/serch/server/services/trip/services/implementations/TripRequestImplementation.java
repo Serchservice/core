@@ -25,6 +25,7 @@ import com.serch.server.services.trip.responses.TripResponse;
 import com.serch.server.services.trip.services.*;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.MoneyUtil;
+import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -36,7 +37,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -236,7 +236,7 @@ public class TripRequestImplementation implements TripRequestService {
                         .orElseGet(() -> {
                             TripInviteQuotation quotation = new TripInviteQuotation();
                             quotation.setAmount(amount);
-                            quotation.setUpdatedAt(LocalDateTime.now());
+                            quotation.setUpdatedAt(TimeUtil.now());
                             quotation.setProvider(profile);
                             quotation.setInvite(trip);
                             return tripInviteQuotationRepository.save(quotation);
@@ -244,7 +244,7 @@ public class TripRequestImplementation implements TripRequestService {
 
                 quote.setAmount(amount);
                 quote.setAccount(null);
-                quote.setUpdatedAt(LocalDateTime.now());
+                quote.setUpdatedAt(TimeUtil.now());
                 quote.setProvider(profile);
                 tripInviteQuotationRepository.save(quote);
 
@@ -281,7 +281,7 @@ public class TripRequestImplementation implements TripRequestService {
                 .findByIdAndInvite_Id(req.getQuoteId(), req.getId())
                 .orElseThrow(() -> new TripException("No quote found. You will be notified when there is any."));
         quote.setAmount(amount);
-        quote.setUpdatedAt(LocalDateTime.now());
+        quote.setUpdatedAt(TimeUtil.now());
         quote.setAccount(acct);
         tripInviteQuotationRepository.save(quote);
 

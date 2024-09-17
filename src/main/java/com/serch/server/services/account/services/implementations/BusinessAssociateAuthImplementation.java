@@ -22,11 +22,11 @@ import com.serch.server.services.account.responses.VerifiedInviteResponse;
 import com.serch.server.services.account.services.BusinessAssociateAuthService;
 import com.serch.server.utils.DatabaseUtil;
 import com.serch.server.utils.HelperUtil;
+import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -78,7 +78,7 @@ public class BusinessAssociateAuthImplementation implements BusinessAssociateAut
                 pending.getUser().setPassword(passwordEncoder.encode(request.getPassword()));
                 pending.getUser().setIsEmailConfirmed(true);
                 pending.getUser().setStatus(AccountStatus.ACTIVE);
-                pending.getUser().setLastSignedIn(LocalDateTime.now());
+                pending.getUser().setLastSignedIn(TimeUtil.now());
                 pending.getUser().setCountry(request.getCountry());
                 pending.getUser().setState(request.getState());
                 userRepository.save(pending.getUser());

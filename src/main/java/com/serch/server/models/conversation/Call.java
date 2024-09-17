@@ -87,7 +87,7 @@ public class Call extends BaseDateTime {
      */
     public void checkIfActive() {
         if(getStatus() == CallStatus.CLOSED || getStatus() == CallStatus.DECLINED || getStatus() == CallStatus.MISSED) {
-            throw new CallException("Call is %s".formatted(getStatus().getType()));
+            throw new CallException("Call is %s".formatted(getStatus().getType()), true);
         }
     }
 

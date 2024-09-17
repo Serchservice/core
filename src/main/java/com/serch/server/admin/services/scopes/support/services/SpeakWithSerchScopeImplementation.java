@@ -29,7 +29,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
@@ -78,8 +77,8 @@ public class SpeakWithSerchScopeImplementation implements SpeakWithSerchScopeSer
 
     private SpeakWithSerchScopeResponse response(SpeakWithSerch speakWithSerch) {
         SpeakWithSerchScopeResponse response = AdminCompanyMapper.instance.response(speakWithSerch);
-        response.setLabel(TimeUtil.formatDay(speakWithSerch.getCreatedAt()));
-        response.setTime(TimeUtil.formatDay(speakWithSerch.getUpdatedAt()));
+        response.setLabel(TimeUtil.formatDay(speakWithSerch.getCreatedAt(), ""));
+        response.setTime(TimeUtil.formatDay(speakWithSerch.getUpdatedAt(), ""));
         if(response.getAssignedAdmin() != null) {
             response.getAssignedAdmin().setFirstName(speakWithSerch.getAssignedAdmin().getUser().getFirstName());
             response.getAssignedAdmin().setLastName(speakWithSerch.getAssignedAdmin().getUser().getLastName());
@@ -108,7 +107,7 @@ public class SpeakWithSerchScopeImplementation implements SpeakWithSerchScopeSer
                         .map(issue -> {
                             IssueResponse res = CompanyMapper.INSTANCE.response(issue);
                             res.setIsSerch(!issue.getSender().equals(String.valueOf(speakWithSerch.getUser().getId())));
-                            res.setLabel(TimeUtil.formatDay(issue.getCreatedAt()));
+                            res.setLabel(TimeUtil.formatDay(issue.getCreatedAt(), ""));
 
                             userRepository.findById(UUID.fromString(issue.getSender()))
                                     .ifPresent(user -> {
@@ -152,7 +151,7 @@ public class SpeakWithSerchScopeImplementation implements SpeakWithSerchScopeSer
 
             if(speakWithSerch.getAssignedAdmin() == null) {
                 speakWithSerch.setAssignedAdmin(admin);
-                speakWithSerch.setUpdatedAt(LocalDateTime.now());
+                speakWithSerch.setUpdatedAt(TimeUtil.now());
                 speakWithSerchRepository.save(speakWithSerch);
                 speakWithSerch.getIssues().add(issue);
             }
@@ -190,7 +189,7 @@ public class SpeakWithSerchScopeImplementation implements SpeakWithSerchScopeSer
         if(canReply(speakWithSerch)) {
             if(canAct(speakWithSerch)) {
                 speakWithSerch.setStatus(IssueStatus.RESOLVED);
-                speakWithSerch.setUpdatedAt(LocalDateTime.now());
+                speakWithSerch.setUpdatedAt(TimeUtil.now());
                 speakWithSerch.setResolvedBy(admin);
                 speakWithSerchRepository.save(speakWithSerch);
                 return new ApiResponse<>("Ticket is now resolved", response(speakWithSerch), HttpStatus.OK);
@@ -209,7 +208,7 @@ public class SpeakWithSerchScopeImplementation implements SpeakWithSerchScopeSer
                 .orElseThrow(() -> new SerchException("Ticket not found"));
         Admin admin = adminRepository.findById(id).orElseThrow(() -> new AuthException("Admin not found"));
         speakWithSerch.setAssignedAdmin(admin);
-        speakWithSerch.setUpdatedAt(LocalDateTime.now());
+        speakWithSerch.setUpdatedAt(TimeUtil.now());
         speakWithSerchRepository.save(speakWithSerch);
         return new ApiResponse<>(response(speakWithSerch));
     }
@@ -224,7 +223,7 @@ public class SpeakWithSerchScopeImplementation implements SpeakWithSerchScopeSer
         if(canReply(speakWithSerch)) {
             if(canAct(speakWithSerch)) {
                 speakWithSerch.setStatus(IssueStatus.CLOSED);
-                speakWithSerch.setUpdatedAt(LocalDateTime.now());
+                speakWithSerch.setUpdatedAt(TimeUtil.now());
                 speakWithSerch.setClosedBy(admin);
                 speakWithSerchRepository.save(speakWithSerch);
                 return new ApiResponse<>("Ticket is now closed", response(speakWithSerch), HttpStatus.OK);

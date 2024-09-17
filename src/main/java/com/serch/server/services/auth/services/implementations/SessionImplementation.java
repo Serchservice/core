@@ -27,6 +27,7 @@ import com.serch.server.services.auth.responses.SessionResponse;
 import com.serch.server.services.auth.services.JwtService;
 import com.serch.server.services.auth.services.SessionService;
 import com.serch.server.services.auth.services.TokenService;
+import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -34,7 +35,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
@@ -66,7 +66,7 @@ public class SessionImplementation implements SessionService {
             refreshTokens.forEach(refreshToken -> {
                 if(!refreshToken.getRevoked()) {
                     refreshToken.setRevoked(true);
-                    refreshToken.setUpdatedAt(LocalDateTime.now());
+                    refreshToken.setUpdatedAt(TimeUtil.now());
                     refreshTokenRepository.save(refreshToken);
                 }
             });
@@ -80,7 +80,7 @@ public class SessionImplementation implements SessionService {
             sessions.forEach(session -> {
                 if(!session.getRevoked()) {
                     session.setRevoked(true);
-                    session.setUpdatedAt(LocalDateTime.now());
+                    session.setUpdatedAt(TimeUtil.now());
                     sessionRepository.save(session);
                 }
             });
@@ -261,7 +261,7 @@ public class SessionImplementation implements SessionService {
                             throw new SessionException("Two-factor authentication is required", ExceptionCodes.MFA_COMPULSORY);
                         }
                     }
-                    user.setLastSignedIn(LocalDateTime.now());
+                    user.setLastSignedIn(TimeUtil.now());
                     if(state != null) {
                         user.setState(state);
                     }
@@ -301,7 +301,7 @@ public class SessionImplementation implements SessionService {
     @Override
     public void updateLastSignedIn() {
         userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser()).ifPresent(user -> {
-            user.setLastSignedIn(LocalDateTime.now());
+            user.setLastSignedIn(TimeUtil.now());
             userRepository.save(user);
         });
     }

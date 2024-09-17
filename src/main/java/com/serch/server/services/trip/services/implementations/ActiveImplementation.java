@@ -17,6 +17,7 @@ import com.serch.server.services.trip.responses.ActiveResponse;
 import com.serch.server.services.trip.responses.MapViewResponse;
 import com.serch.server.services.trip.services.ActiveSearchService;
 import com.serch.server.services.trip.services.ActiveService;
+import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -25,7 +26,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -58,13 +58,13 @@ public class ActiveImplementation implements ActiveService {
             if(existing.isPresent()) {
                 if(existing.get().getStatus() == ProviderStatus.ONLINE) {
                     existing.get().setStatus(ProviderStatus.OFFLINE);
-                    existing.get().setUpdatedAt(LocalDateTime.now());
+                    existing.get().setUpdatedAt(TimeUtil.now());
                     updateActive(request, existing.get());
                     activeRepository.save(existing.get());
                     return new ApiResponse<>(ProviderStatus.OFFLINE);
                 } else if(existing.get().getStatus() == ProviderStatus.OFFLINE) {
                     existing.get().setStatus(ProviderStatus.ONLINE);
-                    existing.get().setUpdatedAt(LocalDateTime.now());
+                    existing.get().setUpdatedAt(TimeUtil.now());
                     updateActive(request, existing.get());
                     activeRepository.save(existing.get());
                     return new ApiResponse<>(ProviderStatus.ONLINE);
@@ -147,7 +147,7 @@ public class ActiveImplementation implements ActiveService {
         activeRepository.findByProfile_Id(user.getId())
                 .ifPresentOrElse(active -> {
                     active.setStatus(status);
-                    active.setUpdatedAt(LocalDateTime.now());
+                    active.setUpdatedAt(TimeUtil.now());
 
                     if(request != null) {
                         updateActive(request, active);

@@ -7,12 +7,12 @@ import com.serch.server.models.auth.User;
 import com.serch.server.repositories.account.AccountSettingRepository;
 import com.serch.server.services.account.responses.AccountSettingResponse;
 import com.serch.server.services.account.services.AccountSettingService;
+import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 /**
@@ -51,7 +51,7 @@ public class AccountSettingImplementation implements AccountSettingService {
         if(request.getShowOnlyCertified() != null) {
             setting.setShowOnlyCertified(request.getShowOnlyCertified());
         }
-        setting.setUpdatedAt(LocalDateTime.now());
+        setting.setUpdatedAt(TimeUtil.now());
 
         if(setting.getUser() == null) {
             setting.setUser(userUtil.getUser());

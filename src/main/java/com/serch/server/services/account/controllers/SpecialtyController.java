@@ -23,6 +23,12 @@ public class SpecialtyController {
         return new ResponseEntity<>(response, response.getStatus());
     }
 
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse<List<String>>> specialties() {
+        ApiResponse<List<String>> response = service.specialties();
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
     @PatchMapping("/add")
     @PreAuthorize(value = "hasRole('PROVIDER') || hasRole('ASSOCIATE_PROVIDER')")
     public ResponseEntity<ApiResponse<SpecialtyResponse>> add(@RequestParam String specialty) {

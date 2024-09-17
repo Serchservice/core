@@ -21,6 +21,7 @@ import com.serch.server.services.trip.responses.MapViewResponse;
 import com.serch.server.services.trip.responses.TripResponse;
 import com.serch.server.services.trip.services.*;
 import com.serch.server.utils.HelperUtil;
+import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -29,7 +30,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -298,7 +298,7 @@ public class TripImplementation implements TripService {
             }
 
             trip.setIsServiceFeePaid(isPaid);
-            trip.setUpdatedAt(LocalDateTime.now());
+            trip.setUpdatedAt(TimeUtil.now());
             tripRepository.save(trip);
 
             if(isPaid) {
@@ -414,14 +414,14 @@ public class TripImplementation implements TripService {
             if(authenticationService.verify(request, trip.getAuthentication().getCode())) {
                 TripAuthentication authentication = trip.getAuthentication();
                 authentication.setIsVerified(true);
-                authentication.setUpdatedAt(LocalDateTime.now());
+                authentication.setUpdatedAt(TimeUtil.now());
                 tripAuthenticationRepository.save(authentication);
                 timelineService.create(trip, null, AUTHENTICATED);
                 timelineService.create(trip, null, ON_TRIP);
 
                 notificationService.send(
                         String.valueOf(trip.getProvider().getId()),
-                        "Shared trip is now verified",
+                        "This trip is now verified",
                         "Trip authentication successful",
                         trip.getAccount(), null, false
                 );
@@ -527,7 +527,7 @@ public class TripImplementation implements TripService {
         view.setLongitude(request.getLongitude());
         view.setLatitude(request.getLatitude());
         view.setBearing(request.getBearing());
-        view.setUpdatedAt(LocalDateTime.now());
+        view.setUpdatedAt(TimeUtil.now());
         mapViewRepository.save(view);
     }
 }

@@ -19,13 +19,6 @@ import java.util.List;
  *     <li>{@link MFARecoveryCode} - The recovery codes associated with this multi-factor authentication factor.</li>
  *     <li>{@link MFAChallenge} - The challenges associated with this multi-factor authentication factor.</li>
  * </ul>
- * Annotations:
- * <ul>
- *     <li>{@link Column}</li>
- *     <li>{@link OneToOne}</li>
- *     <li>{@link OneToMany}</li>
- *     <li>{@link JoinColumn}</li>
- * </ul>
  */
 @Getter
 @Setter

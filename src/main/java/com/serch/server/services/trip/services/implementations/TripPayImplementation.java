@@ -20,13 +20,13 @@ import com.serch.server.repositories.trip.TripRepository;
 import com.serch.server.services.trip.services.TripPayService;
 import com.serch.server.services.trip.services.TripTimelineService;
 import com.serch.server.utils.HelperUtil;
+import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -81,7 +81,7 @@ public class TripPayImplementation implements TripPayService {
                     walletRepository.findByUser_Id(trip.getShared().getSharedLink().getUser().getId())
                             .ifPresent(userWallet -> {
                                 userWallet.setBalance(userWallet.getBalance().add(BigDecimal.valueOf(TRIP_SERVICE_USER)));
-                                userWallet.setUpdatedAt(LocalDateTime.now());
+                                userWallet.setUpdatedAt(TimeUtil.now());
                                 walletRepository.save(userWallet);
 
                                 notificationService.send(trip.getShared().getSharedLink().getUser().getId(), true, BigDecimal.valueOf(TRIP_SERVICE_USER));
@@ -126,7 +126,7 @@ public class TripPayImplementation implements TripPayService {
             wallet.setBalance(wallet.getBalance().subtract(debit));
             wallet.setDeposit(BigDecimal.ZERO);
         }
-        wallet.setUpdatedAt(LocalDateTime.now());
+        wallet.setUpdatedAt(TimeUtil.now());
         walletRepository.save(wallet);
 
         trip.setServiceFee(BigDecimal.valueOf(TRIP_SERVICE_FEE));
@@ -259,23 +259,23 @@ public class TripPayImplementation implements TripPayService {
             try {
                 paymentService.verify(payment.getReference());
                 payment.setStatus(SUCCESSFUL);
-                payment.setUpdatedAt(LocalDateTime.now());
+                payment.setUpdatedAt(TimeUtil.now());
                 tripPaymentRepository.save(payment);
 
                 transaction.setStatus(SUCCESSFUL);
                 transaction.setVerified(true);
-                transaction.setUpdatedAt(LocalDateTime.now());
+                transaction.setUpdatedAt(TimeUtil.now());
                 transactionRepository.save(transaction);
                 return true;
             } catch (Exception ignored) {
                 payment.setStatus(FAILED);
-                payment.setUpdatedAt(LocalDateTime.now());
+                payment.setUpdatedAt(TimeUtil.now());
                 tripPaymentRepository.save(payment);
 
                 transaction.setStatus(FAILED);
                 transaction.setVerified(false);
                 transaction.setReason("Error in verification");
-                transaction.setUpdatedAt(LocalDateTime.now());
+                transaction.setUpdatedAt(TimeUtil.now());
                 transactionRepository.save(transaction);
             }
         }
@@ -292,7 +292,7 @@ public class TripPayImplementation implements TripPayService {
                 walletRepository.findByUser_Id(trip.getProvider().getId())
                         .ifPresent(wallet -> {
                             wallet.setBalance(wallet.getBalance().add(transaction.getAmount()));
-                            wallet.setUpdatedAt(LocalDateTime.now());
+                            wallet.setUpdatedAt(TimeUtil.now());
                             walletRepository.save(wallet);
                         });
             }

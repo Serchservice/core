@@ -16,16 +16,6 @@ import lombok.Setter;
  * The Issue class represents an issue entity in the system.
  * It stores information about issues, including the ticket ID, comment, status, associated product, and user.
  * <p></p>
- * Annotations:
- * <ul>
- *     <li>{@link Id}</li>
- *     <li>{@link Column}</li>
- *     <li>{@link Enumerated}</li>
- *     <li>{@link ManyToOne}</li>
- *     <li>{@link JoinColumn}</li>
- *     <li>{@link Entity}</li>
- *     <li>{@link Table}</li>
- * </ul>
  * Enums:
  * <ul>
  *     <li>{@link IssueStatus}</li>

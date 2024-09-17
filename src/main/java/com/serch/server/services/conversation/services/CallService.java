@@ -1,8 +1,8 @@
 package com.serch.server.services.conversation.services;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.enums.call.CallStatus;
 import com.serch.server.services.conversation.requests.StartCallRequest;
+import com.serch.server.services.conversation.requests.UpdateCallRequest;
 import com.serch.server.services.conversation.responses.CallResponse;
 import com.serch.server.services.conversation.responses.ActiveCallResponse;
 
@@ -37,46 +37,25 @@ public interface CallService {
     ApiResponse<String> auth(String channel);
 
     /**
-     * Updates the call with the given status {@link CallStatus} and sends
-     * updated {@link ActiveCallResponse} containing the APP ID and other details to both users in the channel
+     * Updates the call with the given data request and sends the update to the user {@link ActiveCallResponse}
+     *
+     * @param request The call data {@link UpdateCallRequest}
+     */
+    ApiResponse<ActiveCallResponse> update(UpdateCallRequest request);
+
+    /**
+     * Checks the call session and sends the update to the user {@link ActiveCallResponse} or throw an exception
+     *
+     * @param request The call data {@link UpdateCallRequest}
+     */
+    ApiResponse<ActiveCallResponse> checkSession(UpdateCallRequest request);
+
+    /**
+     * Fetches and sends the update to the user {@link ActiveCallResponse} or throw an exception
      *
      * @param channel The call channel
-     * @param status The status to be updated with
      */
-    void update(String channel, CallStatus status);
-
-    /**
-     * Answer the call the user received and sends {@link ActiveCallResponse} containing the APP ID and other details
-     * to the call receiver and also change the call details of the caller
-     *
-     * @param channel The call channel to join
-     */
-    void answer(String channel);
-
-    /**
-     * Decline the call the user received and sends
-     * updated {@link ActiveCallResponse} containing the APP ID and other details to both users in the call channel
-     *
-     * @param channel The call channel to join
-     */
-    void decline(String channel);
-
-    /**
-     * End an active call and send updated {@link ActiveCallResponse} containing the APP ID and other details
-     * to both users in the call channel
-     *
-     * @param time The time spent for the call
-     * @param channel The call channel to join
-     */
-    void end(String channel, String time);
-
-    /**
-     * Check the call session periodically to notify any changes or end the call for both users in the call channel
-     *
-     * @param duration The current duration
-     * @param channel The call channel
-     */
-    void checkSession(Integer duration, String channel);
+    ApiResponse<ActiveCallResponse> fetch(String channel);
 
     /**
      * Get the list of calls the user's made or joined

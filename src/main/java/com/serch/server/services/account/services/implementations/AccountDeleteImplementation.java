@@ -10,12 +10,12 @@ import com.serch.server.repositories.account.AccountDeleteRepository;
 import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.services.account.services.AccountDeleteService;
+import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -46,7 +46,7 @@ public class AccountDeleteImplementation implements AccountDeleteService {
                     .getUser();
             if(user.getStatus() != AccountStatus.BUSINESS_DELETED) {
                 user.setStatus(AccountStatus.BUSINESS_DELETED);
-                user.setUpdatedAt(LocalDateTime.now());
+                user.setUpdatedAt(TimeUtil.now());
                 userRepository.save(user);
             }
             return getDeleteResponse(user);

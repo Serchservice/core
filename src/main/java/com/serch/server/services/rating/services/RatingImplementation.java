@@ -25,13 +25,13 @@ import com.serch.server.services.rating.requests.RateRequest;
 import com.serch.server.services.rating.requests.RatingCalculation;
 import com.serch.server.services.rating.responses.RatingChartResponse;
 import com.serch.server.services.rating.responses.RatingResponse;
+import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -246,7 +246,7 @@ public class RatingImplementation implements RatingService {
             Optional<AppRating> existing = appRatingRepository.findByAccount(account);
             if(existing.isPresent()) {
                 existing.get().setRating(request.getRating());
-                existing.get().setUpdatedAt(LocalDateTime.now());
+                existing.get().setUpdatedAt(TimeUtil.now());
                 if(request.getComment() != null && !request.getComment().isEmpty()) {
                     existing.get().setComment(request.getComment());
                 }

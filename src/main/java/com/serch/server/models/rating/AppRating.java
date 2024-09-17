@@ -11,13 +11,6 @@ import lombok.Setter;
  * The AppRating class represents ratings given by users within the app.
  * It stores information about the rating, comment, app identifier, and account identifier.
  * <p></p>
- * Annotations:
- * <ul>
- *     <li>{@link Getter}</li>
- *     <li>{@link Setter}</li>
- *     <li>{@link Entity}</li>
- *     <li>{@link Table}</li>
- * </ul>
  * Relationships: None
  * Enums: None
  */

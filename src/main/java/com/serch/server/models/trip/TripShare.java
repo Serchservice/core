@@ -1,6 +1,7 @@
 package com.serch.server.models.trip;
 
 import com.serch.server.bases.BaseModel;
+import com.serch.server.enums.trip.TripShareOption;
 import com.serch.server.enums.trip.TripStatus;
 import com.serch.server.models.account.Profile;
 import jakarta.persistence.*;
@@ -28,6 +29,10 @@ public class TripShare extends BaseModel {
 
     @Column(name = "category", columnDefinition = "TEXT")
     private String category;
+
+    @Column(nullable = false)
+    @Enumerated(value = EnumType.STRING)
+    private TripShareOption option = TripShareOption.ONLINE;
 
     @Column(nullable = false, updatable = false)
     @Enumerated(value = EnumType.STRING)
@@ -60,5 +65,9 @@ public class TripShare extends BaseModel {
 
     public String fullName() {
         return firstName + " " + lastName;
+    }
+
+    public boolean isOffline() {
+        return getOption() == TripShareOption.OFFLINE;
     }
 }

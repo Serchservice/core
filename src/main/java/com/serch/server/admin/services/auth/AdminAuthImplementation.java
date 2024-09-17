@@ -35,7 +35,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -119,7 +118,7 @@ public class AdminAuthImplementation implements AdminAuthService {
             String secret = getSecret(user, mode, admin);
 
             user.setPasswordRecoveryToken(passwordEncoder.encode(secret));
-            user.setPasswordRecoveryExpiresAt(LocalDateTime.now().plusMinutes(OTP_EXPIRATION_TIME));
+            user.setPasswordRecoveryExpiresAt(TimeUtil.now().plusMinutes(OTP_EXPIRATION_TIME));
             user.setPasswordRecoveryConfirmedAt(null);
             user.setAction(mode);
             userRepository.save(user);
@@ -134,7 +133,7 @@ public class AdminAuthImplementation implements AdminAuthService {
             String otp = tokenService.generateOtp();
             user.setSignInToken(passwordEncoder.encode(otp));
             user.setAction(mode);
-            user.setSignInTokenExpiresAt(LocalDateTime.now().plusMinutes(OTP_EXPIRATION_TIME));
+            user.setSignInTokenExpiresAt(TimeUtil.now().plusMinutes(OTP_EXPIRATION_TIME));
             userRepository.save(user);
 
             SendEmail email = new SendEmail();
@@ -218,7 +217,7 @@ public class AdminAuthImplementation implements AdminAuthService {
         user.setEmailAddress(request.getEmailAddress());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(Role.SUPER_ADMIN);
-        user.setEmailConfirmedAt(LocalDateTime.now());
+        user.setEmailConfirmedAt(TimeUtil.now());
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
         return userRepository.save(user);
@@ -278,7 +277,7 @@ public class AdminAuthImplementation implements AdminAuthService {
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
         user.setStatus(AccountStatus.SUSPENDED);
-        user.setEmailConfirmedAt(LocalDateTime.now());
+        user.setEmailConfirmedAt(TimeUtil.now());
         return userRepository.save(user);
     }
 
@@ -295,11 +294,11 @@ public class AdminAuthImplementation implements AdminAuthService {
                 throw new AuthException("Cannot proceed with this action. Invite accepted");
             }
             if(HelperUtil.validatePassword(request.getPassword())) {
-                user.setUpdatedAt(LocalDateTime.now());
+                user.setUpdatedAt(TimeUtil.now());
                 user.setSignInToken(null);
                 user.setAction(UserAction.LOGIN);
                 user.setPassword(passwordEncoder.encode(request.getPassword()));
-                user.setSignInTokenConfirmedAt(LocalDateTime.now());
+                user.setSignInTokenConfirmedAt(TimeUtil.now());
                 user.setStatus(AccountStatus.ACTIVE);
                 userRepository.save(user);
 
@@ -363,7 +362,7 @@ public class AdminAuthImplementation implements AdminAuthService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if(passwordEncoder.matches(request.getToken(), user.getSignInToken())) {
             if(request.getAction() == user.getAction()) {
-                if(TimeUtil.isOtpExpired(user.getSignInTokenExpiresAt(), OTP_EXPIRATION_TIME)) {
+                if(TimeUtil.isOtpExpired(user.getSignInTokenExpiresAt(), user.getTimezone(), OTP_EXPIRATION_TIME)) {
                     throw new AuthException("OTP already expired");
                 } else {
                     if(user.getAction() == UserAction.SUPER_SIGNUP && user.getRole() != Role.SUPER_ADMIN) {
@@ -379,10 +378,10 @@ public class AdminAuthImplementation implements AdminAuthService {
                         activityService.create(ActivityMode.LOGIN, null, null, admin);
                     }
 
-                    user.setUpdatedAt(LocalDateTime.now());
+                    user.setUpdatedAt(TimeUtil.now());
                     user.setSignInToken(null);
                     user.setSignInTokenExpiresAt(null);
-                    user.setSignInTokenConfirmedAt(LocalDateTime.now());
+                    user.setSignInTokenConfirmedAt(TimeUtil.now());
                     userRepository.save(user);
 
                     return getAuthResponse(user, admin, request.getDevice(), request.getState(), request.getCountry());
@@ -464,10 +463,10 @@ public class AdminAuthImplementation implements AdminAuthService {
                 throw new AuthException("Cannot proceed with this action. Action has changed");
             }
             if(HelperUtil.validatePassword(request.getPassword())) {
-                user.setUpdatedAt(LocalDateTime.now());
+                user.setUpdatedAt(TimeUtil.now());
                 user.setPasswordRecoveryToken(null);
                 user.setPasswordRecoveryExpiresAt(null);
-                user.setPasswordRecoveryConfirmedAt(LocalDateTime.now());
+                user.setPasswordRecoveryConfirmedAt(TimeUtil.now());
                 user.setAction(UserAction.LOGIN);
                 user.setPassword(passwordEncoder.encode(request.getPassword()));
                 userRepository.save(user);

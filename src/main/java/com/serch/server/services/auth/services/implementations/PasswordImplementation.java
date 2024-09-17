@@ -29,8 +29,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-
 /**
  * Service responsible for implementing password reset functionality.
  * It implements its wrapper class {@link PasswordService}
@@ -60,10 +58,10 @@ public class PasswordImplementation implements PasswordService {
         var user = userRepository.findByEmailAddressIgnoreCase(emailAddress)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         user.check();
-        if(TimeUtil.isOtpExpired(user.getPasswordRecoveryExpiresAt(), OTP_EXPIRATION_TIME)) {
+        if(TimeUtil.isOtpExpired(user.getPasswordRecoveryExpiresAt(), user.getTimezone(), OTP_EXPIRATION_TIME)) {
             String otp = tokenService.generateOtp();
             user.setPasswordRecoveryToken(passwordEncoder.encode(otp));
-            user.setPasswordRecoveryExpiresAt(LocalDateTime.now().plusMinutes(OTP_EXPIRATION_TIME));
+            user.setPasswordRecoveryExpiresAt(TimeUtil.now().plusMinutes(OTP_EXPIRATION_TIME));
             userRepository.save(user);
 
             SendEmail email = new SendEmail();
@@ -81,7 +79,7 @@ public class PasswordImplementation implements PasswordService {
         } else {
             throw new AuthException(
                     "You can request a new token in %s".formatted(
-                            TimeUtil.formatFutureTime(user.getPasswordRecoveryExpiresAt())
+                            TimeUtil.formatFutureTime(user.getPasswordRecoveryExpiresAt(), user.getTimezone())
                     ),
                     ExceptionCodes.EMAIL_NOT_VERIFIED
             );
@@ -95,12 +93,12 @@ public class PasswordImplementation implements PasswordService {
         if(user.getPasswordRecoveryToken() == null) {
             throw new AuthException("Invalid access. Request for password reset OTP", ExceptionCodes.ACCESS_DENIED);
         } else {
-            if(TimeUtil.isOtpExpired(user.getPasswordRecoveryExpiresAt(), OTP_EXPIRATION_TIME)) {
+            if(TimeUtil.isOtpExpired(user.getPasswordRecoveryExpiresAt(), user.getTimezone(), OTP_EXPIRATION_TIME)) {
                 throw new AuthException("OTP already expired");
             } else {
                 if(passwordEncoder.matches(verify.getToken(), user.getPasswordRecoveryToken())) {
-                    user.setPasswordRecoveryConfirmedAt(LocalDateTime.now());
-                    user.setUpdatedAt(LocalDateTime.now());
+                    user.setPasswordRecoveryConfirmedAt(TimeUtil.now());
+                    user.setUpdatedAt(TimeUtil.now());
                     userRepository.save(user);
                     return new ApiResponse<>(
                             "OTP successfully confirmed",
@@ -139,7 +137,7 @@ public class PasswordImplementation implements PasswordService {
                     user.setPasswordRecoveryExpiresAt(null);
                     user.setPasswordRecoveryToken(null);
                     user.setPasswordRecoveryConfirmedAt(null);
-                    user.setLastUpdatedAt(LocalDateTime.now());
+                    user.setLastUpdatedAt(TimeUtil.now());
                     userRepository.save(user);
                     return new ApiResponse<>("Password successfully changed", HttpStatus.OK);
                 }
@@ -157,7 +155,7 @@ public class PasswordImplementation implements PasswordService {
                 throw new AuthException("New password cannot be same as old password");
             } else if(HelperUtil.validatePassword(request.getNewPassword())) {
                 user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-                user.setLastUpdatedAt(LocalDateTime.now());
+                user.setLastUpdatedAt(TimeUtil.now());
 
                 accountDeleteRepository.findByUser_EmailAddress(UserUtil.getLoginUser())
                         .ifPresent(accountDeleteRepository::delete);

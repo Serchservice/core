@@ -28,7 +28,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 /**
  * Service responsible for implementing user authentication.
@@ -126,7 +126,7 @@ public class UserAuthImplementation implements UserAuthService {
     }
 
     @Override
-    public User getNewUser(RequestProfile profile, LocalDateTime confirmedAt) {
+    public User getNewUser(RequestProfile profile, ZonedDateTime confirmedAt) {
         User saved = createNewUser(profile, confirmedAt);
         trackerService.create(saved);
         referralProgramService.create(saved);
@@ -134,7 +134,7 @@ public class UserAuthImplementation implements UserAuthService {
         return saved;
     }
 
-    private User createNewUser(RequestProfile profile, LocalDateTime confirmedAt) {
+    private User createNewUser(RequestProfile profile, ZonedDateTime confirmedAt) {
         User user = new User();
         user.setEmailAddress(profile.getEmailAddress());
         user.setPassword(passwordEncoder.encode(profile.getPassword()));

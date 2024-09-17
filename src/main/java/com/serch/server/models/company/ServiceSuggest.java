@@ -1,14 +1,12 @@
 package com.serch.server.models.company;
 
 import com.serch.server.bases.BaseModel;
-import com.serch.server.generators.ComplaintID;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.GenericGenerator;
 
 /**
  * This class is the record for any complaints about Serch platform or website, even product.

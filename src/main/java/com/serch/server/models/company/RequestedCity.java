@@ -9,14 +9,6 @@ import lombok.Setter;
  * The RequestCity class represents a requested city entity in the system.
  * It stores information about cities that have been requested, including the name and the associated requested state.
  * <p></p>
- * Annotations:
- * <ul>
- *     <li>{@link Column}</li>
- *     <li>{@link ManyToOne}</li>
- *     <li>{@link JoinColumn}</li>
- *     <li>{@link Entity}</li>
- *     <li>{@link Table}</li>
- * </ul>
  * Relationships:
  * <ul>
  *     <li>{@link RequestedState} - The requested state associated with the city.</li>

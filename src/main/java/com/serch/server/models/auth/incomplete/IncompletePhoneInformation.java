@@ -10,12 +10,6 @@ import lombok.Setter;
  * It stores information about incomplete phone numbers,
  * including the phone number, country code, ISO code, and country.
  * <p></p>
- * Annotations:
- * <ul>
- *     <li>{@link Column}</li>
- *     <li>{@link OneToOne}</li>
- *     <li>{@link JoinColumn}</li>
- * </ul>
  * @see BaseModel
  */
 @Getter

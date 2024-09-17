@@ -108,7 +108,7 @@ public class GuestImplementation implements GuestService {
         GuestResponse response = SharedMapper.INSTANCE.guest(login.getGuest());
         response.setGender(login.getGuest().getGender().getType());
         response.setConfirmed(login.getGuest().isEmailConfirmed());
-        response.setJoinedAt(TimeUtil.formatDay(login.getCreatedAt()));
+        response.setJoinedAt(TimeUtil.formatDay(login.getCreatedAt(), ""));
         response.setLink(sharedService.data(
                 login.getSharedLink(),
                 sharedService.getCurrentStatusForAccount(login)
@@ -133,5 +133,14 @@ public class GuestImplementation implements GuestService {
             guestRepository.save(profile);
         });
         return new ApiResponse<>("Successfully updated FCM token", HttpStatus.OK);
+    }
+
+    @Override
+    public ApiResponse<String> updateTimezone(String timezone, String guest) {
+        guestRepository.findById(guest).ifPresent(profile -> {
+            profile.setTimezone(timezone);
+            guestRepository.save(profile);
+        });
+        return new ApiResponse<>("Successfully updated timezone", HttpStatus.OK);
     }
 }

@@ -81,6 +81,7 @@ public class CallImplementation implements CallService {
                 call.setStatus(CallStatus.RINGING);
                 call.setCaller(caller);
                 call.setDuration("");
+
                 if(request.getType() == CallType.T2F) {
                     call.setAmount(BigDecimal.valueOf(TIP2FIX_AMOUNT));
                     call.setSession(1);

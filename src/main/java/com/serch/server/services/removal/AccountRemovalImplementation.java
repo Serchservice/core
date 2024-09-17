@@ -24,16 +24,20 @@ import com.serch.server.repositories.transaction.TransactionRepository;
 import com.serch.server.repositories.transaction.WalletRepository;
 import com.serch.server.repositories.trip.ActiveRepository;
 import com.serch.server.repositories.trip.TripRepository;
+import com.serch.server.services.conversation.responses.CallPeriodResponse;
 import com.serch.server.utils.CallUtil;
 import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(propagation = Propagation.NESTED)
 public class AccountRemovalImplementation implements AccountRemovalService {
     private final AccountDeleteRepository accountDeleteRepository;
     private final ProfileRepository profileRepository;
@@ -99,7 +103,8 @@ public class AccountRemovalImplementation implements AccountRemovalService {
         /// TODO::: Add Conversation Models and Certificate, Verified
         bookmarkRepository.deleteAll(bookmarkRepository.findByUserId(user.getId()));
         speakWithSerchRepository.deleteAll(speakWithSerchRepository.findByUser_Id(user.getId()));
-        callRepository.deleteAll(callRepository.findByUserId(user.getId(), CallUtil.getPeriod().getStart(), CallUtil.getPeriod().getEnd()));
+
+        deleteCalls(user);
         chatMessageRepository.deleteAll(chatMessageRepository.findBySender(user.getId()));
         chatRoomRepository.deleteAll(chatRoomRepository.findByUserId(user.getId()));
         ratingRepository.deleteAll(ratingRepository.findByRated(String.valueOf(user.getId())));
@@ -120,6 +125,11 @@ public class AccountRemovalImplementation implements AccountRemovalService {
         activeRepository.findByProfile_Id(user.getId()).ifPresent(activeRepository::delete);
         tripRepository.deleteAll(tripRepository.findByProviderId(user.getId()));
         tripRepository.deleteAll(tripRepository.findByAccount(String.valueOf(user.getId())));
+    }
+
+    private void deleteCalls(User user) {
+        CallPeriodResponse period = CallUtil.getPeriod(user.getTimezone());
+        callRepository.deleteAll(callRepository.findByUserId(user.getId(), period.getStart(), period.getEnd()));
     }
 
     private void removeAssociate(User user) {

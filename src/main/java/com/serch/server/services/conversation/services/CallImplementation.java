@@ -12,10 +12,7 @@ import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.conversation.CallRepository;
 import com.serch.server.services.conversation.requests.StartCallRequest;
 import com.serch.server.services.conversation.requests.UpdateCallRequest;
-import com.serch.server.services.conversation.responses.CallInformation;
-import com.serch.server.services.conversation.responses.CallMemberData;
-import com.serch.server.services.conversation.responses.CallResponse;
-import com.serch.server.services.conversation.responses.ActiveCallResponse;
+import com.serch.server.services.conversation.responses.*;
 import com.serch.server.services.transaction.services.WalletService;
 import com.serch.server.utils.*;
 import io.getstream.chat.java.models.User;
@@ -23,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -32,6 +30,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(propagation = Propagation.NESTED)
 public class CallImplementation implements CallService {
     private final UserUtil userUtil;
     private final WalletService walletService;
@@ -51,7 +50,9 @@ public class CallImplementation implements CallService {
     private Integer TIP2FIX_SESSION;
 
     private boolean userIsOnCall(UUID id) {
-        return callRepository.findByUserId(id, CallUtil.getPeriod().getStart(), CallUtil.getPeriod().getEnd())
+        CallPeriodResponse period = CallUtil.getPeriod(userUtil.getUser().getTimezone());
+
+        return callRepository.findByUserId(id, period.getStart(), period.getEnd())
                 .stream().anyMatch(call -> call.getStatus() == CallStatus.ON_CALL);
     }
 
@@ -81,6 +82,7 @@ public class CallImplementation implements CallService {
                 call.setStatus(CallStatus.RINGING);
                 call.setCaller(caller);
                 call.setDuration("");
+
                 if(request.getType() == CallType.T2F) {
                     call.setAmount(BigDecimal.valueOf(TIP2FIX_AMOUNT));
                     call.setSession(1);
@@ -247,7 +249,9 @@ public class CallImplementation implements CallService {
     public ApiResponse<List<CallResponse>> logs() {
         List<CallResponse> list = new ArrayList<>();
 
-        callRepository.findByUserId(userUtil.getUser().getId(), CallUtil.getPeriod().getStart(), CallUtil.getPeriod().getEnd())
+        CallPeriodResponse period = CallUtil.getPeriod(userUtil.getUser().getTimezone());
+
+        callRepository.findByUserId(userUtil.getUser().getId(), period.getStart(), period.getEnd())
                 .stream()
                 .sorted(Comparator.comparing(Call::getCreatedAt))
                 .collect(Collectors.groupingBy(call -> call.getCaller().isSameAs(userUtil.getUser().getId())

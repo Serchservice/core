@@ -19,6 +19,8 @@ import com.serch.server.services.auth.services.SessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service implementation for managing authentication-related operations specific to businesses.
@@ -32,6 +34,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
+@Transactional(propagation = Propagation.NESTED)
 public class BusinessAuthImplementation implements BusinessAuthService {
     private final AuthService authService;
     private final SessionService sessionService;

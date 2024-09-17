@@ -17,6 +17,7 @@ import com.serch.server.repositories.trip.TripRepository;
 import com.serch.server.services.auth.requests.RequestProfile;
 import com.serch.server.services.auth.responses.AuthResponse;
 import com.serch.server.services.auth.services.UserAuthService;
+import com.serch.server.services.conversation.responses.CallPeriodResponse;
 import com.serch.server.services.shared.requests.SwitchRequest;
 import com.serch.server.services.shared.responses.GuestResponse;
 import com.serch.server.services.shared.services.GuestAuthService;
@@ -26,6 +27,8 @@ import com.serch.server.utils.CallUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -41,6 +44,7 @@ import java.util.Optional;
  */
 @Service
 @RequiredArgsConstructor
+@Transactional(propagation = Propagation.NESTED)
 public class SwitchImplementation implements SwitchService {
     private final GuestService guestService;
     private final UserAuthService userAuthService;
@@ -66,18 +70,24 @@ public class SwitchImplementation implements SwitchService {
                 if(tripRepository.existsByStatusAndAccount(String.valueOf(user.get().getId()))) {
                     throw new SharedException("Can't switch account when you are on a trip");
                 } else {
-                    List<Call> calls = callRepository.findByUserId(user.get().getId(), CallUtil.getPeriod().getStart(), CallUtil.getPeriod().getEnd());
-                    if(calls.stream().anyMatch(call ->
-                            call.getStatus() == CallStatus.ON_CALL || call.getStatus() == CallStatus.RINGING
-                                    || call.getStatus() == CallStatus.CALLING
-                    )) {
-                        throw new SharedException("Can't switch account when you are on a call");
-                    }
+                    checkCall(user.get());
                 }
             } else {
                 checkRequest(request);
             }
             return new ApiResponse<>(guestService.response(login));
+        }
+    }
+
+    private void checkCall(User user) {
+        CallPeriodResponse period = CallUtil.getPeriod(user.getTimezone());
+
+        List<Call> calls = callRepository.findByUserId(user.getId(), period.getStart(), period.getEnd());
+        if(calls.stream().anyMatch(call ->
+                call.getStatus() == CallStatus.ON_CALL || call.getStatus() == CallStatus.RINGING
+                        || call.getStatus() == CallStatus.CALLING
+        )) {
+            throw new SharedException("Can't switch account when you are on a call");
         }
     }
 

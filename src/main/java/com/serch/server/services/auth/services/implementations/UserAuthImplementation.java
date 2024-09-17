@@ -27,6 +27,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
 
@@ -47,6 +49,7 @@ import java.time.ZonedDateTime;
  */
 @Service
 @RequiredArgsConstructor
+@Transactional(propagation = Propagation.NESTED)
 public class UserAuthImplementation implements UserAuthService {
     private final ProfileService profileService;
     private final SessionService sessionService;

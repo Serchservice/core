@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -50,6 +51,7 @@ import static com.serch.server.enums.trip.TripType.REQUEST;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(propagation = Propagation.NESTED)
 public class TripRequestImplementation implements TripRequestService {
     private static final Logger log = LoggerFactory.getLogger(TripRequestImplementation.class);
     private final StorageService storageService;

@@ -29,6 +29,7 @@ import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -42,6 +43,7 @@ import static com.serch.server.enums.account.SerchCategory.USER;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(propagation = Propagation.NESTED)
 public class ChattingImplementation implements ChattingService {
     private final UserUtil userUtil;
     private final SimpMessagingTemplate template;

@@ -24,6 +24,7 @@ import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -38,6 +39,7 @@ import static com.serch.server.enums.trip.TripConnectionStatus.REQUESTED;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(propagation = Propagation.NESTED)
 public class TripPayImplementation implements TripPayService {
     @Value("${application.payment.trip.service.fee}")
     private Integer TRIP_SERVICE_FEE;

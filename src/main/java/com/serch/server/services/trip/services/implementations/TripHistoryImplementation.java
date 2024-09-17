@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.format.DateTimeFormatter;
@@ -57,6 +58,7 @@ import static com.serch.server.enums.trip.TripType.REQUEST;
  */
 @Service
 @RequiredArgsConstructor
+@Transactional(propagation = Propagation.NESTED)
 public class TripHistoryImplementation implements TripHistoryService {
     private final UserUtil userUtil;
     private final SimpMessagingTemplate messaging;

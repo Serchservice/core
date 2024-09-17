@@ -3,7 +3,6 @@ package com.serch.server.utils;
 import com.serch.server.services.conversation.responses.CallPeriodResponse;
 
 import java.time.LocalDate;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
 /**
@@ -25,8 +24,8 @@ public class CallUtil {
         return duration % 60 == session || duration % 60 == (session + 1) || duration % 60 == (session + 2);
     }
 
-    public static CallPeriodResponse getPeriod() {
-        ZonedDateTime startOfDay = ZonedDateTime.of(LocalDate.now().atStartOfDay(), ZoneOffset.UTC);
+    public static CallPeriodResponse getPeriod(String timezone) {
+        ZonedDateTime startOfDay = ZonedDateTime.of(LocalDate.now().atStartOfDay(), TimeUtil.zoneId(timezone));
 
         CallPeriodResponse response = new CallPeriodResponse();
         response.setStart(startOfDay);

@@ -33,6 +33,8 @@ import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -46,6 +48,7 @@ import java.util.*;
  */
 @Service
 @RequiredArgsConstructor
+@Transactional(propagation = Propagation.NESTED)
 public class SharedImplementation implements SharedService {
     private final UserUtil util;
     private final SharedLinkRepository sharedLinkRepository;

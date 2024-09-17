@@ -9,12 +9,14 @@ import com.serch.server.services.conversation.responses.*;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(propagation = Propagation.NESTED)
 public class ChatImplementation implements ChatService {
     private final ChattingService service;
     private final UserUtil userUtil;

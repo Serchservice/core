@@ -14,6 +14,8 @@ import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This class implements the AdditionalService interface
@@ -27,6 +29,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
+@Transactional(propagation = Propagation.NESTED)
 public class AdditionalImplementation implements AdditionalService {
     private final UserUtil userUtil;
     private final AdditionalInformationRepository additionalInformationRepository;

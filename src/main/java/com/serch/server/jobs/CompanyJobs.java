@@ -7,12 +7,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Handles Complaint and SpeakWithSerch deletion for old records
  */
 @Slf4j
 @Configuration
+@Transactional
 @RequiredArgsConstructor
 public class CompanyJobs {
     private final ComplaintService complaintService;

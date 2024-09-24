@@ -28,8 +28,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service responsible for implementing password reset functionality.
@@ -43,7 +41,6 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
-@Transactional(propagation = Propagation.NESTED)
 public class PasswordImplementation implements PasswordService {
     private final UserRepository userRepository;
     private final AccountDeleteRepository accountDeleteRepository;

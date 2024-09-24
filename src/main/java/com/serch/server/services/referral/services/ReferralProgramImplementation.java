@@ -17,8 +17,6 @@ import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,7 +36,6 @@ import java.util.regex.Pattern;
  */
 @Service
 @RequiredArgsConstructor
-@Transactional(propagation = Propagation.NESTED)
 public class ReferralProgramImplementation implements ReferralProgramService {
     private final ReferralService referralService;
     private final TokenService tokenService;

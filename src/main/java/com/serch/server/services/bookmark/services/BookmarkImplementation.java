@@ -13,8 +13,6 @@ import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -28,7 +26,6 @@ import java.util.*;
  */
 @Service
 @RequiredArgsConstructor
-@Transactional(propagation = Propagation.NESTED)
 public class BookmarkImplementation implements BookmarkService {
     private final UserUtil userUtil;
     private final ProfileRepository profileRepository;

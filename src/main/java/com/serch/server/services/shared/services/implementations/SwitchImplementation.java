@@ -27,8 +27,6 @@ import com.serch.server.utils.CallUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -44,7 +42,6 @@ import java.util.Optional;
  */
 @Service
 @RequiredArgsConstructor
-@Transactional(propagation = Propagation.NESTED)
 public class SwitchImplementation implements SwitchService {
     private final GuestService guestService;
     private final UserAuthService userAuthService;

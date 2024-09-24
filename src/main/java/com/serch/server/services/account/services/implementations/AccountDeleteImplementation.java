@@ -15,8 +15,6 @@ import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -32,7 +30,6 @@ import java.util.UUID;
  */
 @Service
 @RequiredArgsConstructor
-@Transactional(propagation = Propagation.NESTED)
 public class AccountDeleteImplementation implements AccountDeleteService {
     private final UserUtil userUtil;
     private final AccountDeleteRepository accountDeleteRepository;

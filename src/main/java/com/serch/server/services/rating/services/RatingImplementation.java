@@ -30,8 +30,6 @@ import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -58,7 +56,6 @@ import static com.serch.server.enums.call.CallType.T2F;
  */
 @Service
 @RequiredArgsConstructor
-@Transactional(propagation = Propagation.NESTED)
 public class RatingImplementation implements RatingService {
     private final RatingCalculationService calculationService;
     private final UserUtil userUtil;

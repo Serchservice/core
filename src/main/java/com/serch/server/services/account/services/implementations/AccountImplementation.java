@@ -28,8 +28,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.*;
@@ -53,7 +51,6 @@ import static com.serch.server.enums.auth.Role.USER;
  */
 @Service
 @RequiredArgsConstructor
-@Transactional(propagation = Propagation.NESTED)
 public class AccountImplementation implements AccountService {
     private final UserUtil userUtil;
     private final ScheduleRepository scheduleRepository;

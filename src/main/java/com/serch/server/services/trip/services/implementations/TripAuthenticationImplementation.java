@@ -11,12 +11,10 @@ import com.serch.server.services.trip.services.TripAuthenticationService;
 import com.serch.server.utils.DatabaseUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(propagation = Propagation.NESTED)
 public class TripAuthenticationImplementation implements TripAuthenticationService {
     private final TokenService tokenService;
     private final SmsService smsService;

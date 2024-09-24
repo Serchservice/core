@@ -721,6 +721,7 @@ public class WalletImplementation implements WalletService {
     }
 
     @Override
+    @Transactional
     public void processPendingVerifications() {
         List<Transaction> transactions = transactionRepository.findAllPending();
         transactions.forEach(transaction -> {

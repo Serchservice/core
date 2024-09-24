@@ -27,8 +27,8 @@ jobs:
 
       - name: Build Project
         run: |
-          mvn -f core/pom.xml clean install -DskipTests
-          mvn -f core/pom.xml openapi-generator:generate
+          mvn -f ~/pom.xml clean install -DskipTests
+          mvn -f ~/pom.xml openapi-generator:generate
 
   deploy-doc:
     if: ${{ github.event_name == 'push' }}

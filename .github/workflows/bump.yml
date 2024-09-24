@@ -27,6 +27,7 @@ jobs:
 
       - name: Build Project
         run: |
+          cd core
           mvn clean install -DskipTests
           mvn openapi-generator:generate
 
@@ -34,6 +35,7 @@ jobs:
     if: ${{ github.event_name == 'push' }}
     name: Deploy API documentation on Bump.sh
     runs-on: ubuntu-latest
+    needs: build
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -43,12 +45,13 @@ jobs:
         with:
           doc: serchservice
           token: ZJL2Qsnx9wPAZPuLfGoGFeCnfPaWSx3o
-          file: target/openapi.json
+          file: core/target/openapi.json
 
   api-diff:
     if: ${{ github.event_name == 'pull_request' }}
     name: Check API diff on Bump.sh
     runs-on: ubuntu-latest
+    needs: build
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -58,7 +61,7 @@ jobs:
         with:
           doc: serchservice
           token: ZJL2Qsnx9wPAZPuLfGoGFeCnfPaWSx3o
-          file: target/openapi.json
+          file: core/target/openapi.json
           command: diff
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

@@ -23,9 +23,6 @@ import java.util.List;
  */
 @Configuration
 public class SwaggerConfiguration {
-    @Value("${application.link.server.base}")
-    private String SERCH_BASE_URL;
-
     /**
      * Configures custom OpenAPI specification for the application.
      *
@@ -61,14 +58,13 @@ public class SwaggerConfiguration {
                                                 .bearerFormat("JWT")
                                 )
                 )
-                .addServersItem(new Server()
-                        .description("Production Server")
-                        .url(SERCH_BASE_URL)
-                )
                 .servers(List.of(
                         new Server()
                                 .description("Production Server")
-                                .url(SERCH_BASE_URL)
+                                .url("https://api.serchservice.com"),
+                        new Server()
+                                .description("Sandbox Server")
+                                .url("https://sandbox.serchservice.com")
                 ))
                 .addSecurityItem(new SecurityRequirement().addList("Bearer Authentication"));
     }

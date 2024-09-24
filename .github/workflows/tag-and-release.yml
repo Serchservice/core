@@ -34,9 +34,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: [setup, get_version]
     steps:
+      - name: Fetch all tags
+        run: git fetch --tags
+
       - name: Check for existing tag
         run: |
-          if git fetch --tags && git rev-parse "v${{ env.VERSION }}" >/dev/null 2>&1; then
+          if git rev-parse "v${{ env.VERSION }}" >/dev/null 2>&1; then
             echo "Tag v${{ env.VERSION }} already exists. Failing the check."
             exit 1
           fi
@@ -54,6 +57,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: [setup, get_version]
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4  # Ensure the repository is cloned
+
+      - name: Fetch all tags
+        run: git fetch --tags  # Ensure all tags are fetched
+
       - name: Create Tag
         run: |
           git tag "v${{ env.VERSION }}"

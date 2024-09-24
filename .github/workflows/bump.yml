@@ -19,11 +19,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Debug Working Directory
-        run: |
-          pwd
-          ls -R # List all files and directories
-
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -32,9 +27,8 @@ jobs:
 
       - name: Build Project
         run: |
-          cd ../core
-          mvn clean install -DskipTests
-          mvn openapi-generator:generate
+          mvn -f core/pom.xml clean install -DskipTests
+          mvn -f core/pom.xml openapi-generator:generate
 
   deploy-doc:
     if: ${{ github.event_name == 'push' }}
@@ -50,7 +44,7 @@ jobs:
         with:
           doc: serchservice
           token: ZJL2Qsnx9wPAZPuLfGoGFeCnfPaWSx3o
-          file: ../core/target/openapi.json
+          file: core/target/openapi.json
 
   api-diff:
     if: ${{ github.event_name == 'pull_request' }}
@@ -66,7 +60,7 @@ jobs:
         with:
           doc: serchservice
           token: ZJL2Qsnx9wPAZPuLfGoGFeCnfPaWSx3o
-          file: ../core/target/openapi.json
+          file: core/target/openapi.json
           command: diff
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

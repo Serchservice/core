@@ -11,7 +11,6 @@ import com.serch.server.services.trip.services.TripAuthenticationService;
 import com.serch.server.utils.DatabaseUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -22,7 +21,7 @@ public class TripAuthenticationImplementation implements TripAuthenticationServi
     private final TripAuthenticationRepository tripAuthenticationRepository;
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public void create(Trip trip, TripShare share) {
         TripAuthentication authentication = new TripAuthentication();
         if(share != null) {

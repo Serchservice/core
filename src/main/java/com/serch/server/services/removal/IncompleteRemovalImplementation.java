@@ -5,7 +5,6 @@ import com.serch.server.repositories.auth.incomplete.IncompleteRepository;
 import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -16,7 +15,7 @@ public class IncompleteRemovalImplementation implements IncompleteRemovalService
     private final IncompleteRepository incompleteRepository;
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public void remove() {
         List<Incomplete> list = incompleteRepository.findByCreatedAtBefore(TimeUtil.now().minusYears(1));
 

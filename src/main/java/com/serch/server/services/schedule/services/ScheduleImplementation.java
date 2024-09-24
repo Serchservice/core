@@ -29,7 +29,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -480,7 +479,7 @@ public class ScheduleImplementation implements ScheduleService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public void notifySchedules() {
         LocalDate today = LocalDate.now();
         scheduleRepository.findByCreatedAtBetween(ZonedDateTime.of(today.atStartOfDay(), ZoneOffset.UTC), ZonedDateTime.of(today.atTime(23, 59, 59), ZoneOffset.UTC))
@@ -502,7 +501,7 @@ public class ScheduleImplementation implements ScheduleService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public void closePastUnaccepted() {
         ZonedDateTime current = TimeUtil.now();
 

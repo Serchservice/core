@@ -29,7 +29,6 @@ import com.serch.server.utils.CallUtil;
 import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
@@ -65,7 +64,7 @@ public class AccountRemovalImplementation implements AccountRemovalService {
     private final SpeakWithSerchRepository speakWithSerchRepository;
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public void remove() {
         List<IssueStatus> statuses = Arrays.asList(IssueStatus.RESOLVED, IssueStatus.CLOSED);
 

@@ -29,7 +29,6 @@ import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -61,7 +60,7 @@ public class ChattingImplementation implements ChattingService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public void send(SendMessageRequest request) {
         ChatRoom room = chatRoomRepository.findById(request.getRoom()).orElse(null);
 
@@ -88,13 +87,13 @@ public class ChattingImplementation implements ChattingService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public void refresh(String roomId) {
         chatRoomRepository.findById(roomId).ifPresent(room -> sendMessage(room, false));
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public void update(UpdateMessageRequest request) {
         ChatMessage message = chatMessageRepository.findById(request.getId()).orElse(null);
         ChatRoom room = chatRoomRepository.findById(request.getRoom()).orElse(null);
@@ -114,7 +113,7 @@ public class ChattingImplementation implements ChattingService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public void updateAll(UpdateMessageRequest request) {
         ChatRoom room = chatRoomRepository.findById(request.getRoom()).orElse(null);
         if(room != null) {
@@ -140,13 +139,13 @@ public class ChattingImplementation implements ChattingService {
         }
     }
 
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     protected void sendMessage(ChatRoom room, boolean notify) {
         sendToSender(room);
         sendToReceiver(room, notify);
     }
 
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     protected void sendToSender(ChatRoom room) {
         ChatRoomResponse response =  getChatRoomResponse(
                 room, isCurrentUser(room.getCreator()) ? room.getRoommate() : room.getCreator(),
@@ -156,7 +155,7 @@ public class ChattingImplementation implements ChattingService {
         template.convertAndSend("/platform/%s".formatted(String.valueOf(userUtil.getUser().getId())), response);
     }
 
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     protected void sendToReceiver(ChatRoom room, boolean notify) {
         UUID id = isCurrentUser(room.getCreator()) ? room.getRoommate() : room.getCreator();
         ChatRoomResponse response =  getChatRoomResponse(room, userUtil.getUser().getId(), id);
@@ -169,7 +168,7 @@ public class ChattingImplementation implements ChattingService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public void announce(String room) {
         Profile profile = profileRepository.findById(userUtil.getUser().getId()).orElse(null);
         ChatRoom chatRoom = chatRoomRepository.findById(room).orElse(null);
@@ -190,7 +189,7 @@ public class ChattingImplementation implements ChattingService {
         }
     }
 
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     protected ChatRoomResponse getChatRoomResponse(ChatRoom room, UUID id, UUID count) {
         List<ChatMessage> roomMessages = chatMessageRepository.findByChatRoom_Id(room.getId());
         List<ChatMessage> messages = roomMessages != null && !roomMessages.isEmpty()
@@ -199,7 +198,7 @@ public class ChattingImplementation implements ChattingService {
         return response(room, id, count);
     }
 
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     protected ChatRoomResponse response(ChatRoom room, UUID id, UUID count) {
         ChatRoomResponse response = new ChatRoomResponse();
 
@@ -246,7 +245,7 @@ public class ChattingImplementation implements ChattingService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public ChatRoomResponse updateResponse(ChatRoom room, ChatRoomResponse response, boolean isProvider) {
         response.setIsBookmarked(
                 bookmarkRepository.existsByUser_IdAndProvider_Id(room.getRoommate(), room.getCreator())
@@ -333,7 +332,7 @@ public class ChattingImplementation implements ChattingService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public ChatMessage getLastMessage(List<ChatMessage> messages) {
         if(messages == null || messages.isEmpty()) {
             return null;
@@ -347,7 +346,7 @@ public class ChattingImplementation implements ChattingService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public List<ChatRoomResponse> response(UUID id) {
         List<ChatRoom> rooms = chatRoomRepository.findByUserId(id);
         if(rooms == null || rooms.isEmpty()) {
@@ -367,7 +366,7 @@ public class ChattingImplementation implements ChattingService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public ChatRoomResponse response(ChatRoom room) {
         ChatRoomResponse response = new ChatRoomResponse();
         UUID id = isCurrentUser(room.getCreator()) ? room.getRoommate() : room.getCreator();
@@ -449,7 +448,7 @@ public class ChattingImplementation implements ChattingService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public void clearChats() {
         chatMessageRepository.deleteAll(chatMessageRepository.findAllPastMessagesWithoutBookmarkedProvider());
     }

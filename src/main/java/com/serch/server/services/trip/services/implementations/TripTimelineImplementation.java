@@ -10,7 +10,6 @@ import com.serch.server.services.trip.services.TripTimelineService;
 import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -21,7 +20,7 @@ public class TripTimelineImplementation implements TripTimelineService {
     private final TripTimelineRepository tripTimelineRepository;
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public void create(Trip trip, TripShare share, TripConnectionStatus status) {
         if(share != null) {
             tripTimelineRepository.findByStatusAndSharing_Id(status, share.getId())
@@ -51,13 +50,13 @@ public class TripTimelineImplementation implements TripTimelineService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public TripTimelineResponse response(TripTimeline timeline) {
         return null;
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public List<TripTimelineResponse> response(Trip trip) {
         return List.of();
     }

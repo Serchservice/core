@@ -9,7 +9,6 @@ import com.serch.server.services.conversation.responses.*;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
@@ -22,13 +21,13 @@ public class ChatImplementation implements ChatService {
     private final ChatRoomRepository chatRoomRepository;
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public ApiResponse<List<ChatRoomResponse>> rooms() {
         return new ApiResponse<>(service.response(userUtil.getUser().getId()));
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public ApiResponse<ChatRoomResponse> messages(String roomId) {
         ChatRoom room = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new ChatException("Chat not found", String.valueOf(userUtil.getUser().getId())));
@@ -36,7 +35,7 @@ public class ChatImplementation implements ChatService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public ApiResponse<ChatRoomResponse> room(UUID roommate) {
         ChatRoom room = chatRoomRepository.findByRoommateAndCreator(roommate, userUtil.getUser().getId())
                 .orElseGet(() -> {

@@ -22,7 +22,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -61,7 +60,7 @@ public class TripShareImplementation implements TripShareService {
     private String MAP_SEARCH_RADIUS;
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public ApiResponse<TripResponse> access(String guest, String id) {
         String account;
         String name;
@@ -104,7 +103,7 @@ public class TripShareImplementation implements TripShareService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public ApiResponse<TripResponse> share(TripShareRequest request) {
         Trip trip = tripRepository.findByIdAndProviderId(request.getTrip(), userUtil.getUser().getId())
                 .orElseThrow(() -> new TripException("No trip found for trip " + request.getTrip()));
@@ -146,7 +145,7 @@ public class TripShareImplementation implements TripShareService {
         }
     }
 
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     protected TripShare create(TripShareRequest request, Trip trip) {
         TripShare share = TripMapper.INSTANCE.share(request);
         share.setTrip(trip);
@@ -158,7 +157,7 @@ public class TripShareImplementation implements TripShareService {
         return tripShareRepository.save(share);
     }
 
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     protected void pingServiceProviders(Trip trip, TripShareRequest request) {
         String category = request.getSerchCategory() != null ? request.getSerchCategory().getType() : "";
         String filters = String.join(" | ", request.getFilters());
@@ -189,7 +188,7 @@ public class TripShareImplementation implements TripShareService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public ApiResponse<String> cancel(TripCancelRequest request) {
         TripShare share;
 
@@ -234,7 +233,7 @@ public class TripShareImplementation implements TripShareService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public ApiResponse<TripResponse> accept(TripAcceptRequest request) {
         TripShare share = tripShareRepository.findByIdAndTrip_Id(request.getQuoteId(), request.getTrip())
                 .orElseThrow(() -> new TripException("No shared found for trip " + request.getTrip()));
@@ -283,7 +282,7 @@ public class TripShareImplementation implements TripShareService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public ApiResponse<TripResponse> auth(TripAuthRequest request) {
         TripShare share;
         String account;
@@ -333,7 +332,7 @@ public class TripShareImplementation implements TripShareService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public ApiResponse<List<TripResponse>> end(String id) {
         TripShare share = tripShareRepository.findByTrip_IdAndProvider_Id(id, userUtil.getUser().getId())
                 .orElseThrow(() -> new TripException("No shared found for trip " + id));
@@ -358,7 +357,7 @@ public class TripShareImplementation implements TripShareService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public ApiResponse<List<TripResponse>> leave(String id) {
         TripShare share = tripShareRepository.findByTrip_IdAndProvider_Id(id, userUtil.getUser().getId())
                 .orElseThrow(() -> new TripException("No shared found for trip " + id));

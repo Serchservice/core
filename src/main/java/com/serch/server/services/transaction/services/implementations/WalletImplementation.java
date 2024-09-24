@@ -39,7 +39,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -677,7 +676,7 @@ public class WalletImplementation implements WalletService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public void processPaydays() {
         List<Wallet> wallets = walletRepository.findAll();
         if(!wallets.isEmpty()) {
@@ -721,7 +720,7 @@ public class WalletImplementation implements WalletService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public void processPendingVerifications() {
         List<Transaction> transactions = transactionRepository.findAllPending();
         transactions.forEach(transaction -> {

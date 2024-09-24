@@ -27,7 +27,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -64,7 +63,7 @@ public class TripImplementation implements TripService {
     private final MapViewRepository mapViewRepository;
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public ApiResponse<TripResponse> request(TripInviteRequest request) {
         if(request.getAmount() != null) {
             Profile profile = profileRepository.findById(request.getProvider())
@@ -85,7 +84,7 @@ public class TripImplementation implements TripService {
         }
     }
 
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     protected Trip create(TripInviteRequest request, Profile profile) {
         Trip trip = TripMapper.INSTANCE.trip(request);
         trip.setAccount(String.valueOf(userUtil.getUser().getId()));
@@ -103,7 +102,7 @@ public class TripImplementation implements TripService {
         return tripRepository.save(trip);
     }
 
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     protected ApiResponse<TripResponse> getRequestResponse(Trip trip, User user) {
         timelineService.create(trip, null, REQUESTED);
         notificationService.send(
@@ -121,14 +120,14 @@ public class TripImplementation implements TripService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public ApiResponse<TripResponse> rebook(String id, Boolean withInvited) {
         Trip trip = buildTripFromExisting(id, withInvited);
 
         return getRequestResponse(trip, userUtil.getUser());
     }
 
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     protected Trip buildTripFromExisting(String id, Boolean withInvited) {
         Trip existing = tripRepository.findById(id).orElseThrow(() -> new TripException("No trip found"));
 
@@ -147,7 +146,7 @@ public class TripImplementation implements TripService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public ApiResponse<TripResponse> request(TripInviteRequest request, Profile account, Profile profile) {
         if(request.getAmount() != null) {
             Trip trip = create(request, account.getId().toString(), profile);
@@ -159,7 +158,7 @@ public class TripImplementation implements TripService {
         }
     }
 
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     protected Trip create(TripInviteRequest request, String account, Profile profile) {
         Trip trip = TripMapper.INSTANCE.trip(request);
         trip.setAccount(account);
@@ -172,7 +171,7 @@ public class TripImplementation implements TripService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public ApiResponse<TripResponse> accept(TripAcceptRequest request) {
         Trip trip = tripRepository.findByIdAndProviderId(request.getTrip(), userUtil.getUser().getId())
                 .orElseThrow(() -> new TripException("Trip not found"));
@@ -193,7 +192,7 @@ public class TripImplementation implements TripService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public void updateOthers(Trip trip) {
         if(trip.getProvider() != null) {
             historyService.response(trip.getId(), String.valueOf(trip.getProvider().getId()), null, true, null);
@@ -205,7 +204,7 @@ public class TripImplementation implements TripService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public ApiResponse<List<TripResponse>> end(TripCancelRequest request) {
         Trip trip;
         if(request.getGuest() != null && !request.getGuest().isEmpty()) {
@@ -236,7 +235,7 @@ public class TripImplementation implements TripService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public ApiResponse<List<TripResponse>> cancel(TripCancelRequest request) {
         Trip trip;
         if(request.getGuest() != null && !request.getGuest().isEmpty()) {
@@ -285,7 +284,7 @@ public class TripImplementation implements TripService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public ApiResponse<TripResponse> payServiceFee(String id) {
         Trip trip = tripRepository.findByIdAndProviderId(id, userUtil.getUser().getId())
                 .orElseThrow(() -> new TripException("Trip not found"));
@@ -313,7 +312,7 @@ public class TripImplementation implements TripService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public ApiResponse<TripResponse> verify(String id, String guest, String reference) {
         Trip trip;
         if(guest != null && !guest.isEmpty()) {
@@ -336,7 +335,7 @@ public class TripImplementation implements TripService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public ApiResponse<List<TripResponse>> leave(String id) {
         Trip trip = tripRepository.findByIdAndProviderId(id, userUtil.getUser().getId())
                 .orElseThrow(() -> new TripException("No trip found for trip " + id));
@@ -368,7 +367,7 @@ public class TripImplementation implements TripService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public ApiResponse<List<ActiveResponse>> search(String phoneNumber, Double lat, Double lng) {
         List<PhoneInformation> list = phoneInformationRepository.findByPhoneNumber(phoneNumber);
 
@@ -400,7 +399,7 @@ public class TripImplementation implements TripService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public ApiResponse<TripResponse> auth(TripAuthRequest request) {
         Trip trip;
         if(request.getGuest() != null && !request.getGuest().isEmpty()) {
@@ -444,7 +443,7 @@ public class TripImplementation implements TripService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public ApiResponse<TripResponse> update(TripUpdateRequest request) {
         if(request.getIsShared()) {
             TripShare share = tripShareRepository.findByTrip_IdAndProvider_Id(request.getTrip(), userUtil.getUser().getId())
@@ -482,7 +481,7 @@ public class TripImplementation implements TripService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public void update(MapViewRequest request) {
         if(request.getIsShared()) {
             TripShare share = tripShareRepository.findByTrip_IdAndProvider_Id(request.getTrip(), userUtil.getUser().getId())
@@ -522,7 +521,7 @@ public class TripImplementation implements TripService {
         historyService.response(share.getId(), String.valueOf(userUtil.getUser().getId()), null, true, null);
     }
 
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     protected void updateView(MapViewRequest request, MapView view) {
         view.setPlace(request.getPlace());
         view.setLongitude(request.getLongitude());

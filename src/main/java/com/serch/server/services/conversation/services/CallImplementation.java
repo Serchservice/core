@@ -20,7 +20,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -56,7 +55,7 @@ public class CallImplementation implements CallService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public ApiResponse<ActiveCallResponse> start(StartCallRequest request) {
         Profile caller = profileRepository.findById(userUtil.getUser().getId())
                 .orElseThrow(() -> new CallException("User not found", false));
@@ -112,7 +111,7 @@ public class CallImplementation implements CallService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public ApiResponse<String> auth() {
         String token = User.createToken(String.valueOf(userUtil.getUser().getId()), null, null);
 
@@ -120,7 +119,7 @@ public class CallImplementation implements CallService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public ApiResponse<String> auth(String channel) {
         Call call = callRepository.findById(channel).orElseThrow(() -> new CallException("Call not found", false));
 
@@ -138,7 +137,7 @@ public class CallImplementation implements CallService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public ApiResponse<ActiveCallResponse> update(UpdateCallRequest request) {
         Call call = callRepository.findByChannelAndUserId(request.getChannel(), userUtil.getUser().getId())
                 .orElseThrow(() -> new CallException("Call not found", true));
@@ -244,7 +243,7 @@ public class CallImplementation implements CallService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public ApiResponse<List<CallResponse>> logs() {
         List<CallResponse> list = new ArrayList<>();
 
@@ -301,7 +300,7 @@ public class CallImplementation implements CallService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public void closeRingingCalls() {
         List<Call> calls  = callRepository.findAllRinging();
         if(calls != null && !calls.isEmpty()) {

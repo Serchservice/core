@@ -32,7 +32,7 @@ jobs:
 
       - name: Build Project
         run: |
-          cd ../..
+          cd ../core
           mvn clean install -DskipTests
           mvn openapi-generator:generate
 
@@ -50,7 +50,7 @@ jobs:
         with:
           doc: serchservice
           token: ZJL2Qsnx9wPAZPuLfGoGFeCnfPaWSx3o
-          file: ../target/openapi.json
+          file: ../core/target/openapi.json
 
   api-diff:
     if: ${{ github.event_name == 'pull_request' }}
@@ -66,7 +66,7 @@ jobs:
         with:
           doc: serchservice
           token: ZJL2Qsnx9wPAZPuLfGoGFeCnfPaWSx3o
-          file: ../target/openapi.json
+          file: ../core/target/openapi.json
           command: diff
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

@@ -481,6 +481,7 @@ public class ScheduleImplementation implements ScheduleService {
     }
 
     @Override
+    @Transactional
     public void notifySchedules() {
         LocalDate today = LocalDate.now();
         scheduleRepository.findByCreatedAtBetween(ZonedDateTime.of(today.atStartOfDay(), ZoneOffset.UTC), ZonedDateTime.of(today.atTime(23, 59, 59), ZoneOffset.UTC))

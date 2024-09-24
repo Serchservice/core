@@ -130,6 +130,7 @@ public class SecurityFilterConfiguration {
                                 "/swagger-resources",
                                 "/v2/api-docs",
                                 "/v3/api-docs",
+                                "/v3/api-docs.yaml",
                                 "/v3/api-docs/**"
                         ).permitAll()
                         .requestMatchers(

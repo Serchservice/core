@@ -23,7 +23,7 @@ jobs:
       - name: Deploy API documentation
         uses: bump-sh/github-action@v1
         with:
-          doc: serchservice
+          doc: 130e326a-019d-428b-b49a-f217321e949b
           token: ZJL2Qsnx9wPAZPuLfGoGFeCnfPaWSx3o
           file: doc/documentation.yaml
   api-diff:
@@ -36,7 +36,7 @@ jobs:
       - name: Comment pull request with API diff
         uses: bump-sh/github-action@v1
         with:
-          doc: serchservice
+          doc: 130e326a-019d-428b-b49a-f217321e949b
           token: ZJL2Qsnx9wPAZPuLfGoGFeCnfPaWSx3o
           file: doc/documentation.yaml
           command: diff

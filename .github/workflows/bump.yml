@@ -25,7 +25,7 @@ jobs:
         with:
           doc: serchservice
           token: ZJL2Qsnx9wPAZPuLfGoGFeCnfPaWSx3o
-          file: doc/documentation.yaml
+          file: documentation.yaml
   api-diff:
     if: ${{ github.event_name == 'pull_request' }}
     name: Check API diff on Bump.sh
@@ -38,7 +38,7 @@ jobs:
         with:
           doc: serchservice
           token: ZJL2Qsnx9wPAZPuLfGoGFeCnfPaWSx3o
-          file: doc/documentation.yaml
+          file: documentation.yaml
           command: diff
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

@@ -1,0 +1,98 @@
+name: Release and Build
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  check:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 # Ensures the repo is cloned with .git directory
+
+      - name: Get version from pom.xml
+        id: get_version
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Check for existing tag
+        run: |
+          git fetch --tags # This will now work as git repository is initialized
+          if git rev-parse "v${{ env.VERSION }}" >/dev/null 2>&1; then
+            echo "Tag v${{ env.VERSION }} already exists. Failing the check."
+            exit 1
+          fi
+
+      - name: Check for existing release
+        run: |
+          if gh release view "v${{ env.VERSION }}" >/dev/null 2>&1; then
+            echo "Release v${{ env.VERSION }} already exists. Failing the check."
+            exit 1
+          fi
+
+  release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 # Ensures the repo is cloned with .git directory
+
+      - name: Get version from pom.xml
+        id: get_version
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Create Tag
+        run: |
+          git fetch --tags # Fetch all tags to check for the version
+          git tag "v${{ env.VERSION }}"
+          git push origin "v${{ env.VERSION }}"
+          echo "Tag created: v${{ env.VERSION }}"
+
+      - name: Install GitHub CLI
+        run: sudo apt-get install gh
+
+      - name: Create Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v${{ env.VERSION }}" --title "Release v${{ env.VERSION }}" --notes "Release notes for version v${{ env.VERSION }}" --generate-notes
+
+  # Job for building and deploying the project
+#  build-and-deploy:
+#    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+#    runs-on: ubuntu-latest
+#    needs: [setup, get_version]
+#    steps:
+#      - name: Setup Java
+#        uses: actions/setup-java@v4
+#        with:
+#          distribution: 'corretto'
+#          java-version: '21'
+#
+#      - name: Build Project
+#        run: mvn clean install -DskipTests
+#
+#      - name: Get version and SHA
+#        run: |
+#          echo "Version: v${{ env.VERSION }}"
+#          echo "Github SHA: ${{ github.sha }}"
+#
+#      - name: Deploy to EB
+#        uses: einaregilsson/beanstalk-deploy@v22
+#        with:
+#          aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
+#          aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
+#          application_name: 'Base'
+#          environment_name: 'core'
+#          version_label: ${{ env.VERSION }}
+#          region: us-east-1
+#          deployment_package: target/core.jar

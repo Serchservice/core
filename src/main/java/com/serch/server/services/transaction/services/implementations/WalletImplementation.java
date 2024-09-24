@@ -678,6 +678,7 @@ public class WalletImplementation implements WalletService {
     }
 
     @Override
+    @Transactional
     public void processPaydays() {
         List<Wallet> wallets = walletRepository.findAll();
         if(!wallets.isEmpty()) {

@@ -17,6 +17,7 @@ public class IncompleteRemovalImplementation implements IncompleteRemovalService
     private final IncompleteRepository incompleteRepository;
 
     @Override
+    @Transactional
     public void remove() {
         List<Incomplete> list = incompleteRepository.findByCreatedAtBefore(TimeUtil.now().minusYears(1));
 

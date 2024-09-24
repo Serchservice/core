@@ -29,6 +29,7 @@ public class ComplaintImplementation implements ComplaintService {
     }
 
     @Override
+    @Transactional
     public void removeOldContents() {
         List<Complaint> list = complaintRepository.findByCreatedAtBefore(TimeUtil.now().minusYears(5));
         if(list != null && !list.isEmpty()) {

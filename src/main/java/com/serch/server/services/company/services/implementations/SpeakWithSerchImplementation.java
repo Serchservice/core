@@ -123,6 +123,7 @@ public class SpeakWithSerchImplementation implements SpeakWithSerchService {
     }
 
     @Override
+    @Transactional
     public void removeOldContents() {
         List<SpeakWithSerch> list = speakWithSerchRepository.findByCreatedAtBefore(TimeUtil.now().minusYears(5));
         if(list != null && !list.isEmpty()) {

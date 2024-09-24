@@ -95,6 +95,7 @@ public class SchedulePayImplementation implements SchedulePayService {
     }
 
     @Override
+    @Transactional
     public void processPayments() {
         transactionRepository.findPendingSchedules().forEach(transaction -> {
             try {

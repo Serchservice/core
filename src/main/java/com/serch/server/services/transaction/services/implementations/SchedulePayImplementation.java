@@ -29,7 +29,6 @@ import java.util.UUID;
  */
 @Service
 @RequiredArgsConstructor
-@Transactional(propagation = Propagation.NESTED)
 public class SchedulePayImplementation implements SchedulePayService {
     private final NotificationService notificationService;
     private final WalletRepository walletRepository;
@@ -95,7 +94,7 @@ public class SchedulePayImplementation implements SchedulePayService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public void processPayments() {
         transactionRepository.findPendingSchedules().forEach(transaction -> {
             try {

@@ -43,7 +43,6 @@ import java.util.List;
  */
 @Service
 @RequiredArgsConstructor
-@Transactional(propagation = Propagation.NESTED)
 public class ShopImplementation implements ShopService {
     private final StorageService storageService;
     private final UserUtil userUtil;
@@ -316,7 +315,7 @@ public class ShopImplementation implements ShopService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public void openOrCloseShops() {
         List<Shop> openingShops = shopRepository.findShopsWithCurrentOpeningTimeAndDay(Weekday.valueOf(LocalDateTime.now().getDayOfWeek().name()));
         if(openingShops != null && !openingShops.isEmpty()) {

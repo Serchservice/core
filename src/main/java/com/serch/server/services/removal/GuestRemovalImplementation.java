@@ -13,12 +13,12 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(propagation = Propagation.NESTED)
 public class GuestRemovalImplementation implements GuestRemovalService {
     private final GuestRepository guestRepository;
     private final SharedLinkRepository sharedLinkRepository;
 
     @Override
+    @Transactional(propagation = Propagation.NESTED)
     public void remove() {
         List<Guest> guests = guestRepository.findGuestsWithLastTripOneYearAgo(TimeUtil.now().minusYears(1));
 

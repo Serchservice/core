@@ -12,8 +12,6 @@ import com.serch.server.services.company.services.CompanyCountryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service implementation for managing country-related operations.
@@ -26,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
-@Transactional(propagation = Propagation.NESTED)
 public class CompanyCountryImplementation implements CompanyCountryService {
     private final LaunchedCountryRepository launchedCountryRepository;
     private final RequestedCountryRepository requestedCountryRepository;

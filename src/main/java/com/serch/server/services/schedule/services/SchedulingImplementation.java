@@ -8,14 +8,11 @@ import com.serch.server.services.schedule.responses.ScheduleResponse;
 import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import static com.serch.server.enums.schedule.ScheduleStatus.*;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(propagation = Propagation.NESTED)
 public class SchedulingImplementation implements SchedulingService {
     private final ProfileRepository profileRepository;
 

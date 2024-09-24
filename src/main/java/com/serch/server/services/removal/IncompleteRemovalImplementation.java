@@ -12,12 +12,11 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(propagation = Propagation.NESTED)
 public class IncompleteRemovalImplementation implements IncompleteRemovalService {
     private final IncompleteRepository incompleteRepository;
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public void remove() {
         List<Incomplete> list = incompleteRepository.findByCreatedAtBefore(TimeUtil.now().minusYears(1));
 

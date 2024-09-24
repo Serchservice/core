@@ -7,14 +7,11 @@ import com.serch.server.core.payment.responses.BankAccount;
 import com.serch.server.services.transaction.services.BankService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(propagation = Propagation.NESTED)
 public class BankImplementation implements BankService {
     private final PaymentService service;
 

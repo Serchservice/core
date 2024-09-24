@@ -51,7 +51,6 @@ import static com.serch.server.enums.trip.TripType.REQUEST;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(propagation = Propagation.NESTED)
 public class TripRequestImplementation implements TripRequestService {
     private static final Logger log = LoggerFactory.getLogger(TripRequestImplementation.class);
     private final StorageService storageService;
@@ -79,7 +78,7 @@ public class TripRequestImplementation implements TripRequestService {
     private String MAP_SEARCH_RADIUS;
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public ApiResponse<TripResponse> invite(TripInviteRequest request) {
         if(request.getCategory() != null) {
             validateInviteRequest(request);
@@ -112,7 +111,7 @@ public class TripRequestImplementation implements TripRequestService {
         }
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     protected TripInvite create(TripInviteRequest request, String account, TripMode mode, String linkId) {
         TripInvite trip = TripMapper.INSTANCE.request(request);
         trip.setAccount(account);
@@ -126,7 +125,7 @@ public class TripRequestImplementation implements TripRequestService {
         return tripInviteRepository.save(trip);
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     protected void saveShoppingData(TripInviteRequest request, TripInvite trip) {
         if(request.getShoppingLocation() != null) {
             ShoppingLocation shoppingLocation = TripMapper.INSTANCE.shopping(request.getShoppingLocation());
@@ -142,7 +141,7 @@ public class TripRequestImplementation implements TripRequestService {
         });
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     protected void pingServiceProviders(TripInviteRequest request, TripInvite trip, String name, String account) {
         CompletableFuture.runAsync(() -> {
             List<Active> actives = activeRepository.sortAllWithinDistance(
@@ -168,7 +167,7 @@ public class TripRequestImplementation implements TripRequestService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public ApiResponse<TripResponse> invite(String guestId, String linkId, TripInviteRequest request) {
         validateInviteRequest(request);
 
@@ -207,7 +206,7 @@ public class TripRequestImplementation implements TripRequestService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public ApiResponse<TripResponse> sendQuotation(QuotationRequest request) {
         if(request.getAmount() != null) {
             TripInvite trip = tripInviteRepository.findById(request.getId())
@@ -276,7 +275,7 @@ public class TripRequestImplementation implements TripRequestService {
         }
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     protected TripResponse response(String trip, String acct, String name, QuotationRequest req) {
         BigDecimal amount = BigDecimal.valueOf(req.getAmount());
         TripInviteQuotation quote = tripInviteQuotationRepository
@@ -306,7 +305,7 @@ public class TripRequestImplementation implements TripRequestService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public ApiResponse<TripResponse> accept(TripAcceptRequest request) {
         TripInviteQuotation quote;
         String account;
@@ -345,7 +344,7 @@ public class TripRequestImplementation implements TripRequestService {
         return new ApiResponse<>(historyService.response(saved.getId(), account, data, true, requestedId));
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     protected Trip buildTripFromRequest(TripInviteQuotation quote) {
         Trip trip = TripMapper.INSTANCE.trip(quote.getInvite());
         trip.setType(REQUEST);
@@ -357,7 +356,7 @@ public class TripRequestImplementation implements TripRequestService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public ApiResponse<String> cancel(TripCancelRequest request) {
         TripInvite trip = tripInviteRepository.findById(request.getTrip())
                 .orElseThrow(() -> new TripException("Trip request not found"));
@@ -373,7 +372,7 @@ public class TripRequestImplementation implements TripRequestService {
         throw new TripException("Error while cancelling trip request. Request might not be made by you");
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     protected ApiResponse<String> updateListWhenCancelled(TripInvite trip) {
         if(trip.getQuotes() != null && !trip.getQuotes().isEmpty()) {
             trip.getQuotes().forEach(q -> messaging.convertAndSend(
@@ -387,7 +386,7 @@ public class TripRequestImplementation implements TripRequestService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public ApiResponse<String> cancel(TripCancelRequest request, Long quoteId) {
         TripInviteQuotation quote = tripInviteQuotationRepository.findById(quoteId)
                 .orElseThrow(() -> new TripException("No trip found for quote " + quoteId));
@@ -413,7 +412,7 @@ public class TripRequestImplementation implements TripRequestService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public ApiResponse<List<TripResponse>> history(String guestId, String linkId) {
         return new ApiResponse<>(historyService.inviteHistory(guestId, null, linkId));
     }

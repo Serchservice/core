@@ -39,7 +39,6 @@ import static com.serch.server.enums.trip.TripConnectionStatus.REQUESTED;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(propagation = Propagation.NESTED)
 public class TripPayImplementation implements TripPayService {
     @Value("${application.payment.trip.service.fee}")
     private Integer TRIP_SERVICE_FEE;
@@ -61,7 +60,7 @@ public class TripPayImplementation implements TripPayService {
     private final GuestRepository guestRepository;
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public Boolean processPayment(Trip trip) {
         if(trip.withUserShare()) {
             BigDecimal amount = BigDecimal.valueOf(TRIP_SERVICE_FEE).add(BigDecimal.valueOf(TRIP_SERVICE_USER));
@@ -105,7 +104,7 @@ public class TripPayImplementation implements TripPayService {
         return false;
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     protected Wallet getWallet(Trip trip) {
         Wallet wallet;
 
@@ -117,7 +116,7 @@ public class TripPayImplementation implements TripPayService {
         return wallet;
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     protected Transaction processPayment(Trip trip, Wallet wallet, BigDecimal debit) {
         String reference = HelperUtil.generateReference("STR-TRIP");
 
@@ -173,7 +172,7 @@ public class TripPayImplementation implements TripPayService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public InitializePaymentData initializeShoppingPayment(Trip trip) {
         if(trip.getShoppingItems() != null && !trip.getShoppingItems().isEmpty()) {
             BigDecimal total = trip.getShoppingItems().stream()
@@ -223,7 +222,7 @@ public class TripPayImplementation implements TripPayService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public InitializePaymentData pay(Trip trip, UUID id) {
         List<Trip> trips = tripRepository.findByProvider_Id(id);
 
@@ -252,7 +251,7 @@ public class TripPayImplementation implements TripPayService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public Boolean verify(String reference) {
         TripPayment payment = tripPaymentRepository.findByReference(reference).orElse(null);
         Transaction transaction = transactionRepository.findByReference(reference).orElse(null);
@@ -285,7 +284,7 @@ public class TripPayImplementation implements TripPayService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public void processCredit(Trip trip) {
         TripPayment payment = trip.getPayment();
         if(payment != null && payment.getStatus() == SUCCESSFUL) {

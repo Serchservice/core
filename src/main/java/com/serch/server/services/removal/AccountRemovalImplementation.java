@@ -37,7 +37,6 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(propagation = Propagation.NESTED)
 public class AccountRemovalImplementation implements AccountRemovalService {
     private final AccountDeleteRepository accountDeleteRepository;
     private final ProfileRepository profileRepository;
@@ -66,6 +65,7 @@ public class AccountRemovalImplementation implements AccountRemovalService {
     private final SpeakWithSerchRepository speakWithSerchRepository;
 
     @Override
+    @Transactional(propagation = Propagation.NESTED)
     public void remove() {
         List<IssueStatus> statuses = Arrays.asList(IssueStatus.RESOLVED, IssueStatus.CLOSED);
 

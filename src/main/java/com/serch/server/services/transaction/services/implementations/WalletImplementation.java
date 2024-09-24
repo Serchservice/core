@@ -62,7 +62,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(propagation = Propagation.NESTED)
 public class WalletImplementation implements WalletService {
     private final PaymentService paymentService;
     private final NotificationService notificationService;
@@ -678,7 +677,7 @@ public class WalletImplementation implements WalletService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public void processPaydays() {
         List<Wallet> wallets = walletRepository.findAll();
         if(!wallets.isEmpty()) {
@@ -722,7 +721,7 @@ public class WalletImplementation implements WalletService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public void processPendingVerifications() {
         List<Transaction> transactions = transactionRepository.findAllPending();
         transactions.forEach(transaction -> {

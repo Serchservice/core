@@ -58,7 +58,6 @@ import static com.serch.server.enums.trip.TripType.REQUEST;
  */
 @Service
 @RequiredArgsConstructor
-@Transactional(propagation = Propagation.NESTED)
 public class TripHistoryImplementation implements TripHistoryService {
     private final UserUtil userUtil;
     private final SimpMessagingTemplate messaging;
@@ -79,7 +78,7 @@ public class TripHistoryImplementation implements TripHistoryService {
     private String MAP_SEARCH_RADIUS;
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public TripResponse response(String id, String userId) {
         TripInvite invite = tripInviteRepository.findById(id).orElseThrow(() -> new TripException("Invite not found"));
         TripResponse response = TripMapper.INSTANCE.response(invite);
@@ -170,7 +169,7 @@ public class TripHistoryImplementation implements TripHistoryService {
                 .toList();
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     protected UserResponse buildUserResponse(String id, String trip) {
         AtomicReference<UserResponse> response = new AtomicReference<>(new UserResponse());
         try {
@@ -193,7 +192,7 @@ public class TripHistoryImplementation implements TripHistoryService {
         return response.get();
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     protected UserResponse buildUserResponse(Profile profile, String trip) {
         UserResponse response = new UserResponse();
         response.setAvatar(profile.getAvatar());
@@ -221,7 +220,7 @@ public class TripHistoryImplementation implements TripHistoryService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public TripResponse response(String id, String userId, @Nullable InitializePaymentData payment, boolean sendUpdate, String requestedId) {
         Trip trip = tripRepository.findById(id).orElseThrow(() -> new TripException("Trip not found"));
 
@@ -334,7 +333,7 @@ public class TripHistoryImplementation implements TripHistoryService {
         return response;
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     protected void addInvitedInformation(Trip trip, TripResponse response) {
         if(trip.getInvited() != null) {
             TripShareResponse share = TripMapper.INSTANCE.share(trip.getInvited());
@@ -371,7 +370,7 @@ public class TripHistoryImplementation implements TripHistoryService {
         return profile;
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     protected List<TripTimelineResponse> timeline(List<TripTimeline> timelines, TripActionResponse action, TripShare share) {
         boolean containsCancelled = matchesTimelineStatus(CANCELLED, timelines);
         boolean containsShareAccessGranted = matchesTimelineStatus(SHARE_ACCESS_GRANTED, timelines);
@@ -456,7 +455,7 @@ public class TripHistoryImplementation implements TripHistoryService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public List<TripResponse> inviteHistory(String guestId, UUID userId, String linkId) {
         List<TripResponse> invites = new ArrayList<>();
 
@@ -516,7 +515,7 @@ public class TripHistoryImplementation implements TripHistoryService {
                 .collect(Collectors.toList());
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     protected void buildUserList(List<TripResponse> invites, User user) {
         invites.addAll(tripInviteRepository.findByAccount(String.valueOf(user.getId()))
                 .stream()
@@ -532,7 +531,7 @@ public class TripHistoryImplementation implements TripHistoryService {
                 .toList());
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     protected void buildProviderWaitingList(SerchCategory category, List<TripResponse> invites, User user) {
         invites.addAll(tripInviteRepository.sortAllWithinDistance(Double.parseDouble(MAP_SEARCH_RADIUS), category.name())
                 .stream()
@@ -556,7 +555,7 @@ public class TripHistoryImplementation implements TripHistoryService {
 
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public ApiResponse<List<TripResponse>> history(String guest, String linkId, boolean sendUpdate, String tripId) {
         List<TripResponse> list;
 
@@ -593,7 +592,7 @@ public class TripHistoryImplementation implements TripHistoryService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public ApiResponse<List<TripResponse>> history(String guest, String linkId) {
         return history(guest, linkId, false, null);
     }

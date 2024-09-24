@@ -16,20 +16,19 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(propagation = Propagation.NESTED)
 public class ChatImplementation implements ChatService {
     private final ChattingService service;
     private final UserUtil userUtil;
     private final ChatRoomRepository chatRoomRepository;
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public ApiResponse<List<ChatRoomResponse>> rooms() {
         return new ApiResponse<>(service.response(userUtil.getUser().getId()));
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public ApiResponse<ChatRoomResponse> messages(String roomId) {
         ChatRoom room = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new ChatException("Chat not found", String.valueOf(userUtil.getUser().getId())));
@@ -37,7 +36,7 @@ public class ChatImplementation implements ChatService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public ApiResponse<ChatRoomResponse> room(UUID roommate) {
         ChatRoom room = chatRoomRepository.findByRoommateAndCreator(roommate, userUtil.getUser().getId())
                 .orElseGet(() -> {

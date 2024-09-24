@@ -17,12 +17,11 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(propagation = Propagation.NESTED)
 public class TripTimelineImplementation implements TripTimelineService {
     private final TripTimelineRepository tripTimelineRepository;
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public void create(Trip trip, TripShare share, TripConnectionStatus status) {
         if(share != null) {
             tripTimelineRepository.findByStatusAndSharing_Id(status, share.getId())
@@ -52,13 +51,13 @@ public class TripTimelineImplementation implements TripTimelineService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public TripTimelineResponse response(TripTimeline timeline) {
         return null;
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public List<TripTimelineResponse> response(Trip trip) {
         return List.of();
     }

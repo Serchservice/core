@@ -52,7 +52,6 @@ import static com.serch.server.enums.schedule.ScheduleStatus.*;
  */
 @Service
 @RequiredArgsConstructor
-@Transactional(propagation = Propagation.NESTED)
 public class ScheduleImplementation implements ScheduleService {
     private final SchedulePayService payService;
     private final SchedulingService schedulingService;
@@ -481,7 +480,7 @@ public class ScheduleImplementation implements ScheduleService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public void notifySchedules() {
         LocalDate today = LocalDate.now();
         scheduleRepository.findByCreatedAtBetween(ZonedDateTime.of(today.atStartOfDay(), ZoneOffset.UTC), ZonedDateTime.of(today.atTime(23, 59, 59), ZoneOffset.UTC))
@@ -503,7 +502,7 @@ public class ScheduleImplementation implements ScheduleService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public void closePastUnaccepted() {
         ZonedDateTime current = TimeUtil.now();
 

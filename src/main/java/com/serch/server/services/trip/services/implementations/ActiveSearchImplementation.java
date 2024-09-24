@@ -34,8 +34,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -54,7 +52,6 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 @Service
 @RequiredArgsConstructor
-@Transactional(propagation = Propagation.NESTED)
 public class ActiveSearchImplementation implements ActiveSearchService {
     private static final Logger log = LoggerFactory.getLogger(ActiveSearchImplementation.class);
     private final ProfileService profileService;

@@ -9,36 +9,23 @@ on:
       - main
 
 jobs:
-  # Reusable job for checking out code and installing xmllint
-  setup:
+  check:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4 # Ensures the repo is cloned with .git directory
 
       - name: Install xmllint
         run: sudo apt-get install -y libxml2-utils
 
-  # Reusable job to extract version from pom.xml
-  get_version:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
       - name: Get version from pom.xml
         id: get_version
         run: echo "VERSION=$(xmllint --xpath 'string(//project/version)' pom.xml)" >> $GITHUB_ENV
 
-  # Job for pull request check
-  check:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    needs: [setup, get_version]
-    steps:
-      - name: Fetch all tags
-        run: git fetch --tags
-
       - name: Check for existing tag
         run: |
+          git fetch --tags # This will now work as git repository is initialized
           if git rev-parse "v${{ env.VERSION }}" >/dev/null 2>&1; then
             echo "Tag v${{ env.VERSION }} already exists. Failing the check."
             exit 1
@@ -51,20 +38,23 @@ jobs:
             exit 1
           fi
 
-  # Job for creating tag and release
   release:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    needs: [setup, get_version]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4  # Ensure the repository is cloned
+        uses: actions/checkout@v4 # Ensures the repo is cloned with .git directory
 
-      - name: Fetch all tags
-        run: git fetch --tags  # Ensure all tags are fetched
+      - name: Install xmllint
+        run: sudo apt-get install -y libxml2-utils
+
+      - name: Get version from pom.xml
+        id: get_version
+        run: echo "VERSION=$(xmllint --xpath 'string(//project/version)' pom.xml)" >> $GITHUB_ENV
 
       - name: Create Tag
         run: |
+          git fetch --tags # Fetch all tags to check for the version
           git tag "v${{ env.VERSION }}"
           git push origin "v${{ env.VERSION }}"
           echo "Tag created: v${{ env.VERSION }}"

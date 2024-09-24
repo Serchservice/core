@@ -6,6 +6,7 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.mailersend.sdk.MailerSend;
+import com.serch.server.core.NotificationKey;
 import com.serch.server.core.sms.SmsConfig;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.utils.ServerUtil;
@@ -165,12 +166,19 @@ public class ServerConfiguration {
     @SneakyThrows
     public GoogleCredentials credentials() {
         ObjectMapper objectMapper = new ObjectMapper();
+        String json;
 
-        // Parse the JSON string into a Map
-        var account = objectMapper.readValue(NOTIFICATION_SERVICE_KEY, HashMap.class);
+        if(NOTIFICATION_SERVICE_KEY.startsWith("https")) {
+            NotificationKey key = restTemplate().getForObject(NOTIFICATION_SERVICE_KEY, NotificationKey.class);
+            // Convert the map back to a JSON string
+            json = objectMapper.writeValueAsString(key);
+        } else {
+            // Parse the JSON string into a Map
+            var account = objectMapper.readValue(NOTIFICATION_SERVICE_KEY, HashMap.class);
 
-        // Convert the map back to a JSON string
-        String json = objectMapper.writeValueAsString(account);
+            // Convert the map back to a JSON string
+            json = objectMapper.writeValueAsString(account);
+        }
 
         InputStream inputStream = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
         GoogleCredentials credentials = GoogleCredentials.fromStream(inputStream)

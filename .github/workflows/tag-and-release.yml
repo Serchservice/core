@@ -45,12 +45,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4 # Ensures the repo is cloned with .git directory
 
-      - name: Install xmllint
-        run: sudo apt-get install -y libxml2-utils
-
       - name: Get version from pom.xml
         id: get_version
-        run: echo "VERSION=$(xmllint --xpath 'string(//project/version)' pom.xml)" >> $GITHUB_ENV
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Create Tag
         run: |

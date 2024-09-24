@@ -33,6 +33,7 @@ import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.codec.binary.Base64;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -63,6 +64,12 @@ public class CertificateImplementation implements CertificateService {
     private final BusinessProfileRepository businessProfileRepository;
     private final TripRepository tripRepository;
     private final AccountReportRepository accountReportRepository;
+
+    @Value("${application.certificate.min.count}")
+    private Integer CERTIFICATE_MIN_COUNT;
+
+    @Value("${application.certificate.min.days}")
+    private Integer CERTIFICATE_MIN_DAYS;
 
     private String date(ZonedDateTime date) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy");
@@ -148,14 +155,14 @@ public class CertificateImplementation implements CertificateService {
 
     private boolean isThirtyDaysAfter(ZonedDateTime createdAt) {
         // Check if the current date and time is 30 days or more after the creation date
-        return TimeUtil.now().isAfter(createdAt.plusDays(30)) || TimeUtil.now().isEqual(createdAt.plusDays(30));
+        return TimeUtil.now().isAfter(createdAt.plusDays(CERTIFICATE_MIN_DAYS)) || TimeUtil.now().isEqual(createdAt.plusDays(CERTIFICATE_MIN_DAYS));
     }
 
     private Map<String, Boolean> instruction(User user, Certificate certificate) {
         Map<String, Boolean> instruction = new HashMap<>();
         if(certificate != null) {
             instruction.put(
-                    "Generate a new certificate after 30 days of current generated certificate",
+                    String.format("Generate a new certificate after %s days of current generated certificate", CERTIFICATE_MIN_DAYS),
                     isThirtyDaysAfter(certificate.getCreatedAt())
             );
             instruction.put(
@@ -165,12 +172,12 @@ public class CertificateImplementation implements CertificateService {
             );
         } else {
             instruction.put(
-                    "Engage the least of 20 service trips",
-                    tripRepository.findByProviderId(user.getId()).size() > 20
+                    String.format("Engage the least of %s service trips", CERTIFICATE_MIN_COUNT),
+                    tripRepository.findByProviderId(user.getId()).size() > CERTIFICATE_MIN_COUNT
             );
             instruction.put(
-                    "Have the least of 20 rates from your service trips",
-                    ratingRepository.findByRated(String.valueOf(user.getId())).size() > 20
+                    String.format("Have the least of %s rates from your service trips", CERTIFICATE_MIN_COUNT),
+                    ratingRepository.findByRated(String.valueOf(user.getId())).size() > CERTIFICATE_MIN_COUNT
             );
             instruction.put(
                     "Run your account without being reported by any user",

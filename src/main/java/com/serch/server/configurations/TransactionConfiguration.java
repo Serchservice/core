@@ -29,6 +29,7 @@ public class TransactionConfiguration {
             transactionManager.commit(status);  // Commit the transaction if successful
         } catch (Throwable ex) {
             transactionManager.rollback(status);  // Rollback the transaction on error
+            log.info(String.format("SERCH:: Exception from TransactionConfiguration: %s", ex.getMessage()));
             throw ex;
         }
         return result;

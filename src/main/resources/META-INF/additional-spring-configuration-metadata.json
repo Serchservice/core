@@ -81,21 +81,6 @@
       "description": "This is the amount to be charged for any schedule close."
     },
     {
-      "name": "application.storage.name",
-      "type": "java.lang.String",
-      "description": "A description for 'application.storage.name'."
-    },
-    {
-      "name": "application.storage.api.key",
-      "type": "java.lang.String",
-      "description": "A description for 'application.storage.api.key'."
-    },
-    {
-      "name": "application.storage.api.secret",
-      "type": "java.lang.String",
-      "description": "A description for 'application.storage.api.secret'."
-    },
-    {
       "name": "application.payment.base-url",
       "type": "java.lang.String",
       "description": "The Payment BASE URL."
@@ -274,6 +259,16 @@
       "name": "application.sms.phone_number",
       "type": "java.lang.String",
       "description": "The phone number used for sending sms from the sms third party provider."
+    },
+    {
+      "name": "application.certificate.min.count",
+      "type": "java.lang.String",
+      "description": "Minimum count needed to generate certificate of skill."
+    },
+    {
+      "name": "application.certificate.min.days",
+      "type": "java.lang.String",
+      "description": "Minimum days needed to regenerate certificate of skill."
     }
   ]
 }

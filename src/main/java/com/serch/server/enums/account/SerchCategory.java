@@ -62,6 +62,20 @@ public enum SerchCategory {
             true,
             true
     ),
+    GENERATOR_REPAIR(
+            "Generator repairer",
+            "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/categories/generator.png",
+            "What skills do you have",
+            true,
+            true
+    ),
+    HOME_INSTALLER(
+            "Home Installer",
+            "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/categories/home.png",
+            "What skills do you have",
+            true,
+            true
+    ),
     GUEST(
             "Guest",
             "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/categories/guest.png",

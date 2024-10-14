@@ -42,6 +42,8 @@ public enum ActivityMode {
     ROLE_CHANGE("Role Change"),
     ACCOUNT_DELETE("Account Delete"),
     PROFILE_UPDATE("Profile Update"),
+    MFA_CONSTRAINT_ENFORCED("Multi-Factor Authentication Enforced"),
+    MFA_CONSTRAINT_REMOVED("Multi-Factor Authentication Removed"),
     MFA_LOGIN("Mfa Login"),;
 
     private final String value;

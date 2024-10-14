@@ -54,11 +54,22 @@ public interface NotificationService {
     void send(String id, String content, String title, String sender, String trip, boolean isInvite);
 
     /**
-     * This will send a trip invite or request notification to the preferred device
+     * This will send a transaction notification to the user for debits and credits
      *
      * @param id The guest receiving the notification
      * @param isIncome Whether the payment is an income or not
      * @param amount The amount from the payment
      */
     void send(UUID id, boolean isIncome, BigDecimal amount);
+
+    /**
+     * This will send a transaction notification to the user for payouts
+     *
+     * @param id The guest receiving the notification
+     * @param paid Whether the payment is an income or not
+     * @param amount The amount from the payment
+     * @param next The next payout date
+     * @param bank The bank name and bank details
+     */
+    void send(UUID id, BigDecimal amount, boolean paid, String next, String bank);
 }

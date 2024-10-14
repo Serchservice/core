@@ -137,23 +137,28 @@ public class TimeUtil {
 
     /**
      * Formats the day based on the provided date and time.
-     * @param dateTime The date and time to format.
+     * @param date The date and time to format.
      * @return The formatted day.
      */
-    public static String formatDay(LocalDateTime dateTime) {
-        if (dateTime != null) {
-            LocalDateTime currentDateTime = LocalDateTime.now();
+    public static String formatDay(LocalDateTime date, String timezone) {
+        if (date != null) {
+            ZonedDateTime currentDateTime = now(zoneId(timezone));
+            ZonedDateTime dateTime = ZonedDateTime.of(date, zoneId(timezone));
 
-            if (dateTime.toLocalDate().equals(currentDateTime.toLocalDate())) {
-                return "Today, %s".formatted(formatTime(dateTime));
-            } else if (dateTime.toLocalDate().equals(currentDateTime.minusDays(1).toLocalDate())) {
-                return "Yesterday, %s".formatted(formatTime(dateTime));
-            } else {
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy");
-                return dateTime.format(formatter);
-            }
+            return getDateString(timezone, currentDateTime, dateTime);
         } else {
             return "";
+        }
+    }
+
+    private static String getDateString(String timezone, ZonedDateTime currentDateTime, ZonedDateTime dateTime) {
+        if (dateTime.toLocalDate().equals(currentDateTime.toLocalDate())) {
+            return "Today, %s".formatted(formatTime(dateTime, timezone));
+        } else if (dateTime.toLocalDate().equals(currentDateTime.minusDays(1).toLocalDate())) {
+            return "Yesterday, %s".formatted(formatTime(dateTime, timezone));
+        } else {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy");
+            return dateTime.format(formatter);
         }
     }
 
@@ -166,14 +171,7 @@ public class TimeUtil {
         if (dateTime != null) {
             ZonedDateTime currentDateTime = now(zoneId(timezone));
 
-            if (dateTime.toLocalDate().equals(currentDateTime.toLocalDate())) {
-                return "Today, %s".formatted(formatTime(dateTime, timezone));
-            } else if (dateTime.toLocalDate().equals(currentDateTime.minusDays(1).toLocalDate())) {
-                return "Yesterday, %s".formatted(formatTime(dateTime, timezone));
-            } else {
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy");
-                return dateTime.format(formatter);
-            }
+            return getDateString(timezone, currentDateTime, dateTime);
         } else {
             return "";
         }
@@ -253,6 +251,10 @@ public class TimeUtil {
         } else{
             return defaultZone();
         }
+    }
+
+    public static ZonedDateTime toZonedDate(LocalDateTime date, String timezone) {
+        return ZonedDateTime.of(date, zoneId(timezone));
     }
 
     public static ZonedDateTime toUserTimeZone(ZonedDateTime time, String timeZone) {

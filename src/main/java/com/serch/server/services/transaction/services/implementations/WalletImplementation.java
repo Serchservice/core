@@ -50,6 +50,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.serch.server.enums.transaction.TransactionStatus.FAILED;
+import static com.serch.server.enums.transaction.TransactionStatus.SUCCESSFUL;
+
 /**
  * The WalletImplementation class provides implementation for managing user wallets and transactions.
  * <p></p>
@@ -141,20 +144,20 @@ public class WalletImplementation implements WalletService {
                 .orElseThrow(() -> new WalletException("Transaction not found"));
 
         if(UUID.fromString(transaction.getSender()).equals(userUtil.getUser().getId())) {
-            if(transaction.getStatus() == TransactionStatus.SUCCESSFUL) {
+            if(transaction.getStatus() == SUCCESSFUL) {
                 throw new WalletException("Transaction is already verified");
             } else {
                 try {
                     paymentService.verify(transaction.getReference());
                     creditWallet(transaction.getAmount(), userUtil.getUser().getId());
-                    transaction.setStatus(TransactionStatus.SUCCESSFUL);
+                    transaction.setStatus(SUCCESSFUL);
                     transaction.setVerified(true);
                     transaction.setUpdatedAt(TimeUtil.now());
                     transactionRepository.save(transaction);
 
                     return view();
                 } catch (Exception e) {
-                    transaction.setStatus(TransactionStatus.FAILED);
+                    transaction.setStatus(FAILED);
                     transaction.setVerified(false);
                     transaction.setReason("Error in verification");
                     transaction.setUpdatedAt(TimeUtil.now());
@@ -313,7 +316,7 @@ public class WalletImplementation implements WalletService {
 
         transaction.setUpdatedAt(TimeUtil.now());
         transaction.setVerified(true);
-        transaction.setStatus(TransactionStatus.SUCCESSFUL);
+        transaction.setStatus(SUCCESSFUL);
         transactionRepository.save(transaction);
     }
 
@@ -474,7 +477,7 @@ public class WalletImplementation implements WalletService {
 
     protected String prepareScheduleDescription(Transaction transaction, boolean isIncoming) {
         if(isIncoming) {
-            if(transaction.getVerified() && transaction.getStatus() == TransactionStatus.SUCCESSFUL) {
+            if(transaction.getVerified() && transaction.getStatus() == SUCCESSFUL) {
                 return String.format(
                         "%s was sent to your wallet because %s closed schedule %s with %s for %s on %s, late",
                         MoneyUtil.formatToNaira(transaction.getAmount()),
@@ -500,7 +503,7 @@ public class WalletImplementation implements WalletService {
                 );
             }
         } else {
-            if(transaction.getVerified() && transaction.getStatus() == TransactionStatus.SUCCESSFUL) {
+            if(transaction.getVerified() && transaction.getStatus() == SUCCESSFUL) {
                 return String.format(
                         "%s was debited from your wallet because %s closed schedule %s with %s for %s on %s, late",
                         MoneyUtil.formatToNaira(transaction.getAmount()),
@@ -576,7 +579,7 @@ public class WalletImplementation implements WalletService {
 
     protected String prepareCallDescription(Transaction transaction, boolean isIncoming) {
         if(isIncoming) {
-            if(transaction.getVerified() && transaction.getStatus() == TransactionStatus.SUCCESSFUL) {
+            if(transaction.getVerified() && transaction.getStatus() == SUCCESSFUL) {
                 return String.format(
                         "%s was sent to your wallet because %s had a Tip2Fix session %s with %s",
                         MoneyUtil.formatToNaira(transaction.getAmount()),
@@ -599,7 +602,7 @@ public class WalletImplementation implements WalletService {
                 );
             }
         } else {
-            if(transaction.getVerified() && transaction.getStatus() == TransactionStatus.SUCCESSFUL) {
+            if(transaction.getVerified() && transaction.getStatus() == SUCCESSFUL) {
                 return String.format(
                         "%s was debited from your wallet because you had a Tip2Fix session %s with %s",
                         MoneyUtil.formatToNaira(transaction.getAmount()),
@@ -680,14 +683,18 @@ public class WalletImplementation implements WalletService {
     public void processPaydays() {
         List<Wallet> wallets = walletRepository.findAll();
         if(!wallets.isEmpty()) {
-            LocalDate today = LocalDate.now();
             wallets.forEach(wallet -> {
                 if(wallet.getPayoutOnPayday()) {
-                    if(isPayday(wallet, today)) {
+                    if(isPayday(wallet)) {
                         if(wallet.getBalance().compareTo(wallet.getPayout()) > 0) {
                             if(wallet.hasBank()) {
                                 saveDebitTransaction(wallet.getPayout(), wallet);
+                                updateLastPayday(wallet, SUCCESSFUL);
+                            } else {
+                                updateLastPayday(wallet, FAILED);
                             }
+                        } else {
+                            updateLastPayday(wallet, FAILED);
                         }
                     }
                 }
@@ -695,7 +702,8 @@ public class WalletImplementation implements WalletService {
         }
     }
 
-    private boolean isPayday(Wallet wallet, LocalDate today) {
+    private boolean isPayday(Wallet wallet) {
+        LocalDate today = LocalDate.now();
         LocalDate nextPayday = getNextPayday(wallet, today);
         return !today.isBefore(nextPayday) && today.isEqual(nextPayday);
     }
@@ -706,6 +714,22 @@ public class WalletImplementation implements WalletService {
         long daysToNextPayday = wallet.getPayday() - (daysSinceLastPayday % wallet.getPayday());
         LocalDate nextPayday = lastPayday.plusDays(daysToNextPayday);
         return nextPayday.isBefore(today) ? nextPayday.plusDays(wallet.getPayday()) : nextPayday;
+    }
+
+    private void updateLastPayday(Wallet wallet, TransactionStatus status) {
+        LocalDate today = LocalDate.now();
+        // Set last payday to today, and calculate the new next payout date
+        wallet.setLastPayday(today);
+        walletRepository.save(wallet); // Persist the changes
+
+        /// Send Notification
+        notificationService.send(
+                wallet.getUser().getId(),
+                wallet.getPayout(),
+                status == SUCCESSFUL,
+                formatNextPayday(wallet),
+                String.format("%s - %s", wallet.getBankName(), wallet.getAccountName())
+        );
     }
 
     public String formatNextPayday(Wallet wallet) {
@@ -729,14 +753,14 @@ public class WalletImplementation implements WalletService {
                     paymentService.verify(transaction.getReference());
 
                     creditWallet(transaction.getAmount(), UUID.fromString(transaction.getSender()));
-                    transaction.setStatus(TransactionStatus.SUCCESSFUL);
+                    transaction.setStatus(SUCCESSFUL);
                     transaction.setVerified(true);
                     transaction.setUpdatedAt(TimeUtil.now());
                     transactionRepository.save(transaction);
 
                     notificationService.send(UUID.fromString(transaction.getSender()), true, transaction.getAmount());
                 } catch (Exception e) {
-                    transaction.setStatus(TransactionStatus.FAILED);
+                    transaction.setStatus(FAILED);
                     transaction.setVerified(false);
                     transaction.setReason("Error in verification");
                     transaction.setUpdatedAt(TimeUtil.now());

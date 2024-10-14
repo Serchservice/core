@@ -2,10 +2,13 @@ package com.serch.server.services.auth.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.core.session.SessionService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -30,6 +33,7 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class LogoutService implements LogoutHandler {
+    private static final Logger log = LoggerFactory.getLogger(LogoutService.class);
     private final SessionService sessionService;
     private final UserDetailsService userDetailsService;
 
@@ -46,20 +50,26 @@ public class LogoutService implements LogoutHandler {
      */
     @SneakyThrows
     @Override
-    public void logout(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            Authentication authentication
-    ) {
+    public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+        log.info(String.format("LOGOUT::: %s", authentication.getName()));
+        log.info(String.format("LOGOUT::: %s", authentication.getPrincipal()));
+        log.info(String.format("LOGOUT::: %s", authentication.getCredentials()));
+        log.info(String.format("LOGOUT::: %s", authentication.getDetails()));
+        log.info(String.format("LOGOUT::: %s", authentication.getAuthorities()));
+        log.info(String.format("LOGOUT::: %s", request));
+
         String header = request.getHeader("Authorization");
 
         if (header == null || !header.startsWith("Bearer")) {
             return;
         }
 
-        var res = sessionService.validateSession(header.substring(7), null, null);
+        String jwt = header.substring(7);
+        var res = sessionService.validateSession(jwt, null, null);
         if (res.getCode() == 200) {
             authenticate(request, res);
+
+            sessionService.updateSessionDetails(request.getRemoteAddr(), jwt);
             sessionService.signOut();
 
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -69,13 +79,10 @@ public class LogoutService implements LogoutHandler {
             data.put("status", HttpServletResponse.SC_OK);
             data.put("path", request.getServletPath());
 
-            ApiResponse<Map<String, Object>> apiResponse = new ApiResponse<>(
-                    "Sign out successful. You will be redirected to home soon.",
-                    data, HttpStatus.OK
-            );
+            ApiResponse<Map<String, Object>> message = new ApiResponse<>("Sign out successful.", data, HttpStatus.OK);
 
             final ObjectMapper mapper = new ObjectMapper();
-            mapper.writeValue(response.getOutputStream(), apiResponse);
+            mapper.writeValue(response.getOutputStream(), message);
         }
     }
 

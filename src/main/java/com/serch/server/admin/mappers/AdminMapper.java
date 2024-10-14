@@ -5,7 +5,7 @@ import com.serch.server.admin.services.account.responses.AdminActivityResponse;
 import com.serch.server.admin.services.account.responses.AdminProfileResponse;
 import com.serch.server.admin.services.notification.AdminNotificationResponse;
 import com.serch.server.admin.services.permission.responses.PermissionRequestResponse;
-import com.serch.server.admin.services.permission.responses.PermissionScopeResponse;
+import com.serch.server.admin.services.permission.responses.GrantedPermissionScopeResponse;
 import com.serch.server.models.auth.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -25,7 +25,7 @@ public interface AdminMapper {
             @Mapping(target = "updatedAt", source = "updatedAt", ignore = true),
             @Mapping(target = "permissions", source = "permissions", ignore = true),
     })
-    PermissionScopeResponse response(GrantedPermissionScope permission);
+    GrantedPermissionScopeResponse response(GrantedPermissionScope permission);
 
     PermissionRequestResponse response(RequestedPermission permission);
 

@@ -15,7 +15,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByEmailAddressIgnoreCase(String emailAddress);
     long countByRole(@NonNull Role role);
 
-    @Query("select count(u) from users u where u.status = ?1 and (u.role = 'ADMIN' or u.role = 'MANAGER' or u.role = 'TEAM')")
+    @Query("select count(u) from users u where u.status = ?1 and (u.role = 'ADMIN' or u.role = 'SUPER_ADMIN' or u.role = 'MANAGER' or u.role = 'TEAM')")
     long countAdminByStatus(@NonNull AccountStatus accountStatus);
 
     List<User> findByCountryLikeIgnoreCase(@NonNull String country);

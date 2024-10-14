@@ -106,4 +106,13 @@ public class BusinessProfile extends BaseProfile {
      */
     @OneToMany(mappedBy = "business", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Profile> associates;
+
+    /**
+     * Gets the full name of the profile.
+     *
+     * @return The full name of the profile.
+     */
+    public String getFullName() {
+        return getUser().getFirstName() + " " + getUser().getLastName();
+    }
 }

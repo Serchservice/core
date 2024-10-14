@@ -62,15 +62,40 @@ public class Admin extends BaseUser {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "admin")
     private List<AdminActivity> activities;
 
+    /**
+     * Checks if Multi-Factor authentication is enforced for this admin
+     *
+     * @return true or false
+     */
     public boolean mfaEnforced() {
         return mustHaveMFA && !getUser().hasMFA();
     }
 
+    /**
+     * Checks if the admin is a super admin.
+     * @see Role#SUPER_ADMIN
+     *
+     * @return true or false
+     */
     public boolean isSuper() {
         return getUser().getRole() == Role.SUPER_ADMIN;
     }
 
+    /**
+     * Checks if the admin has the {@link Role#ADMIN} role
+     *
+     * @return true or false
+     */
     public boolean isAdmin() {
         return getUser().getRole() == Role.ADMIN;
+    }
+
+    /**
+     * Gets the full name of the profile.
+     *
+     * @return The full name of the profile.
+     */
+    public String getFullName() {
+        return getUser().getFirstName() + " " + getUser().getLastName();
     }
 }

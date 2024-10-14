@@ -1,4 +1,4 @@
-package com.serch.server.services.auth.services.implementations;
+package com.serch.server.core.session;
 
 import com.serch.server.admin.models.Admin;
 import com.serch.server.admin.repositories.AdminRepository;
@@ -24,8 +24,7 @@ import com.serch.server.services.auth.requests.RequestSession;
 import com.serch.server.services.auth.requests.RequestSessionToken;
 import com.serch.server.services.auth.responses.AuthResponse;
 import com.serch.server.services.auth.responses.SessionResponse;
-import com.serch.server.services.auth.services.JwtService;
-import com.serch.server.services.auth.services.SessionService;
+import com.serch.server.core.jwt.JwtService;
 import com.serch.server.services.auth.services.TokenService;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
@@ -268,6 +267,7 @@ public class SessionImplementation implements SessionService {
                     if(country != null) {
                         user.setCountry(country);
                     }
+
                     userRepository.save(user);
                     return new ApiResponse<>("Token is valid", email, HttpStatus.OK);
                 } else {
@@ -304,5 +304,17 @@ public class SessionImplementation implements SessionService {
             user.setLastSignedIn(TimeUtil.now());
             userRepository.save(user);
         });
+    }
+
+    @Override
+    public void updateSessionDetails(String ipAddress, String token) {
+        try {
+            sessionRepository.findById(UUID.fromString(jwtService.getItemFromToken(token, "session_id")))
+                    .ifPresent(session -> {
+                        session.setIpAddress(ipAddress);
+                        session.setUpdatedAt(TimeUtil.now());
+                        sessionRepository.save(session);
+                    });
+        } catch (Exception ignored) {}
     }
 }

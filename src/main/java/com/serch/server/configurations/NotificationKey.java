@@ -1,4 +1,4 @@
-package com.serch.server.core;
+package com.serch.server.configurations;
 
 import lombok.Data;
 

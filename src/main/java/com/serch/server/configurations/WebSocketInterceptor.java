@@ -1,6 +1,6 @@
 package com.serch.server.configurations;
 
-import com.serch.server.services.auth.services.SessionService;
+import com.serch.server.core.session.SessionService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;

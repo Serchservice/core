@@ -11,7 +11,9 @@ public class PermissionRequestResponse {
     private String message;
     private String label;
     private String account;
+    private String expiration;
     private PermissionStatus status;
     private PermissionScope scope;
     private Permission permission;
+    private PermissionRequestDetails details;
 }

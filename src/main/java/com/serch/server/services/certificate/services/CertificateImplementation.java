@@ -21,7 +21,7 @@ import com.serch.server.repositories.account.BusinessProfileRepository;
 import com.serch.server.repositories.certificate.CertificateRepository;
 import com.serch.server.repositories.rating.RatingRepository;
 import com.serch.server.repositories.trip.TripRepository;
-import com.serch.server.services.auth.services.JwtService;
+import com.serch.server.core.jwt.JwtService;
 import com.serch.server.services.certificate.responses.CertificateData;
 import com.serch.server.services.certificate.responses.CertificateResponse;
 import com.serch.server.services.certificate.responses.VerifyCertificateResponse;

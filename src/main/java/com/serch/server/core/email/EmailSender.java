@@ -9,6 +9,8 @@ import com.serch.server.enums.email.EmailType;
 import com.serch.server.exceptions.others.EmailException;
 import com.serch.server.models.email.SendEmail;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class EmailSender implements EmailService {
+    private static final Logger log = LoggerFactory.getLogger(EmailSender.class);
     private final MailerSend send;
 
     @Value("${spring.mail.username}")
@@ -62,6 +65,7 @@ public class EmailSender implements EmailService {
     }
 
     public void send(SendEmail email) {
+        log.info(String.format("SERCH::: Loading email configurations - %s", email.getType()));
         try {
             Email mail = new Email();
 
@@ -113,7 +117,7 @@ public class EmailSender implements EmailService {
             }
 
             MailerSendResponse response = send.emails().send(mail);
-            System.out.println(response);
+            log.info(String.format("SERCH::: Processing from email sender - %s", response));
         } catch (MailerSendException e) {
             throw new EmailException(e.getMessage());
         }

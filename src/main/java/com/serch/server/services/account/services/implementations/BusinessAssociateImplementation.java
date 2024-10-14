@@ -27,7 +27,7 @@ import com.serch.server.services.account.requests.AddAssociateRequest;
 import com.serch.server.services.account.services.AccountDeleteService;
 import com.serch.server.services.account.services.ProfileService;
 import com.serch.server.services.auth.services.AccountStatusTrackerService;
-import com.serch.server.services.auth.services.JwtService;
+import com.serch.server.core.jwt.JwtService;
 import com.serch.server.services.account.responses.BusinessAssociateResponse;
 import com.serch.server.services.account.services.BusinessAssociateService;
 import com.serch.server.services.auth.services.AuthService;

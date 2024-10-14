@@ -14,7 +14,6 @@ public enum PermissionScope {
     SUPPORT("Support"),
     PRODUCT("Product"),
     ADMIN("Admin"),
-    INDIVIDUAL("Individual"),
     GUEST("Guest");
 
     private final String scope;

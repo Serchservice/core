@@ -62,6 +62,7 @@ public class AccountImplementation implements AccountService {
     private final BusinessProfileRepository businessProfileRepository;
     private final ProfileRepository profileRepository;
     private final TripShareRepository tripShareRepository;
+    private final UserRepository userRepository;
 
     @Override
     public ApiResponse<List<AccountResponse>> accounts() {
@@ -221,12 +222,13 @@ public class AccountImplementation implements AccountService {
     public ApiResponse<String> updateTimezone(String timezone) {
         profileRepository.findById(userUtil.getUser().getId()).ifPresentOrElse(profile -> {
                     profile.getUser().setTimezone(timezone);
-                    profileRepository.save(profile);
+                    userRepository.save(profile.getUser());
                 }, () -> businessProfileRepository.findById(userUtil.getUser().getId()).ifPresent(business -> {
                     business.getUser().setTimezone(timezone);
-                    businessProfileRepository.save(business);
+                    userRepository.save(business.getUser());
                 })
         );
+
         return new ApiResponse<>("Successfully updated timezone", HttpStatus.OK);
     }
 }

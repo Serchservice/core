@@ -15,7 +15,7 @@ import com.serch.server.services.auth.requests.RequestSession;
 import com.serch.server.services.auth.responses.AuthResponse;
 import com.serch.server.services.auth.services.AuthService;
 import com.serch.server.services.auth.services.BusinessAuthService;
-import com.serch.server.services.auth.services.SessionService;
+import com.serch.server.core.session.SessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;

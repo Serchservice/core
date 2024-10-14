@@ -70,4 +70,19 @@ public class HelperUtil {
             return "a " + text;
         }
     }
+
+    /**
+     * Transform id in string to uuid
+     *
+     * @param id The id in String value
+     *
+     * @return The transformed {@link UUID}
+     */
+    public static UUID parseUUID(String id) {
+        try {
+            return UUID.fromString(id);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
 }

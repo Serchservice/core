@@ -2,7 +2,7 @@ package com.serch.server.configurations;
 
 import com.serch.server.exceptions.ServerExceptionHandler;
 import com.serch.server.exceptions.auth.AuthException;
-import com.serch.server.services.auth.services.SessionService;
+import com.serch.server.core.session.SessionService;
 import com.serch.server.utils.ServerUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -72,13 +72,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         log.info(String.format("%s::: %s", "JWT AUTHENTICATION FILTER - URL", request.getRequestURL()));
         log.info(String.format("%s::: %s", "JWT AUTHENTICATION FILTER - URI", request.getRequestURI()));
         log.info(String.format("%s::: %s", "JWT AUTHENTICATION FILTER - REMOTE ADDRESS", request.getRemoteAddr()));
+        log.info(String.format("REQUEST::: %s", request));
         request.getParameterMap().forEach((a, b) -> log.info(String.format("%s::: Key=%s | Value=%s", "JWT REQUEST PARAMS", a, Arrays.toString(b))));
 
         // Extract JWT token from the Authorization header
         String header = request.getHeader("Authorization");
 
         // If the Authorization header is missing or does not start with "Bearer", proceed to the next filter
-        if(header == null || !header.startsWith("Bearer")){
+        if(header == null || !header.startsWith("Bearer") || header.length() < 7){
             filterChain.doFilter(request, response);
             return;
         }
@@ -91,7 +92,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             // Validate the session associated with the JWT token
-            var session = sessionService.validateSession(header.substring(7), null, null);
+            String jwt = header.substring(7);
+
+            var session = sessionService.validateSession(jwt, null, null);
             if(session.getStatus().is2xxSuccessful()) {
                 // If the user is not already authenticated, set up the authentication context
                 if(SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -105,6 +108,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(token);
                     // Update the last seen timestamp of the session
                     sessionService.updateLastSignedIn();
+
+                    if(request.getRemoteAddr() != null) {
+                        sessionService.updateSessionDetails(request.getRemoteAddr(), jwt);
+                    }
                 }
             }
             // Proceed to the next filter

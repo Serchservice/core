@@ -1,6 +1,6 @@
 package com.serch.server.admin.services.account.services;
 
-import com.serch.server.admin.enums.PermissionType;
+import com.serch.server.admin.enums.ActivityMode;
 import com.serch.server.admin.enums.UserAction;
 import com.serch.server.admin.exceptions.AdminException;
 import com.serch.server.admin.mappers.AdminMapper;
@@ -24,7 +24,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Service
@@ -35,6 +34,7 @@ public class AdminProfileImplementation implements AdminProfileService {
     private final AdminActivityService activityService;
     private final AdminRepository adminRepository;
     private final UserRepository userRepository;
+    private final UserUtil userUtil;
 
     @Override
     @Transactional
@@ -45,7 +45,8 @@ public class AdminProfileImplementation implements AdminProfileService {
         return new ApiResponse<>(prepare(admin));
     }
 
-    private AdminResponse prepare(Admin admin) {
+    @Transactional
+    protected AdminResponse prepare(Admin admin) {
         AdminResponse response = new AdminResponse();
         response.setProfile(profile(admin));
         response.setTeam(team(admin));
@@ -68,6 +69,8 @@ public class AdminProfileImplementation implements AdminProfileService {
             admin.getUser().setUpdatedAt(TimeUtil.now());
             userRepository.save(admin.getUser());
         }
+
+        activityService.create(ActivityMode.PROFILE_UPDATE, null, null, admin);
         return new ApiResponse<>("Profile updated", prepare(admin), HttpStatus.OK);
     }
 
@@ -83,6 +86,8 @@ public class AdminProfileImplementation implements AdminProfileService {
             admin.setAvatar(url);
             admin.setUpdatedAt(TimeUtil.now());
             adminRepository.save(admin);
+
+            activityService.create(ActivityMode.AVATAR_CHANGE, null, null, admin);
             return new ApiResponse<>("Avatar uploaded", prepare(admin), HttpStatus.OK);
         }
     }
@@ -111,8 +116,19 @@ public class AdminProfileImplementation implements AdminProfileService {
         response.setPosition(admin.getPosition());
         response.setDepartment(admin.getDepartment());
         response.setRole(admin.getUser().getRole());
-        response.setSpecific(permissionService.getScopes(admin, PermissionType.SPECIFIC));
-        response.setCluster(permissionService.getScopes(admin, PermissionType.CLUSTER));
+        response.setSpecific(permissionService.getGrantedSpecificPermissions(admin));
+        response.setCluster(permissionService.getGrantedClusterPermissions(admin));
         return response;
+    }
+
+    @Override
+    public ApiResponse<String> updateTimezone(String timezone) {
+        adminRepository.findById(userUtil.getUser().getId())
+                .ifPresent(profile -> {
+                    profile.getUser().setTimezone(timezone);
+                    userRepository.save(profile.getUser());
+                });
+
+        return new ApiResponse<>("Successfully updated timezone", HttpStatus.OK);
     }
 }

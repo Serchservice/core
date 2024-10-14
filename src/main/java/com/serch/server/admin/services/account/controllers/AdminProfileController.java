@@ -34,4 +34,10 @@ public class AdminProfileController {
         ApiResponse<AdminResponse> response = service.uploadAvatar(request);
         return new ResponseEntity<>(response, response.getStatus());
     }
+
+    @PatchMapping("/update/timezone")
+    public ResponseEntity<ApiResponse<String>> updateTimezone(@RequestParam String timezone) {
+        ApiResponse<String> response = service.updateTimezone(timezone);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
 }

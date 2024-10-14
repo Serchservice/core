@@ -1,4 +1,4 @@
-package com.serch.server.services.auth.services;
+package com.serch.server.core.session;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.models.auth.User;
@@ -11,7 +11,7 @@ import java.util.UUID;
 /**
  * Service interface for managing user sessions.
  *
- * @see com.serch.server.services.auth.services.implementations.SessionImplementation
+ * @see SessionImplementation
  */
 public interface SessionService {
 
@@ -79,6 +79,14 @@ public interface SessionService {
      * Updates the last signed in timestamp of the user.
      */
     void updateLastSignedIn();
+
+    /**
+     * Update the details of the session which the request is coming from
+     *
+     * @param ipAddress The IPAddress making the request
+     * @param token The JWT Token
+     */
+    void updateSessionDetails(String ipAddress, String token);
 
     /**
      * Signs out the user by revoking all sessions and refresh tokens.

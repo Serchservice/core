@@ -51,4 +51,13 @@ public interface AdminProfileService {
      * @return {@link AdminTeamResponse}
      */
     AdminTeamResponse team(Admin admin);
+
+    /**
+     * Update the timezone of the logged-in user
+     *
+     * @param timezone The new timezone
+     *
+     * @return {@link ApiResponse} of Success or failure
+     */
+    ApiResponse<String> updateTimezone(String timezone);
 }

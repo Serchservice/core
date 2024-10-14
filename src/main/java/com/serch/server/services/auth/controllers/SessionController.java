@@ -2,7 +2,7 @@ package com.serch.server.services.auth.controllers;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.services.auth.responses.SessionResponse;
-import com.serch.server.services.auth.services.SessionService;
+import com.serch.server.core.session.SessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

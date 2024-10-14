@@ -1,6 +1,6 @@
 package com.serch.server.core.socket;
 
-import com.serch.server.services.auth.services.SessionService;
+import com.serch.server.core.session.SessionService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

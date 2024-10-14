@@ -8,9 +8,12 @@ import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
+import lombok.Data;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -22,6 +25,9 @@ import java.util.List;
  */
 @Configuration
 public class SwaggerConfiguration {
+    @Value("${server.servlet.context-path}")
+    private String CONTEXT_PATH;
+
     /**
      * Configures custom OpenAPI specification for the application.
      *
@@ -32,7 +38,7 @@ public class SwaggerConfiguration {
         return new OpenAPI()
                 .info(new Info()
                         .title("Serch Server - Service made easy")
-                        .version("1.0.0")
+                        .version("1.0.1")
                         .summary("This contains the server implementations for Serch platform")
                         .description("Serch Server")
                         .termsOfService("https://www.serchservice.com/hub/legal/terms-and-conditions")
@@ -42,9 +48,9 @@ public class SwaggerConfiguration {
                                 .identifier("server")
                         )
                         .contact(new Contact()
-                                .name("Evaristus Adimonyemma")
-                                .url("https://www.linkedin.com/in/iamevaristus")
-                                .email("evaristusadimonyemma@gmail.com")
+                                .name("Team Serch")
+                                .url("https://www.linkedin.com/company/serchservice")
+                                .email("product@serchservice.com")
                         )
                 )
                 .components(
@@ -57,14 +63,35 @@ public class SwaggerConfiguration {
                                                 .bearerFormat("JWT")
                                 )
                 )
-                .servers(List.of(
-                        new Server()
-                                .description("Production Server")
-                                .url("https://api.serchservice.com"),
-                        new Server()
-                                .description("Sandbox Server")
-                                .url("https://sandbox.serchservice.com")
-                ))
+                .servers(getServers())
                 .addSecurityItem(new SecurityRequirement().addList("Bearer Authentication"));
+    }
+
+    @Data
+    private static class ApiServer {
+        private String name;
+        private String url;
+    }
+
+    private List<Server> getServers() {
+        List<ApiServer> servers = new ArrayList<>();
+
+        ApiServer server = new ApiServer();
+
+        server.setName("Production Server");
+        server.setUrl("https://api.serchservice.com");
+        servers.add(server);
+
+        server.setName("Sandbox Server");
+        server.setUrl("https://sandbox.serchservice.com");
+        servers.add(server);
+
+//        server.setName("Local Server");
+//        server.setUrl("http://localhost:8080");
+//        servers.add(server);
+
+        return servers.stream()
+                .map(serve -> new Server().description(serve.name).url(String.format("%s%s", serve.url, CONTEXT_PATH)))
+                .toList();
     }
 }

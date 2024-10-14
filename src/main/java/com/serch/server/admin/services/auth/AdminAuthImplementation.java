@@ -9,6 +9,7 @@ import com.serch.server.admin.services.auth.requests.*;
 import com.serch.server.admin.services.permission.services.PermissionService;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.core.email.EmailService;
+import com.serch.server.core.jwt.JwtService;
 import com.serch.server.enums.account.AccountStatus;
 import com.serch.server.enums.auth.Role;
 import com.serch.server.enums.email.EmailType;
@@ -243,12 +244,14 @@ public class AdminAuthImplementation implements AdminAuthService {
                 } else {
                     User user = getAdminUser(request);
                     trackerService.create(user);
+
                     Admin team = createTeam(request, admin, user);
                     if(request.getScopes() != null && !request.getScopes().isEmpty()) {
                         permissionService.create(request.getScopes(), team);
                     } else {
                         permissionService.attach(admin, team);
                     }
+
                     activityService.create(ActivityMode.TEAM_ADD, team.getPass(), null, admin);
                     sendToken(user, UserAction.INVITE, admin);
                     return new ApiResponse<>("An invite link has been sent to the email address", HttpStatus.CREATED);
@@ -384,7 +387,7 @@ public class AdminAuthImplementation implements AdminAuthService {
                     user.setSignInTokenConfirmedAt(TimeUtil.now());
                     userRepository.save(user);
 
-                    return getAuthResponse(user, admin, request.getDevice(), request.getState(), request.getCountry());
+                    return getAuthResponse(user, admin, request.getDevice(), request.getState(), request.getCountry(), false);
                 }
             } else {
                 throw new AuthException("Incorrect request details");
@@ -432,7 +435,7 @@ public class AdminAuthImplementation implements AdminAuthService {
             sendToken(user.getUser(), UserAction.PASSWORD_RESET, admin);
             user.setPasswordResetBy(admin);
             activityService.create(ActivityMode.PASSWORD_CHANGE_REQUEST, user.getPass(), null, admin);
-            return new ApiResponse<>("Invite sent. Let the team member check inbox", HttpStatus.OK);
+            return new ApiResponse<>("Reset Password link sent. Let the team member check inbox", HttpStatus.OK);
         } else {
             throw new AuthException("Access denied. Only the super admin or admin who created the team member can perform this action");
         }
@@ -474,7 +477,7 @@ public class AdminAuthImplementation implements AdminAuthService {
                 Admin admin = adminRepository.findById(user.getId()).orElseThrow(() -> new AuthException("Admin not found"));
                 activityService.create(ActivityMode.PASSWORD_CHANGE, admin.getPasswordResetBy().getPass(), null, admin);
 
-                return getAuthResponse(user, admin, request.getDevice(), request.getState(), request.getCountry());
+                return getAuthResponse(user, admin, request.getDevice(), request.getState(), request.getCountry(), true);
             } else {
                 throw new AuthException("Password must contain a lowercase, uppercase, special character and number");
             }
@@ -483,7 +486,7 @@ public class AdminAuthImplementation implements AdminAuthService {
         }
     }
 
-    private ApiResponse<AuthResponse> getAuthResponse(User user, Admin admin, RequestDevice device, String state, String country) {
+    private ApiResponse<AuthResponse> getAuthResponse(User user, Admin admin, RequestDevice device, String state, String country, boolean isReset) {
         RequestLogin login = new RequestLogin();
         login.setDevice(device);
         login.setState(state);
@@ -491,7 +494,7 @@ public class AdminAuthImplementation implements AdminAuthService {
         ApiResponse<AuthResponse> response = authService.getAuthResponse(login, user);
         if(response.getStatus().is2xxSuccessful()) {
             return new ApiResponse<>(
-                    user.hasMFA()
+                    isReset ? "Password reset successful" : user.hasMFA()
                             ? "Authentication successful"
                             : admin.mfaEnforced() ? "Two-factor authentication is needed to continue request"
                             : "Setup two-factor authentication",

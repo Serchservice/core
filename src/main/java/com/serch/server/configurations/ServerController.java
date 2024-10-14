@@ -60,7 +60,7 @@ public class ServerController {
 
     @GetMapping("/openapi/generate")
     public ResponseEntity<ApiResponse<String>> saveOpenApi(@RequestParam FileType format) {
-        String openApiUrl = String.format("http://localhost:${%s}/api/v1/v3/api-docs", SERVER_PORT);
+        String openApiUrl = String.format("http://localhost:%s/api/v1/v3/api-docs", SERVER_PORT);
         String openApiSpec = rest.getForObject(openApiUrl, String.class);
 
         if (openApiSpec == null) {

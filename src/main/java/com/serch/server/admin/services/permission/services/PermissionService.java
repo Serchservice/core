@@ -2,13 +2,11 @@ package com.serch.server.admin.services.permission.services;
 
 import com.serch.server.admin.enums.Permission;
 import com.serch.server.admin.enums.PermissionScope;
-import com.serch.server.admin.enums.PermissionType;
 import com.serch.server.admin.models.*;
 import com.serch.server.admin.services.permission.requests.PermissionRequest;
 import com.serch.server.admin.services.permission.requests.PermissionScopeRequest;
-import com.serch.server.admin.services.permission.responses.PermissionRequestGroupResponse;
-import com.serch.server.admin.services.permission.responses.PermissionScopeResponse;
-import com.serch.server.admin.services.scopes.admin.requests.UpdatePermissionRequest;
+import com.serch.server.admin.services.permission.responses.*;
+import com.serch.server.admin.services.permission.requests.UpdatePermissionRequest;
 import com.serch.server.bases.ApiResponse;
 
 import java.util.List;
@@ -19,7 +17,7 @@ public interface PermissionService {
      *
      * @param scope The {@link PermissionScope} to be granted
      * @param admin The {@link Admin} which the scope will be tied to
-     * @param account The account for which the admin is requesting scope for (If it is an {@link PermissionScope#INDIVIDUAL})
+     * @param account The account for which the admin is requesting scope for
      *
      * @return {@link GrantedPermissionScope}
      */
@@ -54,15 +52,22 @@ public interface PermissionService {
     void create(List<PermissionScopeRequest> scopes, Admin admin);
 
     /**
-     * Gets all the permissions granted to the logged in admin based
-     * on {@link PermissionType#CLUSTER} or {@link PermissionType#SPECIFIC}
+     * Gets all the cluster permissions granted to the logged in admin
      *
      * @param admin The {@link Admin} whose permission scopes are being requested for
-     * @param type The {@link PermissionType} being requested for
      *
-     * @return List of {@link PermissionScopeResponse}
+     * @return List of {@link GrantedPermissionScopeResponse}
      */
-    List<PermissionScopeResponse> getScopes(Admin admin, PermissionType type);
+    List<GrantedPermissionScopeResponse> getGrantedClusterPermissions(Admin admin);
+
+    /**
+     * Gets all the specific permissions granted to the logged in admin
+     *
+     * @param admin The {@link Admin} whose permission scopes are being requested for
+     *
+     * @return List of {@link GrantedPermissionScopeResponse}
+     */
+    List<SpecificPermissionResponse> getGrantedSpecificPermissions(Admin admin);
 
     /**
      * Make a permission request
@@ -76,28 +81,43 @@ public interface PermissionService {
     /**
      * Grants a pending permission request
      *
+     * @param expiration The period for permission expiration
      * @param id The permission request id
      *
-     * @return {@link ApiResponse} of success or failure
+     * @return {@link ApiResponse} list of {@link PermissionRequestGroupResponse}
      */
-    ApiResponse<String> grant(Long id);
+    ApiResponse<List<PermissionRequestGroupResponse>> grant(Long id, Long expiration);
 
     /**
      * Decline a pending permission request
      *
      * @param id The permission request id
      *
-     * @return {@link ApiResponse} of success or failure
+     * @return {@link ApiResponse} list of {@link PermissionRequestGroupResponse}
      */
-    ApiResponse<String> decline(Long id);
+    ApiResponse<List<PermissionRequestGroupResponse>> decline(Long id);
 
     /**
      * Fetch all permission requests for the logged-in admin to
-     * either {@link PermissionService#decline(Long)} or {@link PermissionService#grant(Long)}
+     * either {@link PermissionService#decline(Long)} or {@link PermissionService#grant(Long, Long)}
      *
      * @return {@link ApiResponse} list of {@link PermissionRequestGroupResponse}
      */
     ApiResponse<List<PermissionRequestGroupResponse>> requests();
+
+    /**
+     * Revoke a granted permission
+     *
+     * @return {@link ApiResponse} list of {@link PermissionRequestGroupResponse}
+     */
+    ApiResponse<List<PermissionRequestGroupResponse>> revoke(Long id);
+
+    /**
+     * Cancel a requested permission
+     *
+     * @return {@link ApiResponse} list of {@link PermissionRequestGroupResponse}
+     */
+    ApiResponse<List<PermissionRequestGroupResponse>> cancel(Long id);
 
     /**
      * Update, add and remove the permissions assigned to an admin
@@ -107,4 +127,25 @@ public interface PermissionService {
      * @return {@link ApiResponse} of success or failure
      */
     ApiResponse<String> updatePermissions(UpdatePermissionRequest request);
+
+    /**
+     * Get all the permission scopes in the Serchservice platform
+     *
+     * @return {@link ApiResponse} list of {@link PermissionScopeResponse}
+     */
+    ApiResponse<List<PermissionScopeResponse>> getAllScopes();
+
+    /**
+     * Search for a user or admin using the provided id to fetch the user details
+     *
+     * @param id The id of the user to search for.
+     *
+     * @return {@link ApiResponse} of {@link PermissionAccountSearchResponse}
+     */
+    ApiResponse<PermissionAccountSearchResponse> search(String id);
+
+    /**
+     * This will revoke any permission with an expiry date or period
+     */
+    void revokeExpiredPermissions();
 }

@@ -247,4 +247,28 @@ public class NotificationImplementation implements NotificationService {
         message.setSnt("TRANSACTION");
         notificationCoreService.send(message);
     }
+
+    @Override
+    public void send(UUID id, BigDecimal amount, boolean paid, String next, String bank) {
+        log.info(String.format("Preparing payout notification for %s to %s", amount, id));
+
+        SerchNotification<Map<String, String>> notification = new SerchNotification<>();
+        notification.setTitle(paid ? "Yay!!! It's payday again. An exciting time in Serch" : "Seems like we won't be cashing out today.");
+        notification.setBody(paid
+                ? String.format("%s has successfully being cashed out to %s. Looking forward to the next payday - %s", MoneyUtil.formatToNaira(amount), bank, next)
+                : "For some reasons, Serch couldn't process your payout today. You can check out our help center to see why this happened or reach out to customer support.");
+        notification.setImage(repository.getAvatar(id.toString()));
+
+        Map<String, String> data = new HashMap<>();
+        data.put("snt", "TRANSACTION");
+        data.put("sender_name", repository.getName(id.toString()));
+        data.put("sender_id", String.valueOf(id));
+        notification.setData(data);
+
+        NotificationMessage<Map<String, String>> message = new NotificationMessage<>();
+        message.setToken(repository.getToken(id.toString()));
+        message.setData(notification);
+        message.setSnt("TRANSACTION");
+        notificationCoreService.send(message);
+    }
 }

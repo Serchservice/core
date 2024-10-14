@@ -321,11 +321,30 @@ public class User extends BaseEntity implements UserDetails {
         return getRole() == Role.BUSINESS;
     }
 
+    /**
+     * Checks if the user has the {@link Role#USER} role.
+     *
+     * @return boolean - True or false
+     */
     public boolean isUser() {
         return role == USER;
     }
 
+    /**
+     * Checks if the user has enabled multi-factor authentication
+     *
+     * @return boolean - True or false
+     */
     public boolean hasMFA() {
         return getMfaFactor() != null && getMfaEnabled();
+    }
+
+    /**
+     * Checks if the user has the {@link Role#SUPER_ADMIN} role.
+     *
+     * @return boolean - True or false
+     */
+    public boolean isSuperAdmin() {
+        return getRole() == Role.SUPER_ADMIN;
     }
 }

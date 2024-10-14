@@ -107,30 +107,4 @@ public interface CommonAccountAnalysisService {
      * @return List of {@link ChartMetric}
      */
     List<ChartMetric> associates(User user, Integer year);
-
-    /**
-     * Get the subscriptions made by the user to provide more insight on the data
-     * <p></p>
-     * @see com.serch.server.models.subscription.Subscription
-     * @see com.serch.server.models.subscription.SubscriptionInvoice
-     *
-     * @param user The {@link User} whose data is being requested for
-     * @param year The year in request. Defaults to current year
-     *
-     * @return List of {@link ChartMetric}
-     */
-    List<ChartMetric> subscriptions(User user, Integer year);
-
-    /**
-     * Gets the analysis on the {@link com.serch.server.enums.auth.Role#ASSOCIATE_PROVIDER} list for the
-     * {@link BusinessProfile} user over the given year
-     * <p></p>
-     * @see com.serch.server.models.business.BusinessSubscription
-     *
-     * @param user The {@link User} whose data is being requested for
-     * @param year The year in request. Defaults to current year
-     *
-     * @return List of {@link ChartMetric}
-     */
-    List<ChartMetric> subscribed(User user, Integer year);
 }

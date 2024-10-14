@@ -8,5 +8,6 @@ public class PermissionResponse {
     private Long id;
     private String createdAt;
     private String updatedAt;
+    private String expiration;
     private Permission permission;
 }

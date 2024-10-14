@@ -20,7 +20,7 @@ import com.serch.server.services.auth.requests.*;
 import com.serch.server.services.auth.responses.AuthResponse;
 import com.serch.server.services.auth.services.AuthService;
 import com.serch.server.services.auth.services.ProviderAuthService;
-import com.serch.server.services.auth.services.SessionService;
+import com.serch.server.core.session.SessionService;
 import com.serch.server.utils.HelperUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

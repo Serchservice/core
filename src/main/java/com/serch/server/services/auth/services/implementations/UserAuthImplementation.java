@@ -20,7 +20,7 @@ import com.serch.server.services.auth.requests.RequestProfile;
 import com.serch.server.services.auth.requests.RequestSession;
 import com.serch.server.services.auth.responses.AuthResponse;
 import com.serch.server.services.auth.services.AuthService;
-import com.serch.server.services.auth.services.SessionService;
+import com.serch.server.core.session.SessionService;
 import com.serch.server.services.auth.services.UserAuthService;
 import com.serch.server.utils.HelperUtil;
 import lombok.RequiredArgsConstructor;

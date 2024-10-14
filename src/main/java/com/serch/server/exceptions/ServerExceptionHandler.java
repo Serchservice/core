@@ -62,6 +62,10 @@ import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.sql.SQLDataException;
+import java.sql.SQLException;
+import java.sql.SQLNonTransientConnectionException;
+import java.sql.SQLTimeoutException;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -599,14 +603,14 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(JDBCException.class)
     public ApiResponse<String> handleJDBCException(JDBCException exception){
-        log.error(exception.getMessage());
-        return new ApiResponse<>(exception.getSQLException().getMessage());
+        log.error(exception.getSQLException().getMessage());
+        return new ApiResponse<>("An error happened while fetching data, try again.");
     }
 
     @ExceptionHandler(JDBCConnectionException.class)
     public ApiResponse<String> handleJDBCConnectionException(JDBCConnectionException exception){
-        log.error(exception.getMessage());
-        return new ApiResponse<>(exception.getSQLException().getMessage());
+        log.error(exception.getSQLException().getMessage());
+        return new ApiResponse<>("Couldn't complete connection while fetching data, try again");
     }
 
     @ExceptionHandler(IOException.class)
@@ -745,6 +749,46 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
         log.error(exception.getMessage());
         return new ApiResponse<>(
                 "An error occurred while fetching data, please try again",
+                ExceptionCodes.IMPROPER_USER_ID_FORMAT,
+                HttpStatus.NOT_ACCEPTABLE
+        );
+    }
+
+    @ExceptionHandler(SQLException.class)
+    public ApiResponse<String> handleSQLException(SQLException exception){
+        log.error(exception.getMessage());
+        return new ApiResponse<>(
+                "An error occurred while fetching data, please try again",
+                ExceptionCodes.IMPROPER_USER_ID_FORMAT,
+                HttpStatus.NOT_ACCEPTABLE
+        );
+    }
+
+    @ExceptionHandler(SQLDataException.class)
+    public ApiResponse<String> handleSQLDataException(SQLDataException exception){
+        log.error(exception.getMessage());
+        return new ApiResponse<>(
+                "An error occurred while fetching data, please try again",
+                ExceptionCodes.IMPROPER_USER_ID_FORMAT,
+                HttpStatus.NOT_ACCEPTABLE
+        );
+    }
+
+    @ExceptionHandler(SQLNonTransientConnectionException.class)
+    public ApiResponse<String> handleSQLNonTransientConnectionException(SQLNonTransientConnectionException exception){
+        log.error(exception.getMessage());
+        return new ApiResponse<>(
+                "Connection error occurred, please try again",
+                ExceptionCodes.IMPROPER_USER_ID_FORMAT,
+                HttpStatus.NOT_ACCEPTABLE
+        );
+    }
+
+    @ExceptionHandler(SQLTimeoutException.class)
+    public ApiResponse<String> handleSQLTimeoutException(SQLTimeoutException exception){
+        log.error(exception.getMessage());
+        return new ApiResponse<>(
+                "Timeout. Error while fetching data",
                 ExceptionCodes.IMPROPER_USER_ID_FORMAT,
                 HttpStatus.NOT_ACCEPTABLE
         );

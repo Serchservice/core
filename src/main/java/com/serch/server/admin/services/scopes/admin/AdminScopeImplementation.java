@@ -22,6 +22,7 @@ import com.serch.server.exceptions.auth.AuthException;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.core.storage.core.StorageService;
 import com.serch.server.core.storage.requests.FileUploadRequest;
+import com.serch.server.services.auth.services.AccountStatusTrackerService;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
@@ -42,6 +43,7 @@ public class AdminScopeImplementation implements AdminScopeService {
     private final CommonAuthService authService;
     private final StorageService supabase;
     private final TeamService teamService;
+    private final AccountStatusTrackerService trackerService;
     private final CommonAccountAnalysisService analysisService;
     private final AdminRepository adminRepository;
     private final UserRepository userRepository;
@@ -91,6 +93,9 @@ public class AdminScopeImplementation implements AdminScopeService {
     public ApiResponse<String> changeAvatar(FileUploadRequest request, UUID id) {
         Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AuthException("Admin not found"));
+
+        validateAccess(admin, id);
+
         Admin user = adminRepository.findById(id).orElseThrow(() -> new AuthException("Admin not found"));
         if(HelperUtil.isUploadEmpty(request)) {
             throw new AdminException("There is no upload data");
@@ -109,12 +114,17 @@ public class AdminScopeImplementation implements AdminScopeService {
     public ApiResponse<String> changeStatus(ChangeStatusRequest request) {
         Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AuthException("Admin not found"));
+
+        validateAccess(admin, request.getId());
+
         Admin user = adminRepository.findById(request.getId()).orElseThrow(() -> new AuthException("Admin not found"));
 
         if(request.getStatus() != null) {
             user.getUser().setStatus(request.getStatus());
             user.getUser().setUpdatedAt(TimeUtil.now());
             userRepository.save(user.getUser());
+
+            trackerService.create(user.getUser());
             activityService.create(ActivityMode.STATUS_CHANGE, user.getPass(), null, admin);
             return new ApiResponse<>("Status changed", request.getStatus().getType(), HttpStatus.OK);
         }
@@ -126,6 +136,9 @@ public class AdminScopeImplementation implements AdminScopeService {
     public ApiResponse<String> changeRole(ChangeRoleRequest request) {
         Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AuthException("Admin not found"));
+
+        validateAccess(admin, request.getId());
+
         Admin user = adminRepository.findById(request.getId()).orElseThrow(() -> new AuthException("Admin not found"));
 
         if(request.getRole() != null && request.getRole() == Role.SUPER_ADMIN) {
@@ -146,6 +159,7 @@ public class AdminScopeImplementation implements AdminScopeService {
                 user.setUpdatedAt(TimeUtil.now());
                 adminRepository.save(user);
             }
+
             activityService.create(ActivityMode.ROLE_CHANGE, user.getPass(), null, admin);
             return new ApiResponse<>("Role changed", HttpStatus.OK);
         }
@@ -154,16 +168,25 @@ public class AdminScopeImplementation implements AdminScopeService {
     @Override
     @Transactional
     public ApiResponse<Boolean> toggle(UUID id) {
+        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
+                .orElseThrow(() -> new AuthException("Admin not found"));
         Admin user = adminRepository.findById(id).orElseThrow(() -> new AuthException("Admin not found"));
+
+        validateAccess(admin, id);
+
         if(user.getMustHaveMFA()) {
             user.setMustHaveMFA(false);
             user.setUpdatedAt(TimeUtil.now());
             adminRepository.save(user);
+
+            activityService.create(ActivityMode.MFA_CONSTRAINT_REMOVED, user.getPass(), null, admin);
             return new ApiResponse<>("MFA constraint is now removed", false, HttpStatus.OK);
         } else {
             user.setMustHaveMFA(true);
             user.setUpdatedAt(TimeUtil.now());
             adminRepository.save(user);
+
+            activityService.create(ActivityMode.MFA_CONSTRAINT_ENFORCED, user.getPass(), null, admin);
             return new ApiResponse<>("MFA constraint is now invoked", true, HttpStatus.OK);
         }
     }
@@ -173,18 +196,22 @@ public class AdminScopeImplementation implements AdminScopeService {
     public ApiResponse<String> update(AdminProfileUpdateRequest request, UUID id) {
         Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AuthException("Admin not found"));
-        Admin user = adminRepository.findById(id)
-                .orElseThrow(() -> new AuthException("Admin not found"));
-        if(!Objects.equals(user.getUser().getLastName(), request.getLastName()) && !request.getLastName().isEmpty()) {
+
+        validateAccess(admin, id);
+
+        Admin user = adminRepository.findById(id).orElseThrow(() -> new AuthException("Admin not found"));
+
+        if(request.getLastName() != null && !request.getLastName().isEmpty() && !Objects.equals(user.getUser().getLastName(), request.getLastName())) {
             user.getUser().setLastName(request.getLastName());
             user.getUser().setUpdatedAt(TimeUtil.now());
             userRepository.save(user.getUser());
         }
-        if(!Objects.equals(user.getUser().getFirstName(), request.getFirstName()) && !request.getFirstName().isEmpty()) {
+        if(request.getFirstName() != null && !request.getFirstName().isEmpty() && !Objects.equals(user.getUser().getFirstName(), request.getFirstName())) {
             user.getUser().setFirstName(request.getFirstName());
             user.getUser().setUpdatedAt(TimeUtil.now());
             userRepository.save(user.getUser());
         }
+
         activityService.create(ActivityMode.PROFILE_UPDATE, user.getPass(), null, admin);
         return new ApiResponse<>("Profile updated", HttpStatus.OK);
     }
@@ -194,6 +221,9 @@ public class AdminScopeImplementation implements AdminScopeService {
     public ApiResponse<String> delete(UUID id) {
         Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AuthException("Admin not found"));
+
+        validateAccess(admin, id);
+
         Admin user = adminRepository.findById(id).orElseThrow(() -> new AuthException("Admin not found"));
 
         user.getUser().setStatus(AccountStatus.DELETED);
@@ -201,5 +231,11 @@ public class AdminScopeImplementation implements AdminScopeService {
         userRepository.save(user.getUser());
         activityService.create(ActivityMode.ACCOUNT_DELETE, user.getUser().getFullName(), null, admin);
         return new ApiResponse<>("Account deleted", HttpStatus.OK);
+    }
+
+    void validateAccess(Admin admin, UUID id) {
+        if(admin.getUser().isUser(id)) {
+            throw new AuthException("You cannot perform this action on your account.");
+        }
     }
 }

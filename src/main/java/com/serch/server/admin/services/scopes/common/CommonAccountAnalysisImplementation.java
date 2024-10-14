@@ -193,16 +193,4 @@ public class CommonAccountAnalysisImplementation implements CommonAccountAnalysi
     public List<ChartMetric> associates(User user, Integer year) {
         return List.of();
     }
-
-    @Override
-    @Transactional
-    public List<ChartMetric> subscriptions(User user, Integer year) {
-        return List.of();
-    }
-
-    @Override
-    @Transactional
-    public List<ChartMetric> subscribed(User user, Integer year) {
-        return List.of();
-    }
 }

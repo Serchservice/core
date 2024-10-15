@@ -1,5 +1,6 @@
 package com.serch.server.admin.services.permission;
 
+import com.serch.server.admin.services.account.responses.AdminTeamResponse;
 import com.serch.server.admin.services.permission.requests.PermissionRequest;
 import com.serch.server.admin.services.permission.responses.PermissionAccountSearchResponse;
 import com.serch.server.admin.services.permission.responses.PermissionRequestGroupResponse;
@@ -46,7 +47,7 @@ public class PermissionController {
     }
 
     @PatchMapping("/grant")
-    public ResponseEntity<ApiResponse<List<PermissionRequestGroupResponse>>> grant(@RequestParam Long id, @RequestParam(required = false) Long expiration) {
+    public ResponseEntity<ApiResponse<List<PermissionRequestGroupResponse>>> grant(@RequestParam Long id, @RequestParam(required = false) String expiration) {
         ApiResponse<List<PermissionRequestGroupResponse>> response = service.grant(id, expiration);
         return new ResponseEntity<>(response, response.getStatus());
     }
@@ -70,8 +71,8 @@ public class PermissionController {
     }
 
     @PatchMapping("/update")
-    public ResponseEntity<ApiResponse<String>> updatePermissions(@RequestBody UpdatePermissionRequest request) {
-        ApiResponse<String> response = service.updatePermissions(request);
+    public ResponseEntity<ApiResponse<AdminTeamResponse>> updatePermissions(@RequestBody UpdatePermissionRequest request) {
+        ApiResponse<AdminTeamResponse> response = service.updatePermissions(request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 }

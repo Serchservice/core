@@ -25,7 +25,7 @@ import com.serch.server.services.auth.requests.RequestSessionToken;
 import com.serch.server.services.auth.responses.AuthResponse;
 import com.serch.server.services.auth.responses.SessionResponse;
 import com.serch.server.core.jwt.JwtService;
-import com.serch.server.services.auth.services.TokenService;
+import com.serch.server.core.code.TokenService;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import io.jsonwebtoken.ExpiredJwtException;

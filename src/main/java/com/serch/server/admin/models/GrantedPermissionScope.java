@@ -26,7 +26,7 @@ public class GrantedPermissionScope extends BaseModel {
     @Column(columnDefinition = "TEXT")
     private String account;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "scope")
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "scope", orphanRemoval = true)
     private Set<GrantedPermission> permissions;
 
     @ManyToOne

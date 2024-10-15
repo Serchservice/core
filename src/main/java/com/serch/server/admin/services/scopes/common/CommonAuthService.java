@@ -4,9 +4,11 @@ import com.serch.server.admin.services.responses.auth.AccountAuthResponse;
 import com.serch.server.admin.services.responses.auth.AccountMFAResponse;
 import com.serch.server.admin.services.responses.auth.AccountMFAChallengeResponse;
 import com.serch.server.admin.services.responses.auth.AccountSessionResponse;
+import com.serch.server.bases.ApiResponse;
 import com.serch.server.models.auth.User;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface CommonAuthService {
     /**
@@ -45,4 +47,22 @@ public interface CommonAuthService {
      * @return {@link AccountAuthResponse}
      */
     AccountAuthResponse auth(User user);
+
+    /**
+     * Revoke an active session
+     *
+     * @param sessionId The session id to be revoked
+     *
+     * @return {@link ApiResponse} list of {@link AccountSessionResponse}
+     */
+    ApiResponse<List<AccountSessionResponse>> revokeSession(UUID sessionId);
+
+    /**
+     * Revoke an active refresh token
+     *
+     * @param refreshTokenId The refresh token id to be revoked
+     *
+     * @return {@link ApiResponse} list of {@link AccountSessionResponse}
+     */
+    ApiResponse<List<AccountSessionResponse>> revokeRefreshToken(UUID refreshTokenId);
 }

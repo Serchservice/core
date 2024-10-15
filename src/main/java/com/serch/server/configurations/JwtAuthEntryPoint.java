@@ -2,6 +2,7 @@ package com.serch.server.configurations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.core.Logging;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.SneakyThrows;
@@ -42,11 +43,8 @@ public class JwtAuthEntryPoint implements AuthenticationEntryPoint {
      */
     @Override
     @SneakyThrows
-    public void commence(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            AuthenticationException authException
-    ) {
+    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) {
+        Logging.logRequest(request, "JWT AUTH ENTRYPOINT");
         // Log the unauthorized error
         logger.error("Unauthorized error: {}", authException.getMessage());
 

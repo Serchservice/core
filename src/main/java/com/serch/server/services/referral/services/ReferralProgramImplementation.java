@@ -11,7 +11,7 @@ import com.serch.server.repositories.referral.ReferralProgramRepository;
 import com.serch.server.repositories.referral.ReferralRepository;
 import com.serch.server.repositories.shared.SharedLinkRepository;
 import com.serch.server.repositories.trip.TripRepository;
-import com.serch.server.services.auth.services.TokenService;
+import com.serch.server.core.code.TokenService;
 import com.serch.server.services.referral.responses.ReferralProgramResponse;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;

@@ -8,11 +8,14 @@ import com.serch.server.models.account.BusinessProfile;
 import com.serch.server.models.account.PhoneInformation;
 import com.serch.server.models.auth.User;
 import com.serch.server.models.auth.incomplete.Incomplete;
+import com.serch.server.repositories.account.AccountSettingRepository;
 import com.serch.server.repositories.account.BusinessProfileRepository;
 import com.serch.server.repositories.account.PhoneInformationRepository;
 import com.serch.server.repositories.account.SpecialtyRepository;
+import com.serch.server.repositories.auth.AccountStatusTrackerRepository;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.rating.RatingRepository;
+import com.serch.server.repositories.referral.ReferralProgramRepository;
 import com.serch.server.repositories.shared.SharedLinkRepository;
 import com.serch.server.repositories.shop.ShopRepository;
 import com.serch.server.repositories.trip.TripRepository;
@@ -24,7 +27,7 @@ import com.serch.server.services.account.services.BusinessService;
 import com.serch.server.services.account.services.ProfileService;
 import com.serch.server.services.auth.requests.RequestBusinessProfile;
 import com.serch.server.services.referral.services.ReferralService;
-import com.serch.server.services.auth.services.TokenService;
+import com.serch.server.core.code.TokenService;
 import com.serch.server.core.storage.core.StorageService;
 import com.serch.server.services.transaction.services.WalletService;
 import com.serch.server.utils.DatabaseUtil;
@@ -75,9 +78,12 @@ public class BusinessImplementation implements BusinessService {
     private final SharedLinkRepository sharedLinkRepository;
     private final SpecialtyRepository specialtyRepository;
     private final TripRepository tripRepository;
+    private final AccountStatusTrackerRepository accountStatusTrackerRepository;
+    private final AccountSettingRepository accountSettingRepository;
 
     @Value("${application.account.duration}")
     private Integer ACCOUNT_DURATION;
+    private final ReferralProgramRepository referralProgramRepository;
 
     @Override
     public ApiResponse<String> createProfile(Incomplete incomplete, User user, RequestBusinessProfile profile) {
@@ -215,11 +221,14 @@ public class BusinessImplementation implements BusinessService {
     public void undo(String emailAddress) {
         businessProfileRepository.findByUser_EmailAddress(emailAddress)
                 .ifPresent(business -> {
-                    userRepository.delete(business.getUser());
                     phoneInformationRepository.findByUser_Id(business.getId()).ifPresent(phoneInformationRepository::delete);
                     referralService.undo(business.getUser());
+                    referralProgramRepository.delete(business.getUser().getProgram());
+                    accountStatusTrackerRepository.deleteByUser(business.getUser());
+                    accountSettingRepository.delete(business.getUser().getSetting());
                     walletService.undo(business.getUser());
                     businessProfileRepository.delete(business);
+                    userRepository.delete(business.getUser());
                 });
     }
 

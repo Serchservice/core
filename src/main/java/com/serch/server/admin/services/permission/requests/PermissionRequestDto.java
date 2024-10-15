@@ -6,5 +6,6 @@ import lombok.Data;
 @Data
 public class PermissionRequestDto {
     private Permission permission;
+    private String reason;
     private Long id;
 }

@@ -1,6 +1,5 @@
-package com.serch.server.services.auth.services.implementations;
+package com.serch.server.core.code;
 
-import com.serch.server.services.auth.services.TokenService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 

@@ -65,19 +65,19 @@ public class Incomplete extends BaseModel {
     @Column(name = "token_confirmed_at", columnDefinition = "timestamptz")
     private ZonedDateTime tokenConfirmedAt = null;
 
-    @OneToOne(mappedBy = "incomplete", cascade = CascadeType.REMOVE)
+    @OneToOne(mappedBy = "incomplete", cascade = CascadeType.ALL)
     private IncompleteProfile profile;
 
-    @OneToOne(mappedBy = "incomplete", cascade = CascadeType.REMOVE)
+    @OneToOne(mappedBy = "incomplete", cascade = CascadeType.ALL)
     private IncompleteReferral referredBy;
 
-    @OneToOne(mappedBy = "incomplete", cascade = CascadeType.REMOVE)
+    @OneToOne(mappedBy = "incomplete", cascade = CascadeType.ALL)
     private IncompletePhoneInformation phoneInfo;
 
-    @OneToOne(mappedBy = "incomplete", cascade = CascadeType.REMOVE)
+    @OneToOne(mappedBy = "incomplete", cascade = CascadeType.ALL)
     private IncompleteCategory category;
 
-    @OneToMany(mappedBy = "incomplete", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "incomplete", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<IncompleteSpecialty> specializations;
 
     public boolean isEmailConfirmed() {

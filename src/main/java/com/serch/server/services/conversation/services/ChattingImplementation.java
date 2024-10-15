@@ -288,8 +288,8 @@ public class ChattingImplementation implements ChattingService {
                     ChatGroupMessageResponse chat = new ChatGroupMessageResponse();
 
                     String timezone = userRepository.findById(id).map(User::getTimezone).orElse("");
-                    chat.setLabel(TimeUtil.formatChatLabel(LocalDateTime.of(date, LocalTime.now()), timezone));
-                    chat.setTime(ZonedDateTime.of(LocalDateTime.of(date, LocalTime.now()), TimeUtil.zoneId(timezone)));
+                    chat.setLabel(TimeUtil.formatChatLabel(LocalDateTime.of(date, chats.getFirst().getCreatedAt().toLocalTime()), timezone));
+                    chat.setTime(ZonedDateTime.of(LocalDateTime.of(date, chats.getFirst().getCreatedAt().toLocalTime()), TimeUtil.zoneId(timezone)));
 
                     List<ChatMessageResponse> messageList = chats.stream()
                             .sorted(Comparator.comparing(ChatMessage::getCreatedAt))

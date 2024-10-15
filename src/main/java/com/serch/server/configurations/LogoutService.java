@@ -1,14 +1,13 @@
-package com.serch.server.services.auth.services;
+package com.serch.server.configurations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.core.Logging;
 import com.serch.server.core.session.SessionService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -33,7 +32,6 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class LogoutService implements LogoutHandler {
-    private static final Logger log = LoggerFactory.getLogger(LogoutService.class);
     private final SessionService sessionService;
     private final UserDetailsService userDetailsService;
 
@@ -51,12 +49,7 @@ public class LogoutService implements LogoutHandler {
     @SneakyThrows
     @Override
     public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
-        log.info(String.format("LOGOUT::: %s", authentication.getName()));
-        log.info(String.format("LOGOUT::: %s", authentication.getPrincipal()));
-        log.info(String.format("LOGOUT::: %s", authentication.getCredentials()));
-        log.info(String.format("LOGOUT::: %s", authentication.getDetails()));
-        log.info(String.format("LOGOUT::: %s", authentication.getAuthorities()));
-        log.info(String.format("LOGOUT::: %s", request));
+        Logging.logRequest(request, "LOGOUT SERVICE");
 
         String header = request.getHeader("Authorization");
 

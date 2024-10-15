@@ -1,8 +1,5 @@
 package com.serch.server.utils;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
@@ -13,8 +10,6 @@ import java.util.Locale;
  * The TimeUtil class provides utility methods for working with dates and times.
  */
 public class TimeUtil {
-    private static final Logger log = LoggerFactory.getLogger(TimeUtil.class);
-
     /**
      * Formats the time difference in minutes, hours, or days before or after the current time.
      * @param diff The time difference in minutes.
@@ -117,22 +112,8 @@ public class TimeUtil {
      * @param dateTime The date and time to format.
      * @return The formatted time.
      */
-    public static String formatTime(LocalDateTime dateTime) {
-        return dateTime.format(DateTimeFormatter.ofPattern("h:mma"));
-    }
-
-    /**
-     * Formats the time based on the provided date and time.
-     * @param dateTime The date and time to format.
-     * @return The formatted time.
-     */
     public static String formatTime(ZonedDateTime dateTime, String timezone) {
-        log.info(String.format("Serch Database TimeZone (Format Time Method)::: %s", dateTime.getZone()));
-
-        ZonedDateTime date = toUserTimeZone(dateTime, timezone);
-        log.info(String.format("User TimeZone (Format Time Method)::: %s", date.getZone()));
-
-        return date.format(DateTimeFormatter.ofPattern("h:mma"));
+        return toUserTimeZone(dateTime, timezone).format(DateTimeFormatter.ofPattern("h:mma"));
     }
 
     /**
@@ -169,41 +150,14 @@ public class TimeUtil {
      */
     public static String formatDay(ZonedDateTime dateTime, String timezone) {
         if (dateTime != null) {
-            ZonedDateTime currentDateTime = now(zoneId(timezone));
-
-            return getDateString(timezone, currentDateTime, dateTime);
+            return getDateString(timezone, now(zoneId(timezone)), dateTime);
         } else {
             return "";
         }
     }
 
-
-//    public static String formatChatLabel(LocalDateTime date) {
-//        LocalDateTime now = LocalDateTime.now();
-//        LocalDateTime today = now.truncatedTo(ChronoUnit.DAYS);
-//        LocalDateTime yesterday = today.minusDays(1);
-//        LocalDateTime lastWeek = today.minusDays(7);
-//
-//        if (date.truncatedTo(ChronoUnit.DAYS).isEqual(today)) {
-//            return "Today";
-//        } else if (date.truncatedTo(ChronoUnit.DAYS).isEqual(yesterday)) {
-//            return "Yesterday";
-//        } else if (date.isAfter(lastWeek)) {
-//            List<String> weekdayNames = Arrays.asList(
-//                    "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
-//            );
-//            DayOfWeek dayOfWeek = date.getDayOfWeek();
-//            return weekdayNames.get(dayOfWeek.getValue() - 1);
-//        } else {
-//            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE MMMM d, yyyy");
-//            return date.format(formatter);
-//        }
-//    }
-
     public static String formatChatLabel(LocalDateTime time, String timezone) {
         ZonedDateTime date = ZonedDateTime.of(time, zoneId(timezone));
-        log.info(String.format("User TimeZone (Format Chat Label Method)::: %s", date.getZone()));
-
         ZonedDateTime today = now(zoneId(timezone)).truncatedTo(ChronoUnit.DAYS);
 
         if (date.truncatedTo(ChronoUnit.DAYS).isEqual(today)) {
@@ -226,10 +180,7 @@ public class TimeUtil {
      */
     public static boolean isOtpExpired(ZonedDateTime time, String timezone, int expirationTime) {
         if (time != null) {
-            ZonedDateTime date = toUserTimeZone(time, timezone);;
-            log.info(String.format("User TimeZone (Is OTP Expired Method)::: %s", date.getZone()));
-
-            return now(zoneId(timezone)).isAfter(date.plusMinutes(expirationTime));
+            return now(zoneId(timezone)).isAfter(toUserTimeZone(time, timezone).plusMinutes(expirationTime));
         } else {
             return true;
         }

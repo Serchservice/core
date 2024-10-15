@@ -44,7 +44,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -370,7 +369,7 @@ public class WalletImplementation implements WalletService {
                 .collect(Collectors.groupingBy(transaction -> transaction.getCreatedAt().toLocalDate()));
         map.forEach((date, transactionList) -> {
             TransactionGroupResponse group = new TransactionGroupResponse();
-            group.setLabel(TimeUtil.formatChatLabel(LocalDateTime.of(date, LocalTime.now()), userUtil.getUser().getTimezone()));
+            group.setLabel(TimeUtil.formatChatLabel(LocalDateTime.of(date, transactionList.getFirst().getCreatedAt().toLocalTime()), userUtil.getUser().getTimezone()));
             List<TransactionResponse> response = transactionList.stream()
                     .sorted(Comparator.comparing(Transaction::getCreatedAt).reversed())
                     .map(this::response).toList();

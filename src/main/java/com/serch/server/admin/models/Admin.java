@@ -8,7 +8,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -54,7 +56,7 @@ public class Admin extends BaseUser {
     private Admin passwordResetBy;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "admin")
-    private List<Admin> admins;
+    private Set<Admin> admins;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "admin")
     private List<GrantedPermissionScope> scopes;
@@ -98,4 +100,20 @@ public class Admin extends BaseUser {
     public String getFullName() {
         return getUser().getFirstName() + " " + getUser().getLastName();
     }
+
+    public Set<Admin> findAllDescendantAdmins(Admin admin) {
+        Set<Admin> allDescendants = new HashSet<>();
+        findAllDescendantsRecursive(admin, allDescendants);
+
+        return allDescendants;
+    }
+
+    private void findAllDescendantsRecursive(Admin admin, Set<Admin> allDescendants) {
+        for (Admin child : admin.getAdmins()) {
+            if (allDescendants.add(child)) {
+                findAllDescendantsRecursive(child, allDescendants);
+            }
+        }
+    }
+
 }

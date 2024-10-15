@@ -10,8 +10,9 @@ public class PermissionRequestResponse {
     private Long id;
     private String message;
     private String label;
-    private String account;
+    private PermissionRequestAccountDetails account;
     private String expiration;
+    private String reason;
     private PermissionStatus status;
     private PermissionScope scope;
     private Permission permission;

@@ -14,7 +14,7 @@ import com.serch.server.repositories.shared.GuestRepository;
 import com.serch.server.repositories.shared.SharedLinkRepository;
 import com.serch.server.repositories.shared.SharedLoginRepository;
 import com.serch.server.services.auth.services.AuthService;
-import com.serch.server.services.auth.services.TokenService;
+import com.serch.server.core.code.TokenService;
 import com.serch.server.services.shared.requests.CreateGuestFromUserRequest;
 import com.serch.server.services.shared.requests.CreateGuestRequest;
 import com.serch.server.services.shared.requests.VerifyEmailRequest;

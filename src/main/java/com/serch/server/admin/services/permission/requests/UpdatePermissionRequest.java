@@ -8,6 +8,6 @@ import java.util.UUID;
 @Data
 public class UpdatePermissionRequest {
     private UUID id;
-    private List<PermissionScopeRequest> cluster;
-    private List<SpecificPermissionRequest> specific;
+    private String account;
+    private List<PermissionScopeRequest> scopes;
 }

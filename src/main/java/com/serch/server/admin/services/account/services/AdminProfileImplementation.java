@@ -10,7 +10,7 @@ import com.serch.server.admin.services.account.requests.AdminProfileUpdateReques
 import com.serch.server.admin.services.account.responses.AdminProfileResponse;
 import com.serch.server.admin.services.account.responses.AdminResponse;
 import com.serch.server.admin.services.account.responses.AdminTeamResponse;
-import com.serch.server.admin.services.permission.services.PermissionService;
+import com.serch.server.admin.services.permission.services.GrantedPermissionService;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.exceptions.auth.AuthException;
 import com.serch.server.repositories.auth.UserRepository;
@@ -30,7 +30,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class AdminProfileImplementation implements AdminProfileService {
     private final StorageService supabase;
-    private final PermissionService permissionService;
+    private final GrantedPermissionService permissionService;
     private final AdminActivityService activityService;
     private final AdminRepository adminRepository;
     private final UserRepository userRepository;
@@ -45,8 +45,9 @@ public class AdminProfileImplementation implements AdminProfileService {
         return new ApiResponse<>(prepare(admin));
     }
 
+    @Override
     @Transactional
-    protected AdminResponse prepare(Admin admin) {
+    public AdminResponse prepare(Admin admin) {
         AdminResponse response = new AdminResponse();
         response.setProfile(profile(admin));
         response.setTeam(team(admin));

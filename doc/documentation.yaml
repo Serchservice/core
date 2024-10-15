@@ -1682,6 +1682,44 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseListNewsletterResponse'
+  /scope/auth/session/revoke:
+    patch:
+      tags:
+      - auth-scope-controller
+      operationId: revokeSession
+      parameters:
+      - name: id
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseListAccountSessionResponse'
+  /scope/auth/session/refresh/revoke:
+    patch:
+      tags:
+      - auth-scope-controller
+      operationId: revokeRefreshToken
+      parameters:
+      - name: id
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseListAccountSessionResponse'
   /scope/admin/profile/update:
     patch:
       tags:
@@ -2122,7 +2160,7 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: '#/components/schemas/ApiResponseString'
+                $ref: '#/components/schemas/ApiResponseAdminTeamResponse'
   /admin/permission/revoke:
     patch:
       tags:
@@ -2158,8 +2196,7 @@ paths:
         in: query
         required: false
         schema:
-          type: integer
-          format: int64
+          type: string
       responses:
         "200":
           description: OK
@@ -7594,6 +7631,8 @@ components:
           - READ
           - UPDATE
           - DELETE
+        reason:
+          type: string
         id:
           type: integer
           format: int64
@@ -7656,13 +7695,9 @@ components:
       type: object
       properties:
         cluster:
-          type: array
-          items:
-            $ref: '#/components/schemas/PermissionScopeRequest'
+          $ref: '#/components/schemas/PermissionScopeRequest'
         specific:
-          type: array
-          items:
-            $ref: '#/components/schemas/SpecificPermissionRequest'
+          $ref: '#/components/schemas/SpecificPermissionRequest'
     SpecificPermissionRequest:
       type: object
       properties:
@@ -8145,6 +8180,150 @@ components:
         updatedAt:
           type: string
           format: date-time
+    AccountRefreshTokenResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        token:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        revoked:
+          type: boolean
+    AccountSessionResponse:
+      type: object
+      properties:
+        name:
+          type: string
+        platform:
+          type: string
+        osv:
+          type: string
+        os:
+          type: string
+        method:
+          type: string
+          enum:
+          - TOKEN
+          - PASSWORD
+          - NONE
+          - PASSWORD_CHANGE
+          - MFA
+        level:
+          type: string
+          enum:
+          - LEVEL_0
+          - LEVEL_1
+          - LEVEL_2
+        ipAddress:
+          type: string
+        host:
+          type: string
+        device:
+          type: string
+        id:
+          type: string
+        revoked:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        refreshTokens:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccountRefreshTokenResponse'
+    ApiResponseListAccountSessionResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - 100 CONTINUE
+          - 101 SWITCHING_PROTOCOLS
+          - 102 PROCESSING
+          - 103 EARLY_HINTS
+          - 103 CHECKPOINT
+          - 200 OK
+          - 201 CREATED
+          - 202 ACCEPTED
+          - 203 NON_AUTHORITATIVE_INFORMATION
+          - 204 NO_CONTENT
+          - 205 RESET_CONTENT
+          - 206 PARTIAL_CONTENT
+          - 207 MULTI_STATUS
+          - 208 ALREADY_REPORTED
+          - 226 IM_USED
+          - 300 MULTIPLE_CHOICES
+          - 301 MOVED_PERMANENTLY
+          - 302 FOUND
+          - 302 MOVED_TEMPORARILY
+          - 303 SEE_OTHER
+          - 304 NOT_MODIFIED
+          - 305 USE_PROXY
+          - 307 TEMPORARY_REDIRECT
+          - 308 PERMANENT_REDIRECT
+          - 400 BAD_REQUEST
+          - 401 UNAUTHORIZED
+          - 402 PAYMENT_REQUIRED
+          - 403 FORBIDDEN
+          - 404 NOT_FOUND
+          - 405 METHOD_NOT_ALLOWED
+          - 406 NOT_ACCEPTABLE
+          - 407 PROXY_AUTHENTICATION_REQUIRED
+          - 408 REQUEST_TIMEOUT
+          - 409 CONFLICT
+          - 410 GONE
+          - 411 LENGTH_REQUIRED
+          - 412 PRECONDITION_FAILED
+          - 413 PAYLOAD_TOO_LARGE
+          - 413 REQUEST_ENTITY_TOO_LARGE
+          - 414 URI_TOO_LONG
+          - 414 REQUEST_URI_TOO_LONG
+          - 415 UNSUPPORTED_MEDIA_TYPE
+          - 416 REQUESTED_RANGE_NOT_SATISFIABLE
+          - 417 EXPECTATION_FAILED
+          - 418 I_AM_A_TEAPOT
+          - 419 INSUFFICIENT_SPACE_ON_RESOURCE
+          - 420 METHOD_FAILURE
+          - 421 DESTINATION_LOCKED
+          - 422 UNPROCESSABLE_ENTITY
+          - 423 LOCKED
+          - 424 FAILED_DEPENDENCY
+          - 425 TOO_EARLY
+          - 426 UPGRADE_REQUIRED
+          - 428 PRECONDITION_REQUIRED
+          - 429 TOO_MANY_REQUESTS
+          - 431 REQUEST_HEADER_FIELDS_TOO_LARGE
+          - 451 UNAVAILABLE_FOR_LEGAL_REASONS
+          - 500 INTERNAL_SERVER_ERROR
+          - 501 NOT_IMPLEMENTED
+          - 502 BAD_GATEWAY
+          - 503 SERVICE_UNAVAILABLE
+          - 504 GATEWAY_TIMEOUT
+          - 505 HTTP_VERSION_NOT_SUPPORTED
+          - 506 VARIANT_ALSO_NEGOTIATES
+          - 507 INSUFFICIENT_STORAGE
+          - 508 LOOP_DETECTED
+          - 509 BANDWIDTH_LIMIT_EXCEEDED
+          - 510 NOT_EXTENDED
+          - 511 NETWORK_AUTHENTICATION_REQUIRED
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccountSessionResponse'
     AdminProfileUpdateRequest:
       type: object
       properties:
@@ -9097,14 +9276,94 @@ components:
         id:
           type: string
           format: uuid
-        cluster:
+        account:
+          type: string
+        scopes:
           type: array
           items:
             $ref: '#/components/schemas/PermissionScopeRequest'
-        specific:
-          type: array
-          items:
-            $ref: '#/components/schemas/SpecificPermissionRequest'
+    ApiResponseAdminTeamResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - 100 CONTINUE
+          - 101 SWITCHING_PROTOCOLS
+          - 102 PROCESSING
+          - 103 EARLY_HINTS
+          - 103 CHECKPOINT
+          - 200 OK
+          - 201 CREATED
+          - 202 ACCEPTED
+          - 203 NON_AUTHORITATIVE_INFORMATION
+          - 204 NO_CONTENT
+          - 205 RESET_CONTENT
+          - 206 PARTIAL_CONTENT
+          - 207 MULTI_STATUS
+          - 208 ALREADY_REPORTED
+          - 226 IM_USED
+          - 300 MULTIPLE_CHOICES
+          - 301 MOVED_PERMANENTLY
+          - 302 FOUND
+          - 302 MOVED_TEMPORARILY
+          - 303 SEE_OTHER
+          - 304 NOT_MODIFIED
+          - 305 USE_PROXY
+          - 307 TEMPORARY_REDIRECT
+          - 308 PERMANENT_REDIRECT
+          - 400 BAD_REQUEST
+          - 401 UNAUTHORIZED
+          - 402 PAYMENT_REQUIRED
+          - 403 FORBIDDEN
+          - 404 NOT_FOUND
+          - 405 METHOD_NOT_ALLOWED
+          - 406 NOT_ACCEPTABLE
+          - 407 PROXY_AUTHENTICATION_REQUIRED
+          - 408 REQUEST_TIMEOUT
+          - 409 CONFLICT
+          - 410 GONE
+          - 411 LENGTH_REQUIRED
+          - 412 PRECONDITION_FAILED
+          - 413 PAYLOAD_TOO_LARGE
+          - 413 REQUEST_ENTITY_TOO_LARGE
+          - 414 URI_TOO_LONG
+          - 414 REQUEST_URI_TOO_LONG
+          - 415 UNSUPPORTED_MEDIA_TYPE
+          - 416 REQUESTED_RANGE_NOT_SATISFIABLE
+          - 417 EXPECTATION_FAILED
+          - 418 I_AM_A_TEAPOT
+          - 419 INSUFFICIENT_SPACE_ON_RESOURCE
+          - 420 METHOD_FAILURE
+          - 421 DESTINATION_LOCKED
+          - 422 UNPROCESSABLE_ENTITY
+          - 423 LOCKED
+          - 424 FAILED_DEPENDENCY
+          - 425 TOO_EARLY
+          - 426 UPGRADE_REQUIRED
+          - 428 PRECONDITION_REQUIRED
+          - 429 TOO_MANY_REQUESTS
+          - 431 REQUEST_HEADER_FIELDS_TOO_LARGE
+          - 451 UNAVAILABLE_FOR_LEGAL_REASONS
+          - 500 INTERNAL_SERVER_ERROR
+          - 501 NOT_IMPLEMENTED
+          - 502 BAD_GATEWAY
+          - 503 SERVICE_UNAVAILABLE
+          - 504 GATEWAY_TIMEOUT
+          - 505 HTTP_VERSION_NOT_SUPPORTED
+          - 506 VARIANT_ALSO_NEGOTIATES
+          - 507 INSUFFICIENT_STORAGE
+          - 508 LOOP_DETECTED
+          - 509 BANDWIDTH_LIMIT_EXCEEDED
+          - 510 NOT_EXTENDED
+          - 511 NETWORK_AUTHENTICATION_REQUIRED
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/AdminTeamResponse'
     ApiResponseListPermissionRequestGroupResponse:
       type: object
       properties:
@@ -9189,6 +9448,15 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PermissionRequestGroupResponse'
+    PermissionRequestAccountDetails:
+      type: object
+      properties:
+        name:
+          type: string
+        role:
+          type: string
+        account:
+          type: string
     PermissionRequestDetails:
       type: object
       properties:
@@ -9225,8 +9493,10 @@ components:
         label:
           type: string
         account:
-          type: string
+          $ref: '#/components/schemas/PermissionRequestAccountDetails'
         expiration:
+          type: string
+        reason:
           type: string
         status:
           type: string
@@ -11899,66 +12169,6 @@ components:
           format: date-time
         id:
           type: string
-    AccountRefreshTokenResponse:
-      type: object
-      properties:
-        id:
-          type: string
-        token:
-          type: string
-        updatedAt:
-          type: string
-          format: date-time
-        createdAt:
-          type: string
-          format: date-time
-        revoked:
-          type: boolean
-    AccountSessionResponse:
-      type: object
-      properties:
-        name:
-          type: string
-        platform:
-          type: string
-        osv:
-          type: string
-        os:
-          type: string
-        method:
-          type: string
-          enum:
-          - TOKEN
-          - PASSWORD
-          - NONE
-          - PASSWORD_CHANGE
-          - MFA
-        level:
-          type: string
-          enum:
-          - LEVEL_0
-          - LEVEL_1
-          - LEVEL_2
-        ipAddress:
-          type: string
-        host:
-          type: string
-        device:
-          type: string
-        id:
-          type: string
-        revoked:
-          type: boolean
-        createdAt:
-          type: string
-          format: date-time
-        updatedAt:
-          type: string
-          format: date-time
-        refreshTokens:
-          type: array
-          items:
-            $ref: '#/components/schemas/AccountRefreshTokenResponse'
     AdminScopeResponse:
       type: object
       properties:

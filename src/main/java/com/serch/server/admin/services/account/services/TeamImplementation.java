@@ -119,7 +119,7 @@ public class TeamImplementation implements TeamService {
         if(admin.isSuper()) {
             admins = adminRepository.findAll();
         } else {
-            admins = admin.getAdmins();
+            admins = admin.getAdmins().stream().toList();
         }
         return admins;
     }

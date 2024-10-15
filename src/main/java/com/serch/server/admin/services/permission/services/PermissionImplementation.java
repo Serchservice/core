@@ -8,7 +8,9 @@ import com.serch.server.admin.repositories.AdminRepository;
 import com.serch.server.admin.repositories.GrantedPermissionRepository;
 import com.serch.server.admin.repositories.GrantedPermissionScopeRepository;
 import com.serch.server.admin.repositories.RequestedPermissionRepository;
+import com.serch.server.admin.services.account.responses.AdminTeamResponse;
 import com.serch.server.admin.services.account.services.AdminActivityService;
+import com.serch.server.admin.services.account.services.AdminProfileService;
 import com.serch.server.admin.services.notification.AdminNotificationService;
 import com.serch.server.admin.services.permission.requests.PermissionRequest;
 import com.serch.server.admin.services.permission.requests.PermissionRequestDto;
@@ -32,9 +34,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -51,6 +51,7 @@ public class PermissionImplementation implements PermissionService {
     private final AdminRepository adminRepository;
     private final RequestedPermissionRepository requestedPermissionRepository;
     private final UserUtil userUtil;
+    private final AdminProfileService adminProfileService;
 
     @Override
     @Transactional
@@ -125,81 +126,66 @@ public class PermissionImplementation implements PermissionService {
 
     @Override
     @Transactional
-    public List<GrantedPermissionScopeResponse> getGrantedClusterPermissions(Admin admin) {
-        if(admin.getScopes() != null && !admin.getScopes().isEmpty()) {
-            return admin.getScopes().stream().filter(scope -> scope.getAccount() == null)
-                    .map(scope -> {
-                        GrantedPermissionScopeResponse response = AdminMapper.instance.response(scope);
-                        response.setCreatedAt(TimeUtil.formatDay(scope.getCreatedAt(), admin.getUser().getTimezone()));
-                        response.setUpdatedAt(TimeUtil.formatDay(scope.getUpdatedAt(), admin.getUser().getTimezone()));
-                        return getGrantedResponse(scope, response, admin);
-                    }).toList();
+    public ApiResponse<String> request(PermissionRequest request) {
+        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
+                .orElseThrow(() -> new AuthException("Admin not found"));
+
+        if(request.getCluster() != null) {
+            validate(List.of(request.getCluster()), admin, null);
+            request(List.of(request.getCluster()), admin, null);
         }
 
-        return List.of();
-    }
-
-    private GrantedPermissionScopeResponse getGrantedResponse(GrantedPermissionScope scope, GrantedPermissionScopeResponse response, Admin admin) {
-        response.setPermissions(scope.getPermissions().stream().map(permission -> {
-            PermissionResponse permit = new PermissionResponse();
-            permit.setPermission(permission.getPermission());
-            permit.setId(permission.getId());
-            permit.setCreatedAt(TimeUtil.formatDay(permission.getCreatedAt(), scope.getAdmin().getUser().getTimezone()));
-            permit.setUpdatedAt(TimeUtil.formatDay(permission.getUpdatedAt(), scope.getAdmin().getUser().getTimezone()));
-
-            requestedPermissionRepository.findGranted(admin.getId(), scope.getScope(), scope.getAccount(), permission.getPermission())
-                    .ifPresent(requested -> permit.setExpiration(requested.getExpirationTime(admin.getUser().getTimezone())));
-            return permit;
-        }).toList());
-
-        return response;
-    }
-
-    @Override
-    @Transactional
-    public List<SpecificPermissionResponse> getGrantedSpecificPermissions(Admin admin) {
-        if(admin.getScopes() != null && !admin.getScopes().isEmpty()) {
-            Map<String, List<GrantedPermissionScope>> groups = admin.getScopes()
-                    .stream()
-                    .filter(scope -> scope.getAccount() != null)
-                    .collect(Collectors.groupingBy(GrantedPermissionScope::getAccount));
-
-            List<SpecificPermissionResponse> list = new ArrayList<>();
-            groups.forEach((key, value) -> {
-                SpecificPermissionResponse response = new SpecificPermissionResponse();
-                response.setAccount(key);
-                response.setName(notificationRepository.getName(key));
-                response.setScopes(value.stream().map(scope -> {
-                    GrantedPermissionScopeResponse permit = AdminMapper.instance.response(scope);
-                    permit.setCreatedAt(TimeUtil.formatDay(scope.getCreatedAt(), admin.getUser().getTimezone()));
-                    permit.setUpdatedAt(TimeUtil.formatDay(scope.getUpdatedAt(), admin.getUser().getTimezone()));
-
-                    return getGrantedResponse(scope, permit, admin);
-                }).toList());
-
-                list.add(response);
-            });
-
-            return list;
+        if(request.getSpecific() != null) {
+            validate(request.getSpecific().getScopes(), admin, request.getSpecific().getAccount());
+            request(request.getSpecific().getScopes(), admin, request.getSpecific().getAccount());
         }
 
-        return List.of();
+        return new ApiResponse<>("Your permission requests are being evaluated. Wait a moment", HttpStatus.OK);
     }
+
+    private void validate(List<PermissionScopeRequest> scopes, Admin admin, String account) {
+        scopes.stream()
+                .filter(scope -> scope.getPermissions() != null && !scope.getPermissions().isEmpty())
+                .flatMap(scope -> scope.getPermissions().stream().map(permission -> new AbstractMap.SimpleEntry<>(scope, permission)))
+                .forEach(entry -> {
+                    PermissionScopeRequest scope = entry.getKey();
+                    PermissionRequestDto permission = entry.getValue();
+
+                    grantedPermissionRepository.findExisting(permission.getPermission(), scope.getScope(), admin.getId(), account)
+                            .ifPresent(grantedPermission -> {
+                                throw new PermissionException(String.format(
+                                        "The %s permission for %s scope is already granted to you",
+                                        permission.getPermission().name(),
+                                        scope.getScope().getScope()
+                                ));
+                            });
+                });
+    }
+
 
     private void request(List<PermissionScopeRequest> scopes, Admin admin, String account) {
         if (scopes == null || scopes.isEmpty()) {
             return;
         }
 
-        scopes.forEach(scope -> {
-            if (scope.getPermissions() != null && !scope.getPermissions().isEmpty()) {
-                scope.getPermissions().forEach(permission -> {
+        scopes.stream()
+                .filter(scope -> scope.getPermissions() != null && !scope.getPermissions().isEmpty())
+                .flatMap(scope -> scope.getPermissions().stream().map(permission -> new AbstractMap.SimpleEntry<>(scope, permission)))
+                .forEach(entry -> {
+                    PermissionScopeRequest scope = entry.getKey();
+                    PermissionRequestDto permission = entry.getValue();
+
+                    if (permission.getReason() == null || permission.getReason().isEmpty() || permission.getReason().length() < 3) {
+                        throw new PermissionException(String.format("Reason for requesting %s permission is necessary and vital", permission.getPermission()));
+                    }
+
                     RequestedPermission request = new RequestedPermission();
                     request.setScope(scope.getScope());
                     request.setPermission(permission.getPermission());
                     request.setRequestedBy(admin);
+                    request.setReason(permission.getReason());
 
-                    if(account != null) {
+                    if (account != null) {
                         request.setAccount(account);
                     }
 
@@ -218,25 +204,6 @@ public class PermissionImplementation implements PermissionService {
                             admin.getUser()
                     );
                 });
-            }
-        });
-    }
-
-    @Override
-    @Transactional
-    public ApiResponse<String> request(PermissionRequest request) {
-        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
-                .orElseThrow(() -> new AuthException("Admin not found"));
-
-        if(request.getCluster() != null && !request.getCluster().isEmpty()) {
-            request(request.getCluster(), admin, null);
-        }
-
-        if(request.getSpecific() != null && !request.getSpecific().isEmpty()) {
-            request.getSpecific().forEach(spec -> request(spec.getScopes(), admin, spec.getAccount()));
-        }
-
-        return new ApiResponse<>("Your permission requests are being evaluated. Wait a moment", HttpStatus.OK);
     }
 
     private boolean canAct(RequestedPermission permission) {
@@ -249,17 +216,21 @@ public class PermissionImplementation implements PermissionService {
 
     @Override
     @Transactional
-    public ApiResponse<List<PermissionRequestGroupResponse>> grant(Long id, Long expiration) {
+    public ApiResponse<List<PermissionRequestGroupResponse>> grant(Long id, String expiration) {
         Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new PermissionException("Admin not found"));
         RequestedPermission requested = requestedPermissionRepository.findById(id)
                 .orElseThrow(() -> new PermissionException("Permission not found"));
 
+        if (expiration != null && !expiration.isEmpty()) {
+            validateExpirationTime(expiration, admin.getUser().getTimezone());
+            requested.setExpirationPeriod(parseExpirationString(expiration, admin.getUser().getTimezone()));
+        }
+
         if(canAct(requested)) {
             requested.setStatus(PermissionStatus.APPROVED);
             requested.setUpdatedBy(admin);
             requested.setUpdatedAt(TimeUtil.now());
-            requested.setExpirationPeriod(expiration);
             requested.setGrantedAt(TimeUtil.now());
             requestedPermissionRepository.save(requested);
 
@@ -288,6 +259,22 @@ public class PermissionImplementation implements PermissionService {
             return new ApiResponse<>("Requested permission is now granted", requests().getData(), HttpStatus.OK);
         } else {
             throw new PermissionException("Access denied. Cannot perform this action");
+        }
+    }
+
+    private ZonedDateTime parseExpirationString(String expiration, String timezone) {
+        // Parse the expiration string as an Instant
+        Instant instant = Instant.parse(expiration);
+        // Convert the Instant to ZonedDateTime using the specified timezone
+        return instant.atZone(TimeUtil.zoneId(timezone));
+    }
+
+    public void validateExpirationTime(String expiration, String timezone) {
+        ZonedDateTime expirationTime = parseExpirationString(expiration, timezone);
+        ZonedDateTime now = ZonedDateTime.now(TimeUtil.zoneId(timezone));
+
+        if (expirationTime.isBefore(now) || expirationTime.isEqual(now)) {
+            throw new PermissionException("Expiration time must be in the future.");
         }
     }
 
@@ -341,9 +328,20 @@ public class PermissionImplementation implements PermissionService {
             List<RequestedPermission> permissions = requestedPermissionRepository.findAll();
             return requestResponse(permissions, admin);
         } else {
-            List<RequestedPermission> permissions = requestedPermissionRepository.findByAdmin_Admin_Id(admin.getId());
+            List<RequestedPermission> permissions = findPermissionsForAdminAndDescendants(admin);
             return requestResponse(permissions, admin);
         }
+    }
+
+    public List<RequestedPermission> findPermissionsForAdminAndDescendants(Admin admin) {
+        Set<Admin> descendantAdmins = admin.findAllDescendantAdmins(admin);
+        descendantAdmins.add(admin); // Include the original admin as well
+
+        List<UUID> adminIds = descendantAdmins.stream()
+                .map(Admin::getId)
+                .collect(Collectors.toList());
+
+        return requestedPermissionRepository.findByRequestedByIdIn(adminIds);
     }
 
     private ApiResponse<List<PermissionRequestGroupResponse>> requestResponse(List<RequestedPermission> permissions, Admin admin) {
@@ -356,19 +354,28 @@ public class PermissionImplementation implements PermissionService {
             List<PermissionRequestGroupResponse> response = new ArrayList<>();
             permitted.forEach((date, permit) -> {
                 PermissionRequestGroupResponse group = new PermissionRequestGroupResponse();
-                group.setCreatedAt(TimeUtil.toZonedDate(LocalDateTime.of(date, LocalTime.now()), userUtil.getUser().getTimezone()));
-                group.setLabel(TimeUtil.formatDay(LocalDateTime.of(date, LocalTime.now()), userUtil.getUser().getTimezone()));
+                group.setCreatedAt(TimeUtil.toZonedDate(LocalDateTime.of(date, permit.getFirst().getCreatedAt().toLocalTime()), userUtil.getUser().getTimezone()));
+                group.setLabel(TimeUtil.formatChatLabel(LocalDateTime.of(date, permit.getFirst().getCreatedAt().toLocalTime()), userUtil.getUser().getTimezone()));
 
-                group.setRequests(permissions.stream().map(permission -> {
+                group.setRequests(permit.stream().map(permission -> {
                     PermissionRequestResponse request = AdminMapper.instance.response(permission);
                     request.setMessage(String.format(
                             "%s requested for %s permission for account %s",
-                            permission.getRequestedBy().getUser().getFullName(),
-                            permission,
+                            permission.getRequestedBy().getUser().isUser(admin.getId())
+                                    ? "You"
+                                    : permission.getRequestedBy().getUser().getFullName(),
+                            permission.getPermission().name(),
                             permission.getAccount() != null ? permission.getAccount() : permission.getScope()
                     ));
                     request.setExpiration(permission.getExpirationTime(userUtil.getUser().getTimezone()));
                     request.setLabel(TimeUtil.formatTime(permission.getCreatedAt(), permission.getRequestedBy().getUser().getTimezone()));
+
+                    if(permission.getAccount() != null && !permission.getAccount().isEmpty()) {
+                        PermissionRequestAccountDetails account = new PermissionRequestAccountDetails();
+                        account.setAccount(permission.getAccount());
+                        account.setName(notificationRepository.getName(permission.getAccount()));
+                        account.setRole(notificationRepository.getRole(permission.getAccount()));
+                    }
 
                     PermissionRequestDetails details = new PermissionRequestDetails();
                     details.setGranted(TimeUtil.formatDay(permission.getGrantedAt(), admin.getUser().getTimezone()));
@@ -380,6 +387,7 @@ public class PermissionImplementation implements PermissionService {
                     request.setDetails(details);
                     return request;
                 }).toList());
+
                 response.add(group);
             });
 
@@ -412,7 +420,7 @@ public class PermissionImplementation implements PermissionService {
         RequestedPermission permission = requestedPermissionRepository.findById(id)
                 .orElseThrow(() -> new PermissionException("Permission not found"));
 
-        if(permission.getRequestedBy().getUser().isUser(admin.getId())) {
+        if(permission.getRequestedBy().getUser().isUser(admin.getId()) && permission.isPending()) {
             requestedPermissionRepository.delete(permission);
 
             return new ApiResponse<>("Granted permission is now removed", requests().getData(), HttpStatus.OK);
@@ -422,30 +430,32 @@ public class PermissionImplementation implements PermissionService {
     }
 
     @Transactional
-    public ApiResponse<String> updatePermissions(UpdatePermissionRequest request) {
+    public ApiResponse<AdminTeamResponse> updatePermissions(UpdatePermissionRequest request) {
         // Retrieve the current admin from the database
         Admin admin = adminRepository.findById(request.getId())
                 .orElseThrow(() -> new PermissionException("Admin not found"));
 
-        // Retrieve current scopes
-        List<GrantedPermissionScope> cluster = admin.getScopes().stream()
-                .filter(scope -> scope.getAccount() == null)
-                .collect(Collectors.toList());
+        if(request.getAccount() == null || request.getAccount().isEmpty()) {
+            // Retrieve current scopes
+            List<GrantedPermissionScope> cluster = admin.getScopes().stream()
+                    .filter(scope -> scope.getAccount() == null)
+                    .collect(Collectors.toList());
 
-        List<GrantedPermissionScope> specific = admin.getScopes().stream()
-                .filter(scope -> scope.getAccount() != null)
-                .collect(Collectors.toList());
+            // Compare and update cluster scopes
+            updateScopes(cluster, request.getScopes(), admin, null);
+        } else {
+            List<GrantedPermissionScope> specific = admin.getScopes().stream()
+                    .filter(scope -> scope.getAccount() != null)
+                    .collect(Collectors.toList());
 
-        // Compare and update cluster scopes
-        updateScopes(cluster, request.getCluster(), admin, null);
-
-        // Compare and update individual scopes
-        request.getSpecific().forEach(spec -> updateScopes(specific, spec.getScopes(), admin, spec.getAccount()));
+            // Compare and update individual scopes
+            updateScopes(specific, request.getScopes(), admin, request.getAccount());
+        }
 
         // Save updated admin
         adminRepository.save(admin);
 
-        return new ApiResponse<>("Permissions updated successfully");
+        return new ApiResponse<>("Permissions updated successfully", adminProfileService.team(admin), HttpStatus.OK);
     }
 
     @Transactional
@@ -464,6 +474,7 @@ public class PermissionImplementation implements PermissionService {
                 GrantedPermissionScope scope = create(newScope.getScope(), user, account);
                 newScope.getPermissions().forEach(permission -> {
                     GrantedPermission granted = create(scope, permission.getPermission());
+                    handlePermissionUpdateIfRequested(scope, admin, granted);
 
                     activityService.create(
                             ActivityUtils.getGrant(permission.getPermission()),
@@ -496,7 +507,7 @@ public class PermissionImplementation implements PermissionService {
 
         // Handle deletions
         for (GrantedPermissionScope currentScope : currentMap.values()) {
-            grantedPermissionScopeRepository.delete(currentScope);
+            handleScopeDeletion(currentScope.getId());
             current.remove(currentScope);
         }
     }
@@ -524,6 +535,9 @@ public class PermissionImplementation implements PermissionService {
                     granted = create(scope, permission.getPermission());
                 }
             }
+
+            handlePermissionUpdateIfRequested(scope, admin, granted);
+
             activityService.create(
                     ActivityUtils.getAdd(permission.getPermission()),
                     scope.getAdmin().getPass(), scope.getAccount(), admin
@@ -545,8 +559,41 @@ public class PermissionImplementation implements PermissionService {
 
         // Handle deletions
         for (GrantedPermission currentPermission : currentMap.values()) {
-            grantedPermissionRepository.delete(currentPermission);
+            handlePermissionRevokingIfRequested(scope, admin, currentPermission);
+
             scope.getPermissions().remove(currentPermission);
+            grantedPermissionRepository.delete(currentPermission);
+            grantedPermissionRepository.flush();
+        }
+    }
+
+    private void handlePermissionRevokingIfRequested(GrantedPermissionScope scope, Admin admin, GrantedPermission currentPermission) {
+        List<RequestedPermission> existing = requestedPermissionRepository
+                .findExisting(scope.getAdmin().getId(), scope.getScope(), scope.getAccount(), currentPermission.getPermission());
+        if(existing != null && !existing.isEmpty()) {
+            existing.forEach(perm -> {
+                if(perm.isPending() || perm.isGranted()) {
+                    perm.setStatus(PermissionStatus.REVOKED);
+                    perm.setUpdatedBy(admin);
+                    perm.setUpdatedAt(TimeUtil.now());
+                    requestedPermissionRepository.save(perm);
+                }
+            });
+        }
+    }
+
+    private void handlePermissionUpdateIfRequested(GrantedPermissionScope scope, Admin admin, GrantedPermission granted) {
+        List<RequestedPermission> existing = requestedPermissionRepository
+                .findExisting(scope.getAdmin().getId(), scope.getScope(), scope.getAccount(), granted.getPermission());
+        if(existing != null && !existing.isEmpty()) {
+            existing.forEach(perm -> {
+                if(perm.isPending()) {
+                    perm.setStatus(PermissionStatus.APPROVED);
+                    perm.setUpdatedBy(admin);
+                    perm.setUpdatedAt(TimeUtil.now());
+                    requestedPermissionRepository.save(perm);
+                }
+            });
         }
     }
 
@@ -598,30 +645,50 @@ public class PermissionImplementation implements PermissionService {
     @Override
     @Transactional
     public void revokeExpiredPermissions() {
-        requestedPermissionRepository.findGrantedPermissionsWithExpirationTime().forEach(permission -> revoke(permission, null));
+        requestedPermissionRepository.findGrantedPermissionsWithExpirationTime().forEach(this::revokePermission);
     }
 
-    private void revoke(RequestedPermission permission, Admin admin) {
-        if(permission.isExpired()) {
-            grantedPermissionRepository.findExisting(permission.getPermission(), permission.getScope(), permission.getRequestedBy().getId(), permission.getAccount())
-                    .ifPresent(grantedPermission -> {
-                        grantedPermissionRepository.delete(grantedPermission);
-
-                        grantedPermissionScopeRepository.findById(grantedPermission.getScope().getId())
-                                .ifPresent(grantedPermissionScope -> {
-                                    if(grantedPermissionScope.getPermissions() == null || grantedPermissionScope.getPermissions().isEmpty()) {
-                                        grantedPermissionScopeRepository.delete(grantedPermissionScope);
-                                    }
-                                });
-                    });
-
-            permission.setStatus(PermissionStatus.REVOKED);
-            permission.setUpdatedAt(TimeUtil.now());
-
-            if(admin != null) {
-                permission.setUpdatedBy(admin);
-            }
-            requestedPermissionRepository.save(permission);
+    @Transactional
+    protected void revokePermission(RequestedPermission permission) {
+        if(permission.isExpired(permission.getRequestedBy().getUser().getTimezone())) {
+            revoke(permission, null);
         }
+    }
+
+    @Transactional
+    protected void revoke(RequestedPermission permission, Admin admin) {
+        grantedPermissionRepository.findExisting(permission.getPermission(), permission.getScope(), permission.getRequestedBy().getId(), permission.getAccount())
+                .ifPresent(grantedPermission -> {
+                    Long id = grantedPermission.getScope().getId();
+
+                    // Remove the grantedPermission from the GrantedPermissionScope's permissions set
+                    GrantedPermissionScope scope = grantedPermission.getScope();
+                    scope.getPermissions().remove(grantedPermission);
+
+                    // Delete the grantedPermission
+                    grantedPermissionRepository.delete(grantedPermission);
+                    grantedPermissionRepository.flush(); // Force flush to ensure the deletion takes effect
+
+                    // Now handle the grantedPermissionScope deletion
+                    handleScopeDeletion(id);
+                });
+
+        permission.setStatus(PermissionStatus.REVOKED);
+        permission.setUpdatedAt(TimeUtil.now());
+
+        if(admin != null) {
+            permission.setUpdatedBy(admin);
+        }
+        requestedPermissionRepository.save(permission);
+    }
+
+    private void handleScopeDeletion(Long id) {
+        grantedPermissionScopeRepository.findById(id)
+                .ifPresent(grantedPermissionScope -> {
+                    if (grantedPermissionScope.getPermissions() == null || grantedPermissionScope.getPermissions().isEmpty()) {
+                        grantedPermissionScopeRepository.delete(grantedPermissionScope);
+                        grantedPermissionScopeRepository.flush(); // Flush here as well
+                    }
+                });
     }
 }

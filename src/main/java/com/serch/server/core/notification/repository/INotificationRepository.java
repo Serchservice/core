@@ -16,6 +16,14 @@ public interface INotificationRepository {
     String getToken(String id);
 
     /**
+     * Retrieves the role associated with a specific user or entity by ID.
+     *
+     * @param id The unique identifier of the user or entity.
+     * @return The token associated with the given ID.
+     */
+    String getRole(String id);
+
+    /**
      * Retrieves the business token associated with a specific business by UUID.
      *
      * @param id The unique identifier (UUID) of the business.

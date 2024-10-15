@@ -7,6 +7,7 @@ import com.serch.server.models.account.Profile;
 import com.serch.server.models.shared.Guest;
 import com.serch.server.repositories.account.BusinessProfileRepository;
 import com.serch.server.repositories.account.ProfileRepository;
+import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.shared.GuestRepository;
 import com.serch.server.utils.HelperUtil;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class NotificationRepository implements INotificationRepository {
     private final BusinessProfileRepository businessProfileRepository;
     private final AdminRepository adminRepository;
     private final GuestRepository guestRepository;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
@@ -43,6 +45,18 @@ public class NotificationRepository implements INotificationRepository {
                         .orElseGet(() -> adminRepository.findById(uuid)
                                 .map(Admin::getFcmToken)
                                 .orElse("")));
+    }
+
+    @Override
+    @Transactional
+    public String getRole(String id) {
+        UUID uuid = HelperUtil.parseUUID(id);
+        if (uuid != null) {
+            return userRepository.findById(uuid).map(user -> user.getRole().getType()).orElse("");
+        }
+        return guestRepository.findById(id)
+                .map(guest -> "GUEST")
+                .orElse("");
     }
 
     @Override

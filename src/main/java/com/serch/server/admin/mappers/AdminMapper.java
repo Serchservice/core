@@ -27,6 +27,7 @@ public interface AdminMapper {
     })
     GrantedPermissionScopeResponse response(GrantedPermissionScope permission);
 
+    @Mapping(target = "account", source = "account", ignore = true)
     PermissionRequestResponse response(RequestedPermission permission);
 
     AdminProfileResponse response(User user);

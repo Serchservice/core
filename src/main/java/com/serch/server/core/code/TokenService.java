@@ -1,9 +1,9 @@
-package com.serch.server.services.auth.services;
+package com.serch.server.core.code;
 
 /**
  * Service interface for generating tokens.
  *
- * @see com.serch.server.services.auth.services.implementations.TokenImplementation
+ * @see TokenImplementation
  */
 public interface TokenService {
 

@@ -20,7 +20,7 @@ public class AdminJobs {
      * one year ago.
      * This method is scheduled to run every midnight.
      */
-    @Scheduled(cron = "0 0 0 * * ?")
+    @Scheduled(cron = "0 * * * * ?")
     public void revokePermissions() {
         log.info("Running scheduled task for revokeExpiredPermissions in %s on %s".formatted(PermissionService.class, TimeUtil.log()));
         permissionService.revokeExpiredPermissions();

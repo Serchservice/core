@@ -21,7 +21,7 @@ import com.serch.server.services.auth.responses.AuthResponse;
 import com.serch.server.services.auth.services.AccountStatusTrackerService;
 import com.serch.server.services.auth.services.AuthService;
 import com.serch.server.core.session.SessionService;
-import com.serch.server.services.auth.services.TokenService;
+import com.serch.server.core.code.TokenService;
 import com.serch.server.services.referral.services.ReferralProgramService;
 import com.serch.server.utils.TimeUtil;
 import jakarta.validation.constraints.NotNull;
@@ -177,10 +177,7 @@ public class AuthImplementation implements AuthService {
         Incomplete incomplete = incompleteRepository.findByEmailAddress(request.getEmailAddress())
                 .orElseThrow(() -> new AuthException("User not found", ExceptionCodes.USER_NOT_FOUND));
         if (TimeUtil.isOtpExpired(incomplete.getTokenExpiresAt(), "", OTP_EXPIRATION_TIME)) {
-            throw new AuthException(
-                    "OTP is expired. Request for another.",
-                    ExceptionCodes.INCORRECT_TOKEN
-            );
+            throw new AuthException("OTP is expired. Request for another.", ExceptionCodes.INCORRECT_TOKEN);
         } else {
             if (passwordEncoder.matches(request.getToken(), incomplete.getToken())) {
                 incomplete.setTokenConfirmedAt(TimeUtil.now());

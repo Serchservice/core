@@ -17,6 +17,14 @@ public interface AdminProfileService {
     ApiResponse<AdminResponse> get();
 
     /**
+     * Prepare an admin data from the admin information passed
+     *
+     * @param admin The {@link Admin} data
+     * @return {@link AdminResponse} data of formatted information
+     */
+    AdminResponse prepare(Admin admin);
+
+    /**
      * Update the profile information of the logged in admin
      *
      * @param request The {@link AdminProfileUpdateRequest} request data

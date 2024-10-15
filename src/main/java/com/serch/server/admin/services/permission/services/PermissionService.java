@@ -3,6 +3,7 @@ package com.serch.server.admin.services.permission.services;
 import com.serch.server.admin.enums.Permission;
 import com.serch.server.admin.enums.PermissionScope;
 import com.serch.server.admin.models.*;
+import com.serch.server.admin.services.account.responses.AdminTeamResponse;
 import com.serch.server.admin.services.permission.requests.PermissionRequest;
 import com.serch.server.admin.services.permission.requests.PermissionScopeRequest;
 import com.serch.server.admin.services.permission.responses.*;
@@ -52,24 +53,6 @@ public interface PermissionService {
     void create(List<PermissionScopeRequest> scopes, Admin admin);
 
     /**
-     * Gets all the cluster permissions granted to the logged in admin
-     *
-     * @param admin The {@link Admin} whose permission scopes are being requested for
-     *
-     * @return List of {@link GrantedPermissionScopeResponse}
-     */
-    List<GrantedPermissionScopeResponse> getGrantedClusterPermissions(Admin admin);
-
-    /**
-     * Gets all the specific permissions granted to the logged in admin
-     *
-     * @param admin The {@link Admin} whose permission scopes are being requested for
-     *
-     * @return List of {@link GrantedPermissionScopeResponse}
-     */
-    List<SpecificPermissionResponse> getGrantedSpecificPermissions(Admin admin);
-
-    /**
      * Make a permission request
      *
      * @param request The {@link PermissionRequest} data
@@ -81,12 +64,12 @@ public interface PermissionService {
     /**
      * Grants a pending permission request
      *
-     * @param expiration The period for permission expiration
+     * @param expiration The period for permission expiration in ISO Format (2024-10-15T08:55:00.000Z)
      * @param id The permission request id
      *
      * @return {@link ApiResponse} list of {@link PermissionRequestGroupResponse}
      */
-    ApiResponse<List<PermissionRequestGroupResponse>> grant(Long id, Long expiration);
+    ApiResponse<List<PermissionRequestGroupResponse>> grant(Long id, String expiration);
 
     /**
      * Decline a pending permission request
@@ -99,7 +82,7 @@ public interface PermissionService {
 
     /**
      * Fetch all permission requests for the logged-in admin to
-     * either {@link PermissionService#decline(Long)} or {@link PermissionService#grant(Long, Long)}
+     * either {@link PermissionService#decline(Long)} or {@link PermissionService#grant(Long, String)}
      *
      * @return {@link ApiResponse} list of {@link PermissionRequestGroupResponse}
      */
@@ -124,9 +107,9 @@ public interface PermissionService {
      *
      * @param request The {@link UpdatePermissionRequest} request data with the needed permissions
      *
-     * @return {@link ApiResponse} of success or failure
+     * @return {@link ApiResponse} of {@link AdminTeamResponse}
      */
-    ApiResponse<String> updatePermissions(UpdatePermissionRequest request);
+    ApiResponse<AdminTeamResponse> updatePermissions(UpdatePermissionRequest request);
 
     /**
      * Get all the permission scopes in the Serchservice platform

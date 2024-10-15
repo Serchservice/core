@@ -393,8 +393,8 @@ public class ScheduleImplementation implements ScheduleService {
                     .collect(Collectors.groupingBy(schedule -> schedule.getCreatedAt().toLocalDate()));
             listMap.forEach((date, scheduleList) -> {
                 ScheduleGroupResponse response = new ScheduleGroupResponse();
-                response.setTime(LocalDateTime.of(date, LocalTime.now()));
-                response.setLabel(TimeUtil.formatChatLabel(LocalDateTime.of(date, LocalTime.now()), userUtil.getUser().getTimezone()));
+                response.setTime(LocalDateTime.of(date, scheduleList.getFirst().getCreatedAt().toLocalTime()));
+                response.setLabel(TimeUtil.formatChatLabel(LocalDateTime.of(date, scheduleList.getFirst().getCreatedAt().toLocalTime()), userUtil.getUser().getTimezone()));
                 response.setSchedules(scheduleList.stream()
                         .sorted(Comparator.comparing(Schedule::getUpdatedAt).reversed())
                         .map(schedule -> schedulingService.response(

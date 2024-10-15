@@ -92,11 +92,9 @@ public class ProviderAuthImplementation implements ProviderAuthService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if(incomplete.isEmailConfirmed()) {
             if(incomplete.hasProfile()) {
-                throw new AuthException(
-                        "You already have a profile. Confirm your email again",
-                        ExceptionCodes.ACCESS_DENIED
-                );
+                throw new AuthException("You already have a profile. Confirm your email again", ExceptionCodes.ACCESS_DENIED);
             }
+
             if(HelperUtil.validatePassword(request.getPassword())) {
                 saveProfile(request, incomplete);
                 return new ApiResponse<>("Profile saved successfully", HttpStatus.OK);
@@ -145,15 +143,9 @@ public class ProviderAuthImplementation implements ProviderAuthService {
             if(incomplete.isEmailConfirmed()) {
                 if(incomplete.hasProfile()) {
                     if(incomplete.hasCategory()) {
-                        throw new AuthException(
-                                "You already have a Serch category",
-                                ExceptionCodes.ACCESS_DENIED
-                        );
+                        throw new AuthException("You already have a Serch category", ExceptionCodes.ACCESS_DENIED);
                     } else if(category.getSpecialties() != null && category.getSpecialties().size() > SPECIALTY_LIMIT) {
-                        throw new AuthException(
-                                "Specialties cannot be more than %s".formatted(SPECIALTY_LIMIT),
-                                ExceptionCodes.ACCESS_DENIED
-                        );
+                        throw new AuthException("Specialties cannot be more than %s".formatted(SPECIALTY_LIMIT), ExceptionCodes.ACCESS_DENIED);
                     } else {
                         saveCategory(category, incomplete);
                         return new ApiResponse<>("Serch Category saved successfully", HttpStatus.OK);

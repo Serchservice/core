@@ -17,6 +17,7 @@ import com.serch.server.services.auth.services.AuthService;
 import com.serch.server.services.auth.services.BusinessAuthService;
 import com.serch.server.core.session.SessionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -59,28 +60,31 @@ public class BusinessAuthImplementation implements BusinessAuthService {
         if(incomplete.isEmailConfirmed()) {
             if(incomplete.hasProfile()) {
                 if(incomplete.hasCategory()) {
-                    User user = authService.getUserFromIncomplete(incomplete, Role.BUSINESS);
-                    user.setCountry(profile.getCountry());
-                    user.setState(profile.getState());
-                    userRepository.save(user);
-                    ApiResponse<String> response = businessService.createProfile(incomplete, user, profile);
+                   try {
+                       User user = authService.getUserFromIncomplete(incomplete, Role.BUSINESS);
+                       user.setCountry(profile.getCountry());
+                       user.setState(profile.getState());
+                       userRepository.save(user);
+                       ApiResponse<String> response = businessService.createProfile(incomplete, user, profile);
 
-                    if(response.getStatus().is2xxSuccessful()) {
-                        RequestSession requestSession = new RequestSession();
-                        requestSession.setMethod(AuthMethod.PASSWORD);
-                        requestSession.setUser(user);
-                        requestSession.setDevice(profile.getDevice());
+                       if(response.getStatus().is2xxSuccessful()) {
+                           RequestSession requestSession = new RequestSession();
+                           requestSession.setMethod(AuthMethod.PASSWORD);
+                           requestSession.setUser(user);
+                           requestSession.setDevice(profile.getDevice());
 
-                        incompleteRepository.delete(incomplete);
-                        return sessionService.generateSession(requestSession);
-                    } else {
-                        businessService.undo(incomplete.getEmailAddress());
-                        throw new AuthException(response.getMessage());
-                    }
+                           incompleteRepository.delete(incomplete);
+                           return sessionService.generateSession(requestSession);
+                       } else {
+                           businessService.undo(incomplete.getEmailAddress());
+                           throw new AuthException(response.getMessage());
+                       }
+                   } catch (DataIntegrityViolationException ignored) {
+                       businessService.undo(incomplete.getEmailAddress());
+                       throw new AuthException("An error occurred while creating your business profile. Try again");
+                   }
                 } else {
-                    throw new AuthException(
-                            "You don't have a Serch category", ExceptionCodes.CATEGORY_NOT_SET
-                    );
+                    throw new AuthException("You don't have a Serch category", ExceptionCodes.CATEGORY_NOT_SET);
                 }
             } else {
                 throw new AuthException("You don't have any profile", ExceptionCodes.PROFILE_NOT_SET);

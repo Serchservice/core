@@ -1,5 +1,6 @@
 package com.serch.server.configurations;
 
+import com.serch.server.core.Logging;
 import com.serch.server.exceptions.ServerExceptionHandler;
 import com.serch.server.exceptions.auth.AuthException;
 import com.serch.server.core.session.SessionService;
@@ -13,8 +14,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,8 +22,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import java.util.Arrays;
 
 /**
  * The JwtAuthenticationFilter class is responsible for authenticating requests using JWT (JSON Web Token).
@@ -42,8 +39,6 @@ import java.util.Arrays;
 @Configuration
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
-
     /**
      * Service for retrieving user details.
      */
@@ -69,11 +64,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     @SneakyThrows
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) {
-        log.info(String.format("%s::: %s", "JWT AUTHENTICATION FILTER - URL", request.getRequestURL()));
-        log.info(String.format("%s::: %s", "JWT AUTHENTICATION FILTER - URI", request.getRequestURI()));
-        log.info(String.format("%s::: %s", "JWT AUTHENTICATION FILTER - REMOTE ADDRESS", request.getRemoteAddr()));
-        log.info(String.format("REQUEST::: %s", request));
-        request.getParameterMap().forEach((a, b) -> log.info(String.format("%s::: Key=%s | Value=%s", "JWT REQUEST PARAMS", a, Arrays.toString(b))));
+        Logging.logRequest(request, "JWT AUTHENTICATION FILTER");
 
         // Extract JWT token from the Authorization header
         String header = request.getHeader("Authorization");

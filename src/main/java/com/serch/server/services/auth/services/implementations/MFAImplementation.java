@@ -25,7 +25,7 @@ import com.serch.server.services.auth.responses.MFARecoveryCodeResponse;
 import com.serch.server.services.auth.responses.MFAUsageResponse;
 import com.serch.server.services.auth.services.MFAService;
 import com.serch.server.core.session.SessionService;
-import com.serch.server.services.auth.services.TokenService;
+import com.serch.server.core.code.TokenService;
 import com.serch.server.utils.DatabaseUtil;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;

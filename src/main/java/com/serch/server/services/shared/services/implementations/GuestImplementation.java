@@ -15,7 +15,7 @@ import com.serch.server.repositories.shared.SharedLoginRepository;
 import com.serch.server.services.account.services.ProfileService;
 import com.serch.server.services.auth.requests.RequestProfile;
 import com.serch.server.services.auth.responses.AuthResponse;
-import com.serch.server.services.auth.services.TokenService;
+import com.serch.server.core.code.TokenService;
 import com.serch.server.services.auth.services.UserAuthService;
 import com.serch.server.services.shared.requests.GuestToUserRequest;
 import com.serch.server.services.shared.requests.SwitchRequest;

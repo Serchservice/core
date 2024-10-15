@@ -11,12 +11,15 @@ import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.User;
 import com.serch.server.models.auth.incomplete.Incomplete;
 import com.serch.server.models.certificate.Certificate;
+import com.serch.server.repositories.account.AccountSettingRepository;
 import com.serch.server.repositories.account.PhoneInformationRepository;
 import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.account.SpecialtyRepository;
+import com.serch.server.repositories.auth.AccountStatusTrackerRepository;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.certificate.CertificateRepository;
 import com.serch.server.repositories.rating.RatingRepository;
+import com.serch.server.repositories.referral.ReferralProgramRepository;
 import com.serch.server.repositories.shared.SharedLinkRepository;
 import com.serch.server.repositories.shop.ShopRepository;
 import com.serch.server.repositories.trip.TripRepository;
@@ -75,6 +78,9 @@ public class ProfileImplementation implements ProfileService {
     private final SharedLinkRepository sharedLinkRepository;
     private final TripRepository tripRepository;
     private final CertificateRepository certificateRepository;
+    private final ReferralProgramRepository referralProgramRepository;
+    private final AccountStatusTrackerRepository accountStatusTrackerRepository;
+    private final AccountSettingRepository accountSettingRepository;
 
     @Value("${application.account.duration}")
     private Integer ACCOUNT_DURATION;
@@ -197,11 +203,14 @@ public class ProfileImplementation implements ProfileService {
     public void undo(String emailAddress) {
         profileRepository.findByUser_EmailAddress(emailAddress)
                 .ifPresent(profile -> {
-                    userRepository.delete(profile.getUser());
                     phoneInformationRepository.findByUser_Id(profile.getId()).ifPresent(phoneInformationRepository::delete);
+                    referralProgramRepository.delete(profile.getUser().getProgram());
                     referralService.undo(profile.getUser());
+                    accountStatusTrackerRepository.deleteByUser(profile.getUser());
+                    accountSettingRepository.delete(profile.getUser().getSetting());
                     walletService.undo(profile.getUser());
                     profileRepository.delete(profile);
+                    userRepository.delete(profile.getUser());
                 });
     }
 

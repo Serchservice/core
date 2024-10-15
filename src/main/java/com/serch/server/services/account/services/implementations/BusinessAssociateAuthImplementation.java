@@ -16,7 +16,7 @@ import com.serch.server.services.auth.requests.RequestSession;
 import com.serch.server.services.auth.responses.AuthResponse;
 import com.serch.server.core.jwt.JwtService;
 import com.serch.server.core.session.SessionService;
-import com.serch.server.services.auth.services.TokenService;
+import com.serch.server.core.code.TokenService;
 import com.serch.server.services.account.requests.ChangePasswordInviteRequest;
 import com.serch.server.services.account.responses.VerifiedInviteResponse;
 import com.serch.server.services.account.services.BusinessAssociateAuthService;

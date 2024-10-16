@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,6 +23,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.util.List;
 
 /**
  * The JwtAuthenticationFilter class is responsible for authenticating requests using JWT (JSON Web Token).
@@ -39,6 +42,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Configuration
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+    @Value("${application.cors.allowed.ip-addresses}")
+    private List<String> ALLOWED_REQUEST_IP_ADDRESSES;
+
     /**
      * Service for retrieving user details.
      */
@@ -76,7 +82,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         // If remote address contains any of the Whitelisted IP Addresses, proceed to next filter
-        if(ServerUtil.IP_WHITELIST.contains(request.getRemoteAddr())){
+        if(ALLOWED_REQUEST_IP_ADDRESSES.contains(request.getRemoteAddr())){
             filterChain.doFilter(request, response);
             return;
         }

@@ -1,8 +1,8 @@
 package com.serch.server.configurations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.serch.server.utils.ServerUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.converter.DefaultContentTypeResolver;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
@@ -28,6 +28,12 @@ import java.util.List;
 @RequiredArgsConstructor
 @EnableWebSocketMessageBroker
 public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer {
+    @Value("${application.cors.allowed.origin-patterns}")
+    private List<String> ALLOWED_REQUEST_ORIGIN_PATTERNS;
+
+    @Value("${application.cors.allowed.origins}")
+    private List<String> ALLOWED_REQUEST_ORIGINS;
+
     private final WebSocketInterceptor interceptor;
     private final ObjectMapper objectMapper;
 
@@ -39,8 +45,8 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws:chat", "/ws:serch", "/ws:trip", "/ws", "/ws:call")
-                .setAllowedOrigins(ServerUtil.PRODUCTION.toArray(new String[0]))
-                .setAllowedOriginPatterns(ServerUtil.DEVELOPMENT.toArray(new String[0]))
+                .setAllowedOrigins(ALLOWED_REQUEST_ORIGINS.toArray(new String[0]))
+                .setAllowedOriginPatterns(ALLOWED_REQUEST_ORIGIN_PATTERNS.toArray(new String[0]))
                 .withSockJS();
     }
 

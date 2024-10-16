@@ -5,7 +5,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
-import com.mailersend.sdk.MailerSend;
+import com.resend.Resend;
 import com.serch.server.core.sms.SmsConfig;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.utils.ServerUtil;
@@ -211,12 +211,11 @@ public class ServerConfiguration {
     }
 
     @Bean
-    public MailerSend send() {
-        MailerSend ms = new MailerSend();
-        ms.setToken(MAIL_API_KEY);
+    public Resend mailer() {
+        Resend resend = new Resend(MAIL_API_KEY);
 
-        log.info(String.format("SERCH::: (MailerSend) Initialized with token %s", ms.getToken()));
-        return ms;
+        log.info("SERCH::: (Resend) Initialized");
+        return resend;
     }
 
     @Bean

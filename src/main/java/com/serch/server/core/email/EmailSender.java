@@ -1,17 +1,15 @@
 package com.serch.server.core.email;
 
-import com.mailersend.sdk.MailerSend;
-import com.mailersend.sdk.MailerSendResponse;
-import com.mailersend.sdk.Recipient;
-import com.mailersend.sdk.emails.Email;
-import com.mailersend.sdk.exceptions.MailerSendException;
-import com.serch.server.enums.email.EmailType;
+import com.resend.Resend;
+import com.resend.core.exception.ResendException;
+import com.resend.services.emails.model.CreateEmailOptions;
+import com.resend.services.emails.model.CreateEmailResponse;
+import com.serch.server.core.email.templates.EmailTemplateService;
 import com.serch.server.exceptions.others.EmailException;
 import com.serch.server.models.email.SendEmail;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -24,101 +22,88 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class EmailSender implements EmailService {
     private static final Logger log = LoggerFactory.getLogger(EmailSender.class);
-    private final MailerSend send;
 
-    @Value("${spring.mail.username}")
-    private String MAIL_SENDER;
-
-    @Value("${application.mail.template.id.auth}")
-    private String MAIL_AUTH_TEMPLATE_ID;
-
-    @Value("${application.mail.template.id.reset}")
-    private String MAIL_RESET_TEMPLATE_ID;
-
-    @Value("${application.mail.template.id.invite}")
-    private String MAIL_INVITE_TEMPLATE_ID;
-
-    private String buildHeader(EmailType type) {
-        return switch(type) {
-            case SIGNUP, ADMIN_SIGNUP -> "Complete your verification";
-            case ADMIN_LOGIN -> "Complete your login";
-            default -> "";
-        };
-    }
-
-    private String buildBody(EmailType type, String primary, String secondary) {
-        return switch (type) {
-            case SIGNUP -> "You've initiated the email verification, which is the first step to comfort and earning extra cash in Serch. As a means of verifying your identity, use the one-time password below to verify your email address.";
-            case ADMIN_LOGIN -> "It seems like you are trying to login to your admin account. Verify that you are the one who made this request with the one-time password below.";
-            case ADMIN_SIGNUP -> "Welcome to Serch Administrative block. Seems like your email address was used to create an admin account. Use the one-time password below to verify that you made this action happen.";
-            case ASSOCIATE_INVITE -> String.format(
-                    "The business organization, %s owned by %s, has invited you as an associate provider within its organization in the Serch platform. Click the link below to finish up with your account setup and start rendering your services with comfort and security.",
-                    primary, secondary
-            );
-            case ADMIN_INVITE -> String.format(
-                    "The Serchservice administrator, %s - %s, has invited you as an admin within the Serch platform. Click the link below to finish up with your account setup and continue being awesome! We cannot wait to see the wonders you will do.",
-                    primary, secondary
-            );
-            case ADMIN_RESET_PASSWORD -> "It seems like you forgot your password, which is something that can happen to anyone. But for security purposes, you need to verify that your identity. So, you can click the link below to reset your password, if you requested for this.";
-            default -> "";
-        };
-    }
+    private final Resend resend;
+    private final EmailTemplateService service;
 
     public void send(SendEmail email) {
         log.info(String.format("SERCH::: Loading email configurations - %s", email.getType()));
-        try {
-            Email mail = new Email();
+        CreateEmailOptions params = CreateEmailOptions.builder().build();
 
-            mail.setFrom("Team Serch", MAIL_SENDER);
-
-            Recipient recipient = new Recipient(email.getFirstName(), email.getTo());
-            mail.AddRecipient(recipient);
-
-            switch (email.getType()) {
-                case SIGNUP, ADMIN_SIGNUP, ADMIN_LOGIN: {
-                    mail.setTemplateId(MAIL_AUTH_TEMPLATE_ID);
-                    mail.addPersonalization(recipient, "body", buildBody(email.getType(), null, null));
-                    mail.addPersonalization(recipient, "code", email.getContent());
-                    mail.addPersonalization(recipient, "header", buildHeader(email.getType()));
-                }
-                break;
-                case RESET_PASSWORD: {
-                    mail.setTemplateId(MAIL_RESET_TEMPLATE_ID);
-                    mail.addPersonalization(recipient, "code", email.getContent());
-                }
-                break;
-                case ASSOCIATE_INVITE: {
-                    mail.setTemplateId(MAIL_INVITE_TEMPLATE_ID);
-                    mail.setSubject("Associate Invitation | You were invited!");
-                    mail.addPersonalization(recipient, "body", buildBody(email.getType(), email.getPrimary(), email.getSecondary()));
-                    mail.addPersonalization(recipient, "name", email.getFirstName());
-                    mail.addPersonalization(recipient, "invite_url", email.getContent());
-                    mail.addPersonalization(recipient, "button_text", "Finish account setup");
-                }
-                break;
-                case ADMIN_INVITE: {
-                    mail.setTemplateId(MAIL_INVITE_TEMPLATE_ID);
-                    mail.setSubject("Serch Invitation | You were invited!");
-                    mail.addPersonalization(recipient, "body", buildBody(email.getType(), email.getPrimary(), email.getSecondary()));
-                    mail.addPersonalization(recipient, "name", email.getFirstName());
-                    mail.addPersonalization(recipient, "invite_url", email.getContent());
-                    mail.addPersonalization(recipient, "button_text", "Finish account setup");
-                }
-                break;
-                case ADMIN_RESET_PASSWORD: {
-                    mail.setTemplateId(MAIL_INVITE_TEMPLATE_ID);
-                    mail.setSubject("Reset Password | Get access to your admin account");
-                    mail.addPersonalization(recipient, "body", buildBody(email.getType(), email.getPrimary(), email.getSecondary()));
-                    mail.addPersonalization(recipient, "name", email.getFirstName());
-                    mail.addPersonalization(recipient, "invite_url", email.getContent());
-                    mail.addPersonalization(recipient, "button_text", "Reset my password");
-                }
-                break;
+        switch (email.getType()) {
+            case ADMIN_INVITE: {
+                params = CreateEmailOptions.builder()
+                        .from("Serch <noreply@notify.serchservice.com>")
+                        .to(email.getTo())
+                        .subject("Serch | You were invited!")
+                        .html(service.adminInvite(email.getFirstName(), email.getPrimary(), email.getContent()))
+                        .build();
             }
+            break;
+            case ADMIN_SIGNUP: {
+                params = CreateEmailOptions.builder()
+                        .from("Serch <noreply@notify.serchservice.com>")
+                        .to(email.getTo())
+                        .subject("Serch | Complete your account creation")
+                        .html(service.adminSignup(email.getFirstName(), email.getContent()))
+                        .build();
+            }
+            break;
+            case ADMIN_LOGIN: {
+                params = CreateEmailOptions.builder()
+                        .from("Serch <noreply@notify.serchservice.com>")
+                        .to(email.getTo())
+                        .subject("Serch | Verify your login attempt")
+                        .html(service.adminLogin(email.getFirstName(), email.getContent()))
+                        .build();
+            }
+            break;
+            case ADMIN_RESET_PASSWORD: {
+                params = CreateEmailOptions.builder()
+                        .from("Serch <noreply@notify.serchservice.com>")
+                        .to(email.getTo())
+                        .subject("Serch | Reset your password")
+                        .html(service.adminResetPassword(email.getFirstName(), email.getContent()))
+                        .build();
+            }
+            break;
+            case ASSOCIATE_INVITE: {
+                params = CreateEmailOptions.builder()
+                        .from("Serch <noreply@notify.serchservice.com>")
+                        .to(email.getTo())
+                        .subject("Serch | You've been invited!")
+                        .html(service.associateInvite(
+                                email.getFirstName(), email.getPrimary(),
+                                email.getSecondary(), email.getBusinessLogo(),
+                                email.getBusinessDescription(), email.getBusinessCategory(), email.getContent()
+                        ))
+                        .build();
+            }
+            break;
+            case RESET_PASSWORD: {
+                params = CreateEmailOptions.builder()
+                        .from("Serch <noreply@notify.serchservice.com>")
+                        .to(email.getTo())
+                        .subject("Serch | Confirm password reset attempt")
+                        .html(service.resetPassword(email.getContent()))
+                        .build();
+            }
+            break;
+            case SIGNUP: {
+                params = CreateEmailOptions.builder()
+                        .from("Serch <noreply@notify.serchservice.com>")
+                        .to(email.getTo())
+                        .subject("Serch | Verify your identity")
+                        .html(service.signup(email.getContent()))
+                        .build();
+            }
+            break;
+        }
 
-            MailerSendResponse response = send.emails().send(mail);
-            log.info(String.format("SERCH::: Processing from email sender - %s", response));
-        } catch (MailerSendException e) {
+        try {
+            CreateEmailResponse data = resend.emails().send(params);
+            log.info(String.format("SERCH::: Processing from email sender - %s", data.getId()));
+        } catch (ResendException e) {
             throw new EmailException(e.getMessage());
         }
     }

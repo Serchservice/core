@@ -226,21 +226,6 @@
       "description": "The base url for autocomplete Location IQ."
     },
     {
-      "name": "application.mail.template.id.auth",
-      "type": "java.lang.String",
-      "description": "This is the template id for email authentication template."
-    },
-    {
-      "name": "application.mail.template.id.reset",
-      "type": "java.lang.String",
-      "description": "This is the template id for email reset password template."
-    },
-    {
-      "name": "application.mail.template.id.invite",
-      "type": "java.lang.String",
-      "description": "This is the template id for email invite user template."
-    },
-    {
       "name": "application.call.tip2fix.session",
       "type": "java.lang.Integer",
       "description": "The duration for each tip2fix session."

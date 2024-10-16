@@ -20,6 +20,9 @@ public class SendEmail {
     private EmailType type;
     private String primary;
     private String secondary;
+    private String businessLogo;
+    private String businessDescription;
+    private String businessCategory;
 
     @JsonProperty("first_name")
     private String firstName;

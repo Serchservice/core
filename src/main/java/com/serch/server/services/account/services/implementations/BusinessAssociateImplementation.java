@@ -181,6 +181,9 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
         email.setFirstName(user.getFirstName());
         email.setPrimary(business.getBusinessName());
         email.setSecondary(business.getUser().getFullName());
+        email.setBusinessCategory(business.getCategory().getImage());
+        email.setBusinessLogo(business.getBusinessLogo());
+        email.setBusinessDescription(business.getBusinessDescription());
         email.setType(EmailType.ASSOCIATE_INVITE);
         email.setContent(String.format("%s?invite=%s&role=%s&platform=%s", ASSOCIATE_INVITE_LINK, secret, user.getRole(), "provider"));
         emailService.send(email);

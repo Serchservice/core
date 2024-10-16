@@ -77,8 +77,14 @@ public class ServerConfiguration {
     @Value("${application.sms.phone_number}")
     private String SMS_PHONE_NUMBER;
 
+    @Value("${application.cors.allowed.origin-patterns}")
+    private List<String> ALLOWED_REQUEST_ORIGIN_PATTERNS;
+
+    @Value("${application.cors.allowed.origins}")
+    private List<String> ALLOWED_REQUEST_ORIGINS;
+
     /**
-     * Configures a RestTemplate bean for making RESTful HTTP requests.
+     * Configures a RestTemplate bean for making restful HTTP requests.
      *
      * @return A RestTemplate instance.
      */
@@ -143,13 +149,15 @@ public class ServerConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(ServerUtil.PRODUCTION);
-        configuration.setAllowedOriginPatterns(ServerUtil.DEVELOPMENT);
+        configuration.setAllowedOrigins(ALLOWED_REQUEST_ORIGINS);
+        configuration.setAllowedOriginPatterns(ALLOWED_REQUEST_ORIGIN_PATTERNS);
         configuration.setAllowedMethods(ServerUtil.METHODS);
         configuration.setAllowedHeaders(ServerUtil.HEADERS);
         configuration.setAllowCredentials(true);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
+
         return source;
     }
 

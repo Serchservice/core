@@ -10,15 +10,10 @@ All notable changes to this project will be documented in this file.
 
 ### ✍️ Commit Messages
 
-* 0ba5112 Fixed CORS error issues
+* 0522a0e Added ChangelogGenerator
 
-### 🛠️ Modified
+### ✨ Added
 
-* `pom.xml` - This file has been updated to improve functionality or fix issues, ensuring a better performance.
-* `src/main/java/com/serch/server/configurations/JwtAuthenticationFilter.java` - This file has been updated to improve functionality or fix issues, ensuring a better performance.
-* `src/main/java/com/serch/server/configurations/SecurityFilterConfiguration.java` - This file has been updated to improve functionality or fix issues, ensuring a better performance.
-* `src/main/java/com/serch/server/configurations/ServerConfiguration.java` - This file has been updated to improve functionality or fix issues, ensuring a better performance.
-* `src/main/java/com/serch/server/configurations/WebSocketConfiguration.java` - This file has been updated to improve functionality or fix issues, ensuring a better performance.
-* `src/main/java/com/serch/server/utils/ServerUtil.java` - This file has been updated to improve functionality or fix issues, ensuring a better performance.
-* `src/main/resources/META-INF/additional-spring-configuration-metadata.json` - This file has been updated to improve functionality or fix issues, ensuring a better performance.
+* `CHANGELOG.md` - This file introduces new functionality or features to enhance the user experience.
+* `src/main/java/com/serch/server/ChangelogGenerator.java` - This file introduces new functionality or features to enhance the user experience.
 

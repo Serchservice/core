@@ -43,7 +43,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Value("${application.cors.allowed.ip-addresses}")
-    private List<String> ALLOWED_REQUEST_IP_ADDRESSES;
+    private String ALLOWED_REQUEST_IP_ADDRESSES;
 
     /**
      * Service for retrieving user details.
@@ -82,7 +82,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         // If remote address contains any of the Whitelisted IP Addresses, proceed to next filter
-        if(ALLOWED_REQUEST_IP_ADDRESSES.contains(request.getRemoteAddr())){
+        if(ServerUtil.getOrigins(ALLOWED_REQUEST_IP_ADDRESSES).contains(request.getRemoteAddr())){
             filterChain.doFilter(request, response);
             return;
         }

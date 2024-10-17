@@ -257,18 +257,18 @@
     },
     {
       "name": "application.cors.allowed.origin-patterns",
-      "type": "java.util.List<java.lang.String>",
-      "description": "List of allowed origin patterns."
+      "type": "java.lang.String",
+      "description": "List of allowed origin patterns separated by comma."
     },
     {
       "name": "application.cors.allowed.origins",
-      "type": "java.util.List<java.lang.String>",
-      "description": "List of allowed origins."
+      "type": "java.lang.String",
+      "description": "List of allowed origins separated by comma."
     },
     {
       "name": "application.cors.allowed.ip-addresses",
-      "type": "java.util.List<java.lang.String>",
-      "description": "List of allowed ip addresses to remove authentication filter from."
+      "type": "java.lang.String",
+      "description": "List of allowed ip addresses to remove authentication filter from separated by comma."
     }
   ]
 }

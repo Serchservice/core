@@ -3,6 +3,7 @@ package com.serch.server.utils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class ServerUtil {
@@ -25,4 +26,8 @@ public class ServerUtil {
             HttpMethod.PATCH.name(),
             HttpMethod.DELETE.name()
     );
+
+    public static List<String> getOrigins(String data) {
+        return Arrays.stream(data.split(",")).toList();
+    }
 }

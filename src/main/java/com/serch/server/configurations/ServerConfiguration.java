@@ -35,9 +35,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * The ServerConfiguration class configured various beans and settings related to server operations.
@@ -78,10 +76,10 @@ public class ServerConfiguration {
     private String SMS_PHONE_NUMBER;
 
     @Value("${application.cors.allowed.origin-patterns}")
-    private List<String> ALLOWED_REQUEST_ORIGIN_PATTERNS;
+    private String ALLOWED_REQUEST_ORIGIN_PATTERNS;
 
     @Value("${application.cors.allowed.origins}")
-    private List<String> ALLOWED_REQUEST_ORIGINS;
+    private String ALLOWED_REQUEST_ORIGINS;
 
     /**
      * Configures a RestTemplate bean for making restful HTTP requests.
@@ -149,11 +147,16 @@ public class ServerConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(ALLOWED_REQUEST_ORIGINS);
-        configuration.setAllowedOriginPatterns(ALLOWED_REQUEST_ORIGIN_PATTERNS);
+        configuration.setAllowedOrigins(ServerUtil.getOrigins(ALLOWED_REQUEST_ORIGINS));
+        configuration.setAllowedOriginPatterns(ServerUtil.getOrigins(ALLOWED_REQUEST_ORIGIN_PATTERNS));
         configuration.setAllowedMethods(ServerUtil.METHODS);
         configuration.setAllowedHeaders(ServerUtil.HEADERS);
         configuration.setAllowCredentials(true);
+
+        log.info(String.format("SERCH::: SERVER CORS | Allowed Origins | %s", configuration.getAllowedOrigins()));
+        log.info(String.format("SERCH::: SERVER CORS | Allowed Origin Patterns | %s", configuration.getAllowedOriginPatterns()));
+        log.info(String.format("SERCH::: SERVER CORS | Allowed Headers | %s", configuration.getAllowedHeaders()));
+        log.info(String.format("SERCH::: SERVER CORS | Allowed Methods | %s", configuration.getAllowedMethods()));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

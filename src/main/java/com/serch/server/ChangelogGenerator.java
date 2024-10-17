@@ -51,7 +51,7 @@ public class ChangelogGenerator {
         );
 
         // Write to CHANGELOG.md
-        writeChangelogToFile(changelogContent);
+        writeChangelogToFile(changelogContent, getVersionFromPom(false));
     }
 
     private static List<String> getGitDiff(String baseCommit, String headCommit) {
@@ -63,7 +63,7 @@ public class ChangelogGenerator {
         return String.join("\n", messages);
     }
 
-    private static String getVersionFromPom(boolean isParent) {
+    private static String getVersionFromPom(boolean isSpring) {
         // Read version from pom.xml (Assuming it's in the same directory)
         try {
             File pomFile = new File("pom.xml");
@@ -76,7 +76,7 @@ public class ChangelogGenerator {
                 }
 
                 // Look for the version of the project, not the parent
-                if(isParent) {
+                if(isSpring) {
                     if (line.contains("<version>") && isParentLevel) {
                         return line.replaceAll("<.*?>", "").trim(); // Strip XML tags
                     }
@@ -161,12 +161,22 @@ public class ChangelogGenerator {
         return content.toString().trim() + "\n\n"; // Extra newline at the end
     }
 
-    private static void writeChangelogToFile(String content) {
-        try (FileWriter writer = new FileWriter("CHANGELOG.md")) {
-            writer.write(content);
-            System.out.println("CHANGELOG.md has been updated successfully!");
-        } catch (IOException e) {
-            System.err.println("Error writing CHANGELOG.md: " + e.getMessage());
+    private static void writeChangelogToFile(String content, String version) {
+        // Ensure the changes directory exists
+        File changesDir = new File("changes");
+
+        boolean dirExists = changesDir.exists();
+        if (!dirExists) {
+            dirExists = changesDir.mkdir(); // Create the directory if it does not exist
+        }
+
+        if(dirExists) {
+            try (FileWriter writer = new FileWriter(String.format("changes/CHANGELOG-%s.md", version))) {
+                writer.write(content);
+                System.out.printf("CHANGELOG-%s.md has been updated successfully!%n", version);
+            } catch (IOException e) {
+                System.err.printf("Error writing CHANGELOG-%s.md: %s%n", version, e.getMessage());
+            }
         }
     }
 

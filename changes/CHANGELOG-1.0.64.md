@@ -16,4 +16,3 @@ All notable changes to this project will be documented in this file.
 
 * `CHANGELOG.md` - This file introduces new functionality or features to enhance the user experience.
 * `src/main/java/com/serch/server/ChangelogGenerator.java` - This file introduces new functionality or features to enhance the user experience.
-

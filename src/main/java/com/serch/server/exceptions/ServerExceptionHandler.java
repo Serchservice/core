@@ -23,6 +23,7 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.transaction.SystemException;
+import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.UnexpectedTypeException;
 import lombok.NonNull;
@@ -72,6 +73,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * The ServerExceptionHandler class handles exceptions globally for the server.
@@ -467,7 +469,25 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ApiResponse<Map<String, Object>> handleConstraintViolationException(ConstraintViolationException exception) {
-        ApiResponse<Map<String, Object>> response = new ApiResponse<>("Error in validating input");
+        int violationsCount = exception.getConstraintViolations().size();
+        String message;
+
+        if (violationsCount > 1) {
+            // More than one violation, format the messages as a list
+            String violations = exception.getConstraintViolations().stream()
+                    .map(ConstraintViolation::getMessage)
+                    .collect(Collectors.joining(", "));
+            message = "Your request needs to comply with these violations: " + violations;
+        } else if (violationsCount == 1) {
+            // Only one violation, return that single message
+            message = exception.getConstraintViolations().iterator().next().getMessage();
+        } else {
+            // No violations (this should not happen under normal circumstances)
+            message = "Error in validating input";
+        }
+
+        ApiResponse<Map<String, Object>> response = new ApiResponse<>(message);
+
         Map<String, Object> data = new HashMap<>();
         AtomicInteger count = new AtomicInteger(1);
         for(var reason : exception.getConstraintViolations()) {
@@ -476,6 +496,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
         }
         response.setData(data);
         log.error(exception.getMessage());
+
         return response;
     }
 

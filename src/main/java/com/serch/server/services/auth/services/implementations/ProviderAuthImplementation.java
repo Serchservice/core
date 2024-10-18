@@ -24,6 +24,7 @@ import com.serch.server.core.session.SessionService;
 import com.serch.server.utils.HelperUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -183,25 +184,31 @@ public class ProviderAuthImplementation implements ProviderAuthService {
         if(incomplete.isEmailConfirmed()) {
             if(incomplete.hasProfile()) {
                 if(incomplete.hasCategory()) {
-                    User user = authService.getUserFromIncomplete(incomplete, Role.PROVIDER);
-                    user.setCountry(request.getCountry());
-                    user.setState(request.getState());
-                    userRepository.save(user);
-                    ApiResponse<Profile> response = profileService.createProviderProfile(incomplete, user);
-                    if(response.getStatus().is2xxSuccessful()) {
-                        additionalService.createAdditional(request, response.getData());
-                        specialtyService.createSpecialties(incomplete, response.getData());
-                        incompleteRepository.delete(incomplete);
+                    try {
+                        User user = authService.getUserFromIncomplete(incomplete, Role.PROVIDER);
+                        user.setCountry(request.getCountry());
+                        user.setState(request.getState());
+                        userRepository.save(user);
+                        ApiResponse<Profile> response = profileService.createProviderProfile(incomplete, user);
 
-                        RequestSession requestSession = new RequestSession();
-                        requestSession.setMethod(AuthMethod.PASSWORD);
-                        requestSession.setUser(user);
-                        requestSession.setDevice(request.getDevice());
+                        if(response.getStatus().is2xxSuccessful()) {
+                            additionalService.createAdditional(request, response.getData());
+                            specialtyService.createSpecialties(incomplete, response.getData());
+                            incompleteRepository.delete(incomplete);
 
-                        return sessionService.generateSession(requestSession);
-                    } else {
+                            RequestSession requestSession = new RequestSession();
+                            requestSession.setMethod(AuthMethod.PASSWORD);
+                            requestSession.setUser(user);
+                            requestSession.setDevice(request.getDevice());
+
+                            return sessionService.generateSession(requestSession);
+                        } else {
+                            profileService.undo(incomplete.getEmailAddress());
+                            return new ApiResponse<>(response.getMessage());
+                        }
+                    } catch (DataIntegrityViolationException ignored) {
                         profileService.undo(incomplete.getEmailAddress());
-                        return new ApiResponse<>(response.getMessage());
+                        throw new AuthException("An error occurred while creating your profile. Try again");
                     }
                 } else {
                     throw new AuthException("You don't have a Serch category", ExceptionCodes.CATEGORY_NOT_SET);

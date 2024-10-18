@@ -16,6 +16,8 @@ import com.serch.server.services.transaction.services.WalletService;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +37,8 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class AccountDeleteImplementation implements AccountDeleteService {
+    private static final Logger log = LoggerFactory.getLogger(AccountDeleteImplementation.class);
+
     private final ReferralService referralService;
     private final WalletService walletService;
     private final UserUtil userUtil;
@@ -87,6 +91,7 @@ public class AccountDeleteImplementation implements AccountDeleteService {
     @Override
     @Transactional
     public void undo(String emailAddress) {
+        log.info(String.format("SERCH::: Running account create undo for %s", emailAddress));
         profileRepository.findByUser_EmailAddress(emailAddress).ifPresent(profile -> handleUndo(profile.getUser()));
         businessProfileRepository.findByUser_EmailAddress(emailAddress).ifPresent(profile -> handleUndo(profile.getUser()));
     }
@@ -94,32 +99,42 @@ public class AccountDeleteImplementation implements AccountDeleteService {
     @Transactional
     protected void handleUndo(User user) {
         phoneInformationRepository.findByUser_Id(user.getId()).ifPresent(phone -> {
+            log.info(String.format("SERCH::: Running phone information create undo for %s with phone number %s", user.getEmailAddress(), phone.getPhoneNumber()));
             phoneInformationRepository.delete(phone);
             phoneInformationRepository.flush();
         });
 
+        log.info(String.format("SERCH::: Running referral create undo for %s", user.getEmailAddress()));
         referralService.undo(user);
+
+        log.info(String.format("SERCH::: Running referral program create undo for %s with program id %s", user.getEmailAddress(), user.getProgram().getId()));
         referralProgramRepository.delete(user.getProgram());
         referralProgramRepository.flush();
 
+        log.info(String.format("SERCH::: Running account status tracker create undo for %s", user.getEmailAddress()));
         accountStatusTrackerRepository.deleteByUser(user);
         accountStatusTrackerRepository.flush();
 
+        log.info(String.format("SERCH::: Running account setting create undo for %s with setting id %s", user.getEmailAddress(), user.getSetting().getId()));
         accountSettingRepository.delete(user.getSetting());
         accountSettingRepository.flush();
 
+        log.info(String.format("SERCH::: Running wallet create undo for %s", user.getEmailAddress()));
         walletService.undo(user);
 
         profileRepository.findById(user.getId()).ifPresent(profile -> {
+            log.info(String.format("SERCH::: Running profile create undo for %s with id %s and category %s", user.getEmailAddress(), profile.getId(), profile.getCategory()));
             profileRepository.delete(profile);
             profileRepository.flush();
         });
 
         businessProfileRepository.findById(user.getId()).ifPresent(profile -> {
+            log.info(String.format("SERCH::: Running business profile create undo for %s with id %s and category %s", user.getEmailAddress(), profile.getId(), profile.getCategory()));
             businessProfileRepository.delete(profile);
             businessProfileRepository.flush();
         });
 
+        log.info(String.format("SERCH::: Running user create undo for %s with id %s and role %s", user.getEmailAddress(), user.getId(), user.getRole()));
         userRepository.delete(user);
         userRepository.flush();
     }

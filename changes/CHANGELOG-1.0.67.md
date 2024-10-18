@@ -25,4 +25,3 @@ All notable changes to this project will be documented in this file.
 * `src/main/java/com/serch/server/services/auth/services/implementations/ProviderAuthImplementation.java` - This file has been updated to improve functionality or fix issues, ensuring a better performance.
 * `src/main/java/com/serch/server/services/referral/services/ReferralImplementation.java` - This file has been updated to improve functionality or fix issues, ensuring a better performance.
 * `src/main/java/com/serch/server/services/transaction/services/implementations/WalletImplementation.java` - This file has been updated to improve functionality or fix issues, ensuring a better performance.
-

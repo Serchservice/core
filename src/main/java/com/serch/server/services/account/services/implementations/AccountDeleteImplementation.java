@@ -5,6 +5,7 @@ import com.serch.server.enums.account.AccountStatus;
 import com.serch.server.enums.company.IssueStatus;
 import com.serch.server.exceptions.account.AccountException;
 import com.serch.server.models.account.AccountDelete;
+import com.serch.server.models.auth.AccountStatusTracker;
 import com.serch.server.models.auth.User;
 import com.serch.server.repositories.account.*;
 import com.serch.server.repositories.auth.AccountStatusTrackerRepository;
@@ -22,6 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -111,9 +113,12 @@ public class AccountDeleteImplementation implements AccountDeleteService {
         referralProgramRepository.delete(user.getProgram());
         referralProgramRepository.flush();
 
-        log.info(String.format("SERCH::: Running account status tracker create undo for %s", user.getEmailAddress()));
-        accountStatusTrackerRepository.deleteByUser(user);
-        accountStatusTrackerRepository.flush();
+        List<AccountStatusTracker> trackers = accountStatusTrackerRepository.findByUser_Id(user.getId());
+        if(trackers != null && !trackers.isEmpty()) {
+            log.info(String.format("SERCH::: Running account status tracker create undo for %s", user.getEmailAddress()));
+            accountStatusTrackerRepository.deleteAll(trackers);
+            accountStatusTrackerRepository.flush();
+        }
 
         log.info(String.format("SERCH::: Running account setting create undo for %s with setting id %s", user.getEmailAddress(), user.getSetting().getId()));
         accountSettingRepository.delete(user.getSetting());

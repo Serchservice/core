@@ -30,6 +30,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service responsible for implementing provider authentication.
@@ -180,6 +181,7 @@ public class ProviderAuthImplementation implements ProviderAuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<AuthResponse> signup(RequestAdditionalInformation request) {
         var incomplete = incompleteRepository.findByEmailAddress(request.getEmailAddress())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -196,7 +198,9 @@ public class ProviderAuthImplementation implements ProviderAuthService {
                         if(response.getStatus().is2xxSuccessful()) {
                             additionalService.createAdditional(request, response.getData());
                             specialtyService.createSpecialties(incomplete, response.getData());
+
                             incompleteRepository.delete(incomplete);
+                            incompleteRepository.flush();
 
                             RequestSession requestSession = new RequestSession();
                             requestSession.setMethod(AuthMethod.PASSWORD);

@@ -186,6 +186,5 @@ public class ChangelogGenerator {
         private final List<String> added = new ArrayList<>();
         private final List<String> modified = new ArrayList<>();
         private final List<String> deleted = new ArrayList<>();
-
     }
 }

@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service implementation for managing authentication-related operations specific to businesses.
@@ -55,6 +56,7 @@ public class BusinessAuthImplementation implements BusinessAuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<AuthResponse> signup(RequestBusinessProfile profile) {
         var incomplete = incompleteRepository.findByEmailAddress(profile.getEmailAddress())
                 .orElseThrow(() -> new AuthException("User not found"));
@@ -76,6 +78,7 @@ public class BusinessAuthImplementation implements BusinessAuthService {
                            requestSession.setDevice(profile.getDevice());
 
                            incompleteRepository.delete(incomplete);
+                           incompleteRepository.flush();
                            return sessionService.generateSession(requestSession);
                        } else {
                            deleteService.undo(incomplete.getEmailAddress());

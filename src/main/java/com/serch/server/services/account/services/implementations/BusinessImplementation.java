@@ -83,17 +83,17 @@ public class BusinessImplementation implements BusinessService {
     public ApiResponse<String> createProfile(Incomplete incomplete, User user, RequestBusinessProfile profile) {
         BusinessProfile businessProfile = saveProfile(incomplete, user, profile);
         savePhoneInformation(incomplete, user);
+
         if(incomplete.getReferredBy() != null) {
             referralService.create(user, incomplete.getReferredBy().getReferredBy());
         }
+
         walletService.create(businessProfile.getUser());
         return new ApiResponse<>("Success", HttpStatus.OK);
     }
 
     private void savePhoneInformation(Incomplete incomplete, User user) {
-        PhoneInformation phoneInformation = AccountMapper.INSTANCE.phoneInformation(
-                incomplete.getPhoneInfo()
-        );
+        PhoneInformation phoneInformation = AccountMapper.INSTANCE.phoneInformation(incomplete.getPhoneInfo());
         phoneInformation.setUser(user);
         phoneInformationRepository.save(phoneInformation);
     }
@@ -112,6 +112,7 @@ public class BusinessImplementation implements BusinessService {
         business.setLongitude(profile.getLongitude() != null ? profile.getLongitude() : 0.0);
         business.setLatitude(profile.getLatitude() != null ? profile.getLatitude() : 0.0);
         business.setPlace(profile.getPlace() != null ? profile.getPlace() : "");
+
         return businessProfileRepository.save(business);
     }
 

@@ -27,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
 
@@ -71,6 +72,7 @@ public class UserAuthImplementation implements UserAuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<AuthResponse> signup(RequestProfile request) {
         var user = userRepository.findByEmailAddressIgnoreCase(request.getEmailAddress());
         if(user.isPresent()) {
@@ -91,6 +93,7 @@ public class UserAuthImplementation implements UserAuthService {
         }
     }
 
+    @Transactional
     protected ApiResponse<AuthResponse> getSignupAuthResponse(RequestProfile request, Incomplete incomplete) {
         User referral = null;
         if(request.getReferral() != null && !request.getReferral().isEmpty()) {
@@ -99,6 +102,7 @@ public class UserAuthImplementation implements UserAuthService {
 
         if(HelperUtil.validatePassword(request.getPassword())) {
             incompleteRepository.delete(incomplete);
+            incompleteRepository.flush();
 
             User user = getNewUser(request, incomplete.getTokenConfirmedAt());
             ApiResponse<Profile> response = profileService.createUserProfile(request, user, referral);
@@ -148,6 +152,7 @@ public class UserAuthImplementation implements UserAuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<AuthResponse> becomeAUser(RequestLogin login) {
         var incomplete = incompleteRepository.findByEmailAddress(login.getEmailAddress())
                 .orElseThrow(() -> new AuthException("User does not exist", ExceptionCodes.USER_NOT_FOUND));

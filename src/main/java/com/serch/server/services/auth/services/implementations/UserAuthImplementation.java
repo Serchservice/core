@@ -152,6 +152,7 @@ public class UserAuthImplementation implements UserAuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<AuthResponse> becomeAUser(RequestLogin login) {
         var incomplete = incompleteRepository.findByEmailAddress(login.getEmailAddress())
                 .orElseThrow(() -> new AuthException("User does not exist", ExceptionCodes.USER_NOT_FOUND));

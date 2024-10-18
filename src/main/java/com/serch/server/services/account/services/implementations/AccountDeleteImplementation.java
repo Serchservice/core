@@ -93,9 +93,15 @@ public class AccountDeleteImplementation implements AccountDeleteService {
     @Override
     @Transactional
     public void undo(String emailAddress) {
-        log.info(String.format("SERCH::: Running account create undo for %s", emailAddress));
-        profileRepository.findByUser_EmailAddress(emailAddress).ifPresent(profile -> handleUndo(profile.getUser()));
-        businessProfileRepository.findByUser_EmailAddress(emailAddress).ifPresent(profile -> handleUndo(profile.getUser()));
+        profileRepository.findByUser_EmailAddress(emailAddress).ifPresent(profile -> {
+            log.info(String.format("SERCH::: Running account create undo for %s with id %s", emailAddress, profile.getId()));
+            handleUndo(profile.getUser());
+        });
+
+        businessProfileRepository.findByUser_EmailAddress(emailAddress).ifPresent(profile -> {
+            log.info(String.format("SERCH::: Running business account create undo for %s with id %s", emailAddress, profile.getId()));
+            handleUndo(profile.getUser());
+        });
     }
 
     @Transactional
@@ -115,9 +121,12 @@ public class AccountDeleteImplementation implements AccountDeleteService {
 
         List<AccountStatusTracker> trackers = accountStatusTrackerRepository.findByUser_Id(user.getId());
         if(trackers != null && !trackers.isEmpty()) {
-            log.info(String.format("SERCH::: Running account status tracker create undo for %s", user.getEmailAddress()));
-            accountStatusTrackerRepository.deleteAll(trackers);
-            accountStatusTrackerRepository.flush();
+            trackers.removeIf(tracker -> tracker.getId() == null);
+            if (!trackers.isEmpty()) {
+                log.info(String.format("SERCH::: Running account status tracker create undo for %s", user.getEmailAddress()));
+                accountStatusTrackerRepository.deleteAll(trackers);
+                accountStatusTrackerRepository.flush();
+            }
         }
 
         log.info(String.format("SERCH::: Running account setting create undo for %s with setting id %s", user.getEmailAddress(), user.getSetting().getId()));

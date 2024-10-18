@@ -10,9 +10,9 @@ All notable changes to this project will be documented in this file.
 
 ### ✍️ Commit Messages
 
-* c07ed9b Uadding changelog
+* 6a361e6 Fixing lint issues
 
-### ✨ Added
+### 🛠️ Modified
 
-* `changes/CHANGELOG-1.0.67.md` - This file introduces new functionality or features to enhance the user experience.
+* `src/main/java/com/serch/server/services/auth/services/implementations/UserAuthImplementation.java` - This file has been updated to improve functionality or fix issues, ensuring a better performance.
 

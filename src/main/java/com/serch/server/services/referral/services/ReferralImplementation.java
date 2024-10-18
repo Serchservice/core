@@ -13,6 +13,7 @@ import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -41,8 +42,12 @@ public class ReferralImplementation implements ReferralService {
     }
 
     @Override
+    @Transactional
     public void undo(User user) {
-        referralRepository.findByReferral_Id(user.getId()).ifPresent(referralRepository::delete);
+        referralRepository.findByReferral_Id(user.getId()).ifPresent(referral -> {
+            referralRepository.delete(referral);
+            referralRepository.flush();
+        });
     }
 
     @Override

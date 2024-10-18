@@ -8,6 +8,7 @@ import com.serch.server.exceptions.auth.AuthException;
 import com.serch.server.models.auth.User;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.auth.incomplete.IncompleteRepository;
+import com.serch.server.services.account.services.AccountDeleteService;
 import com.serch.server.services.account.services.BusinessService;
 import com.serch.server.services.auth.requests.RequestBusinessProfile;
 import com.serch.server.services.auth.requests.RequestLogin;
@@ -35,6 +36,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class BusinessAuthImplementation implements BusinessAuthService {
     private final AuthService authService;
+    private final AccountDeleteService deleteService;
     private final SessionService sessionService;
     private final BusinessService businessService;
     private final UserRepository userRepository;
@@ -76,11 +78,11 @@ public class BusinessAuthImplementation implements BusinessAuthService {
                            incompleteRepository.delete(incomplete);
                            return sessionService.generateSession(requestSession);
                        } else {
-                           businessService.undo(incomplete.getEmailAddress());
+                           deleteService.undo(incomplete.getEmailAddress());
                            throw new AuthException(response.getMessage());
                        }
                    } catch (DataIntegrityViolationException ignored) {
-                       businessService.undo(incomplete.getEmailAddress());
+                       deleteService.undo(incomplete.getEmailAddress());
                        throw new AuthException("An error occurred while creating your business profile. Try again");
                    }
                 } else {

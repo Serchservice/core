@@ -107,11 +107,4 @@ public interface ProfileService {
      * @see MoreProfileData
      */
     MoreProfileData moreInformation(User user);
-
-    /**
-     * Delete/Remove the saved details of the user
-     *
-     * @param emailAddress Email Address of the user
-     */
-    void undo(String emailAddress);
 }

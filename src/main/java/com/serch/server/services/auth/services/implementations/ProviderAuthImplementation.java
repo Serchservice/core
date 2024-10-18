@@ -12,6 +12,7 @@ import com.serch.server.models.auth.User;
 import com.serch.server.models.auth.incomplete.*;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.auth.incomplete.*;
+import com.serch.server.services.account.services.AccountDeleteService;
 import com.serch.server.services.account.services.AdditionalService;
 import com.serch.server.services.account.services.ProfileService;
 import com.serch.server.services.account.services.SpecialtyService;
@@ -59,6 +60,7 @@ public class ProviderAuthImplementation implements ProviderAuthService {
     private final ReferralProgramService referralProgramService;
     private final SpecialtyService specialtyService;
     private final ProfileService profileService;
+    private final AccountDeleteService deleteService;
     private final AdditionalService additionalService;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
@@ -203,11 +205,11 @@ public class ProviderAuthImplementation implements ProviderAuthService {
 
                             return sessionService.generateSession(requestSession);
                         } else {
-                            profileService.undo(incomplete.getEmailAddress());
+                            deleteService.undo(incomplete.getEmailAddress());
                             return new ApiResponse<>(response.getMessage());
                         }
                     } catch (DataIntegrityViolationException ignored) {
-                        profileService.undo(incomplete.getEmailAddress());
+                        deleteService.undo(incomplete.getEmailAddress());
                         throw new AuthException("An error occurred while creating your profile. Try again");
                     }
                 } else {

@@ -19,4 +19,6 @@ public interface AccountStatusTrackerRepository extends JpaRepository<AccountSta
     );
 
     void deleteByUser(@NonNull User user);
+
+    List<AccountStatusTracker> findByUser_Id(@NonNull UUID id);
 }

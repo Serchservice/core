@@ -50,11 +50,4 @@ public interface BusinessService {
      * @see BusinessProfileResponse
      */
     ApiResponse<BusinessProfileResponse> update(UpdateBusinessRequest request);
-
-    /**
-     * Delete/Remove the saved details of the user
-     *
-     * @param emailAddress Email Address of the user
-     */
-    void undo(String emailAddress);
 }

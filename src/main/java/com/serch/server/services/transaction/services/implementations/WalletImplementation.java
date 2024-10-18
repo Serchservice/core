@@ -99,8 +99,12 @@ public class WalletImplementation implements WalletService {
     }
 
     @Override
+    @Transactional
     public void undo(User user) {
-        walletRepository.findByUser_Id(user.getId()).ifPresent(walletRepository::delete);
+        walletRepository.findByUser_Id(user.getId()).ifPresent(wallet -> {
+            walletRepository.delete(wallet);
+            walletRepository.flush();
+        });
     }
 
     @Override

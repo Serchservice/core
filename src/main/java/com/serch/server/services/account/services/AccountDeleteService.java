@@ -39,4 +39,11 @@ public interface AccountDeleteService {
      * @see ApiResponse
      */
     ApiResponse<String> delete();
+
+    /**
+     * Delete/Remove the saved details of the user - Used for creating accounts
+     *
+     * @param emailAddress Email Address of the user
+     */
+    void undo(String emailAddress);
 }

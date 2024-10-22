@@ -111,7 +111,7 @@ public class BusinessImplementation implements BusinessService {
         business.setContact(profile.getContact());
         business.setLongitude(profile.getLongitude() != null ? profile.getLongitude() : 0.0);
         business.setLatitude(profile.getLatitude() != null ? profile.getLatitude() : 0.0);
-        business.setPlace(profile.getPlace() != null ? profile.getPlace() : "");
+        business.setPlace(profile.getPlace() != null ? profile.getPlace() : profile.getAddress());
 
         return businessProfileRepository.save(business);
     }

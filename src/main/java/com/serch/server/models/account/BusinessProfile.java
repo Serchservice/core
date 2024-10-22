@@ -79,7 +79,6 @@ public class BusinessProfile extends BaseProfile {
      * The place id location of the business.
      */
     @Column(nullable = false, columnDefinition = "TEXT")
-    @NotBlank(message = "Place Id cannot be empty or null")
     private String place = "";
 
     /**

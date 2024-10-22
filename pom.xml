@@ -11,7 +11,7 @@
 
 	<groupId>com.serch</groupId>
 	<artifactId>server</artifactId>
-	<version>1.0.71</version>
+	<version>1.0.72</version>
 	<name>server</name>
 	<description>Backend server for Serch platform</description>
 	<url>https://www.serchservice.com</url>

@@ -2,7 +2,7 @@ package com.serch.server.services.account.controllers;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.services.auth.responses.AuthResponse;
-import com.serch.server.services.account.requests.ChangePasswordInviteRequest;
+import com.serch.server.services.account.requests.AssociateInviteRequest;
 import com.serch.server.services.account.responses.VerifiedInviteResponse;
 import com.serch.server.services.account.services.BusinessAssociateAuthService;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ public class BusinessAssociateAuthController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<AuthResponse>> changePassword(@RequestBody ChangePasswordInviteRequest request) {
+    public ResponseEntity<ApiResponse<AuthResponse>> changePassword(@RequestBody AssociateInviteRequest request) {
         ApiResponse<AuthResponse> response = service.acceptInvite(request);
         return new ResponseEntity<>(response, response.getStatus());
     }

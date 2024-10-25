@@ -21,4 +21,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     List<User> findByCountryLikeIgnoreCase(@NonNull String country);
 
     List<User> findByStateLikeIgnoreCase(@NonNull String state);
+
+    @Query("select (count(u) > 0) from users u where u.id = ?1 and u.status = 'ACTIVE' ")
+    boolean isActive(@NonNull UUID id);
 }

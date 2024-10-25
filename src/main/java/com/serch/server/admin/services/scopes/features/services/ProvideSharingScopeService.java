@@ -7,27 +7,41 @@ import com.serch.server.services.shared.responses.SharedLinkResponse;
 
 import java.util.List;
 
+/**
+ * Service interface for managing provideSharing-related features on the Serch platform.
+ * Offers methods for fetching overviews, analyzing chart data, and retrieving shared trip details.
+ */
 public interface ProvideSharingScopeService {
+
     /**
-     * Fetch the overview data for provideSharing in Serch
+     * Retrieves an overview of the provideSharing feature on the Serch platform.
+     * This overview may include key metrics, statistics, and summaries of provideSharing activities,
+     * such as the number of shared trips, user participation, and overall performance.
      *
-     * @return {@link ApiResponse} of {@link ProvideSharingScopeOverviewResponse}
+     * @return an {@link ApiResponse} containing a {@link ProvideSharingScopeOverviewResponse}
+     *         that provides aggregated data and insights about provideSharing features.
      */
     ApiResponse<ProvideSharingScopeOverviewResponse> overview();
 
     /**
-     * Fetch the chart data for provideShared trips in Serch
+     * Retrieves chart data for provideShared trips on the Serch platform for a specified year.
+     * This method provides insights into trends and metrics related to shared trips, such as
+     * monthly activity, growth patterns, and other relevant performance indicators.
      *
-     * @param year The year being requested in {@link Integer}
-     *
-     * @return {@link ApiResponse} list of {@link ChartMetric}
+     * @param year the year for which to fetch the data, represented as an {@link Integer}.
+     *             If the year is null, data for the current year will be used.
+     * @return an {@link ApiResponse} containing a list of {@link ChartMetric} objects
+     *         representing the provideShared trips data, useful for visualizing trends.
      */
     ApiResponse<List<ChartMetric>> chart(Integer year);
 
     /**
-     * Fetch the list of provideShared trips in Serch
+     * Retrieves a list of provideShared trips on the Serch platform.
+     * The list may include details about each shared trip, such as the participants,
+     * date and time, location, shared content, and any relevant links.
      *
-     * @return {@link ApiResponse} list of {@link SharedLinkResponse}
+     * @return an {@link ApiResponse} containing a list of {@link SharedLinkResponse}
+     *         objects representing individual provideShared trips and their associated information.
      */
     ApiResponse<List<SharedLinkResponse>> list();
 }

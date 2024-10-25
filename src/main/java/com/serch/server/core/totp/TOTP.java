@@ -1,27 +1,10 @@
 package com.serch.server.core.totp;
 
-/**
- Copyright (c) 2011 IETF Trust and the persons identified as
- authors of the code. All rights reserved.
-
- Redistribution and use in source and binary forms, with or without
- modification, is permitted pursuant to, and subject to the license
- terms contained in, the Simplified BSD License set forth in Section
- 4.c of the IETF Trust's Legal Provisions Relating to IETF Documents
- (http://trustee.ietf.org/license-info).
- */
-
 import lombok.SneakyThrows;
 
-import java.lang.reflect.UndeclaredThrowableException;
-import java.security.GeneralSecurityException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.math.BigInteger;
-import java.util.TimeZone;
 
 
 /**
@@ -33,7 +16,6 @@ import java.util.TimeZone;
  */
 
 public class TOTP {
-
     private TOTP() {}
 
     /**
@@ -48,11 +30,8 @@ public class TOTP {
      */
     @SneakyThrows
     private static byte[] hmac_sha(String crypto, byte[] keyBytes, byte[] text){
-        Mac hmac;
-        hmac = Mac.getInstance(crypto);
-        SecretKeySpec macKey =
-                new SecretKeySpec(keyBytes, "RAW");
-        hmac.init(macKey);
+        Mac hmac = Mac.getInstance(crypto);
+        hmac.init(new SecretKeySpec(keyBytes, "RAW"));
         return hmac.doFinal(text);
     }
 
@@ -96,37 +75,35 @@ public class TOTP {
     }
 
 
-    /**
-     * This method generates a TOTP value for the given
-     * set of parameters.
-     *
-     * @param key: the shared secret, HEX encoded
-     * @param time: a value that reflects a time
-     * @param returnDigits: number of digits to return
-     *
-     * @return a numeric String in base 10 that includes digits
-     */
-
-    public static String generateTOTP256(String key, String time, String returnDigits){
-        return generateTOTP(key, time, returnDigits, "HmacSHA256");
-    }
-
-
-    /**
-     * This method generates a TOTP value for the given
-     * set of parameters.
-     *
-     * @param key: the shared secret, HEX encoded
-     * @param time: a value that reflects a time
-     * @param returnDigits: number of digits to return
-     *
-     * @return a numeric String in base 10 that includes digits
-     */
-
-    public static String generateTOTP512(String key, String time, String returnDigits){
-        return generateTOTP(key, time, returnDigits, "HmacSHA512");
-    }
-
+//    /**
+//     * This method generates a TOTP value for the given
+//     * set of parameters.
+//     *
+//     * @param key: the shared secret, HEX encoded
+//     * @param time: a value that reflects a time
+//     * @param returnDigits: number of digits to return
+//     *
+//     * @return a numeric String in base 10 that includes digits
+//     */
+//
+//    public static String generateTOTP256(String key, String time, String returnDigits){
+//        return generateTOTP(key, time, returnDigits, "HmacSHA256");
+//    }
+//
+//
+//    /**
+//     * This method generates a TOTP value for the given
+//     * set of parameters.
+//     *
+//     * @param key: the shared secret, HEX encoded
+//     * @param time: a value that reflects a time
+//     * @param returnDigits: number of digits to return
+//     *
+//     * @return a numeric String in base 10 that includes digits
+//     */
+//    public static String generateTOTP512(String key, String time, String returnDigits){
+//        return generateTOTP(key, time, returnDigits, "HmacSHA512");
+//    }
 
     /**
      * This method generates a TOTP value for the given
@@ -142,7 +119,7 @@ public class TOTP {
 
     public static String generateTOTP(String key, String time, String returnDigits, String crypto){
         int codeDigits = Integer.decode(returnDigits);
-        StringBuilder result = null;
+        StringBuilder result;
 
         // Using the counter
         // First 8 bytes are for the movingFactor
@@ -153,9 +130,7 @@ public class TOTP {
         time = timeBuilder.toString();
 
         // Get the HEX in a Byte[]
-        byte[] msg = hexStr2Bytes(time);
-        byte[] k = hexStr2Bytes(key);
-        byte[] hash = hmac_sha(crypto, k, msg);
+        byte[] hash = hmac_sha(crypto, hexStr2Bytes(key), hexStr2Bytes(time));
 
         // put selected bytes into result int
         int offset = hash[hash.length - 1] & 0xf;

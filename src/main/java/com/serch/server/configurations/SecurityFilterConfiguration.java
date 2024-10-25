@@ -111,7 +111,8 @@ public class SecurityFilterConfiguration {
                                 "/trip/shared/access",
                                 "/trip/shared/auth",
                                 "/trip/shared/cancel",
-                                "/specialty/all"
+                                "/specialty/all",
+                                "/organization"
                         ).permitAll()
                         .requestMatchers(
                                 // Public endpoints for actuator and server endpoints

@@ -63,7 +63,7 @@ public class LogoutService implements LogoutHandler {
             authenticate(request, res);
 
             sessionService.updateSessionDetails(request.getRemoteAddr(), jwt);
-            sessionService.signOut();
+            sessionService.signOut(jwt);
 
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setStatus(HttpServletResponse.SC_OK);

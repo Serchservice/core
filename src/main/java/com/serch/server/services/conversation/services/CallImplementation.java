@@ -259,7 +259,7 @@ public class CallImplementation implements CallService {
                 .forEach((user, calls) -> {
                     CallResponse response = new CallResponse();
 
-                    Call recent = calls.get(calls.size() - 1);
+                    Call recent = calls.getLast();
                     response.setRecent(createCallInformation(recent));
                     response.setMember(recent.getCalled().isSameAs(userUtil.getUser().getId())
                             ? createCallMemberData(recent.getCaller())

@@ -17,7 +17,7 @@ import com.serch.server.services.auth.responses.AuthResponse;
 import com.serch.server.core.jwt.JwtService;
 import com.serch.server.core.session.SessionService;
 import com.serch.server.core.code.TokenService;
-import com.serch.server.services.account.requests.ChangePasswordInviteRequest;
+import com.serch.server.services.account.requests.AssociateInviteRequest;
 import com.serch.server.services.account.responses.VerifiedInviteResponse;
 import com.serch.server.services.account.services.BusinessAssociateAuthService;
 import com.serch.server.utils.DatabaseUtil;
@@ -26,6 +26,7 @@ import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -46,10 +47,8 @@ public class BusinessAssociateAuthImplementation implements BusinessAssociateAut
         UUID userId = UUID.fromString(jwtService.getItemFromToken(token, "user"));
         Role role = Role.valueOf(jwtService.getItemFromToken(token, "role"));
 
-        businessProfileRepository.findById(businessId)
-                .orElseThrow(() -> new AccountException("Business not found"));
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new AccountException("User not found"));
+        businessProfileRepository.findById(businessId).orElseThrow(() -> new AccountException("Business not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new AccountException("User not found"));
 
         Pending pending = pendingRepository.findByUser_Id(userId)
                 .orElseThrow(() -> new AccountException("Account not found"));
@@ -70,18 +69,14 @@ public class BusinessAssociateAuthImplementation implements BusinessAssociateAut
     }
 
     @Override
-    public ApiResponse<AuthResponse> acceptInvite(ChangePasswordInviteRequest request) {
+    @Transactional
+    public ApiResponse<AuthResponse> acceptInvite(AssociateInviteRequest request) {
         Pending pending = pendingRepository.findByUser_EmailAddressIgnoreCase(request.getEmailAddress())
                 .orElseThrow(() -> new AccountException("Account not found"));
         if(DatabaseUtil.decodeData(pending.getScope()).equals(request.getScope())) {
             if(HelperUtil.validatePassword(request.getPassword())) {
-                pending.getUser().setPassword(passwordEncoder.encode(request.getPassword()));
-                pending.getUser().setIsEmailConfirmed(true);
-                pending.getUser().setStatus(AccountStatus.ACTIVE);
-                pending.getUser().setLastSignedIn(TimeUtil.now());
-                pending.getUser().setCountry(request.getCountry());
-                pending.getUser().setState(request.getState());
-                userRepository.save(pending.getUser());
+                updatePendingUser(request, pending);
+
                 RequestSession session = new RequestSession();
                 session.setUser(pending.getUser());
                 session.setMethod(AuthMethod.PASSWORD_CHANGE);
@@ -90,6 +85,8 @@ public class BusinessAssociateAuthImplementation implements BusinessAssociateAut
                 ApiResponse<AuthResponse> response = sessionService.generateSession(session);
                 if(response.getStatus().is2xxSuccessful()) {
                     pendingRepository.delete(pending);
+                    pendingRepository.flush();
+
                     return response;
                 } else {
                     throw new AccountException(response.getMessage());
@@ -103,5 +100,15 @@ public class BusinessAssociateAuthImplementation implements BusinessAssociateAut
         } else {
             throw new AccountException("Access denied. Cannot verify request");
         }
+    }
+
+    private void updatePendingUser(AssociateInviteRequest request, Pending pending) {
+        pending.getUser().setPassword(passwordEncoder.encode(request.getPassword()));
+        pending.getUser().setIsEmailConfirmed(true);
+        pending.getUser().setStatus(AccountStatus.ACTIVE);
+        pending.getUser().setLastSignedIn(TimeUtil.now());
+        pending.getUser().setCountry(request.getCountry());
+        pending.getUser().setState(request.getState());
+        userRepository.save(pending.getUser());
     }
 }

@@ -114,6 +114,7 @@ public class WalletImplementation implements WalletService {
         if(request.getAmount() >= FUND_LIMIT) {
             InitializePaymentData data = initializePayment(request, wallet);
             saveCreditTransaction(request, wallet, data);
+
             return new ApiResponse<>(data);
         } else {
             throw new WalletException("You can only fund with %s above".formatted(MoneyUtil.formatToNaira(BigDecimal.valueOf(FUND_LIMIT))));
@@ -122,6 +123,7 @@ public class WalletImplementation implements WalletService {
 
     protected void saveCreditTransaction(FundWalletRequest request, Wallet wallet, InitializePaymentData data) {
         Transaction transaction = new Transaction();
+
         transaction.setAmount(BigDecimal.valueOf(request.getAmount()));
         transaction.setType(TransactionType.FUNDING);
         transaction.setVerified(false);
@@ -134,11 +136,12 @@ public class WalletImplementation implements WalletService {
     }
 
     protected InitializePaymentData initializePayment(FundWalletRequest request, Wallet wallet) {
-        InitializePaymentRequest paymentRequest = new InitializePaymentRequest();
-        paymentRequest.setAmount(String.valueOf(request.getAmount()));
-        paymentRequest.setEmail(wallet.getUser().getEmailAddress());
-        paymentRequest.setCallbackUrl(request.getCallbackUrl());
-        return paymentService.initialize(paymentRequest);
+        InitializePaymentRequest payment = new InitializePaymentRequest();
+        payment.setAmount(String.valueOf(request.getAmount()));
+        payment.setEmail(wallet.getUser().getEmailAddress());
+        payment.setCallbackUrl(request.getCallbackUrl());
+
+        return paymentService.initialize(payment);
     }
 
     @Override
@@ -180,6 +183,29 @@ public class WalletImplementation implements WalletService {
                     wallet.setDeposit(wallet.getDeposit().add(amount));
                     wallet.setUpdatedAt(TimeUtil.now());
                     walletRepository.save(wallet);
+
+                    processUnclearedDebts(wallet.getId());
+                });
+    }
+
+    @Override
+    public void processUnclearedDebts(String id) {
+        walletRepository.findById(id)
+                .ifPresent(wallet -> {
+                    if(wallet.getUncleared().compareTo(BigDecimal.ZERO) > 0) {
+                        BigDecimal amount = wallet.getUncleared();
+
+                        if(wallet.getDeposit().compareTo(amount) > 0) {
+                            wallet.setDeposit(wallet.getDeposit().subtract(amount));
+                            wallet.setUncleared(BigDecimal.ZERO);
+                            wallet.setUpdatedAt(TimeUtil.now());
+                            walletRepository.save(wallet);
+
+                            getDebitTransaction(amount, wallet, SUCCESSFUL, "Debt Payment", String.valueOf(wallet.getUser().getId()));
+
+                            notificationService.send(wallet.getUser().getId(), amount);
+                        }
+                    }
                 });
     }
 
@@ -191,7 +217,8 @@ public class WalletImplementation implements WalletService {
             /// Check if the money in the user's balance is sufficient for withdraws
             if(wallet.getBalance().compareTo(BigDecimal.valueOf(request.getAmount())) > 0) {
                 if(wallet.hasBank()) {
-                    saveDebitTransaction(BigDecimal.valueOf(request.getAmount()), wallet);
+                    saveDebitTransaction(BigDecimal.valueOf(request.getAmount()), wallet, String.valueOf(userUtil.getUser().getId()));
+
                     return new ApiResponse<>(
                             "Withdrawal request is being processed. Expect payment in %s working days".formatted(PAYDAY),
                             HttpStatus.CREATED
@@ -207,22 +234,27 @@ public class WalletImplementation implements WalletService {
         }
     }
 
-    protected void saveDebitTransaction(BigDecimal amount, Wallet wallet) {
-        Transaction transaction = new Transaction();
-        transaction.setSender(String.valueOf(userUtil.getUser().getId()));
-        transaction.setType(TransactionType.WITHDRAW);
-        transaction.setAccount(wallet.getAccountName() + " - " + wallet.getAccountNumber());
-        transaction.setAmount(amount);
-        transaction.setReference(HelperUtil.generateReference("STR"));
-        transaction.setStatus(TransactionStatus.PENDING);
-        transaction.setMode("SERCH");
-        transaction.setVerified(false);
-        transactionRepository.save(transaction);
+    protected void saveDebitTransaction(BigDecimal amount, Wallet wallet, String sender) {
+        Transaction transaction = getDebitTransaction(amount, wallet, TransactionStatus.PENDING, "Debit", sender);
 
         wallet.setUncleared(wallet.getUncleared().add(transaction.getAmount()));
         wallet.setBalance(wallet.getBalance().subtract(transaction.getAmount()));
         wallet.setUpdatedAt(TimeUtil.now());
         walletRepository.save(wallet);
+    }
+
+    private Transaction getDebitTransaction(BigDecimal amount, Wallet wallet, TransactionStatus status, String mode, String sender) {
+        Transaction transaction = new Transaction();
+        transaction.setSender(sender);
+        transaction.setType(TransactionType.WITHDRAW);
+        transaction.setAccount(wallet.getAccountName() + " - " + wallet.getAccountNumber());
+        transaction.setAmount(amount);
+        transaction.setReference(HelperUtil.generateReference("STR"));
+        transaction.setStatus(status);
+        transaction.setMode(String.format("SERCH | %s", mode));
+        transaction.setVerified(false);
+
+        return transactionRepository.save(transaction);
     }
 
     @Override
@@ -237,6 +269,7 @@ public class WalletImplementation implements WalletService {
         response.setPayout(MoneyUtil.formatToNaira(wallet.getPayout()));
         response.setWallet(wallet(wallet.getId()));
         response.setNextPayday(formatNextPayday(wallet));
+
         return new ApiResponse<>(response);
     }
 
@@ -256,12 +289,15 @@ public class WalletImplementation implements WalletService {
         if(request.getAccountName() != null && !request.getAccountName().isEmpty()) {
             wallet.setAccountName(request.getAccountName());
         }
+
         if(request.getAccountNumber() != null && !request.getAccountNumber().isEmpty()) {
             wallet.setAccountNumber(request.getAccountNumber());
         }
+
         if(request.getBankName() != null && !request.getBankName().isEmpty()) {
             wallet.setBankName(request.getBankName());
         }
+
         if(request.getPayday() != null && !request.getPayday().equals(wallet.getPayday())) {
             if(request.getPayday() < 3) {
                 throw new WalletException("Due to our transfer policy, you cannot set your paydays to anything less than %s days".formatted(PAYDAY));
@@ -269,6 +305,7 @@ public class WalletImplementation implements WalletService {
                 wallet.setPayday(request.getPayday());
             }
         }
+
         if(request.getPayout() != null && !BigDecimal.valueOf(request.getPayout()).equals(wallet.getPayout())) {
             if(request.getPayout() >= WITHDRAW_LIMIT) {
                 wallet.setPayout(BigDecimal.valueOf(request.getPayout()));
@@ -276,9 +313,11 @@ public class WalletImplementation implements WalletService {
                 throw new WalletException("Your payout amount must be %s above".formatted(MoneyUtil.formatToNaira(BigDecimal.valueOf(WITHDRAW_LIMIT))));
             }
         }
+
         if(request.getPayoutOnPayday() != null && !request.getPayoutOnPayday().equals(wallet.getPayoutOnPayday())) {
             wallet.setPayoutOnPayday(request.getPayoutOnPayday());
         }
+
         wallet.setUpdatedAt(TimeUtil.now());
         walletRepository.save(wallet);
         return new ApiResponse<>("Wallet updated", HttpStatus.OK);
@@ -292,6 +331,7 @@ public class WalletImplementation implements WalletService {
         }
 
         Transaction transaction = getTip2FixTransaction(sender, recipientId, channel);
+
         walletRepository.findByUser_Id(sender).ifPresentOrElse(wallet -> {
             if(wallet.getDeposit().compareTo(transaction.getAmount()) > 0) {
                 wallet.setDeposit(wallet.getDeposit().subtract(transaction.getAmount()));
@@ -300,6 +340,7 @@ public class WalletImplementation implements WalletService {
                 wallet.setBalance(wallet.getBalance().subtract(debit));
                 wallet.setDeposit(BigDecimal.ZERO);
             }
+
             wallet.setUpdatedAt(TimeUtil.now());
             walletRepository.save(wallet);
 
@@ -307,6 +348,7 @@ public class WalletImplementation implements WalletService {
         }, () -> {
             throw new WalletException("Couldn't process Tip2Fix payment. Try again");
         });
+
         walletRepository.findByUser_Id(recipientId).ifPresentOrElse(wallet -> {
             wallet.setBalance(wallet.getBalance().add(transaction.getAmount()));
             wallet.setUpdatedAt(TimeUtil.now());
@@ -334,6 +376,7 @@ public class WalletImplementation implements WalletService {
         transaction.setMode("SERCH");
         transaction.setVerified(false);
         transaction.setEvent(channel);
+
         return transactionRepository.save(transaction);
     }
 
@@ -360,6 +403,7 @@ public class WalletImplementation implements WalletService {
     public ApiResponse<List<TransactionGroupResponse>> recent() {
         Pageable pageable = PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Transaction> page = transactionRepository.findRecentBySenderOrReceiver(String.valueOf(userUtil.getUser().getId()), pageable);
+
         if(page == null || page.getTotalElements() == 0) {
             return new ApiResponse<>(List.of());
         } else {
@@ -371,6 +415,7 @@ public class WalletImplementation implements WalletService {
         List<TransactionGroupResponse> list = new ArrayList<>();
         Map<LocalDate, List<Transaction>> map = transactions.stream()
                 .collect(Collectors.groupingBy(transaction -> transaction.getCreatedAt().toLocalDate()));
+
         map.forEach((date, transactionList) -> {
             TransactionGroupResponse group = new TransactionGroupResponse();
             group.setLabel(TimeUtil.formatChatLabel(LocalDateTime.of(date, transactionList.getFirst().getCreatedAt().toLocalTime()), userUtil.getUser().getTimezone()));
@@ -380,6 +425,7 @@ public class WalletImplementation implements WalletService {
             group.setTransactions(response);
             list.add(group);
         });
+
         return new ApiResponse<>(list);
     }
 
@@ -396,12 +442,7 @@ public class WalletImplementation implements WalletService {
     }
 
     protected TransactionResponse prepareFundingTransactionResponse(Transaction transaction) {
-        TransactionResponse response = new TransactionResponse();
-        response.setIsIncoming(true);
-        response.setLabel(TimeUtil.formatDay(transaction.getCreatedAt(), userUtil.getUser().getTimezone()));
-        response.setType(transaction.getType());
-        response.setStatus(transaction.getStatus());
-        response.setAmount(MoneyUtil.formatToNaira(transaction.getAmount()));
+        TransactionResponse response = getResponse(transaction, true);
         response.setRecipient("Your %s".formatted(
                 walletRepository.findById(transaction.getAccount())
                         .map(wallet -> wallet(wallet.getId()))
@@ -421,12 +462,7 @@ public class WalletImplementation implements WalletService {
     }
 
     private TransactionResponse prepareWithdrawTransactionResponse(Transaction transaction) {
-        TransactionResponse response = new TransactionResponse();
-        response.setIsIncoming(false);
-        response.setLabel(TimeUtil.formatDay(transaction.getCreatedAt(), userUtil.getUser().getTimezone()));
-        response.setType(transaction.getType());
-        response.setStatus(transaction.getStatus());
-        response.setAmount(MoneyUtil.formatToNaira(transaction.getAmount()));
+        TransactionResponse response = getResponse(transaction, false);
         response.setRecipient(transaction.getAccount());
 
         TransactionData data = TransactionMapper.INSTANCE.data(transaction);
@@ -438,6 +474,7 @@ public class WalletImplementation implements WalletService {
         data.setDate(TimeUtil.formatDay(transaction.getCreatedAt(), userUtil.getUser().getTimezone()));
         data.setUpdatedAt(TimeUtil.formatDay(transaction.getUpdatedAt(), userUtil.getUser().getTimezone()));
         response.setData(data);
+
         return response;
     }
 
@@ -460,6 +497,7 @@ public class WalletImplementation implements WalletService {
         data.setHeader("Transaction %s".formatted(transaction.getStatus().getType()));
         data.setDate(TimeUtil.formatDay(transaction.getCreatedAt(), userUtil.getUser().getTimezone()));
         data.setUpdatedAt(TimeUtil.formatDay(transaction.getUpdatedAt(), userUtil.getUser().getTimezone()));
+
         return data;
     }
 
@@ -475,63 +513,52 @@ public class WalletImplementation implements WalletService {
         response.setStatus(transaction.getStatus());
         response.setAmount(MoneyUtil.formatToNaira(transaction.getAmount()));
         response.setRecipient(isIncoming ? String.format("Your %s", account) : String.format(account));
+
         return response;
     }
 
     protected String prepareScheduleDescription(Transaction transaction, boolean isIncoming) {
         if(isIncoming) {
             if(transaction.getVerified() && transaction.getStatus() == SUCCESSFUL) {
-                return String.format(
-                        "%s was sent to your wallet because %s closed schedule %s with %s for %s on %s, late",
-                        MoneyUtil.formatToNaira(transaction.getAmount()),
-                        scheduleRepository.findById(transaction.getEvent()).map(schedule ->
-                                profileRepository.findById(schedule.getClosedBy()).map(Profile::getFullName).orElse("someone")
-                        ).orElse("someone"),
-                        scheduleRepository.findById(transaction.getEvent()).map(Schedule::getId).orElse(""),
-                        getScheduleParticipant(transaction),
-                        scheduleRepository.findById(transaction.getEvent()).map(Schedule::getTime).orElse(""),
-                        scheduleRepository.findById(transaction.getEvent()).map(schedule -> TimeUtil.formatDay(schedule.getCreatedAt(), userUtil.getUser().getTimezone())).orElse("")
-                );
+                return getIncomingScheduleTransactionDescription(transaction, "%s was sent to your wallet because %s closed schedule %s with %s for %s on %s, late");
             } else {
-                return String.format(
-                        "%s will be sent to your wallet because %s closed schedule %s with %s for %s on %s, late",
-                        MoneyUtil.formatToNaira(transaction.getAmount()),
-                        scheduleRepository.findById(transaction.getEvent()).map(schedule ->
-                                profileRepository.findById(schedule.getClosedBy()).map(Profile::getFullName).orElse("someone")
-                        ).orElse("someone"),
-                        scheduleRepository.findById(transaction.getEvent()).map(Schedule::getId).orElse(""),
-                        getScheduleParticipant(transaction),
-                        scheduleRepository.findById(transaction.getEvent()).map(Schedule::getTime).orElse(""),
-                        scheduleRepository.findById(transaction.getEvent()).map(schedule -> TimeUtil.formatDay(schedule.getCreatedAt(), userUtil.getUser().getTimezone())).orElse("")
-                );
+                return getIncomingScheduleTransactionDescription(transaction, "%s will be sent to your wallet because %s closed schedule %s with %s for %s on %s, late");
             }
         } else {
             if(transaction.getVerified() && transaction.getStatus() == SUCCESSFUL) {
-                return String.format(
-                        "%s was debited from your wallet because %s closed schedule %s with %s for %s on %s, late",
-                        MoneyUtil.formatToNaira(transaction.getAmount()),
-                        getScheduleParticipant(transaction),
-                        scheduleRepository.findById(transaction.getEvent()).map(Schedule::getId).orElse(""),
-                        scheduleRepository.findById(transaction.getEvent()).map(schedule ->
-                                profileRepository.findById(schedule.getClosedBy()).map(Profile::getFullName).orElse("someone")
-                        ).orElse("someone"),
-                        scheduleRepository.findById(transaction.getEvent()).map(Schedule::getTime).orElse(""),
-                        scheduleRepository.findById(transaction.getEvent()).map(schedule -> TimeUtil.formatDay(schedule.getCreatedAt(), userUtil.getUser().getTimezone())).orElse("")
-                );
+                return getOutgoingScheduleTransactionDescription(transaction, "%s was debited from your wallet because %s closed schedule %s with %s for %s on %s, late");
             } else {
-                return String.format(
-                        "%s will be debited from your wallet because %s closed schedule %s with %s for %s on %s, late",
-                        MoneyUtil.formatToNaira(transaction.getAmount()),
-                        getScheduleParticipant(transaction),
-                        scheduleRepository.findById(transaction.getEvent()).map(Schedule::getId).orElse(""),
-                        scheduleRepository.findById(transaction.getEvent()).map(schedule ->
-                                profileRepository.findById(schedule.getClosedBy()).map(Profile::getFullName).orElse("someone")
-                        ).orElse("someone"),
-                        scheduleRepository.findById(transaction.getEvent()).map(Schedule::getTime).orElse(""),
-                        scheduleRepository.findById(transaction.getEvent()).map(schedule -> TimeUtil.formatDay(schedule.getCreatedAt(), userUtil.getUser().getTimezone())).orElse("")
-                );
+                return getOutgoingScheduleTransactionDescription(transaction, "%s will be debited from your wallet because %s closed schedule %s with %s for %s on %s, late");
             }
         }
+    }
+
+    private String getIncomingScheduleTransactionDescription(Transaction transaction, String format) {
+        Optional<Schedule> optional = scheduleRepository.findById(transaction.getEvent());
+
+        return String.format(
+                format,
+                MoneyUtil.formatToNaira(transaction.getAmount()),
+                optional.map(schedule -> profileRepository.findById(schedule.getClosedBy()).map(Profile::getFullName).orElse("someone")).orElse("someone"),
+                optional.map(Schedule::getId).orElse(""),
+                getScheduleParticipant(transaction),
+                optional.map(Schedule::getTime).orElse(""),
+                optional.map(schedule -> TimeUtil.formatDay(schedule.getCreatedAt(), userUtil.getUser().getTimezone())).orElse("")
+        );
+    }
+
+    private String getOutgoingScheduleTransactionDescription(Transaction transaction, String format) {
+        Optional<Schedule> optional = scheduleRepository.findById(transaction.getEvent());
+
+        return String.format(
+                format,
+                MoneyUtil.formatToNaira(transaction.getAmount()),
+                getScheduleParticipant(transaction),
+                optional.map(Schedule::getId).orElse(""),
+                optional.map(schedule -> profileRepository.findById(schedule.getClosedBy()).map(Profile::getFullName).orElse("someone")).orElse("someone"),
+                optional.map(Schedule::getTime).orElse(""),
+                optional.map(schedule -> TimeUtil.formatDay(schedule.getCreatedAt(), userUtil.getUser().getTimezone())).orElse("")
+        );
     }
 
     protected String getScheduleParticipant(Transaction transaction) {
@@ -583,47 +610,40 @@ public class WalletImplementation implements WalletService {
     protected String prepareCallDescription(Transaction transaction, boolean isIncoming) {
         if(isIncoming) {
             if(transaction.getVerified() && transaction.getStatus() == SUCCESSFUL) {
-                return String.format(
-                        "%s was sent to your wallet because %s had a Tip2Fix session %s with %s",
-                        MoneyUtil.formatToNaira(transaction.getAmount()),
-                        callRepository.findById(transaction.getEvent())
-                                .map(call -> call.getCaller().getFullName()).orElse("someone"),
-                        callRepository.findById(transaction.getEvent()).map(Call::getChannel).orElse(""),
-                        callRepository.findById(transaction.getEvent())
-                                .map(call -> call.getCalled().getFullName()).orElse("someone")
-                );
+                return getIncomingCallTransactionDescription(transaction, "%s was sent to your wallet because %s had a Tip2Fix session %s with %s");
             } else {
-                return String.format(
-                        "%s will be sent to your wallet because %s had a Tip2Fix session %s with %s",
-                        MoneyUtil.formatToNaira(transaction.getAmount()),
-                        callRepository.findById(transaction.getEvent())
-                                .map(call -> call.getCaller().getFullName()).orElse("someone"),
-                        callRepository.findById(transaction.getEvent()).map(Call::getChannel).orElse(""),
-                        callRepository.findById(transaction.getEvent())
-                                .map(call -> call.getCalled().getFullName()).orElse("someone")
-
-                );
+                return getIncomingCallTransactionDescription(transaction, "%s will be sent to your wallet because %s had a Tip2Fix session %s with %s");
             }
         } else {
             if(transaction.getVerified() && transaction.getStatus() == SUCCESSFUL) {
-                return String.format(
-                        "%s was debited from your wallet because you had a Tip2Fix session %s with %s",
-                        MoneyUtil.formatToNaira(transaction.getAmount()),
-                        callRepository.findById(transaction.getEvent()).map(Call::getChannel).orElse(""),
-                        callRepository.findById(transaction.getEvent())
-                                .map(call -> call.getCalled().getFullName()).orElse("someone")
-                );
+                return getOutgoingCallTransactionDescription(transaction, "%s was debited from your wallet because you had a Tip2Fix session %s with %s");
             } else {
-                return String.format(
-                        "%s will be debited from your wallet because you had a Tip2Fix session %s with %s",
-                        MoneyUtil.formatToNaira(transaction.getAmount()),
-                        callRepository.findById(transaction.getEvent()).map(Call::getChannel).orElse(""),
-                        callRepository.findById(transaction.getEvent())
-                                .map(call -> call.getCalled().getFullName()).orElse("someone")
-
-                );
+                return getOutgoingCallTransactionDescription(transaction, "%s will be debited from your wallet because you had a Tip2Fix session %s with %s");
             }
         }
+    }
+
+    private String getOutgoingCallTransactionDescription(Transaction transaction, String format) {
+        Optional<Call> optional = callRepository.findById(transaction.getEvent());
+
+        return String.format(
+                format,
+                MoneyUtil.formatToNaira(transaction.getAmount()),
+                optional.map(Call::getChannel).orElse(""),
+                optional.map(call -> call.getCalled().getFullName()).orElse("someone")
+        );
+    }
+
+    private String getIncomingCallTransactionDescription(Transaction transaction, String format) {
+        Optional<Call> optional = callRepository.findById(transaction.getEvent());
+
+        return String.format(
+                format,
+                MoneyUtil.formatToNaira(transaction.getAmount()),
+                optional.map(call -> call.getCaller().getFullName()).orElse("someone"),
+                optional.map(Call::getChannel).orElse(""),
+                optional.map(call -> call.getCalled().getFullName()).orElse("someone")
+        );
     }
 
     protected TransactionResponse prepareTripShareTransactionResponse(Transaction transaction) {
@@ -691,7 +711,7 @@ public class WalletImplementation implements WalletService {
                     if(isPayday(wallet)) {
                         if(wallet.getBalance().compareTo(wallet.getPayout()) > 0) {
                             if(wallet.hasBank()) {
-                                saveDebitTransaction(wallet.getPayout(), wallet);
+                                saveDebitTransaction(wallet.getPayout(), wallet, String.valueOf(wallet.getUser().getId()));
                                 updateLastPayday(wallet, SUCCESSFUL);
                             } else {
                                 updateLastPayday(wallet, FAILED);
@@ -708,6 +728,7 @@ public class WalletImplementation implements WalletService {
     private boolean isPayday(Wallet wallet) {
         LocalDate today = LocalDate.now();
         LocalDate nextPayday = getNextPayday(wallet, today);
+
         return !today.isBefore(nextPayday) && today.isEqual(nextPayday);
     }
 
@@ -716,6 +737,7 @@ public class WalletImplementation implements WalletService {
         long daysSinceLastPayday = ChronoUnit.DAYS.between(lastPayday, today);
         long daysToNextPayday = wallet.getPayday() - (daysSinceLastPayday % wallet.getPayday());
         LocalDate nextPayday = lastPayday.plusDays(daysToNextPayday);
+
         return nextPayday.isBefore(today) ? nextPayday.plusDays(wallet.getPayday()) : nextPayday;
     }
 
@@ -735,6 +757,7 @@ public class WalletImplementation implements WalletService {
         );
     }
 
+    @Override
     public String formatNextPayday(Wallet wallet) {
         if(wallet.getPayoutOnPayday()) {
             LocalDate today = LocalDate.now();

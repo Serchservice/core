@@ -89,19 +89,27 @@ public class CommonAuthImplementation implements CommonAuthService {
             response.setDevices(new ArrayList<>());
         } else {
             Map<String, List<Session>> groups = sessionRepository.findByUser_Id(user.getId())
-                            .stream().collect(Collectors.groupingBy(Session::getName));
+                            .stream().collect(Collectors.groupingBy(Session::getIpAddress));
+
             List<AccountAuthDeviceResponse> devices = new ArrayList<>();
             groups.forEach((k, v) -> {
                 v.sort(Comparator.comparing(Session::getCreatedAt).reversed());
-                Session latestSession = v.getFirst();
+                Session latest = v.getFirst();
 
                 AccountAuthDeviceResponse device = new AccountAuthDeviceResponse();
                 device.setCount(v.size());
                 device.setName(k);
-                device.setPlatform(latestSession.getPlatform());
-                device.setRevoked(latestSession.getRevoked());
+                device.setRevoked(latest.getRevoked());
+
+                if(latest.getName() == null || latest.getName().isEmpty()) {
+                    device.setPlatform(latest.getPlatform());
+                } else {
+                    device.setPlatform(String.format("%s | %s", latest.getName(), latest.getPlatform()));
+                }
+
                 devices.add(device);
             });
+
             response.setDevices(devices);
         }
         return response;

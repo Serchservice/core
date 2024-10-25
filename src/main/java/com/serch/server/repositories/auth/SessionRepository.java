@@ -8,6 +8,7 @@ import org.springframework.lang.NonNull;
 
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface SessionRepository extends JpaRepository<Session, UUID> {
@@ -21,4 +22,9 @@ public interface SessionRepository extends JpaRepository<Session, UUID> {
 
     @Query("SELECT s FROM Session s WHERE s.user.id = ?1 ORDER BY s.createdAt DESC")
     List<Session> findMostRecentSessionByUser(@NonNull UUID user, Pageable pageable);
+
+    Optional<Session> findByIdAndUser_Id(@NonNull UUID id, @NonNull UUID id1);
+
+    @Query("select s from Session s where s.user.id = ?1 and (s.ipAddress = ?2 or s.name = ?3)")
+    List<Session> findByUser_IdAndIpAddressOrName(@NonNull UUID id, @NonNull String ipAddress, @NonNull String name);
 }

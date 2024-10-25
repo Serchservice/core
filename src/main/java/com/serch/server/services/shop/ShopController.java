@@ -26,7 +26,7 @@ public class ShopController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<ShopResponse>>> fetchShops() {
-        ApiResponse<List<ShopResponse>> response = shopService.fetchShops();
+        ApiResponse<List<ShopResponse>> response = shopService.fetch();
         return new ResponseEntity<>(response, response.getStatus());
     }
 
@@ -45,7 +45,7 @@ public class ShopController {
     @PostMapping("/create")
     @PreAuthorize("hasRole('BUSINESS') || hasRole('PROVIDER')")
     public ResponseEntity<ApiResponse<List<ShopResponse>>> createShop(@RequestBody CreateShopRequest request) {
-        ApiResponse<List<ShopResponse>> response = shopService.createShop(request);
+        ApiResponse<List<ShopResponse>> response = shopService.create(request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
@@ -54,7 +54,7 @@ public class ShopController {
     public ResponseEntity<ApiResponse<ShopResponse>> createWeekday(
             @RequestParam String shop, @RequestBody ShopWeekdayRequest request
     ) {
-        ApiResponse<ShopResponse> response = shopService.createWeekday(shop, request);
+        ApiResponse<ShopResponse> response = shopService.create(shop, request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
@@ -63,14 +63,14 @@ public class ShopController {
     public ResponseEntity<ApiResponse<ShopResponse>> createService(
             @RequestParam String shop, @RequestBody String service
     ) {
-        ApiResponse<ShopResponse> response = shopService.createService(shop, service);
+        ApiResponse<ShopResponse> response = shopService.create(shop, service);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @PatchMapping("/update")
     @PreAuthorize("hasRole('BUSINESS') || hasRole('PROVIDER')")
     public ResponseEntity<ApiResponse<ShopResponse>> updateShop(@RequestBody UpdateShopRequest request) {
-        ApiResponse<ShopResponse> response = shopService.updateShop(request);
+        ApiResponse<ShopResponse> response = shopService.update(request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
@@ -79,7 +79,7 @@ public class ShopController {
     public ResponseEntity<ApiResponse<ShopResponse>> updateWeekday(
             @RequestParam Long id, @RequestParam String shop, @RequestBody ShopWeekdayRequest request
     ) {
-        ApiResponse<ShopResponse> response = shopService.updateWeekday(id, shop, request);
+        ApiResponse<ShopResponse> response = shopService.update(id, shop, request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
@@ -88,7 +88,7 @@ public class ShopController {
     public ResponseEntity<ApiResponse<ShopResponse>> updateService(
             @RequestParam Long id, @RequestParam String shop, @RequestBody String service
     ) {
-        ApiResponse<ShopResponse> response = shopService.updateService(id, shop, service);
+        ApiResponse<ShopResponse> response = shopService.update(id, shop, service);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
@@ -111,7 +111,7 @@ public class ShopController {
     @DeleteMapping("/remove")
     @PreAuthorize("hasRole('BUSINESS') || hasRole('PROVIDER')")
     public ResponseEntity<ApiResponse<List<ShopResponse>>> removeShop(@RequestParam String shop) {
-        ApiResponse<List<ShopResponse>> response = shopService.removeShop(shop);
+        ApiResponse<List<ShopResponse>> response = shopService.remove(shop);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

@@ -1,45 +1,37 @@
 package com.serch.server.services.certificate.services;
 
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.client.j2se.MatrixToImageWriter;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.qrcode.QRCodeWriter;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.bases.BaseProfile;
+import com.serch.server.core.jwt.JwtService;
+import com.serch.server.core.qr_code.QRCodeService;
+import com.serch.server.core.storage.core.StorageService;
+import com.serch.server.core.storage.requests.FileUploadRequest;
 import com.serch.server.enums.account.Gender;
 import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.company.IssueStatus;
 import com.serch.server.exceptions.others.CertificateException;
+import com.serch.server.models.account.BusinessProfile;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.User;
-import com.serch.server.models.account.BusinessProfile;
 import com.serch.server.models.certificate.Certificate;
 import com.serch.server.models.rating.Rating;
 import com.serch.server.repositories.account.AccountReportRepository;
-import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.account.BusinessProfileRepository;
+import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.certificate.CertificateRepository;
 import com.serch.server.repositories.rating.RatingRepository;
 import com.serch.server.repositories.trip.TripRepository;
-import com.serch.server.core.jwt.JwtService;
 import com.serch.server.services.certificate.responses.CertificateData;
 import com.serch.server.services.certificate.responses.CertificateResponse;
 import com.serch.server.services.certificate.responses.VerifyCertificateResponse;
 import com.serch.server.services.rating.services.RatingService;
-import com.serch.server.core.storage.core.StorageService;
-import com.serch.server.core.storage.requests.FileUploadRequest;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -53,6 +45,7 @@ public class CertificateImplementation implements CertificateService {
     private final JwtService jwtService;
     private final StorageService storageService;
     private final RatingService ratingService;
+    private final QRCodeService qrCodeService;
     private final UserUtil userUtil;
     private final PasswordEncoder encoder;
     private final CertificateRepository certificateRepository;
@@ -80,23 +73,14 @@ public class CertificateImplementation implements CertificateService {
         if(cert.isPresent()) {
             if(instruction(user, cert.get()).values().stream().allMatch(val -> val)) {
                 String secret = secret(user);
-                String code = generateQrCode(secret);
+                String code = qrCodeService.platformCertificate(secret);
 
                 cert.get().setSecret(encoder.encode(secret));
                 cert.get().setCode(code);
                 cert.get().setUpdatedAt(TimeUtil.now());
                 cert.ifPresent(certificateRepository::save);
 
-                CertificateData data = new CertificateData();
-                data.setHeader(generateHeader());
-                data.setContent(generateComment(user.getFirstName()));
-                data.setQrCode(code);
-                data.setId(cert.get().getId());
-                data.setName(user.getFullName());
-                data.setDocument(storageService.buildUrl("/storage/v1/object/public/certificate/Unsigned.png"));
-                data.setSignature(storageService.buildUrl("/storage/v1/object/public/certificate/ceo-sign.png"));
-                data.setIssueDate(date(cert.get().getUpdatedAt()));
-                return new ApiResponse<>(data);
+                return new ApiResponse<>(getCertificateData(user, code, cert.get(), cert.get().getUpdatedAt()));
             } else {
                 throw new CertificateException("You cannot generate a new certificate");
             }
@@ -104,19 +88,24 @@ public class CertificateImplementation implements CertificateService {
             String secret = secret(user);
             Certificate certificate = generate(user, secret);
 
-            CertificateData data = new CertificateData();
-            data.setHeader(generateHeader());
-            data.setContent(generateComment(user.getFirstName()));
-            data.setQrCode(certificate.getCode());
-            data.setId(certificate.getId());
-            data.setName(user.getFullName());
-            data.setDocument(storageService.buildUrl("/storage/v1/object/public/certificate/Unsigned.png"));
-            data.setSignature(storageService.buildUrl("/storage/v1/object/public/certificate/ceo-sign.png"));
-            data.setIssueDate(date(certificate.getCreatedAt()));
-            return new ApiResponse<>(data);
+            return new ApiResponse<>(getCertificateData(user, certificate.getCode(), certificate, certificate.getCreatedAt()));
         } else {
             throw new CertificateException("You have not met all required conditions");
         }
+    }
+
+    private CertificateData getCertificateData(User user, String code, Certificate cert, ZonedDateTime issuedDate) {
+        CertificateData data = new CertificateData();
+        data.setHeader(generateHeader());
+        data.setContent(generateComment(user.getFirstName()));
+        data.setQrCode(code);
+        data.setId(cert.getId());
+        data.setName(user.getFullName());
+        data.setDocument(storageService.buildUrl("/storage/v1/object/public/certificate/Unsigned.png"));
+        data.setSignature(storageService.buildUrl("/storage/v1/object/public/certificate/ceo-sign.png"));
+        data.setIssueDate(date(issuedDate));
+
+        return data;
     }
 
     @Override
@@ -124,6 +113,7 @@ public class CertificateImplementation implements CertificateService {
         Optional<Certificate> cert = certificateRepository.findByUser(userUtil.getUser().getId());
         CertificateResponse response = new CertificateResponse();
         CertificateData data = new CertificateData();
+
         if(cert.isPresent()) {
             data.setDocument(cert.get().getDocument());
             response.setIsGenerated(true);
@@ -147,6 +137,7 @@ public class CertificateImplementation implements CertificateService {
             response.setInstructions(instruction(userUtil.getUser(), null));
         }
         response.setData(data);
+
         return new ApiResponse<>(response);
     }
 
@@ -189,11 +180,13 @@ public class CertificateImplementation implements CertificateService {
     public ApiResponse<CertificateResponse> upload(FileUploadRequest request) {
         String bucket = userUtil.getUser().isBusiness() ? "certificate/business" : "certificate/provider";
         String url = storageService.upload(request, bucket);
+
         Certificate certificate = certificateRepository.findByUser(userUtil.getUser().getId())
                 .orElseThrow(() -> new CertificateException("Certificate not found"));
         certificate.setDocument(url);
         certificate.setUpdatedAt(TimeUtil.now());
         certificateRepository.save(certificate);
+
         return fetch();
     }
 
@@ -201,7 +194,8 @@ public class CertificateImplementation implements CertificateService {
         Certificate certificate = new Certificate();
         certificate.setUser(user.getId());
         certificate.setSecret(encoder.encode(secret));
-        certificate.setCode(generateQrCode(secret));
+        certificate.setCode(qrCodeService.platformCertificate(secret));
+
         return certificateRepository.save(certificate);
     }
 
@@ -212,6 +206,7 @@ public class CertificateImplementation implements CertificateService {
         claims.put("first_name", user.getFirstName());
         claims.put("last_name", user.getLastName());
         claims.put("id", user.getId());
+
         return jwtService.generateToken(claims, user.getEmailAddress());
     }
 
@@ -289,29 +284,6 @@ public class CertificateImplementation implements CertificateService {
                     gender(gender), gender(gender), firstName, firstName
             );
         }
-    }
-
-    /**
-     * Generates a Base64-encoded QR code image from the given secret.
-     * @param secret The content to encode in the QR code.
-     * @return The Base64-encoded string representing the QR code image.
-     */
-    @SneakyThrows
-    private String generateQrCode(String secret) {
-        QRCodeWriter qrCodeWriter = new QRCodeWriter();
-
-        BitMatrix bitMatrix = qrCodeWriter.encode(
-                String.format("https://www.serchservice.com/platform/certificates?verify=%s", secret),
-                BarcodeFormat.QR_CODE,
-                300,
-                300
-        );
-        BufferedImage bufferedImage = MatrixToImageWriter.toBufferedImage(bitMatrix);
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        ImageIO.write(bufferedImage, "PNG", outputStream);
-        outputStream.flush();
-        byte[] imageBytes = outputStream.toByteArray();
-        return Base64.encodeBase64String(imageBytes);
     }
 
     @Override

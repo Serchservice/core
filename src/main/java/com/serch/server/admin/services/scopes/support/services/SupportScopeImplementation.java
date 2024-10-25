@@ -64,25 +64,29 @@ public class SupportScopeImplementation implements SupportScopeService {
     }
 
     private List<ChartMetric> prepareComplaint(Integer year) {
+        return getChartMetrics(year, true);
+    }
+
+    private List<ChartMetric> getChartMetrics(Integer year, boolean isComplaint) {
         return Arrays.stream(IssueStatus.values()).map(status -> {
             ChartMetric chartMetric = new ChartMetric();
+            chartMetric.setColor(AdminUtil.randomColor());
             chartMetric.setLabel(status.getType());
 
-            long count = complaintRepository.countByYearAndStatus(year, status);
+            long count;
+            if (isComplaint) {
+                count = complaintRepository.countByYearAndStatus(year, status);
+            } else {
+                count = speakWithSerchRepository.countByYearAndStatus(year, status);
+            }
+
             chartMetric.setValue((int) count);
             return chartMetric;
         }).toList();
     }
 
     private List<ChartMetric> prepareSpeakWithSerch(Integer year) {
-        return Arrays.stream(IssueStatus.values()).map(status -> {
-            ChartMetric chartMetric = new ChartMetric();
-            chartMetric.setLabel(status.getType());
-
-            long count = speakWithSerchRepository.countByYearAndStatus(year, status);
-            chartMetric.setValue((int) count);
-            return chartMetric;
-        }).toList();
+        return getChartMetrics(year, false);
     }
 
     @Override

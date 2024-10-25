@@ -59,67 +59,48 @@ public class SessionImplementation implements SessionService {
     private final AdminRepository adminRepository;
 
     @Override
-    public void revokeAllRefreshTokens(UUID userId) {
-        var refreshTokens = refreshTokenRepository.findByUser_Id(userId);
-        if(!refreshTokens.isEmpty()) {
-            refreshTokens.forEach(refreshToken -> {
-                if(!refreshToken.getRevoked()) {
-                    refreshToken.setRevoked(true);
-                    refreshToken.setUpdatedAt(TimeUtil.now());
-                    refreshTokenRepository.save(refreshToken);
-                }
-            });
-        }
+    public void revokeRefreshToken(UUID userId, UUID refreshTokenId) {
+        refreshTokenRepository.findByIdAndUser_Id(refreshTokenId, userId).ifPresent(refreshToken -> {
+            if(!refreshToken.getRevoked()) {
+                refreshToken.setRevoked(true);
+                refreshToken.setUpdatedAt(TimeUtil.now());
+                refreshTokenRepository.save(refreshToken);
+            }
+        });
     }
 
     @Override
-    public void revokeAllSessions(UUID userId) {
-        var sessions = sessionRepository.findByUser_Id(userId);
-        if(!sessions.isEmpty()) {
-            sessions.forEach(session -> {
-                if(!session.getRevoked()) {
-                    session.setRevoked(true);
-                    session.setUpdatedAt(TimeUtil.now());
-                    sessionRepository.save(session);
-                }
-            });
-        }
-    }
-
-    private static Session getSession(RequestSession request) {
-        Session session = AuthMapper.INSTANCE.session(request.getDevice());
-        session.setUser(request.getUser());
-        session.setMethod(request.getMethod());
-        if(request.getMethod() == AuthMethod.MFA) {
-            session.setAuthLevel(AuthLevel.LEVEL_2);
-        } else {
-            session.setAuthLevel(AuthLevel.LEVEL_1);
-        }
-        return session;
-    }
-
-    private static RefreshToken getRefreshToken(RequestSession request, Session session, String token) {
-        RefreshToken refreshToken = new RefreshToken();
-        refreshToken.setSession(session);
-        refreshToken.setUser(request.getUser());
-        refreshToken.setToken(token);
-        return refreshToken;
+    public void revokeSession(UUID userId, UUID sessionId) {
+        sessionRepository.findByIdAndUser_Id(sessionId, userId).ifPresent(session -> {
+            if(!session.getRevoked()) {
+                session.setRevoked(true);
+                session.setUpdatedAt(TimeUtil.now());
+                sessionRepository.save(session);
+            }
+        });
     }
 
     @Override
     public ApiResponse<AuthResponse> generateSession(RequestSession request) {
         request.getUser().check();
-        revokeAllSessions(request.getUser().getId());
-        revokeAllRefreshTokens(request.getUser().getId());
+        revokeSameDeviceOrIpAddress(request.getUser().getId(), request.getDevice().getIpAddress(), request.getDevice().getName());
 
         String token = tokenService.generateRefreshToken();
 
-        return new ApiResponse<>("Successful", auth(request, getAccessToken(request, token), token), HttpStatus.CREATED);
+        return new ApiResponse<>("Successful authentication", auth(request, getNewSessionToken(request, token), token), HttpStatus.CREATED);
     }
 
-    private String getAccessToken(RequestSession request, String token) {
-        Session session = sessionRepository.save(getSession(request));
-        RefreshToken refreshToken = refreshTokenRepository.save(getRefreshToken(request, session, token));
+    private void revokeSameDeviceOrIpAddress(UUID user, String ipAddress, String name) {
+        var sessions = sessionRepository.findByUser_IdAndIpAddressOrName(user, ipAddress, name);
+        if(sessions != null && !sessions.isEmpty()) {
+            sessions.forEach(session -> revokeSession(user, session.getId()));
+            sessions.stream().flatMap(session -> session.getRefreshTokens().stream()).forEach(refreshToken -> revokeRefreshToken(user, refreshToken.getId()));
+        }
+    }
+
+    private String getNewSessionToken(RequestSession request, String token) {
+        Session session = sessionRepository.save(getNewSession(request));
+        RefreshToken refreshToken = refreshTokenRepository.save(getNewRefreshToken(request, session, token));
 
         RequestSessionToken sessionToken = new RequestSessionToken();
         sessionToken.setSessionId(session.getId());
@@ -129,6 +110,29 @@ public class SessionImplementation implements SessionService {
         sessionToken.setRefreshId(refreshToken.getId());
 
         return jwtService.generateToken(sessionToken);
+    }
+
+    private Session getNewSession(RequestSession request) {
+        Session session = AuthMapper.INSTANCE.session(request.getDevice());
+        session.setUser(request.getUser());
+        session.setMethod(request.getMethod());
+
+        if(request.getMethod() == AuthMethod.MFA) {
+            session.setAuthLevel(AuthLevel.LEVEL_2);
+        } else {
+            session.setAuthLevel(AuthLevel.LEVEL_1);
+        }
+
+        return session;
+    }
+
+    private RefreshToken getNewRefreshToken(RequestSession request, Session session, String token) {
+        RefreshToken refreshToken = new RefreshToken();
+        refreshToken.setSession(session);
+        refreshToken.setUser(request.getUser());
+        refreshToken.setToken(token);
+
+        return refreshToken;
     }
 
     private AuthResponse auth(RequestSession request, String accessToken, String token) {
@@ -197,27 +201,20 @@ public class SessionImplementation implements SessionService {
             if(refreshToken.getRevoked()) {
                 throw new SessionException("Invalid refresh token. Please login", ExceptionCodes.INCORRECT_TOKEN);
             } else {
-                revokeAllSessions(userId);
-                revokeAllRefreshTokens(userId);
+                revokeSession(userId, sessionId);
+                revokeRefreshToken(userId, refreshId);
                 String newToken = tokenService.generateRefreshToken();
                 String newAccessToken = getNewAccessToken(session, user, newToken, refreshToken);
+
                 return new ApiResponse<>(new SessionResponse(newAccessToken, newToken));
             }
         } catch (IllegalArgumentException e) {
-            throw new SessionException(
-                    "Invalid session. Please login",
-                    ExceptionCodes.IMPROPER_USER_ID_FORMAT
-            );
+            throw new SessionException("Invalid session. Please login", ExceptionCodes.IMPROPER_USER_ID_FORMAT);
         }
     }
 
     private String getNewAccessToken(Session session, User user, String newToken, RefreshToken refreshToken) {
-        RefreshToken newRefreshToken = new RefreshToken();
-        newRefreshToken.setSession(session);
-        newRefreshToken.setUser(user);
-        newRefreshToken.setToken(newToken);
-        newRefreshToken.setParent(refreshToken);
-        refreshTokenRepository.save(newRefreshToken);
+        RefreshToken newRefreshToken = getNewRefreshToken(session, user, newToken, refreshToken);
 
         RequestSessionToken sessionToken = new RequestSessionToken();
         sessionToken.setSessionId(session.getId());
@@ -229,15 +226,23 @@ public class SessionImplementation implements SessionService {
         return jwtService.generateToken(sessionToken);
     }
 
+    private RefreshToken getNewRefreshToken(Session session, User user, String newToken, RefreshToken refreshToken) {
+        RefreshToken newRefreshToken = new RefreshToken();
+        newRefreshToken.setSession(session);
+        newRefreshToken.setUser(user);
+        newRefreshToken.setToken(newToken);
+        newRefreshToken.setParent(refreshToken);
+
+        return refreshTokenRepository.save(newRefreshToken);
+    }
+
     @Override
     public ApiResponse<String> validateSession(String token, String state, String country) {
         try {
             if(jwtService.isTokenExpired(token)) {
-                throw new SessionException(
-                        "Your session has expired. Please login",
-                        ExceptionCodes.EXPIRED_SESSION
-                );
+                throw new SessionException("Your session has expired. Please login", ExceptionCodes.EXPIRED_SESSION);
             }
+
             String email = jwtService.getEmailFromToken(token);
             try {
                 var userId = UUID.fromString(jwtService.getItemFromToken(token, "serch_id"));
@@ -254,12 +259,12 @@ public class SessionImplementation implements SessionService {
 
                 if(user.getId().equals(userId) && jwtService.isTokenIssuedBySerch(token) && (!session.getRevoked() && !refreshToken.getRevoked())) {
                     if(user.isAdmin()) {
-                        Admin admin = adminRepository.findById(user.getId())
-                                .orElseThrow(() -> new AuthException("Admin not found"));
+                        Admin admin = adminRepository.findById(user.getId()).orElseThrow(() -> new AuthException("Admin not found"));
                         if(admin.mfaEnforced()) {
                             throw new SessionException("Two-factor authentication is required", ExceptionCodes.MFA_COMPULSORY);
                         }
                     }
+
                     user.setLastSignedIn(TimeUtil.now());
                     if(state != null) {
                         user.setState(state);
@@ -286,16 +291,19 @@ public class SessionImplementation implements SessionService {
     }
 
     @Override
-    public User validate(String token) {
-        return null;
-    }
+    public void signOut(String jwt) {
+        try {
+            var sessionId = UUID.fromString(jwtService.getItemFromToken(jwt, "session_id"));
+            var refreshId = UUID.fromString(jwtService.getItemFromToken(jwt, "refresh_id"));
 
-    @Override
-    public void signOut() {
-        var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
-                .orElseThrow(() -> new AuthException("User not found", ExceptionCodes.USER_NOT_FOUND));
-        revokeAllSessions(user.getId());
-        revokeAllRefreshTokens(user.getId());
+            var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
+                    .orElseThrow(() -> new AuthException("User not found", ExceptionCodes.USER_NOT_FOUND));
+
+            revokeSession(user.getId(), sessionId);
+            revokeRefreshToken(user.getId(), refreshId);
+        } catch (IllegalArgumentException e) {
+            throw new SessionException("Invalid session. Please login", ExceptionCodes.IMPROPER_USER_ID_FORMAT);
+        }
     }
 
     @Override

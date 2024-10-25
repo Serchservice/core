@@ -204,20 +204,24 @@ public class TripPayImplementation implements TripPayService {
                 payment.setReference(data.getReference());
                 tripPaymentRepository.save(payment);
 
-                Transaction transaction = new Transaction();
-                transaction.setAmount(total);
-                transaction.setType(SHOPPING);
-                transaction.setAccount(String.valueOf(trip.getProvider().getId()));
-                transaction.setMode("CARD");
-                transaction.setEvent(trip.getId());
-                transaction.setSender(trip.getAccount());
-                transaction.setReference(data.getReference());
-                transactionRepository.save(transaction);
+                saveShoppingPayment(trip, total, data);
 
                 return data;
             }
         }
         return null;
+    }
+
+    private void saveShoppingPayment(Trip trip, BigDecimal total, InitializePaymentData data) {
+        Transaction transaction = new Transaction();
+        transaction.setAmount(total);
+        transaction.setType(SHOPPING);
+        transaction.setAccount(String.valueOf(trip.getProvider().getId()));
+        transaction.setMode("CARD");
+        transaction.setEvent(trip.getId());
+        transaction.setSender(trip.getAccount());
+        transaction.setReference(data.getReference());
+        transactionRepository.save(transaction);
     }
 
     @Override

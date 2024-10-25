@@ -104,7 +104,7 @@ public class ShopImplementation implements ShopService {
     }
 
     @Override
-    public ApiResponse<List<ShopResponse>> createShop(CreateShopRequest request) {
+    public ApiResponse<List<ShopResponse>> create(CreateShopRequest request) {
         if(HelperUtil.isUploadEmpty(request.getUpload())) {
             throw new ShopException("Shop logo or image is needed");
         } else {
@@ -137,11 +137,11 @@ public class ShopImplementation implements ShopService {
             }
         }
 
-        return fetchShops();
+        return fetch();
     }
 
     @Override
-    public ApiResponse<ShopResponse> createWeekday(String shopId, ShopWeekdayRequest request) {
+    public ApiResponse<ShopResponse> create(String shopId, ShopWeekdayRequest request) {
         Shop shop = shopRepository.findByIdAndUser_Id(shopId, userUtil.getUser().getId())
                 .orElseThrow(() -> new ShopException("Shop not found"));
         ShopWeekday weekday = new ShopWeekday();
@@ -155,7 +155,7 @@ public class ShopImplementation implements ShopService {
     }
 
     @Override
-    public ApiResponse<ShopResponse> createService(String shopId, String service) {
+    public ApiResponse<ShopResponse> create(String shopId, String service) {
         Shop shop = shopRepository.findByIdAndUser_Id(shopId, userUtil.getUser().getId())
                 .orElseThrow(() -> new ShopException("Shop not found"));
         ShopSpecialty newService = new ShopSpecialty();
@@ -167,7 +167,7 @@ public class ShopImplementation implements ShopService {
     }
 
     @Override
-    public ApiResponse<ShopResponse> updateShop(UpdateShopRequest request) {
+    public ApiResponse<ShopResponse> update(UpdateShopRequest request) {
         Shop shop = shopRepository.findByIdAndUser_Id(request.getShop(), userUtil.getUser().getId())
                 .orElseThrow(() -> new ShopException("Shop not found"));
 
@@ -195,7 +195,7 @@ public class ShopImplementation implements ShopService {
     }
 
     @Override
-    public ApiResponse<ShopResponse> updateWeekday(Long id, String shopId, ShopWeekdayRequest request) {
+    public ApiResponse<ShopResponse> update(Long id, String shopId, ShopWeekdayRequest request) {
         ShopWeekday weekday = shopWeekdayRepository.findByIdAndShop_Id(id, shopId)
                 .orElseThrow(() -> new ShopException("Weekday not found"));
         if(!weekday.getClosing().equals(toTime(request.getClosing()))) {
@@ -210,7 +210,7 @@ public class ShopImplementation implements ShopService {
     }
 
     @Override
-    public ApiResponse<ShopResponse> updateService(Long id, String shopId, String service) {
+    public ApiResponse<ShopResponse> update(Long id, String shopId, String service) {
         ShopSpecialty shopSpecialty = shopServiceRepository.findByIdAndShop_Id(id, shopId)
                 .orElseThrow(() -> new ShopException("Service not found"));
         if(!shopSpecialty.getService().equalsIgnoreCase(service)) {
@@ -222,7 +222,7 @@ public class ShopImplementation implements ShopService {
     }
 
     @Override
-    public ApiResponse<List<ShopResponse>> fetchShops() {
+    public ApiResponse<List<ShopResponse>> fetch() {
         List<Shop> shops = shopRepository.findByUser_Id(userUtil.getUser().getId());
         List<ShopResponse> list = shops == null || shops.isEmpty() ? List.of() : shops
                 .stream()
@@ -238,9 +238,9 @@ public class ShopImplementation implements ShopService {
     }
 
     @Override
-    public ApiResponse<List<ShopResponse>> removeShop(String shopId) {
+    public ApiResponse<List<ShopResponse>> remove(String shopId) {
         shopRepository.findByIdAndUser_Id(shopId, userUtil.getUser().getId()).ifPresent(shopRepository::delete);
-        return fetchShops();
+        return fetch();
     }
 
     @Override
@@ -271,7 +271,7 @@ public class ShopImplementation implements ShopService {
                 }
                 shop.setUpdatedAt(TimeUtil.now());
             }).forEach(shopRepository::save);
-            return fetchShops();
+            return fetch();
         } else {
             throw new ShopException("You have no shops");
         }

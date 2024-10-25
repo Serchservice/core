@@ -38,7 +38,7 @@ public class SwaggerConfiguration {
         return new OpenAPI()
                 .info(new Info()
                         .title("Serch Server - Service made easy")
-                        .version("1.0.1")
+                        .version("1.0.8")
                         .summary("This contains the server implementations for Serch platform")
                         .description("Serch Server")
                         .termsOfService("https://www.serchservice.com/hub/legal/terms-and-conditions")

@@ -602,7 +602,7 @@ public class PermissionImplementation implements PermissionService {
         List<PermissionScopeResponse> list = Arrays.stream(PermissionScope.values()).map(scope -> {
             PermissionScopeResponse response = new PermissionScopeResponse();
             response.setScope(scope);
-            response.setName(scope.getScope());
+            response.setName(scope.getTitle());
             return response;
         }).toList();
 

@@ -8,107 +8,92 @@ import com.serch.server.services.auth.responses.MFADataResponse;
 import java.util.UUID;
 
 public interface AdminAuthService {
+
     /**
-     * This will give the admin the proper access required for the admin dashboard
+     * Authenticates an admin user and provides access to the admin dashboard.
      *
-     * @param request The {@link AdminLoginRequest} data for admin login
-     *
-     * @return {@link ApiResponse} of {@link String}
+     * @param request The {@link AdminLoginRequest} containing the credentials for admin login.
+     * @return {@link ApiResponse} containing a {@link String} message indicating success or failure of the login process.
      */
     ApiResponse<String> login(AdminLoginRequest request);
 
     /**
-     * This will create a super admin account based on the email address which is validated
-     * for {@link com.serch.server.enums.auth.Role#SUPER_ADMIN} account
+     * Creates a new super admin account based on the validated email address.
      *
-     * @param request The {@link AdminSignupRequest} data for creating a super admin account
-     *
-     * @return {@link ApiResponse} of {@link MFADataResponse}
+     * @param request The {@link AdminSignupRequest} containing the required information for creating a super admin account.
+     * @return {@link ApiResponse} containing {@link MFADataResponse} which includes MFA information necessary for further verification.
      */
     ApiResponse<MFADataResponse> signup(AdminSignupRequest request);
 
     /**
-     * This will create an account for either {@link com.serch.server.enums.auth.Role#ADMIN},
-     * {@link com.serch.server.enums.auth.Role#MANAGER}, or
-     * {@link com.serch.server.enums.auth.Role#TEAM} account
+     * Creates a new account for an admin, manager, or team member.
      *
-     * @param request The {@link AddAdminRequest} data for creating an admin, manager or team account
-     *
-     * @return {@link ApiResponse} of {@link String}
+     * @param request The {@link AddAdminRequest} containing the information needed to create an admin, manager, or team account.
+     * @return {@link ApiResponse} containing a {@link String} message indicating success or failure of the account creation process.
      */
     ApiResponse<String> add(AddAdminRequest request);
 
     /**
-     * This will finish the account setup for an existing created {@link com.serch.server.enums.auth.Role#ADMIN},
-     * {@link com.serch.server.enums.auth.Role#MANAGER}, or
-     * {@link com.serch.server.enums.auth.Role#TEAM} account
-     * @param request The {@link FinishAdminSetupRequest} data for account setup
+     * Completes the account setup for an existing admin, manager, or team member account.
      *
-     * @return {@link ApiResponse} of {@link AuthResponse}
+     * @param request The {@link FinishAdminSetupRequest} containing the information required to finalize the account setup.
+     * @return {@link ApiResponse} containing {@link AuthResponse} with authentication details upon successful setup.
      */
     ApiResponse<AuthResponse> finishSignup(FinishAdminSetupRequest request);
 
     /**
-     * This will facilitate the resending of OTP to the admin email address
+     * Resends an OTP (One Time Password) to the specified admin email address for verification.
      *
-     * @param emailAddress The email address making the resend request
-     *
-     * @return {@link ApiResponse} of success or failure
+     * @param emailAddress The email address to which the OTP will be resent.
+     * @return {@link ApiResponse} containing a {@link String} message indicating success or failure of the resend operation.
      */
     ApiResponse<String> resend(String emailAddress);
 
     /**
-     * This will confirm the token attached to the link used for inviting a team member
+     * Confirms the token associated with the link used for inviting a team member to join the admin platform.
      *
-     * @param token The token attached to the link sent to the team member
-     * @return {@link ApiResponse} of {@link MFADataResponse}
+     * @param token The token that was included in the invitation link.
+     * @return {@link ApiResponse} containing {@link MFADataResponse} which includes MFA information for the invited team member.
      */
     ApiResponse<MFADataResponse> verifyLink(String token);
 
     /**
-     * This finalizes the {@link AdminAuthService#login(AdminLoginRequest)},
-     * {@link AdminAuthService#finishSignup(FinishAdminSetupRequest)}
-     * and {@link AdminAuthService#signup(AdminSignupRequest)} action requests.
+     * Confirms the action requests for logging in, finishing signup, or signing up an admin.
      *
-     * @param request The {@link AdminAuthTokenRequest} request for the action call
-     *
-     * @return {@link ApiResponse} of {@link AuthResponse}
+     * @param request The {@link AdminAuthTokenRequest} containing the token and action details for confirmation.
+     * @return {@link ApiResponse} containing {@link AuthResponse} with the resulting authentication details.
      */
     ApiResponse<AuthResponse> confirm(AdminAuthTokenRequest request);
 
     /**
-     * This will facilitate the resending of invite to admin email address
+     * Resends an invitation to the specified admin email address.
      *
-     * @param id The user id to send the invite to
-     *
-     * @return {@link ApiResponse} of success or failure
+     * @param id The UUID of the user to whom the invite will be resent.
+     * @return {@link ApiResponse} containing a {@link String} message indicating success or failure of the resend operation.
      */
     ApiResponse<String> resendInvite(UUID id);
 
     /**
-     * This will facilitate password reset initialization
+     * Initiates the password reset process by sending a reset link to the specified user.
      *
-     * @param id The user getting the reset password link
-     *
-     * @return {@link ApiResponse} of success or failure
+     * @param id The UUID of the user requesting the password reset.
+     * @return {@link ApiResponse} containing a {@link String} message indicating success or failure of the password reset initiation.
      */
     ApiResponse<String> resetPassword(UUID id);
 
     /**
-     * This will confirm the token attached to the link used for resetting password
+     * Verifies the token included in the link sent to the user for resetting their password.
      *
-     * @param token The token attached to the link sent to the team member
-     *
-     * @return {@link ApiResponse} of success or failure
+     * @param token The token that was included in the reset link sent to the user.
+     * @return {@link ApiResponse} containing a {@link String} message indicating success or failure of the verification process.
      */
     ApiResponse<String> verifyResetLink(String token);
 
     /**
-     * This will reset the password of an admin
+     * Resets the password of an admin based on the provided request data.
      *
-     * @param request The {@link AdminResetPasswordRequest} data
-     *
-     * @return {@link ApiResponse} of {@link AuthResponse}
+     * @param request The {@link AdminResetPasswordRequest} containing the necessary information for resetting the admin's password.
+     * @return {@link ApiResponse} containing {@link AuthResponse} with authentication details upon successful password reset.
      */
     ApiResponse<AuthResponse> resetPassword(AdminResetPasswordRequest request);
 }

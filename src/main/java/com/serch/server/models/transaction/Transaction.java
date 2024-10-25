@@ -54,8 +54,8 @@ public class Transaction extends BaseDateTime {
     @Column(nullable = false, columnDefinition = "TEXT", updatable = false)
     private String sender;
 
-    @Column(columnDefinition = "TEXT", updatable = false)
-    private UUID associate;
+//    @Column(columnDefinition = "TEXT", updatable = false)
+//    private UUID associate;
 
     @Column(columnDefinition = "TEXT", updatable = false)
     private String event;

@@ -5,7 +5,7 @@ import com.serch.server.services.auth.requests.RequestDevice;
 import lombok.Data;
 
 @Data
-public class ChangePasswordInviteRequest {
+public class AssociateInviteRequest {
     @JsonProperty("email_address")
     private String emailAddress;
 

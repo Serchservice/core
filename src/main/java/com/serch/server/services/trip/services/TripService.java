@@ -11,14 +11,17 @@ import java.util.List;
 
 /**
  * TripService interface defines the operations related to trip management.
+ * It provides methods for requesting, accepting, ending, canceling trips, and other related functionalities.
  */
 public interface TripService {
     /**
      * Request a new trip.
      *
-     * @param request the trip request details
+     * @param request the trip request details, encapsulated in a {@link TripInviteRequest}.
+     *                This includes information about the user, destination, and any additional trip-related data.
      *
-     * @return the response containing the active trip details
+     * @return an {@link ApiResponse} containing a {@link TripResponse} which represents the details of the active trip.
+     *         The response includes the status and data of the trip request.
      *
      * @see TripInviteRequest
      * @see ApiResponse
@@ -27,33 +30,37 @@ public interface TripService {
     ApiResponse<TripResponse> request(TripInviteRequest request);
 
     /**
-     * Recreate an existing trip data into a new one
+     * Recreate an existing trip, effectively rebooking it with the same or modified data.
      *
-     * @param withInvited Whether to use the invited provider as the main provider in the new created trip
-     * @param id The trip id to use in recreating the same trip data
+     * @param withInvited whether to use the previously invited provider as the main provider in the newly created trip.
+     *                    If true, the invited provider from the original trip becomes the main provider.
+     * @param id the unique identifier of the existing trip to be used for recreating the same trip data.
      *
-     * @return {@link ApiResponse} of {@link TripResponse} data
+     * @return an {@link ApiResponse} containing the newly created {@link TripResponse} data.
+     *         The response provides details of the rebooked trip, including any changes made.
      */
     ApiResponse<TripResponse> rebook(String id, Boolean withInvited);
 
-
     /**
-     * Create a trip from schedule
+     * Create a new trip from a scheduled plan.
      *
-     * @param request The {@link TripInviteRequest} data
-     * @param account The {@link Profile} data of the user
-     * @param profile The {@link Profile} data of the provider
+     * @param request the {@link TripInviteRequest} containing the trip details such as destination, time, and participants.
+     * @param account the {@link Profile} of the user who is requesting the trip.
+     * @param profile the {@link Profile} of the provider who will be assigned to the trip.
      *
-     * @return {@link ApiResponse} of requested {@link TripResponse}
+     * @return an {@link ApiResponse} containing the requested {@link TripResponse}.
+     *         This provides details of the scheduled trip, including the status and provider information.
      */
     ApiResponse<TripResponse> request(TripInviteRequest request, Profile account, Profile profile);
 
     /**
-     * Accept a trip request.
+     * Accept a trip request, confirming the trip and setting it as active.
      *
-     * @param request the trip accept request details
+     * @param request the {@link TripAcceptRequest} containing the acceptance details.
+     *                This may include confirmation information and any special conditions.
      *
-     * @return the response containing the active trip details
+     * @return an {@link ApiResponse} containing a {@link TripResponse} representing the active trip details.
+     *         The response indicates if the acceptance was successful and provides the current status of the trip.
      *
      * @see TripAcceptRequest
      * @see ApiResponse
@@ -62,18 +69,26 @@ public interface TripService {
     ApiResponse<TripResponse> accept(TripAcceptRequest request);
 
     /**
-     * End an active trip.
+     * End an active trip, effectively marking it as completed.
      *
-     * @param request The {@link TripCancelRequest} data
+     * @param request the {@link TripCancelRequest} containing the trip ending details.
+     *                This may include reasons for ending and additional metadata about the trip.
      *
+     * @return an {@link ApiResponse} containing a list of {@link TripResponse} instances.
+     *         The response provides the details of the ended trip and any associated trips that may have been affected.
+     *
+     * @see TripCancelRequest
      * @see ApiResponse
      */
     ApiResponse<List<TripResponse>> end(TripCancelRequest request);
 
     /**
-     * Leave an active trip.
+     * Leave an active trip, removing a participant from the trip.
      *
-     * @param id the trip id
+     * @param id the unique identifier of the active trip that the participant wants to leave.
+     *
+     * @return an {@link ApiResponse} containing a list of {@link TripResponse} instances.
+     *         This response indicates the updated state of the trip after the participant has left.
      *
      * @see ApiResponse
      * @see TripResponse
@@ -81,24 +96,27 @@ public interface TripService {
     ApiResponse<List<TripResponse>> leave(String id);
 
     /**
-     * Search for active providers based on the provided phone number.
+     * Search for active providers based on their location and optional phone number.
      *
-     * @param lng Provider lng
-     * @param lat Provider latitude
-     * @param phoneNumber Nullable phone number
+     * @param phoneNumber the phone number of the provider (optional). If provided, will be used to filter the search.
+     * @param lat the latitude of the provider's location.
+     * @param lng the longitude of the provider's location.
      *
-     * @return the response containing a list of active responses
+     * @return an {@link ApiResponse} containing a list of {@link ActiveResponse} instances.
+     *         The response provides details of providers who match the search criteria.
+     *
      * @see ApiResponse
      * @see ActiveResponse
      */
     ApiResponse<List<ActiveResponse>> search(String phoneNumber, Double lat, Double lng);
 
     /**
-     * Verify trip authentication.
+     * Verify the authentication details of a trip.
      *
-     * @param request the trip authentication request details
+     * @param request the {@link TripAuthRequest} containing authentication details such as user credentials or tokens.
      *
-     * @return the response containing the active trip details
+     * @return an {@link ApiResponse} containing the active {@link TripResponse}.
+     *         The response indicates whether the authentication was successful.
      *
      * @see TripAuthRequest
      * @see ApiResponse
@@ -107,55 +125,66 @@ public interface TripService {
     ApiResponse<TripResponse> auth(TripAuthRequest request);
 
     /**
-     * Cancel the trip
+     * Cancel a trip, making it inactive.
      *
-     * @param request The {@link TripCancelRequest} data
+     * @param request the {@link TripCancelRequest} containing details of the trip to cancel.
      *
-     * @return {@link ApiResponse} list of {@link TripResponse}
+     * @return an {@link ApiResponse} containing a list of {@link TripResponse} instances.
+     *         The response provides the status of the canceled trip and any related trips.
+     *
+     * @see TripCancelRequest
+     * @see ApiResponse
      */
     ApiResponse<List<TripResponse>> cancel(TripCancelRequest request);
 
     /**
-     * Try paying the service fee, if not paid
+     * Attempt to pay the service fee for a trip, if it hasn't been paid yet.
      *
-     * @param id The trip id
+     * @param id the unique identifier of the trip for which the service fee is to be paid.
      *
-     * @return {@link ApiResponse} list of {@link TripResponse}
+     * @return an {@link ApiResponse} containing the {@link TripResponse} details after attempting the payment.
+     *         The response indicates whether the payment was successful.
      */
     ApiResponse<TripResponse> payServiceFee(String id);
 
     /**
-     * Verify the transaction for special trip requests
+     * Verify a transaction for special trip requests, ensuring the transaction reference is valid.
      *
-     * @param id The trip id
-     * @param guest The guest id (Optional)
-     * @param reference The transaction reference
+     * @param id the unique identifier of the trip.
+     * @param guest the unique identifier of the guest (optional). Can be used for guest verification.
+     * @param reference the transaction reference used for the trip payment.
      *
-     * @return {@link ApiResponse} list of {@link TripResponse}
+     * @return an {@link ApiResponse} containing the {@link TripResponse} after verifying the transaction.
+     *         The response provides details of the verification outcome.
      */
     ApiResponse<TripResponse> verify(String id, String guest, String reference);
 
     /**
-     * Update the details of a trip.
+     * Update the details of a trip, such as destination, status, or participant information.
      *
-     * @param request the trip update request details
+     * @param request the {@link TripUpdateRequest} containing the new details to be applied to the trip.
+     *
+     * @return an {@link ApiResponse} containing the updated {@link TripResponse}.
+     *         The response indicates the updated state of the trip.
+     *
      * @see TripUpdateRequest
-     *
-     * @return {@link ApiResponse} list of {@link TripResponse}
      */
     ApiResponse<TripResponse> update(TripUpdateRequest request);
 
     /**
-     * Update other entities data in the trip
+     * Update other related entities' data within the trip, such as linked bookings or notifications.
      *
-     * @param trip The {@link Trip} data
+     * @param trip the {@link Trip} instance containing the data to be updated.
+     *             This can include changes to trip metadata or associated records.
      */
     void updateOthers(Trip trip);
 
     /**
-     * Update the details of a provider location.
+     * Update the location details of a provider within the trip context.
      *
-     * @param request the trip update request details
+     * @param request the {@link MapViewRequest} containing the new location data.
+     *                This may involve updating the provider's latitude, longitude, or other map-related information.
+     *
      * @see MapViewRequest
      */
     void update(MapViewRequest request);

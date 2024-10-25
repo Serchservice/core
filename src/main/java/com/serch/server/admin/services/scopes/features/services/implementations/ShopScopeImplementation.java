@@ -1,8 +1,8 @@
 package com.serch.server.admin.services.scopes.features.services.implementations;
 
-import com.serch.server.admin.mappers.CommonMapper;
 import com.serch.server.admin.services.responses.ChartMetric;
 import com.serch.server.admin.services.responses.Metric;
+import com.serch.server.admin.services.scopes.common.CommonProfileService;
 import com.serch.server.admin.services.scopes.features.responses.ShopScopeOverviewResponse;
 import com.serch.server.admin.services.scopes.features.responses.ShopScopeResponse;
 import com.serch.server.admin.services.scopes.features.services.ShopScopeService;
@@ -32,6 +32,7 @@ import static com.serch.server.enums.account.SerchCategory.*;
 @RequiredArgsConstructor
 public class ShopScopeImplementation implements ShopScopeService {
     private final ShopService shopService;
+    private final CommonProfileService profileService;
     private final ShopRepository shopRepository;
     private final ProfileRepository profileRepository;
     private final BusinessProfileRepository businessProfileRepository;
@@ -111,7 +112,7 @@ public class ShopScopeImplementation implements ShopScopeService {
     private ShopScopeResponse getShopScopeResponse(Shop shop) {
         ShopScopeResponse response = new ShopScopeResponse();
         response.setShop(shopService.response(shop));
-        response.setProfile(CommonMapper.instance.response(shop.getUser()));
+        response.setProfile(profileService.fromUser(shop.getUser()));
         response.getProfile().setAvatar(profileRepository.findById(shop.getUser().getId())
                 .map(Profile::getAvatar)
                 .orElse(businessProfileRepository.findById(shop.getUser().getId())

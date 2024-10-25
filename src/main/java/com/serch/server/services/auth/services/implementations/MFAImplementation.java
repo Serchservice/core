@@ -3,6 +3,7 @@ package com.serch.server.services.auth.services.implementations;
 import com.serch.server.admin.enums.ActivityMode;
 import com.serch.server.admin.services.account.services.AdminActivityService;
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.core.qr_code.QRCodeService;
 import com.serch.server.core.totp.MFAAuthenticatorService;
 import com.serch.server.enums.auth.AuthMethod;
 import com.serch.server.exceptions.ExceptionCodes;
@@ -61,6 +62,7 @@ public class MFAImplementation implements MFAService {
     private final TokenService tokenService;
     private final AdminActivityService activityService;
     private final MFAAuthenticatorService authenticatorService;
+    private final QRCodeService qrCodeService;
 
     @Override
     public ApiResponse<MFADataResponse> getMFAData() {
@@ -77,11 +79,11 @@ public class MFAImplementation implements MFAService {
     public MFADataResponse getMFAData(User user) {
         if(user.getMfaFactor() != null) {
             String secret = DatabaseUtil.decodeData(user.getMfaFactor().getSecret());
-            String qrCode = authenticatorService.getQRCode(secret, user.getEmailAddress(), user.getRole());
+            String qrCode = qrCodeService.generateMFA(secret, user.getEmailAddress(), user.getRole());
             return new MFADataResponse(secret, String.format("data:image/png;base64,%s", qrCode));
         } else {
             String secret = authenticatorService.getRandomSecretKey();
-            String qrCode = authenticatorService.getQRCode(secret, user.getEmailAddress(), user.getRole());
+            String qrCode = qrCodeService.generateMFA(secret, user.getEmailAddress(), user.getRole());
 
             MFAFactor factor = new MFAFactor();
             factor.setUser(user);

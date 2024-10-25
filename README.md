@@ -53,15 +53,6 @@ To install and run the Serch Backend Server locally, follow these steps:
 2. Navigate to the project directory.
 3. Set up a PostgreSQL database and configure the database connection in the application properties.
 > List of Schemas:
-> - create schema if not exists company
-> - create schema if not exists platform
-> - create schema if not exists conversation 
-> - create schema if not exists account 
-> - create schema if not exists identity 
-> - create schema if not exists sharing 
-> - create schema if not exists subscription 
-> - create schema if not exists verified 
-> - create schema if not exists pricing
 ```sql
 create schema if not exists account;
 create schema if not exists admin;
@@ -73,6 +64,7 @@ create schema if not exists sharing;
 create schema if not exists trip;
 create schema if not exists pricing;
 create schema if not exists subscription;
+create schema if not exists admin_action;
 ```
 4. Build the project using Maven: `mvn clean install`.
 5. Run the application: `java -jar target/serch-backend-server.jar`.

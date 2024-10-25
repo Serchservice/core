@@ -39,7 +39,7 @@ public class ShopDriveImplementation implements ShopDriveService {
     }
 
     @Override
-    public ApiResponse<String> rateShop(Long id, Double rating) {
+    public ApiResponse<String> rate(Long id, Double rating) {
         ShopDrive drive = shopDriveRepository.findById(id).orElseThrow(() -> new ShopException("Drive not found"));
 
         if(drive.getUser().isUser(userUtil.getUser().getId())) {

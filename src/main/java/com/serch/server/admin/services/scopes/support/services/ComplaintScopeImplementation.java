@@ -47,18 +47,20 @@ public class ComplaintScopeImplementation implements ComplaintScopeService {
     private ComplaintScopeResponse getResponse(String emailAddress, List<Complaint> complaints) {
         ComplaintScopeResponse response = new ComplaintScopeResponse();
         response.setEmailAddress(emailAddress);
-        response.setFirstName(complaints.get(0).getFirstName());
-        response.setLastName(complaints.get(0).getLastName());
+        response.setFirstName(complaints.getFirst().getFirstName());
+        response.setLastName(complaints.getFirst().getLastName());
 
         List<ComplaintResponse> complaintResponses = complaints.stream()
                 .sorted(Comparator.comparing(Complaint::getUpdatedAt).reversed())
                 .map(complaint -> {
-                    ComplaintResponse complaintResponse = AdminCompanyMapper.instance.response(complaint);
-                    if(complaintResponse.getAdmin() != null) {
-                        complaintResponse.getAdmin().setFirstName(complaint.getAdmin().getUser().getFirstName());
-                        complaintResponse.getAdmin().setLastName(complaint.getAdmin().getUser().getLastName());
+                    ComplaintResponse c = AdminCompanyMapper.instance.response(complaint);
+                    if(c.getAdmin() != null) {
+                        c.getAdmin().setFirstName(complaint.getAdmin().getUser().getFirstName());
+                        c.getAdmin().setLastName(complaint.getAdmin().getUser().getLastName());
+                        c.getAdmin().setRole(complaint.getAdmin().getUser().getRole());
+                        c.getAdmin().setEmailAddress(complaint.getAdmin().getUser().getEmailAddress());
                     }
-                    return complaintResponse;
+                    return c;
                 })
                 .collect(Collectors.toList());
 

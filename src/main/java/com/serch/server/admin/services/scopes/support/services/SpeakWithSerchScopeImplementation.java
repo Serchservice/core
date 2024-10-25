@@ -4,7 +4,7 @@ import com.serch.server.admin.exceptions.PermissionException;
 import com.serch.server.admin.mappers.AdminCompanyMapper;
 import com.serch.server.admin.models.Admin;
 import com.serch.server.admin.repositories.AdminRepository;
-import com.serch.server.admin.services.responses.CommonProfileResponse;
+import com.serch.server.admin.services.scopes.common.CommonProfileService;
 import com.serch.server.admin.services.scopes.support.responses.SpeakWithSerchOverviewResponse;
 import com.serch.server.admin.services.scopes.support.responses.SpeakWithSerchScopeResponse;
 import com.serch.server.bases.ApiResponse;
@@ -15,9 +15,9 @@ import com.serch.server.exceptions.others.SerchException;
 import com.serch.server.mappers.CompanyMapper;
 import com.serch.server.models.company.Issue;
 import com.serch.server.models.company.SpeakWithSerch;
+import com.serch.server.repositories.account.BusinessProfileRepository;
 import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.auth.UserRepository;
-import com.serch.server.repositories.account.BusinessProfileRepository;
 import com.serch.server.repositories.company.IssueRepository;
 import com.serch.server.repositories.company.SpeakWithSerchRepository;
 import com.serch.server.services.company.requests.IssueRequest;
@@ -36,6 +36,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class SpeakWithSerchScopeImplementation implements SpeakWithSerchScopeService {
+    private final CommonProfileService profileService;
     private final SpeakWithSerchRepository speakWithSerchRepository;
     private final AdminRepository adminRepository;
     private final IssueRepository issueRepository;
@@ -110,21 +111,7 @@ public class SpeakWithSerchScopeImplementation implements SpeakWithSerchScopeSer
                             res.setLabel(TimeUtil.formatDay(issue.getCreatedAt(), ""));
 
                             userRepository.findById(UUID.fromString(issue.getSender()))
-                                    .ifPresent(user -> {
-                                        CommonProfileResponse profile = new CommonProfileResponse();
-                                        profile.setRole(user.getRole());
-                                        profile.setAvatar(
-                                                profileRepository.findById(user.getId()).map(BaseProfile::getAvatar)
-                                                        .orElse(businessProfileRepository.findById(user.getId())
-                                                                .map(BaseProfile::getAvatar)
-                                                                .orElse(adminRepository.findById(user.getId())
-                                                                        .map(Admin::getAvatar).orElse(null)))
-                                        );
-                                        profile.setFirstName(user.getFirstName());
-                                        profile.setLastName(user.getLastName());
-                                        profile.setId(String.valueOf(user.getId()));
-                                        res.setProfile(profile);
-                                    });
+                                    .ifPresent(user -> res.setProfile(profileService.fromUser(user)));
                             return res;
                         }).toList()
                         : List.of()

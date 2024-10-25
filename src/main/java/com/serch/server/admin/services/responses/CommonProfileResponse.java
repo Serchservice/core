@@ -4,7 +4,7 @@ import com.serch.server.enums.account.AccountStatus;
 import com.serch.server.enums.auth.Role;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Data
 public class CommonProfileResponse {
@@ -18,6 +18,6 @@ public class CommonProfileResponse {
     private String category;
     private String image;
     private AccountStatus status;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private ZonedDateTime createdAt;
+    private ZonedDateTime updatedAt;
 }

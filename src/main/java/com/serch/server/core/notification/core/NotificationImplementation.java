@@ -226,26 +226,43 @@ public class NotificationImplementation implements NotificationService {
     public void send(UUID id, boolean isIncome, BigDecimal amount) {
         log.info(String.format("Preparing transaction notification for %s to %s", amount, id));
 
-        Map<String, String> data = new HashMap<>();
-        data.put("snt", "TRANSACTION");
-        data.put("sender_name", repository.getName(id.toString()));
-        data.put("sender_id", String.valueOf(id));
-
         SerchNotification<Map<String, String>> notification = new SerchNotification<>();
         notification.setTitle(isIncome
-                ? String.format("Money In - %s! Keep increasing that wealth", MoneyUtil.formatToNaira(amount))
-                : String.format("Money out - %s! You were debited", MoneyUtil.formatToNaira(amount)));
+                ? String.format("Money In | %s! Keep increasing that wealth", MoneyUtil.formatToNaira(amount))
+                : String.format("Money out | %s! You were debited", MoneyUtil.formatToNaira(amount)));
         notification.setBody(isIncome
                 ? String.format("Your Serch wallet just received %s into your withdrawing balance", MoneyUtil.formatToNaira(amount))
                 : String.format("%s was debited from your wallet. See details in your history.", MoneyUtil.formatToNaira(amount)));
+        sendTransactionNotification(id, notification);
+    }
+
+    private void sendTransactionNotification(UUID id, SerchNotification<Map<String, String>> notification) {
         notification.setImage(repository.getAvatar(id.toString()));
-        notification.setData(data);
+        notification.setData(getTransactionData(id));
 
         NotificationMessage<Map<String, String>> message = new NotificationMessage<>();
         message.setToken(repository.getToken(id.toString()));
         message.setData(notification);
         message.setSnt("TRANSACTION");
         notificationCoreService.send(message);
+    }
+
+    private Map<String, String> getTransactionData(UUID id) {
+        Map<String, String> data = new HashMap<>();
+        data.put("snt", "TRANSACTION");
+        data.put("sender_name", repository.getName(id.toString()));
+        data.put("sender_id", String.valueOf(id));
+        return data;
+    }
+
+    @Override
+    public void send(UUID id, BigDecimal amount) {
+        log.info(String.format("Preparing uncleared transaction notification for %s to %s", amount, id));
+
+        SerchNotification<Map<String, String>> notification = new SerchNotification<>();
+        notification.setTitle(String.format("Money Out | %s! You were debited", MoneyUtil.formatToNaira(amount)));
+        notification.setBody(String.format("%s was debited from your wallet which was used to clear your unpaid debts.", MoneyUtil.formatToNaira(amount)));
+        sendTransactionNotification(id, notification);
     }
 
     @Override
@@ -257,18 +274,6 @@ public class NotificationImplementation implements NotificationService {
         notification.setBody(paid
                 ? String.format("%s has successfully being cashed out to %s. Looking forward to the next payday - %s", MoneyUtil.formatToNaira(amount), bank, next)
                 : "For some reasons, Serch couldn't process your payout today. You can check out our help center to see why this happened or reach out to customer support.");
-        notification.setImage(repository.getAvatar(id.toString()));
-
-        Map<String, String> data = new HashMap<>();
-        data.put("snt", "TRANSACTION");
-        data.put("sender_name", repository.getName(id.toString()));
-        data.put("sender_id", String.valueOf(id));
-        notification.setData(data);
-
-        NotificationMessage<Map<String, String>> message = new NotificationMessage<>();
-        message.setToken(repository.getToken(id.toString()));
-        message.setData(notification);
-        message.setSnt("TRANSACTION");
-        notificationCoreService.send(message);
+        sendTransactionNotification(id, notification);
     }
 }

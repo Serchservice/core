@@ -21,7 +21,7 @@ public class ShopDriveController {
 
     @PatchMapping("/rate")
     public ResponseEntity<ApiResponse<String>> rate(@RequestParam Long id, @RequestParam Double rating) {
-        ApiResponse<String> response = service.rateShop(id, rating);
+        ApiResponse<String> response = service.rate(id, rating);
         return ResponseEntity.ok(response);
     }
 }

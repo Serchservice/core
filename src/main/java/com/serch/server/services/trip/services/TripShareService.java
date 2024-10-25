@@ -9,50 +9,59 @@ import com.serch.server.services.trip.responses.TripResponse;
 
 import java.util.List;
 
+/**
+ * TripShareService interface defines the operations related to sharing trips
+ * among providers and guests.
+ */
 public interface TripShareService {
+
     /**
-     * Grant access or deny access for the provider to share the trip
+     * Grants or denies access for the provider to share a trip with a guest.
      *
-     * @param guest The guest id (If the guest is the one in the trip)
-     * @param id The trip id
+     * @param guest The guest ID (if the guest is the one participating in the trip).
+     * @param id The trip ID to which access is being granted or denied.
      *
-     * @return {@link ApiResponse} of {@link TripResponse}
+     * @return {@link ApiResponse} containing the {@link TripResponse}
+     *         which reflects the updated trip access status.
      */
     ApiResponse<TripResponse> access(String guest, String id);
 
     /**
-     * The provider can share the trip
+     * Allows the provider to share a trip with others.
      *
-     * @param request The {@link TripShareRequest} data
+     * @param request The {@link TripShareRequest} containing the details of the trip to be shared.
      *
-     * @return {@link ApiResponse} of {@link TripResponse}
+     * @return {@link ApiResponse} containing the {@link TripResponse}
+     *         representing the shared trip details.
      */
     ApiResponse<TripResponse> share(TripShareRequest request);
 
     /**
-     * Cancel the shared trip invite
+     * Cancels an existing shared trip invite.
      *
-     * @param request The {@link TripCancelRequest} data
+     * @param request The {@link TripCancelRequest} containing the details needed to cancel the invite.
      *
-     * @return {@link ApiResponse}
+     * @return {@link ApiResponse} indicating the success or failure of the cancellation.
      */
     ApiResponse<String> cancel(TripCancelRequest request);
 
     /**
-     * Accept shared trip
+     * Accepts a shared trip invite.
      *
-     * @param request The {@link TripAcceptRequest} data
+     * @param request The {@link TripAcceptRequest} containing the details of the trip acceptance.
      *
-     * @return {@link ApiResponse} of {@link TripResponse}
+     * @return {@link ApiResponse} containing the {@link TripResponse}
+     *         for the accepted trip.
      */
     ApiResponse<TripResponse> accept(TripAcceptRequest request);
 
     /**
-     * Verify trip authentication.
+     * Verifies the authentication for a trip, ensuring that the requestor is authorized.
      *
-     * @param request the trip authentication request details
+     * @param request The trip authentication request details contained in {@link TripAuthRequest}.
      *
-     * @return the response containing the active trip details
+     * @return {@link ApiResponse} containing the {@link TripResponse}
+     *         that includes the active trip details upon successful authentication.
      *
      * @see TripAuthRequest
      * @see ApiResponse
@@ -61,20 +70,22 @@ public interface TripShareService {
     ApiResponse<TripResponse> auth(TripAuthRequest request);
 
     /**
-     * End trip from the shared standpoint
+     * Ends a trip from the shared standpoint, notifying all participants.
      *
-     * @param id The {@link com.serch.server.models.trip.Trip} id
+     * @param id The ID of the trip to be ended, represented by {@link com.serch.server.models.trip.Trip}.
      *
-     * @return {@link ApiResponse} list of {@link TripResponse}
+     * @return {@link ApiResponse} containing a list of {@link TripResponse}
+     *         that reflects the status of the ended trip.
      */
     ApiResponse<List<TripResponse>> end(String id);
 
     /**
-     * Leave trip from the shared standpoint
+     * Leaves a shared trip from the participant's standpoint.
      *
-     * @param id The shared trip id. {@link com.serch.server.models.trip.TripShare}
+     * @param id The ID of the shared trip, represented by {@link com.serch.server.models.trip.TripShare}.
      *
-     * @return {@link ApiResponse} list of {@link TripResponse}
+     * @return {@link ApiResponse} containing a list of {@link TripResponse}
+     *         that reflects the remaining participants in the trip after leaving.
      */
     ApiResponse<List<TripResponse>> leave(String id);
 }

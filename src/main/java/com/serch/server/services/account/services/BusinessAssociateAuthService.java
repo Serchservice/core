@@ -2,7 +2,7 @@ package com.serch.server.services.account.services;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.services.auth.responses.AuthResponse;
-import com.serch.server.services.account.requests.ChangePasswordInviteRequest;
+import com.serch.server.services.account.requests.AssociateInviteRequest;
 import com.serch.server.services.account.responses.VerifiedInviteResponse;
 
 /**
@@ -10,5 +10,5 @@ import com.serch.server.services.account.responses.VerifiedInviteResponse;
  */
 public interface BusinessAssociateAuthService {
     ApiResponse<VerifiedInviteResponse> verifyLink(String token);
-    ApiResponse<AuthResponse> acceptInvite(ChangePasswordInviteRequest request);
+    ApiResponse<AuthResponse> acceptInvite(AssociateInviteRequest request);
 }

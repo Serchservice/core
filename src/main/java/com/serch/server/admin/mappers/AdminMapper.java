@@ -4,12 +4,12 @@ import com.serch.server.admin.models.*;
 import com.serch.server.admin.services.account.responses.AdminActivityResponse;
 import com.serch.server.admin.services.account.responses.AdminProfileResponse;
 import com.serch.server.admin.services.notification.AdminNotificationResponse;
+import com.serch.server.admin.services.organization.data.OrganizationDto;
+import com.serch.server.admin.services.organization.data.OrganizationResponse;
 import com.serch.server.admin.services.permission.responses.PermissionRequestResponse;
 import com.serch.server.admin.services.permission.responses.GrantedPermissionScopeResponse;
 import com.serch.server.models.auth.User;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Mappings;
+import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
@@ -31,4 +31,13 @@ public interface AdminMapper {
     PermissionRequestResponse response(RequestedPermission permission);
 
     AdminProfileResponse response(User user);
+
+    OrganizationResponse response(Organization organization);
+
+    Organization toEntity(OrganizationDto organizationDto);
+
+    OrganizationDto toDto(Organization organization);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    Organization partialUpdate(OrganizationDto organizationDto, @MappingTarget Organization organization);
 }

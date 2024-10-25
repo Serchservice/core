@@ -7,52 +7,77 @@ import com.serch.server.bases.ApiResponse;
 
 import java.util.List;
 
+/**
+ * Service interface for managing call-related features in the Serch platform.
+ * Provides methods for fetching call overviews, analyzing performance metrics,
+ * and retrieving data on specific call types, such as Tip2Fix and voice calls.
+ */
 public interface CallScopeService {
+
     /**
-     * Fetch the overview data for calls in Serch
+     * Retrieves an overview of call-related data on the Serch platform.
+     * This overview may include aggregated statistics such as the total number
+     * of calls, the distribution of call types, average call duration, and other
+     * relevant metrics that provide a summary of call activity.
      *
-     * @return {@link ApiResponse} of {@link CallScopeOverviewResponse}
+     * @return an {@link ApiResponse} containing a {@link CallScopeOverviewResponse}
+     *         with detailed statistics and summaries of the call-related features.
      */
     ApiResponse<CallScopeOverviewResponse> overview();
 
     /**
-     * Fetch the chart data for tip2fix feature in Serch
+     * Retrieves chart data for the Tip2Fix feature on the Serch platform for the specified year.
+     * This method provides insights into call trends and metrics related to Tip2Fix, such as
+     * the number of calls per month, resolution times, and other performance indicators.
      *
-     * @param year The year being requested in {@link Integer}
-     *
-     * @return {@link ApiResponse} list of {@link ChartMetric}
+     * @param year the year for which to retrieve data, represented as an {@link Integer}.
+     *             If the year is null, the current year's data is used by default.
+     * @return an {@link ApiResponse} containing a list of {@link ChartMetric} objects
+     *         that represent the call data metrics for Tip2Fix, providing a year-over-year comparison.
      */
     ApiResponse<List<ChartMetric>> fetchTip2FixChart(Integer year);
 
     /**
-     * Fetch the chart data for voice call feature in Serch
+     * Retrieves chart data for the voice call feature on the Serch platform for the specified year.
+     * This method provides insights into voice call trends and metrics, such as call frequency,
+     * average call duration, and other performance indicators.
      *
-     * @param year The year being requested in {@link Integer}
-     *
-     * @return {@link ApiResponse} list of {@link ChartMetric}
+     * @param year the year for which to retrieve data, represented as an {@link Integer}.
+     *             If the year is null, the current year's data is used by default.
+     * @return an {@link ApiResponse} containing a list of {@link ChartMetric} objects
+     *         that represent the call data metrics for voice calls, providing insights into call patterns.
      */
     ApiResponse<List<ChartMetric>> fetchVoiceChart(Integer year);
 
     /**
-     * Fetch the performance chart data for tip2fix call feature in Serch
+     * Retrieves performance chart data for the Tip2Fix call feature on the Serch platform for the specified year.
+     * This method offers insights into the efficiency and effectiveness of the Tip2Fix service, highlighting
+     * metrics such as call resolution times, success rates, and user satisfaction scores.
      *
-     * @param year The year being requested in {@link Integer}
-     *
-     * @return {@link ApiResponse} list of {@link ChartMetric}
+     * @param year the year for which to retrieve data, represented as an {@link Integer}.
+     *             If the year is null, the current year's data is used by default.
+     * @return an {@link ApiResponse} containing a list of {@link ChartMetric} objects
+     *         that represent the performance metrics for Tip2Fix calls, aiding in performance analysis.
      */
     ApiResponse<List<ChartMetric>> fetchTip2FixPerformance(Integer year);
 
     /**
-     * Fetch the list of voice calls in Serch
+     * Retrieves a list of all voice calls made on the Serch platform.
+     * This list may include details such as the caller information, call duration,
+     * date and time of the call, and the outcome of the call.
      *
-     * @return {@link ApiResponse} list of {@link CallScopeResponse}
+     * @return an {@link ApiResponse} containing a list of {@link CallScopeResponse}
+     *         objects that represent individual voice calls and their associated details.
      */
     ApiResponse<List<CallScopeResponse>> voiceCalls();
 
     /**
-     * Fetch the list of tip2fix calls in Serch
+     * Retrieves a list of all Tip2Fix calls made on the Serch platform.
+     * The list may include information about the calls, such as the user who initiated the call,
+     * the duration, the issue being addressed, and the call's resolution status.
      *
-     * @return {@link ApiResponse} list of {@link CallScopeResponse}
+     * @return an {@link ApiResponse} containing a list of {@link CallScopeResponse}
+     *         objects that represent individual Tip2Fix calls and their associated details.
      */
     ApiResponse<List<CallScopeResponse>> tip2fixCalls();
 }

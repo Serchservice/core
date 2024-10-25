@@ -36,6 +36,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service implementation for managing authentication-related operations.
@@ -76,6 +77,7 @@ public class AuthImplementation implements AuthService {
     public void sendOtp(String emailAddress) {
         Optional<Incomplete> user = incompleteRepository.findByEmailAddress(emailAddress);
         String otp = tokenService.generateOtp();
+
         if (user.isPresent()) {
             if(user.get().getTrials() < MAXIMUM_OTP_TRIALS) {
                 user.get().setToken(passwordEncoder.encode(otp));
@@ -83,6 +85,7 @@ public class AuthImplementation implements AuthService {
                 user.get().setTrials(user.get().getTrials() + 1);
                 user.get().setTokenExpiresAt(TimeUtil.now().plusMinutes(OTP_EXPIRATION_TIME));
                 incompleteRepository.save(user.get());
+
                 sendEmail(emailAddress, otp);
             } else if(TimeUtil.isOtpExpired(user.get().getTokenExpiresAt(), "", OTP_EXPIRATION_TIME)) {
                 user.get().setToken(passwordEncoder.encode(otp));
@@ -90,6 +93,7 @@ public class AuthImplementation implements AuthService {
                 user.get().setTrials(1);
                 user.get().setTokenExpiresAt(TimeUtil.now().plusMinutes(OTP_EXPIRATION_TIME));
                 incompleteRepository.save(user.get());
+
                 sendEmail(emailAddress, otp);
             } else {
                 throw new AuthException(
@@ -109,6 +113,7 @@ public class AuthImplementation implements AuthService {
         email.setContent(otp);
         email.setType(EmailType.SIGNUP);
         email.setTo(emailAddress);
+
         emailService.send(email);
     }
 
@@ -118,13 +123,14 @@ public class AuthImplementation implements AuthService {
         incomplete.setToken(passwordEncoder.encode(otp));
         incomplete.setTrials(1);
         incomplete.setTokenExpiresAt(TimeUtil.now().plusMinutes(OTP_EXPIRATION_TIME));
-        System.out.println(incomplete);
+
         incompleteRepository.save(incomplete);
     }
 
     @Override
     public ApiResponse<String> checkEmail(String email) {
         var user = userRepository.findByEmailAddressIgnoreCase(email);
+
         if (user.isPresent()) {
             if(user.get().getRole() == Role.ASSOCIATE_PROVIDER && !user.get().getIsEmailConfirmed()) {
                 throw new AuthException(
@@ -132,42 +138,27 @@ public class AuthImplementation implements AuthService {
                         ExceptionCodes.ASSOCIATE_PROVIDER_EMAIL
                 );
             }
-            return new ApiResponse<>(
-                    "Login with email and password",
-                    user.get().getFirstName(),
-                    HttpStatus.OK
-            );
+
+            return new ApiResponse<>("Login with email and password", user.get().getFirstName(), HttpStatus.OK);
         } else {
             var incomplete = incompleteRepository.findByEmailAddress(email);
+
             if (incomplete.isPresent()) {
                 if (!incomplete.get().isEmailConfirmed()) {
                     sendOtp(email);
-                    throw new AuthException(
-                            "An email was sent to your email. Use the OTP to continue with signup.",
-                            ExceptionCodes.EMAIL_NOT_VERIFIED
-                    );
+
+                    throw new AuthException("An email was sent to your email. Use the OTP to continue with signup.", ExceptionCodes.EMAIL_NOT_VERIFIED);
                 } else if (!incomplete.get().hasProfile()) {
-                    throw new AuthException(
-                            "Profile is not saved. Signup to create your profile",
-                            ExceptionCodes.PROFILE_NOT_SET
-                    );
+                    throw new AuthException("Profile is not saved. Signup to create your profile", ExceptionCodes.PROFILE_NOT_SET);
                 } else if (!incomplete.get().hasCategory()) {
-                    throw new AuthException(
-                            "Category is not selected. Signup to pick your skill",
-                            ExceptionCodes.CATEGORY_NOT_SET
-                    );
+                    throw new AuthException("Category is not selected. Signup to pick your skill", ExceptionCodes.CATEGORY_NOT_SET);
                 } else {
-                    throw new AuthException(
-                            "You have not finished creating your account. Finish up now",
-                            ExceptionCodes.ACCOUNT_NOT_CREATED
-                    );
+                    throw new AuthException("You have not finished creating your account. Finish up now", ExceptionCodes.ACCOUNT_NOT_CREATED);
                 }
             } else {
                 sendOtp(email);
-                throw new AuthException(
-                        "An email was sent to your email. Use the OTP to continue with signup.",
-                        ExceptionCodes.USER_NOT_FOUND
-                );
+
+                throw new AuthException("An email was sent to your email. Use the OTP to continue with signup.", ExceptionCodes.USER_NOT_FOUND);
             }
         }
     }
@@ -176,6 +167,7 @@ public class AuthImplementation implements AuthService {
     public ApiResponse<String> verifyEmailOtp(@NotNull RequestEmailToken request) {
         Incomplete incomplete = incompleteRepository.findByEmailAddress(request.getEmailAddress())
                 .orElseThrow(() -> new AuthException("User not found", ExceptionCodes.USER_NOT_FOUND));
+
         if (TimeUtil.isOtpExpired(incomplete.getTokenExpiresAt(), "", OTP_EXPIRATION_TIME)) {
             throw new AuthException("OTP is expired. Request for another.", ExceptionCodes.INCORRECT_TOKEN);
         } else {
@@ -183,6 +175,7 @@ public class AuthImplementation implements AuthService {
                 incomplete.setTokenConfirmedAt(TimeUtil.now());
                 incomplete.setUpdatedAt(TimeUtil.now());
                 incompleteRepository.save(incomplete);
+
                 return new ApiResponse<>("OTP confirmed", HttpStatus.OK);
             } else {
                 throw new AuthException("Incorrect token", ExceptionCodes.INCORRECT_TOKEN);
@@ -191,18 +184,30 @@ public class AuthImplementation implements AuthService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<AuthResponse> authenticate(RequestLogin request, User user) {
-        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-                request.getEmailAddress(),
-                request.getPassword()
-        );
+        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(request.getEmailAddress(), request.getPassword());
         Authentication authentication = authenticationManager.authenticate(token);
         SecurityContextHolder.getContext().setAuthentication(authentication);
+
         return getAuthResponse(request, user);
     }
 
     @Override
+    @Transactional
     public ApiResponse<AuthResponse> getAuthResponse(RequestLogin request, User user) {
+        updateUserInformation(request, user);
+
+        RequestSession requestSession = new RequestSession();
+        requestSession.setMethod(AuthMethod.PASSWORD);
+        requestSession.setUser(user);
+        requestSession.setDevice(request.getDevice());
+
+        return sessionService.generateSession(requestSession);
+    }
+
+    @Transactional
+    protected void updateUserInformation(RequestLogin request, User user) {
         user.setLastSignedIn(TimeUtil.now());
         user.setCountry(request.getCountry());
         user.setState(request.getState());
@@ -210,13 +215,8 @@ public class AuthImplementation implements AuthService {
         user.setPasswordRecoveryExpiresAt(null);
         user.setPasswordRecoveryConfirmedAt(null);
         userRepository.save(user);
-        accountDeleteRepository.findByUser_EmailAddress(user.getEmailAddress()).ifPresent(accountDeleteRepository::delete);
 
-        RequestSession requestSession = new RequestSession();
-        requestSession.setMethod(AuthMethod.PASSWORD);
-        requestSession.setUser(user);
-        requestSession.setDevice(request.getDevice());
-        return sessionService.generateSession(requestSession);
+        accountDeleteRepository.findByUser_EmailAddress(user.getEmailAddress()).ifPresent(accountDeleteRepository::delete);
     }
 
     @Override
@@ -225,6 +225,7 @@ public class AuthImplementation implements AuthService {
         trackerService.create(saved);
         referralProgramService.create(saved);
         accountSettingService.create(saved);
+
         return saved;
     }
 
@@ -236,6 +237,7 @@ public class AuthImplementation implements AuthService {
         user.setRole(role);
         user.setFirstName(incomplete.getProfile().getFirstName());
         user.setLastName(incomplete.getProfile().getLastName());
+
         return userRepository.save(user);
     }
 }

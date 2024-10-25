@@ -359,6 +359,7 @@ public class ChattingImplementation implements ChattingService {
                             || bookmarkRepository.existsByUser_IdAndProvider_Id(room.getCreator(), room.getRoommate())
                             || bookmarkRepository.existsByUser_IdAndProvider_Id(room.getRoommate(), room.getCreator())
                     )
+                    .filter(room -> userRepository.isActive(room.getCreator()) && userRepository.isActive(room.getRoommate()))
                     .map(this::response)
                     .sorted(Comparator.comparing(ChatRoomResponse::getSentAt))
                     .toList();

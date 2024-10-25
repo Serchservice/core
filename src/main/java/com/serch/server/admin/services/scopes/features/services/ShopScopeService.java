@@ -7,34 +7,51 @@ import com.serch.server.bases.ApiResponse;
 
 import java.util.List;
 
+/**
+ * Service interface for managing shop-related features on the Serch platform.
+ * Provides methods to retrieve overviews, chart data, and shop details, as well as search for individual shops by ID.
+ */
 public interface ShopScopeService {
+
     /**
-     * Fetch the overview data for shop in Serch
+     * Retrieves an overview of shop-related activities on the Serch platform.
+     * This overview may include metrics and insights about shops, such as the number of shops,
+     * activity levels, and other key performance indicators.
      *
-     * @return {@link ApiResponse} of {@link ShopScopeOverviewResponse}
+     * @return an {@link ApiResponse} containing a {@link ShopScopeOverviewResponse}
+     *         with aggregated data and insights related to shops on the platform.
      */
     ApiResponse<ShopScopeOverviewResponse> overview();
 
     /**
-     * Fetch the chart data for shops in Serch
+     * Retrieves chart data for shops on the Serch platform for a specified year.
+     * Provides insights into trends and metrics for shops, such as sales growth, user engagement,
+     * and other performance indicators over the specified time period.
      *
-     * @param year The year being requested in {@link Integer}
-     *
-     * @return {@link ApiResponse} list of {@link ChartMetric}
+     * @param year the year for which to fetch the data, represented as an {@link Integer}.
+     *             If the year is null, data for the current year will be used.
+     * @return an {@link ApiResponse} containing a list of {@link ChartMetric} objects
+     *         representing the shop-related data, suitable for trend visualization.
      */
     ApiResponse<List<ChartMetric>> chart(Integer year);
 
     /**
-     * Fetch the list of shops in Serch
+     * Retrieves a list of shops on the Serch platform.
+     * The list includes details about each shop, such as name, location, owner information,
+     * categories, and other relevant attributes.
      *
-     * @return {@link ApiResponse} list of {@link ShopScopeResponse}
+     * @return an {@link ApiResponse} containing a list of {@link ShopScopeResponse}
+     *         objects representing individual shops and their associated details.
      */
     ApiResponse<List<ShopScopeResponse>> list();
 
     /**
-     * Fetch the shop by id
+     * Retrieves details of a specific shop by its unique identifier on the Serch platform.
+     * Provides information about the shop, such as its name, description, location, owner, and other relevant details.
      *
-     * @return {@link ApiResponse} of {@link ShopScopeResponse}
+     * @param id the unique identifier of the shop to be fetched, represented as a {@link String}.
+     * @return an {@link ApiResponse} containing a {@link ShopScopeResponse}
+     *         representing the details of the specified shop.
      */
     ApiResponse<ShopScopeResponse> find(String id);
 }

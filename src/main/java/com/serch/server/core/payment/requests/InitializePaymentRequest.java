@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 
 @Getter
 @Setter
@@ -17,7 +17,7 @@ public class InitializePaymentRequest {
     private String amount;
     private String reference;
     private String bearer;
-    private ArrayList<String> channels = new ArrayList<>(Collections.singletonList("card"));
+    private ArrayList<String> channels = new ArrayList<>(Arrays.asList("card", "ussd", "bank", "qr", "mobile_money"));
 
     @JsonProperty("callback_url")
     private String callbackUrl;

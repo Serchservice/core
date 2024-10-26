@@ -1,7 +1,5 @@
 package com.serch.server.admin.models;
 
-import com.serch.server.admin.enums.SocialMediaPlatform;
-import com.serch.server.admin.validator.ValidSocialMediaLink;
 import com.serch.server.bases.BaseModel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -48,15 +46,24 @@ public class Organization extends BaseModel {
     private String avatar;
 
     @Column(nullable = false, columnDefinition = "TEXT")
-    @ValidSocialMediaLink(platform = SocialMediaPlatform.INSTAGRAM, message = "Instagram link must be a valid URL or empty")
+    @URL(
+            regexp = "^$|https?://(www\\.)?instagram\\.com/.*",
+            message = "Instagram link must be a valid URL starting with https://instagram.com or be empty"
+    )
     private String instagram = "";
 
     @Column(nullable = false, columnDefinition = "TEXT")
-    @ValidSocialMediaLink(platform = SocialMediaPlatform.TWITTER, message = "Twitter link must be a valid URL or empty")
+    @URL(
+            regexp = "^$|https?://(www\\.)?(twitter\\.com|x\\.com)/.*",
+            message = "Twitter link must be a valid URL starting with https://twitter.com, https://x.com, or be empty"
+    )
     private String twitter = "";
 
     @Column(nullable = false, columnDefinition = "TEXT")
-    @ValidSocialMediaLink(platform = SocialMediaPlatform.LINKEDIN, message = "LinkedIn link must be a valid URL or empty")
+    @URL(
+            regexp = "^$|https?://(www\\.)?linkedin\\.com/.*",
+            message = "LinkedIn link must be a valid URL starting with https://linkedin.com or be empty"
+    )
     private String linkedIn = "";
 
     @Column(nullable = false, columnDefinition = "TEXT")

@@ -79,9 +79,8 @@ public class OrganizationImplementation implements OrganizationService {
         Organization existing = organizationRepository.findById(id)
                 .orElseThrow(() -> new SerchException("Organization member not found"));
 
-        Organization update = AdminMapper.instance.partialUpdate(organization, existing);
-        update.setId(id);
-        organizationRepository.save(update);
+        existing = AdminMapper.instance.partialUpdate(organization, existing);
+        organizationRepository.save(existing);
 
         return getAllOrganizations();
     }

@@ -10,7 +10,7 @@ info:
   license:
     name: Serch Server License
     url: https://www.serchservice.com/hub/legal
-  version: 1.0.8
+  version: 1.0.9
 servers:
 - url: https://sandbox.serchservice.com/api/v1
   description: Sandbox Server
@@ -7246,12 +7246,9 @@ components:
       required:
       - avatar
       - first_name
-      - instagram
       - last_name
-      - linkedIn
       - phone_number
       - position
-      - twitter
       - username
       type: object
       properties:

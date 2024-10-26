@@ -6,7 +6,6 @@ import com.serch.server.admin.exceptions.AdminException;
 import com.serch.server.admin.exceptions.PermissionException;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.exceptions.account.AccountException;
-import com.serch.server.exceptions.others.ReferralException;
 import com.serch.server.exceptions.auth.AuthException;
 import com.serch.server.exceptions.auth.SessionException;
 import com.serch.server.exceptions.conversation.CallException;
@@ -47,6 +46,8 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.transaction.TransactionSystemException;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -68,9 +69,7 @@ import java.sql.SQLException;
 import java.sql.SQLNonTransientConnectionException;
 import java.sql.SQLTimeoutException;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -699,14 +698,36 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
             MethodArgumentNotValidException ex, @NonNull HttpHeaders headers,
             @NonNull HttpStatusCode status, @NonNull WebRequest request
     ) {
-        List<String> errors = new ArrayList<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
-            String errorMessage = error.getDefaultMessage();
-            errors.add(errorMessage);
-        });
-        ApiResponse<List<String>> response = new ApiResponse<>("Validation error");
-        response.setData(errors);
+        int violationsCount = ex.getBindingResult().getAllErrors().size();
+        String message;
+
+        if (violationsCount > 1) {
+            // More than one violation, format the messages as a list
+            String violations = ex.getBindingResult().getAllErrors().stream()
+                    .map(ObjectError::getDefaultMessage)
+                    .collect(Collectors.joining(", "));
+            message = "Your request needs to comply with these violations: " + violations;
+        } else if (violationsCount == 1) {
+            // Only one violation, return that single message
+            message = ex.getBindingResult().getAllErrors().getFirst().getDefaultMessage();
+        } else {
+            // No violations (this should not happen under normal circumstances)
+            message = "Error in validating input";
+        }
+
+        ApiResponse<Map<String, Object>> response = new ApiResponse<>(message);
+
+        Map<String, Object> data = new HashMap<>();
+        AtomicInteger count = new AtomicInteger(1);
+        for(var reason : ex.getBindingResult().getAllErrors()) {
+            count.getAndIncrement();
+            data.put("Reason %s".formatted(count), reason.getDefaultMessage());
+        }
+        response.setData(data);
+
         log.error(ex.getMessage());
+        log.error(message);
+
         return new ResponseEntity<>(response, response.getStatus());
     }
 
@@ -813,5 +834,11 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
                 ExceptionCodes.IMPROPER_USER_ID_FORMAT,
                 HttpStatus.NOT_ACCEPTABLE
         );
+    }
+
+    @ExceptionHandler(TransactionSystemException.class)
+    public ApiResponse<String> handleTransactionSystemException(TransactionSystemException exception){
+        log.error(exception.getMessage());
+        return new ApiResponse<>("An error occurred while saving your data. Try again");
     }
 }

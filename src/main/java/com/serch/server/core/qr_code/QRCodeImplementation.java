@@ -163,7 +163,7 @@ public class QRCodeImplementation implements QRCodeService {
                 String.format("https://card.serchservice.com/%s", secret),
                 350,
                 350,
-                true,
+                false,
                 0xFF151515
         );
     }

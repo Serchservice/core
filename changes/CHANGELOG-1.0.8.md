@@ -5,6 +5,8 @@ Version: **1.0.8**
 SpringBoot Version: **3.2.8**
 
 All notable changes to this project will be documented in this file.
+On this version, there is a paradigm shift from single-based session to multi-based session. So, users and admins can
+log in on different devices whilst ensuring data synchronization on all these devices.
 
 ## [Unreleased]
 

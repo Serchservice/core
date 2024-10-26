@@ -129,7 +129,7 @@ public class WalletImplementation implements WalletService {
         transaction.setVerified(false);
         transaction.setStatus(TransactionStatus.PENDING);
         transaction.setAccount(wallet.getId());
-        transaction.setMode("CARD");
+        transaction.setMode("PAYSTACK");
         transaction.setSender(String.valueOf(userUtil.getUser().getId()));
         transaction.setReference(data.getReference());
         transactionRepository.save(transaction);
@@ -154,10 +154,11 @@ public class WalletImplementation implements WalletService {
                 throw new WalletException("Transaction is already verified");
             } else {
                 try {
-                    paymentService.verify(transaction.getReference());
+                    var data = paymentService.verify(transaction.getReference());
                     creditWallet(transaction.getAmount(), userUtil.getUser().getId());
                     transaction.setStatus(SUCCESSFUL);
                     transaction.setVerified(true);
+                    transaction.setMode(data.getChannel().toUpperCase().replaceAll("_", " "));
                     transaction.setUpdatedAt(TimeUtil.now());
                     transactionRepository.save(transaction);
 
@@ -776,11 +777,12 @@ public class WalletImplementation implements WalletService {
         transactions.forEach(transaction -> {
             if(transaction.getType() == TransactionType.FUNDING) {
                 try {
-                    paymentService.verify(transaction.getReference());
+                    var data = paymentService.verify(transaction.getReference());
 
                     creditWallet(transaction.getAmount(), UUID.fromString(transaction.getSender()));
                     transaction.setStatus(SUCCESSFUL);
                     transaction.setVerified(true);
+                    transaction.setMode(data.getChannel().toUpperCase().replaceAll("_", " "));
                     transaction.setUpdatedAt(TimeUtil.now());
                     transactionRepository.save(transaction);
 

@@ -35,29 +35,10 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityFilterConfiguration {
-    /**
-     * Authentication provider for user authentication.
-     */
     private final AuthenticationProvider authenticationProvider;
-
-    /**
-     * JWT authentication filter for processing JWT tokens.
-     */
     private final JwtAuthenticationFilter jwtFilterConfiguration;
-
-    /**
-     * Logout handler for handling user logout.
-     */
     private final LogoutHandler logoutHandler;
-
-    /**
-     * Authentication entry point for handling authentication failures.
-     */
     private final AuthenticationEntryPoint authenticationEntryPoint;
-
-    /**
-     * CORS configuration source for cross-origin resource sharing.
-     */
     private final CorsConfigurationSource corsConfigurationSource;
 
     /**
@@ -88,11 +69,6 @@ public class SecurityFilterConfiguration {
                                 "/company/**",
                                 "/plan/**",
                                 "/auth/guest/**",
-                                "/guest/**",
-                                "/switch/**",
-                                "/trip/shared/**",
-                                "/rating/rate/**",
-                                "/location/search/**",
                                 "/issue/lodge",
                                 "/rating/app",
                                 "/country/**",
@@ -102,15 +78,6 @@ public class SecurityFilterConfiguration {
                                 "/ws:serch/**",
                                 "/ws:trip/**",
                                 "/auth/admin/**",
-                                "/banking/**",
-                                "/trip/invite/**",
-                                "/trip/history",
-                                "/trip/end",
-                                "/trip/cancel",
-                                "/trip/auth",
-                                "/trip/shared/access",
-                                "/trip/shared/auth",
-                                "/trip/shared/cancel",
                                 "/specialty/all",
                                 "/organization"
                         ).permitAll()

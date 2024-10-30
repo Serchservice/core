@@ -1,9 +1,10 @@
 package com.serch.server.configurations;
 
 import com.serch.server.core.Logging;
+import com.serch.server.core.key_validator.KeyValidatorService;
+import com.serch.server.core.session.SessionService;
 import com.serch.server.exceptions.ServerExceptionHandler;
 import com.serch.server.exceptions.auth.AuthException;
-import com.serch.server.core.session.SessionService;
 import com.serch.server.utils.ServerUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -23,6 +24,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import java.util.ArrayList;
+
 /**
  * The JwtAuthenticationFilter class is responsible for authenticating requests using JWT (JSON Web Token).
  * It extends OncePerRequestFilter, ensuring that it is only executed once per request.
@@ -39,19 +42,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Configuration
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    /**
-     * Service for retrieving user details.
-     */
     private final UserDetailsService userDetailsService;
-
-    /**
-     * Service for managing user sessions.
-     */
     private final SessionService sessionService;
-
-    /**
-     * Handler for server exceptions related to authentication.
-     */
+    private final KeyValidatorService keyService;
     private final ServerExceptionHandler handler;
 
     /**
@@ -66,63 +59,83 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) {
         Logging.logRequest(request, "JWT AUTHENTICATION FILTER");
 
-        // Extract JWT token from the Authorization header
-        String header = request.getHeader("Authorization");
+        if(keyService.isDrive(request.getHeader("X-Serch-Drive-Api-Key"), request.getHeader("X-Serch-Drive-Secret-Key"))) {
+            SecurityContextHolder.getContext().setAuthentication(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getHeader("X-Serch-Drive-Api-Key"),
+                            null, new ArrayList<>()
+                    )
+            );
 
-        // If the Authorization header is missing or does not start with "Bearer", proceed to the next filter
-        if(header == null || !header.startsWith("Bearer") || header.length() < 7){
             filterChain.doFilter(request, response);
-            return;
-        }
+        } else if(keyService.isGuest(request.getHeader("X-Serch-Guest-Api-Key"), request.getHeader("X-Serch-Guest-Secret-Key"))) {
+            SecurityContextHolder.getContext().setAuthentication(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getHeader("X-Serch-Guest-Api-Key"),
+                            null, new ArrayList<>()
+                    )
+            );
 
-        // If remote address contains any of the Whitelisted IP Addresses, proceed to next filter
-        if(ServerUtil.ALLOWED_IP_ADDRESSES.contains(request.getRemoteAddr())){
             filterChain.doFilter(request, response);
-            return;
-        }
+        } else {
+            // Extract JWT token from the Authorization header
+            String header = request.getHeader("Authorization");
 
-        try {
-            // Validate the session associated with the JWT token
-            String jwt = header.substring(7);
+            // If the Authorization header is missing or does not start with "Bearer", proceed to the next filter
+            if(header == null || !header.startsWith("Bearer") || header.length() < 7){
+                filterChain.doFilter(request, response);
+                return;
+            }
 
-            var session = sessionService.validateSession(jwt, null, null);
-            if(session.getStatus().is2xxSuccessful()) {
-                // If the user is not already authenticated, set up the authentication context
-                if(SecurityContextHolder.getContext().getAuthentication() == null) {
-                    UserDetails userDetails = this.userDetailsService.loadUserByUsername(session.getData());
-                    UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-                            userDetails,
-                            null,
-                            userDetails.getAuthorities()
-                    );
-                    token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(token);
-                    // Update the last seen timestamp of the session
-                    sessionService.updateLastSignedIn();
+            // If remote address contains any of the Whitelisted IP Addresses, proceed to next filter
+            if(ServerUtil.ALLOWED_IP_ADDRESSES.contains(request.getRemoteAddr())){
+                filterChain.doFilter(request, response);
+                return;
+            }
 
-                    if(request.getRemoteAddr() != null) {
-                        sessionService.updateSessionDetails(request.getRemoteAddr(), jwt);
+            try {
+                // Validate the session associated with the JWT token
+                String jwt = header.substring(7);
+
+                var session = sessionService.validateSession(jwt, null, null);
+                if(session.getStatus().is2xxSuccessful()) {
+                    // If the user is not already authenticated, set up the authentication context
+                    if(SecurityContextHolder.getContext().getAuthentication() == null) {
+                        UserDetails userDetails = this.userDetailsService.loadUserByUsername(session.getData());
+                        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
+                                userDetails,
+                                null,
+                                userDetails.getAuthorities()
+                        );
+                        token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        SecurityContextHolder.getContext().setAuthentication(token);
+                        // Update the last seen timestamp of the session
+                        sessionService.updateLastSignedIn();
+
+                        if(request.getRemoteAddr() != null) {
+                            sessionService.updateSessionDetails(request.getRemoteAddr(), jwt);
+                        }
                     }
                 }
-            }
-            // Proceed to the next filter
-            filterChain.doFilter(request, response);
-        } catch (ExpiredJwtException | MalformedJwtException | AuthException | SignatureException
-                 | UnsupportedJwtException | IllegalArgumentException | StringIndexOutOfBoundsException e
-        ) {
-            // Handle various exceptions related to JWT processing and authentication
-            if(e instanceof AuthException) {
-                handler.handleAuthException((AuthException) e);
-            } else if(e instanceof  ExpiredJwtException) {
-                handler.handleExpiredJwtException((ExpiredJwtException) e);
-            } else if(e instanceof  MalformedJwtException) {
-                handler.handleMalformedJwtException((MalformedJwtException) e);
-            } else if(e instanceof  SignatureException) {
-                handler.handleSignatureException((SignatureException) e);
-            } else if(e instanceof  UnsupportedJwtException) {
-                handler.handleUnsupportedJwtException((UnsupportedJwtException) e);
-            } else if(e instanceof  StringIndexOutOfBoundsException) {
-                handler.handleStringIndexOutOfBoundsException((StringIndexOutOfBoundsException) e);
+                // Proceed to the next filter
+                filterChain.doFilter(request, response);
+            } catch (ExpiredJwtException | MalformedJwtException | AuthException | SignatureException
+                     | UnsupportedJwtException | IllegalArgumentException | StringIndexOutOfBoundsException e
+            ) {
+                // Handle various exceptions related to JWT processing and authentication
+                if(e instanceof AuthException) {
+                    handler.handleAuthException((AuthException) e);
+                } else if(e instanceof  ExpiredJwtException) {
+                    handler.handleExpiredJwtException((ExpiredJwtException) e);
+                } else if(e instanceof  MalformedJwtException) {
+                    handler.handleMalformedJwtException((MalformedJwtException) e);
+                } else if(e instanceof  SignatureException) {
+                    handler.handleSignatureException((SignatureException) e);
+                } else if(e instanceof  UnsupportedJwtException) {
+                    handler.handleUnsupportedJwtException((UnsupportedJwtException) e);
+                } else if(e instanceof  StringIndexOutOfBoundsException) {
+                    handler.handleStringIndexOutOfBoundsException((StringIndexOutOfBoundsException) e);
+                }
             }
         }
     }

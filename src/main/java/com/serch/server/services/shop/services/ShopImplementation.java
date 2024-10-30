@@ -302,6 +302,7 @@ public class ShopImplementation implements ShopService {
                     .map(shop -> {
                         SearchShopResponse response = new SearchShopResponse();
                         double distance = HelperUtil.getDistance(latitude, longitude, shop.getLatitude(), shop.getLongitude());
+
                         response.setDistanceInKm(distance + " km");
                         response.setDistance(distance);
                         response.setShop(response(shop));

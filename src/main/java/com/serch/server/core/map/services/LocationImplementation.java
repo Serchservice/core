@@ -61,10 +61,13 @@ public class LocationImplementation implements LocationService {
         List<Address> predictions = new ArrayList<>();
         if(response.getStatusCode().is2xxSuccessful()) {
             if(ObjectUtils.isNotEmpty(Objects.requireNonNull(response.getBody()))) {
-                response.getBody().getSuggestions()
-                        .forEach(place -> predictions.add(getPrediction(place.getPlacePrediction())));
+                if(response.getBody().getSuggestions() != null && !response.getBody().getSuggestions().isEmpty()) {
+                    response.getBody().getSuggestions()
+                            .forEach(place -> predictions.add(getPrediction(place.getPlacePrediction())));
+                }
             }
         }
+
         return new ApiResponse<>(predictions);
     }
 

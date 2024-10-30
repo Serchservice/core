@@ -10,6 +10,9 @@ public class SearchShopResponse {
     private UUID user;
     private Double distance;
 
+    @JsonProperty("is_google")
+    private Boolean isGoogle = false;
+
     @JsonProperty("distance_in_km")
     private String distanceInKm;
     private ShopResponse shop;

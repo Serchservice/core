@@ -2,6 +2,9 @@ package com.serch.server.services.shop.services;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.services.shop.requests.ShopDriveRequest;
+import com.serch.server.services.shop.responses.DriveCategoryResponse;
+
+import java.util.List;
 
 /**
  * ShopDriveService interface defines operations related to managing shop drives,
@@ -38,4 +41,12 @@ public interface ShopDriveService {
      * @return An ApiResponse containing a success message or an error description.
      */
     ApiResponse<String> rate(Long id, Double rating);
+
+    /**
+     * Retrieves a list of drive categories from the API.
+     *
+     * @return an {@link ApiResponse} containing a list of {@link DriveCategoryResponse} objects, which represent the available drive categories.
+     *         The response will indicate the success or failure of the request, along with any relevant metadata.
+     */
+    ApiResponse<List<DriveCategoryResponse>> categories();
 }

@@ -2,6 +2,7 @@ package com.serch.server.core.map.services;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.core.map.responses.Address;
+import com.serch.server.services.shop.responses.SearchShopResponse;
 
 import java.util.List;
 
@@ -55,4 +56,16 @@ public interface LocationService {
      *         status appropriately.
      */
     ApiResponse<Address> search(String id);
+
+    /**
+     * Searches for nearby shops based on the specified category and location.
+     *
+     * @param category the category of shops to search for (e.g., "restaurant", "cafe")
+     * @param longitude the longitude of the location to search around
+     * @param latitude the latitude of the location to search around
+     * @param radius the radius (in meters) within which to search for nearby shops
+     * @return a list of {@link SearchShopResponse} objects representing the nearby shops
+     *         that match the specified category within the given radius
+     */
+    List<SearchShopResponse> nearbySearch(String category, Double longitude, Double latitude, Double radius);
 }

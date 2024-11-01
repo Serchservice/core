@@ -4,6 +4,7 @@ import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.account.Gender;
 import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.account.ProviderStatus;
+import com.serch.server.enums.shop.DriveScope;
 import com.serch.server.enums.verified.VerificationStatus;
 import com.serch.server.mappers.AccountMapper;
 import com.serch.server.mappers.TripMapper;
@@ -181,7 +182,7 @@ public class ActiveSearchImplementation implements ActiveSearchService {
     @Override
     public ApiResponse<SearchResponse> search(String query, Double longitude, Double latitude, Double radius, Boolean autoConnect) {
         List<Active> actives = activeRepository.fullTextSearchWithinDistance(latitude, longitude, query, getSearchRadius(radius));
-        List<SearchShopResponse> shops = shopService.list(query, null, longitude, latitude, getSearchRadius(radius));
+        List<SearchShopResponse> shops = shopService.list(query, null, longitude, latitude, getSearchRadius(radius), DriveScope.SERCH);
 
         SearchResponse response = prepareResponse(longitude, latitude, actives);
         response.setShops(shops);

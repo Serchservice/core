@@ -11,9 +11,9 @@ public class ShopResponse {
     private String category;
     private String image;
     private String logo;
-    private Boolean open;
+    private Boolean open = false;
     private ShopStatus status;
-    private Double rating;
+    private Double rating = 0.0;
     private String id;
     private String address;
     private String phone;

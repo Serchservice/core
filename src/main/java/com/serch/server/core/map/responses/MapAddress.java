@@ -7,7 +7,6 @@ import java.util.List;
 
 @Data
 public class MapAddress {
-
     @JsonProperty("formattedAddress")
     private String formattedAddress;
 
@@ -25,7 +24,6 @@ public class MapAddress {
 
     @Data
     public static class AddressComponent {
-
         @JsonProperty("longText")
         private String longText;
 
@@ -41,7 +39,6 @@ public class MapAddress {
 
     @Data
     public static class Location {
-
         @JsonProperty("latitude")
         private double latitude;
 
@@ -51,7 +48,6 @@ public class MapAddress {
 
     @Data
     public static class DisplayName {
-
         @JsonProperty("text")
         private String text;
 

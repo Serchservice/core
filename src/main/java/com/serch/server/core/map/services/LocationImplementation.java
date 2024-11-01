@@ -1,18 +1,28 @@
 package com.serch.server.core.map.services;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.core.map.LocationRequest;
+import com.serch.server.core.map.requests.LocationRequest;
+import com.serch.server.core.map.requests.NearbySearchRequest;
 import com.serch.server.core.map.responses.Address;
 import com.serch.server.core.map.responses.MapAddress;
 import com.serch.server.core.map.responses.MapSuggestionsResponse;
+import com.serch.server.core.map.responses.PlacesResponse;
+import com.serch.server.enums.shop.ShopStatus;
+import com.serch.server.exceptions.others.SerchException;
+import com.serch.server.services.shop.responses.SearchShopResponse;
+import com.serch.server.services.shop.responses.ShopResponse;
+import com.serch.server.utils.HelperUtil;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -25,10 +35,8 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 public class LocationImplementation implements LocationService {
+    private static final Logger log = LoggerFactory.getLogger(LocationImplementation.class);
     private final RestTemplate rest;
-
-    @Value("${application.map.base.url.autocomplete}")
-    private String MAP_AUTOCOMPLETE_BASE_URL;
 
     @Value("${application.map.api-key}")
     private String MAP_API_KEY;
@@ -49,8 +57,12 @@ public class LocationImplementation implements LocationService {
     public ApiResponse<List<Address>> predictions(String query) {
         LocationRequest request = new LocationRequest();
         request.setInput(query);
-        HttpEntity<Object> entity = new HttpEntity<>(request, headers());
 
+        HttpHeaders headers = headers();
+        headers.set("X-Goog-FieldMask", "places.id");
+        HttpEntity<Object> entity = new HttpEntity<>(request, headers);
+
+        String MAP_AUTOCOMPLETE_BASE_URL = "https://places.googleapis.com/v1/places:autocomplete";
         ResponseEntity<MapSuggestionsResponse> response = rest.exchange(
                 MAP_AUTOCOMPLETE_BASE_URL,
                 HttpMethod.POST,
@@ -87,6 +99,7 @@ public class LocationImplementation implements LocationService {
                 return address;
             }
         }
+
         return new Address();
     }
 
@@ -132,5 +145,116 @@ public class LocationImplementation implements LocationService {
     @Override
     public ApiResponse<Address> search(String id) {
         return null;
+    }
+
+    @Override
+    public List<SearchShopResponse> nearbySearch(String category, Double longitude, Double latitude, Double radius) {
+        NearbySearchRequest request = new NearbySearchRequest();
+        request.setIncludedTypes(new ArrayList<>(Collections.singletonList(category.toLowerCase())));
+
+        request.getLocationRestriction().getCircle().setRadius(radius / 10);
+        request.getLocationRestriction().getCircle().getCenter().setLatitude(latitude);
+        request.getLocationRestriction().getCircle().getCenter().setLongitude(longitude);
+        log.info(String.format("Nearby Search for - %s", request));
+
+        HttpHeaders headers = headers();
+        headers.set("X-Goog-FieldMask", getFieldMasks());
+        HttpEntity<Object> entity = new HttpEntity<>(request, headers);
+
+        List<SearchShopResponse> shops = new ArrayList<>();
+
+        try {
+            String MAP_NEARBY_BASE_URL = "https://places.googleapis.com/v1/places:searchNearby";
+            ResponseEntity<PlacesResponse> response = rest.exchange(
+                    MAP_NEARBY_BASE_URL,
+                    HttpMethod.POST,
+                    entity,
+                    PlacesResponse.class
+            );
+
+            if(response.getStatusCode().is2xxSuccessful()) {
+                if(ObjectUtils.isNotEmpty(Objects.requireNonNull(response.getBody()))) {
+                    if(response.getBody().getPlaces() != null && !response.getBody().getPlaces().isEmpty()) {
+                        response.getBody().getPlaces()
+                                .forEach(place -> shops.add(shop(place, latitude, longitude)));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new SerchException(e.getMessage());
+        }
+
+        return shops;
+    }
+
+    private String getFieldMasks() {
+        return "places.displayName,places.formattedAddress,places.shortFormattedAddress,places.location,places.id," +
+                "places.nationalPhoneNumber,places.internationalPhoneNumber,places.rating,places.googleMapsUri," +
+                "places.websiteUri,places.businessStatus,places.googleMapsLinks,places.iconMaskBaseUri," +
+                "places.currentOpeningHours.openNow";
+    }
+
+    private SearchShopResponse shop(PlacesResponse.Place place, double latitude, double longitude) {
+        SearchShopResponse response = new SearchShopResponse();
+
+        if (place.getLocation() != null) {
+            double distance = HelperUtil.getDistance(latitude, longitude, place.getLocation().getLatitude(), place.getLocation().getLongitude());
+
+            response.setDistanceInKm(distance + " km");
+            response.setDistance(distance);
+        }
+
+        response.setShop(shop(place));
+        response.setGoogle(true);
+
+        return response;
+    }
+
+    private ShopResponse shop(PlacesResponse.Place place) {
+        if ( place == null ) {
+            return null;
+        }
+
+        ShopResponse shop = new ShopResponse();
+
+        if(place.getInternationalPhoneNumber() != null) {
+            shop.setPhone( place.getInternationalPhoneNumber() );
+        } else if(place.getNationalPhoneNumber() != null) {
+            shop.setPhone( place.getNationalPhoneNumber() );
+        }
+
+        if (place.getDisplayName() != null) {
+            shop.setName(place.getDisplayName().getText());
+
+            if(place.getShortFormattedAddress() != null) {
+                shop.setAddress(String.format("%s, %s", place.getDisplayName().getText(), place.getShortFormattedAddress()));
+            }
+        } else if(place.getFormattedAddress() != null) {
+            shop.setAddress(place.getFormattedAddress());
+        }
+
+        if(place.getGoogleMapsLinks() != null) {
+            shop.setCategory(place.getGoogleMapsLinks().getPlaceUri());
+        }
+
+        shop.setImage(place.getIconMaskBaseUri());
+        shop.setStatus( place.getBusinessStatus().equalsIgnoreCase("operational") ? ShopStatus.OPEN : ShopStatus.SUSPENDED );
+
+        if(place.getRating() != null) {
+            shop.setRating( place.getRating() );
+        }
+
+        if(place.getCurrentOpeningHours() != null) {
+            shop.setOpen(place.getCurrentOpeningHours().getOpenNow());
+        }
+
+        shop.setId( place.getId() );
+
+        if (place.getLocation() != null) {
+            shop.setLatitude( place.getLocation().getLatitude() );
+            shop.setLongitude( place.getLocation().getLongitude() );
+        }
+
+        return shop;
     }
 }

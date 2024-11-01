@@ -18,77 +18,88 @@ public enum SerchCategory {
             "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/categories/mechanic.png",
             "What skills do you have",
             true,
-            true
+            true,
+            "car_repair"
     ),
     PLUMBER(
             "Plumber",
             "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/categories/plumber.png",
             "What skills do you have",
             true,
-            true
+            true,
+            "plumber"
     ),
     ELECTRICIAN(
             "Electrician",
             "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/categories/electrician.png",
             "What skills do you have",
             true,
-            true
+            true,
+            "electrician"
     ),
     BUSINESS(
             "Business",
             "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/categories/business.png",
             "What skills do you have",
             true,
-            true
+            true,
+            "accounting"
     ),
     PERSONAL_SHOPPER(
             "Personal Shopper",
             "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/categories/shopper.png",
             "What skills do you have",
             false,
-            false
+            false,
+            ""
     ),
     HOUSE_KEEPING(
             "House Keeper",
             "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/categories/housekeeper.png",
             "What skills do you have",
             false,
-            false
+            false,
+            ""
     ),
     CARPENTER(
             "Carpenter",
             "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/categories/carpenter.png",
             "What skills do you have",
             true,
-            true
+            true,
+            ""
     ),
     GENERATOR_REPAIR(
             "Generator repairer",
             "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/categories/generator.png",
             "What skills do you have",
             true,
-            true
+            true,
+            ""
     ),
     HOME_INSTALLER(
             "Home Installer",
             "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/categories/home.png",
             "What skills do you have",
             true,
-            true
+            true,
+            ""
     ),
     GUEST(
             "Guest",
             "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/categories/guest.png",
             "What skills do you have",
             true,
-            true
+            true,
+            ""
     ),
     USER(
             "User",
             "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/categories/user.png",
             "What skills do you have",
             true,
-            true
+            true,
+            ""
     );
 
     private final String type;
@@ -96,4 +107,5 @@ public enum SerchCategory {
     private final String information;
     private final boolean canDrive;
     private final boolean canSearchSkill;
+    private final String google;
 }

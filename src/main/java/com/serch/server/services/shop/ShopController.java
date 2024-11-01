@@ -1,6 +1,7 @@
 package com.serch.server.services.shop;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.enums.shop.DriveScope;
 import com.serch.server.enums.shop.ShopStatus;
 import com.serch.server.services.shop.requests.CreateShopRequest;
 import com.serch.server.services.shop.requests.ShopWeekdayRequest;
@@ -36,9 +37,10 @@ public class ShopController {
             @RequestParam(required = false, name = "q") String query,
             @RequestParam(name = "lng") Double lng,
             @RequestParam(name = "lat") Double lat,
-            @RequestParam(required = false, name = "radius") Double radius
-    ) {
-        ApiResponse<List<SearchShopResponse>> response = shopService.drive(query, category, lng, lat, radius);
+            @RequestParam(required = false, name = "radius") Double radius,
+            @RequestParam(required = false) DriveScope scope
+            ) {
+        ApiResponse<List<SearchShopResponse>> response = shopService.drive(query, category, lng, lat, radius, scope);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

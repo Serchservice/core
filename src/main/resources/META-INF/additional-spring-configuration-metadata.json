@@ -221,11 +221,6 @@
       "description": "The time wait for link generation."
     },
     {
-      "name": "application.map.base.url.autocomplete",
-      "type": "java.lang.String",
-      "description": "The base url for autocomplete Location IQ."
-    },
-    {
       "name": "application.call.tip2fix.session",
       "type": "java.lang.Integer",
       "description": "The duration for each tip2fix session."

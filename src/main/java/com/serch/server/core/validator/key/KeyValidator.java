@@ -1,4 +1,4 @@
-package com.serch.server.core.key_validator;
+package com.serch.server.core.validator.key;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

@@ -1,6 +1,10 @@
 package com.serch.server.services.shop.services;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.core.map.services.LocationService;
+import com.serch.server.core.storage.core.StorageService;
+import com.serch.server.enums.shop.DriveCategory;
+import com.serch.server.enums.shop.DriveScope;
 import com.serch.server.enums.shop.ShopStatus;
 import com.serch.server.enums.shop.Weekday;
 import com.serch.server.exceptions.others.ShopException;
@@ -12,13 +16,12 @@ import com.serch.server.repositories.shop.ShopRepository;
 import com.serch.server.repositories.shop.ShopServiceRepository;
 import com.serch.server.repositories.shop.ShopWeekdayRepository;
 import com.serch.server.services.shop.requests.CreateShopRequest;
-import com.serch.server.services.shop.requests.UpdateShopRequest;
 import com.serch.server.services.shop.requests.ShopWeekdayRequest;
+import com.serch.server.services.shop.requests.UpdateShopRequest;
 import com.serch.server.services.shop.responses.SearchShopResponse;
 import com.serch.server.services.shop.responses.ShopResponse;
 import com.serch.server.services.shop.responses.ShopServiceResponse;
 import com.serch.server.services.shop.responses.ShopWeekdayResponse;
-import com.serch.server.core.storage.core.StorageService;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
@@ -31,6 +34,8 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -44,6 +49,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ShopImplementation implements ShopService {
     private final StorageService storageService;
+    private final LocationService locationService;
     private final UserUtil userUtil;
     private final ShopRepository shopRepository;
     private final ShopServiceRepository shopServiceRepository;
@@ -278,40 +284,79 @@ public class ShopImplementation implements ShopService {
     }
 
     @Override
-    public ApiResponse<List<SearchShopResponse>> drive(String query, String category, Double longitude, Double latitude, Double radius) {
-        double searchRadius = radius == null ? Double.parseDouble(MAP_SEARCH_RADIUS) : radius;
-        List<SearchShopResponse> list = list(query, category, longitude, latitude, searchRadius);
-        return new ApiResponse<>(list);
+    public ApiResponse<List<SearchShopResponse>> drive(String query, String category, Double longitude, Double latitude, Double radius, DriveScope scope) {
+        return new ApiResponse<>(list(
+                query,
+                category,
+                longitude,
+                latitude,
+                radius == null ? Double.parseDouble(MAP_SEARCH_RADIUS) : radius,
+                scope == null ? DriveScope.ALL : scope
+        ));
     }
 
     @Override
-    public List<SearchShopResponse> list(String query, String category, Double longitude, Double latitude, Double radius) {
+    public List<SearchShopResponse> list(String query, String category, Double longitude, Double latitude, Double radius, DriveScope scope) {
         if((query == null || query.isEmpty()) && (category == null || category.isEmpty()) ) {
             throw new ShopException("Query and category cannot be null or empty");
         }
 
-        List<Shop> listOfShops;
-        if(query != null && !query.isEmpty()) {
-            listOfShops = shopRepository.findByServiceAndLocation(latitude, longitude, query.toLowerCase(), radius);
+        List<SearchShopResponse> list = new ArrayList<>();
+
+        if(scope == DriveScope.ALL) {
+            addSerchShops(list, query, category, longitude, latitude, radius);
+            addGoogleShops(list, query, category, longitude, latitude, radius);
+        } else if(scope == DriveScope.GOOGLE) {
+            addGoogleShops(list, query, category, longitude, latitude, radius);
         } else {
-            listOfShops = shopRepository.findByServiceAndLocation(latitude, longitude, category.toLowerCase(), radius);
+            addSerchShops(list, query, category, longitude, latitude, radius);
         }
 
-        if(listOfShops != null && !listOfShops.isEmpty()) {
-            return listOfShops.stream()
-                    .map(shop -> {
-                        SearchShopResponse response = new SearchShopResponse();
-                        double distance = HelperUtil.getDistance(latitude, longitude, shop.getLatitude(), shop.getLongitude());
+        // Sort the list first by isGoogle (false first), then by distance, treating null as max value
+        list.sort(Comparator.comparing(SearchShopResponse::isGoogle)
+                .thenComparing(searchShopResponse -> {
+                    Double distance = searchShopResponse.getDistance();
+                    return distance != null ? distance : Double.MAX_VALUE; // Treat null as max value
+                }));
 
-                        response.setDistanceInKm(distance + " km");
-                        response.setDistance(distance);
-                        response.setShop(response(shop));
-                        response.setUser(shop.getUser().getId());
-                        return response;
-                    })
-                    .toList();
+        return list;
+    }
+
+    private void addGoogleShops(List<SearchShopResponse> list, String query, String category, Double longitude, Double latitude, Double radius) {
+        DriveCategory search = DriveCategory.get(category == null || category.isEmpty() ? query : category);
+        if(search != null) {
+            List<SearchShopResponse> shops = locationService.nearbySearch(search.getGoogle(), longitude, latitude, radius);
+            if (shops != null && !shops.isEmpty()) {
+                list.addAll(shops);
+            }
         }
-        return List.of();
+    }
+
+    private void addSerchShops(List<SearchShopResponse> list, String query, String category, Double longitude, Double latitude, Double radius) {
+        List<Shop> shops = getShops(query, category, longitude, latitude, radius);
+
+        if(shops != null && !shops.isEmpty()) {
+            shops.forEach(shop -> {
+                SearchShopResponse response = new SearchShopResponse();
+                double distance = HelperUtil.getDistance(latitude, longitude, shop.getLatitude(), shop.getLongitude());
+
+                response.setDistanceInKm(distance + " km");
+                response.setDistance(distance);
+                response.setShop(response(shop));
+                response.setUser(shop.getUser().getId());
+                response.setGoogle(false);
+
+                list.add(response);
+            });
+        }
+    }
+
+    private List<Shop> getShops(String query, String category, Double longitude, Double latitude, Double radius) {
+        if(query != null && !query.isEmpty()) {
+            return shopRepository.findByServiceAndLocation(latitude, longitude, query.toLowerCase(), radius);
+        } else {
+            return shopRepository.findByServiceAndLocation(latitude, longitude, category.toLowerCase(), radius);
+        }
     }
 
     @Override

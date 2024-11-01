@@ -1,8 +1,9 @@
 package com.serch.server.configurations;
 
 import com.serch.server.core.Logging;
-import com.serch.server.core.key_validator.KeyValidatorService;
 import com.serch.server.core.session.SessionService;
+import com.serch.server.core.validator.endpoint.EndpointValidatorService;
+import com.serch.server.core.validator.key.KeyValidatorService;
 import com.serch.server.exceptions.ServerExceptionHandler;
 import com.serch.server.exceptions.auth.AuthException;
 import com.serch.server.utils.ServerUtil;
@@ -43,6 +44,7 @@ import java.util.ArrayList;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final UserDetailsService userDetailsService;
+    private final EndpointValidatorService endpointValidator;
     private final SessionService sessionService;
     private final KeyValidatorService keyService;
     private final ServerExceptionHandler handler;
@@ -59,7 +61,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) {
         Logging.logRequest(request, "JWT AUTHENTICATION FILTER");
 
-        if(keyService.isDrive(request.getHeader("X-Serch-Drive-Api-Key"), request.getHeader("X-Serch-Drive-Secret-Key"))) {
+        if(keyService.isDrive(request.getHeader("X-Serch-Drive-Api-Key"), request.getHeader("X-Serch-Drive-Secret-Key")) && endpointValidator.isDrivePermitted(request.getServletPath())) {
             SecurityContextHolder.getContext().setAuthentication(
                     new UsernamePasswordAuthenticationToken(
                             request.getHeader("X-Serch-Drive-Api-Key"),
@@ -68,7 +70,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             );
 
             filterChain.doFilter(request, response);
-        } else if(keyService.isGuest(request.getHeader("X-Serch-Guest-Api-Key"), request.getHeader("X-Serch-Guest-Secret-Key"))) {
+        } else if(keyService.isGuest(request.getHeader("X-Serch-Guest-Api-Key"), request.getHeader("X-Serch-Guest-Secret-Key")) && endpointValidator.isGuestPermitted(request.getServletPath())) {
             SecurityContextHolder.getContext().setAuthentication(
                     new UsernamePasswordAuthenticationToken(
                             request.getHeader("X-Serch-Guest-Api-Key"),

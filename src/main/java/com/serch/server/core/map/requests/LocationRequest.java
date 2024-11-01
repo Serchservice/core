@@ -1,4 +1,4 @@
-package com.serch.server.core.map;
+package com.serch.server.core.map.requests;
 
 import lombok.Data;
 

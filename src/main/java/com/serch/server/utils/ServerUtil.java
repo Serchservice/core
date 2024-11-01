@@ -41,8 +41,4 @@ public class ServerUtil {
             HttpMethod.PATCH.name(),
             HttpMethod.DELETE.name()
     );
-
-    public static List<String> getOrigins(String data) {
-        return Arrays.stream(data.split(",")).toList();
-    }
 }

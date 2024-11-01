@@ -1,6 +1,7 @@
 package com.serch.server.services.shop.services;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.enums.shop.DriveScope;
 import com.serch.server.enums.shop.ShopStatus;
 import com.serch.server.models.shop.Shop;
 import com.serch.server.services.shop.requests.CreateShopRequest;
@@ -157,6 +158,7 @@ public interface ShopService {
      * This method is critical for users looking to find shops that meet specific criteria
      * based on their location, enhancing the user experience through targeted searches.
      *
+     * @param scope The drive scope to return the result with
      * @param query The search query, which can be a service name or null for general search.
      * @param category The category of shops to filter the search.
      * @param longitude The longitude of the user's location for proximity searches.
@@ -164,13 +166,14 @@ public interface ShopService {
      * @param radius The search radius in kilometers for locating nearby shops.
      * @return An {@link ApiResponse} containing a list of {@link SearchShopResponse} objects filtered by the query or category.
      */
-    ApiResponse<List<SearchShopResponse>> drive(String query, String category, Double longitude, Double latitude, Double radius);
+    ApiResponse<List<SearchShopResponse>> drive(String query, String category, Double longitude, Double latitude, Double radius, DriveScope scope);
 
     /**
      * Searches for shops based on a query or category within a specified radius.
      * This method provides an alternative way to retrieve shop data directly,
      * without the wrapper of an {@link ApiResponse}, suitable for internal operations.
      *
+     * @param scope The drive scope to return the result with
      * @param query The search query, which can be a service name or null for general search.
      * @param category The category of shops to filter the search.
      * @param longitude The longitude of the user's location for proximity searches.
@@ -178,7 +181,7 @@ public interface ShopService {
      * @param radius The search radius in kilometers for locating nearby shops.
      * @return A list of {@link SearchShopResponse} objects filtered by the query or category.
      */
-    List<SearchShopResponse> list(String query, String category, Double longitude, Double latitude, Double radius);
+    List<SearchShopResponse> list(String query, String category, Double longitude, Double latitude, Double radius, DriveScope scope);
 
     /**
      * Automatically checks the current time against each shop's opening and closing times,

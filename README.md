@@ -72,6 +72,43 @@ create schema if not exists admin_action;
 ## Usage
 Once the server is up and running, you can interact with it using HTTP requests. The server exposes various endpoints for authentication, user management, session handling, etc. Refer to the API documentation for detailed information on available endpoints and their usage.
 
+To communicate this clearly to the developer, you could document the authentication options in your API documentation and provide examples for each. Here’s an example you might add to your README or Swagger documentation:
+
+---
+
+### Authentication Options
+
+Our API allows three types of authentication, which can be used interchangeably based on your access level and permissions. For each request, please use **one** of the following methods:
+
+1. **JWT Bearer Token**:
+    - Use this for authenticated users with a JSON Web Token.
+    - Include the `Authorization` header with the format:
+      ```
+      Authorization: Bearer <your-jwt-token>
+      ```
+
+2. **Drive API Key Authentication**:
+    - For services with `Drive` access permissions, use both the **Drive API Key** and the **Drive Secret Key** headers.
+    - Include these headers in each request:
+      ```
+      X-Serch-Drive-Api-Key: <your-drive-api-key>
+      X-Serch-Drive-Secret-Key: <your-drive-secret-key>
+      ```
+
+3. **Guest API Key Authentication**:
+    - For guests with limited access, use the **Guest API Key** and the **Guest Secret Key** headers.
+    - Include these headers in each request:
+      ```
+      X-Serch-Guest-Api-Key: <your-guest-api-key>
+      X-Serch-Guest-Secret-Key: <your-guest-secret-key>
+      ```
+
+### Important Notes
+- **Choose one authentication method** per request. If more than one method is provided, the request may fail.
+- Bearer tokens are typically used for user-specific actions, while `Drive` and `Guest` keys are designed for application-specific access without user-specific authentication.
+
+---
+
 ## Documentation
 - [API Documentation](#) (Coming soon): Comprehensive documentation of all endpoints and their functionalities.
 - [Codebase Documentation](#) (Coming soon): Detailed documentation of the server's codebase, including classes, interfaces, and methods.

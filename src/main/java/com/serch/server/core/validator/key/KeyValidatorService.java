@@ -1,4 +1,4 @@
-package com.serch.server.core.key_validator;
+package com.serch.server.core.validator.key;
 
 /**
  * The KeyValidator interface defines methods to handle and validate API keys and request signatures

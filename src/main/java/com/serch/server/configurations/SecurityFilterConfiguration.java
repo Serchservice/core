@@ -129,10 +129,7 @@ public class SecurityFilterConfiguration {
                                 "/active/status",
                                 "/active/toggle",
                                 "/trip/accept",
-                                "/trip/cancel",
-                                "/trip/arrival/announce",
-                                "/trip/invite",
-                                "/trip/invite/cancel"
+                                "/trip/arrival/announce"
                         ).hasAnyRole(ASSOCIATE_PROVIDER.name(), PROVIDER.name())
                         .requestMatchers(
                                 // Endpoints requiring BUSINESS role
@@ -145,9 +142,7 @@ public class SecurityFilterConfiguration {
                                 "/bookmark/all",
                                 "/schedule/close",
                                 "/schedule/start/",
-                                "/profile/**",
-                                "/trip/end",
-                                "/trip/leave"
+                                "/profile/**"
                         ).hasAnyRole(ASSOCIATE_PROVIDER.name(), PROVIDER.name(), USER.name())
                         .requestMatchers(
                                 // Endpoints requiring PROVIDER or BUSINESS roles

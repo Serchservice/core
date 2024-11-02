@@ -503,9 +503,17 @@ public class WalletImplementation implements WalletService {
     }
 
     protected TransactionResponse getResponse(Transaction transaction, boolean isIncoming) {
-        String account = walletRepository.findByUser_Id(UUID.fromString(transaction.getAccount()))
-                .map(wallet -> wallet(wallet.getId()))
-                .orElse("Wallet");
+        String account;
+
+        try {
+            account = walletRepository.findByUser_Id(UUID.fromString(transaction.getAccount()))
+                    .map(wallet -> wallet(wallet.getId()))
+                    .orElse("Wallet");
+        } catch (IllegalArgumentException e) {
+            account = walletRepository.findById(transaction.getAccount())
+                    .map(wallet -> wallet(wallet.getId()))
+                    .orElse("Wallet");
+        }
 
         TransactionResponse response = new TransactionResponse();
         response.setIsIncoming(isIncoming);

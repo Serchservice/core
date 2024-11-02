@@ -7,6 +7,7 @@ import com.serch.server.core.map.responses.Address;
 import com.serch.server.core.map.responses.MapAddress;
 import com.serch.server.core.map.responses.MapSuggestionsResponse;
 import com.serch.server.core.map.responses.PlacesResponse;
+import com.serch.server.enums.ServerHeader;
 import com.serch.server.enums.shop.ShopStatus;
 import com.serch.server.exceptions.others.SerchException;
 import com.serch.server.services.shop.responses.SearchShopResponse;
@@ -49,7 +50,7 @@ public class LocationImplementation implements LocationService {
     private HttpHeaders headers() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.add("X-Goog-Api-Key", MAP_API_KEY);
+        headers.add(ServerHeader.GOOGLE_API_KEY.getValue(), MAP_API_KEY);
         return headers;
     }
 
@@ -59,7 +60,7 @@ public class LocationImplementation implements LocationService {
         request.setInput(query);
 
         HttpHeaders headers = headers();
-        headers.set("X-Goog-FieldMask", "places.id");
+        headers.set(ServerHeader.GOOGLE_FIELD_MASK.getValue(), "suggestions.placePrediction.placeId");
         HttpEntity<Object> entity = new HttpEntity<>(request, headers);
 
         String MAP_AUTOCOMPLETE_BASE_URL = "https://places.googleapis.com/v1/places:autocomplete";
@@ -158,7 +159,7 @@ public class LocationImplementation implements LocationService {
         log.info(String.format("Nearby Search for - %s", request));
 
         HttpHeaders headers = headers();
-        headers.set("X-Goog-FieldMask", getFieldMasks());
+        headers.set(ServerHeader.GOOGLE_FIELD_MASK.getValue(), getFieldMasks());
         HttpEntity<Object> entity = new HttpEntity<>(request, headers);
 
         List<SearchShopResponse> shops = new ArrayList<>();

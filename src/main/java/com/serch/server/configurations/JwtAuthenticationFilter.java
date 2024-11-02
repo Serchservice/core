@@ -60,8 +60,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     @SneakyThrows
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) {
-        System.out.println(request.getHeader(ServerHeader.DRIVE_API_KEY.getValue()));
-        System.out.println(request.getHeader(ServerHeader.DRIVE_SECRET_KEY.getValue()));
+        System.out.printf("New Request from ip address: %s for %s%n", request.getRemoteAddr(), request.getServletPath());
 
         if(keyService.isDrive(request.getHeader(ServerHeader.DRIVE_API_KEY.getValue()), request.getHeader(ServerHeader.DRIVE_SECRET_KEY.getValue())) && endpointValidator.isDrivePermitted(request.getServletPath())) {
             Logging.logRequest(request, "Drive Request");

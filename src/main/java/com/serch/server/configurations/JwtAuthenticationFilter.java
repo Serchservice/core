@@ -59,9 +59,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     @SneakyThrows
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) {
-        Logging.logRequest(request, "JWT AUTHENTICATION FILTER");
-
         if(keyService.isDrive(request.getHeader("X-Serch-Drive-Api-Key"), request.getHeader("X-Serch-Drive-Secret-Key")) && endpointValidator.isDrivePermitted(request.getServletPath())) {
+            Logging.logRequest(request, "Drive Request");
+
             SecurityContextHolder.getContext().setAuthentication(
                     new UsernamePasswordAuthenticationToken(
                             request.getHeader("X-Serch-Drive-Api-Key"),
@@ -71,6 +71,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             filterChain.doFilter(request, response);
         } else if(keyService.isGuest(request.getHeader("X-Serch-Guest-Api-Key"), request.getHeader("X-Serch-Guest-Secret-Key")) && endpointValidator.isGuestPermitted(request.getServletPath())) {
+            Logging.logRequest(request, "Guest Request");
+
             SecurityContextHolder.getContext().setAuthentication(
                     new UsernamePasswordAuthenticationToken(
                             request.getHeader("X-Serch-Guest-Api-Key"),
@@ -85,17 +87,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // If the Authorization header is missing or does not start with "Bearer", proceed to the next filter
             if(header == null || !header.startsWith("Bearer") || header.length() < 7){
+                Logging.logRequest(request, "No Auth Request");
+
                 filterChain.doFilter(request, response);
                 return;
             }
 
             // If remote address contains any of the Whitelisted IP Addresses, proceed to next filter
             if(ServerUtil.ALLOWED_IP_ADDRESSES.contains(request.getRemoteAddr())){
+                Logging.logRequest(request, "Allowed Ip Request");
+
                 filterChain.doFilter(request, response);
                 return;
             }
 
             try {
+                Logging.logRequest(request, "JWT Request");
+
                 // Validate the session associated with the JWT token
                 String jwt = header.substring(7);
 

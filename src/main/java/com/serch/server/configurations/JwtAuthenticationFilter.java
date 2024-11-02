@@ -4,6 +4,7 @@ import com.serch.server.core.Logging;
 import com.serch.server.core.session.SessionService;
 import com.serch.server.core.validator.endpoint.EndpointValidatorService;
 import com.serch.server.core.validator.key.KeyValidatorService;
+import com.serch.server.enums.ServerHeader;
 import com.serch.server.exceptions.ServerExceptionHandler;
 import com.serch.server.exceptions.auth.AuthException;
 import com.serch.server.utils.ServerUtil;
@@ -59,23 +60,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     @SneakyThrows
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) {
-        if(keyService.isDrive(request.getHeader("X-Serch-Drive-Api-Key"), request.getHeader("X-Serch-Drive-Secret-Key")) && endpointValidator.isDrivePermitted(request.getServletPath())) {
+        System.out.println(request.getHeader(ServerHeader.DRIVE_API_KEY.getValue()));
+        System.out.println(request.getHeader(ServerHeader.DRIVE_SECRET_KEY.getValue()));
+
+        if(keyService.isDrive(request.getHeader(ServerHeader.DRIVE_API_KEY.getValue()), request.getHeader(ServerHeader.DRIVE_SECRET_KEY.getValue())) && endpointValidator.isDrivePermitted(request.getServletPath())) {
             Logging.logRequest(request, "Drive Request");
 
             SecurityContextHolder.getContext().setAuthentication(
                     new UsernamePasswordAuthenticationToken(
-                            request.getHeader("X-Serch-Drive-Api-Key"),
+                            request.getHeader(ServerHeader.DRIVE_API_KEY.getValue()),
                             null, new ArrayList<>()
                     )
             );
 
             filterChain.doFilter(request, response);
-        } else if(keyService.isGuest(request.getHeader("X-Serch-Guest-Api-Key"), request.getHeader("X-Serch-Guest-Secret-Key")) && endpointValidator.isGuestPermitted(request.getServletPath())) {
+        } else if(keyService.isGuest(request.getHeader(ServerHeader.GUEST_API_KEY.getValue()), request.getHeader(ServerHeader.GUEST_SECRET_KEY.getValue())) && endpointValidator.isGuestPermitted(request.getServletPath())) {
             Logging.logRequest(request, "Guest Request");
 
             SecurityContextHolder.getContext().setAuthentication(
                     new UsernamePasswordAuthenticationToken(
-                            request.getHeader("X-Serch-Guest-Api-Key"),
+                            request.getHeader(ServerHeader.GUEST_API_KEY.getValue()),
                             null, new ArrayList<>()
                     )
             );

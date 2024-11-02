@@ -1,9 +1,9 @@
 package com.serch.server.utils;
 
+import com.serch.server.enums.ServerHeader;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class ServerUtil {
@@ -12,6 +12,10 @@ public class ServerUtil {
      */
     public static final List<String> HEADERS = List.of(
             "X-CSRF-TOKEN",
+            ServerHeader.DRIVE_API_KEY.getValue(),
+            ServerHeader.DRIVE_SECRET_KEY.getValue(),
+            ServerHeader.GUEST_API_KEY.getValue(),
+            ServerHeader.GUEST_SECRET_KEY.getValue(),
             HttpHeaders.AUTHORIZATION,
             HttpHeaders.ACCEPT,
             HttpHeaders.CONTENT_TYPE

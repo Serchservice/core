@@ -147,7 +147,7 @@ public class LocationImplementation implements LocationService {
         NearbySearchRequest request = new NearbySearchRequest();
         request.setIncludedTypes(new ArrayList<>(Collections.singletonList(category.toLowerCase())));
 
-        request.getLocationRestriction().getCircle().setRadius(radius * 10);
+        request.getLocationRestriction().getCircle().setRadius(radius);
         request.getLocationRestriction().getCircle().getCenter().setLatitude(latitude);
         request.getLocationRestriction().getCircle().getCenter().setLongitude(longitude);
         log.info(String.format("Nearby Search for - %s", request));

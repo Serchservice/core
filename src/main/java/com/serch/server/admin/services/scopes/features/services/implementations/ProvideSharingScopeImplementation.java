@@ -55,7 +55,7 @@ public class ProvideSharingScopeImplementation implements ProvideSharingScopeSer
                 metric.setFeature(category.getImage());
                 metrics.add(metric);
             });
-            FeatureScopeImplementation.updateSharedMetrics(metrics, Set.of(PERSONAL_SHOPPER, BUSINESS, GUEST, USER), groups);
+            FeatureScopeImplementation.updateMetrics(metrics, Set.of(PERSONAL_SHOPPER, BUSINESS, GUEST, USER), groups);
         }
 
         return metrics;
@@ -72,7 +72,7 @@ public class ProvideSharingScopeImplementation implements ProvideSharingScopeSer
             ChartMetric metric = new ChartMetric();
             metric.setLabel(startMonth.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH));
             metric.setColor(AdminUtil.randomColor());
-            metric.setValue((int) sharedLinkRepository.countWithinDateRange(startMonth, startMonth.plusMonths(1).minusSeconds(1)));
+            metric.setValue(sharedLinkRepository.countWithinDateRange(startMonth, startMonth.plusMonths(1).minusSeconds(1)));
             metrics.add(metric);
         }
 

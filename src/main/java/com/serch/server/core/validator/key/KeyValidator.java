@@ -19,6 +19,12 @@ public class KeyValidator implements KeyValidatorService {
     @Value("${application.guest.key.secret}")
     private String GUEST_SECRET_KEY;
 
+    @Value("${application.access.signature}")
+    private String ACCESS_SIGNATURE;
+
+    @Value("${application.access.identity}")
+    private String ACCESS_IDENTITY;
+
     @Override
     public boolean isDrive(String apiKey, String secretKey) {
         return apiKey != null && !apiKey.isEmpty()
@@ -41,6 +47,11 @@ public class KeyValidator implements KeyValidatorService {
                 && isValidGuestApiKey(apiKey)
                 && secretKey != null && !secretKey.isEmpty()
                 && isValidGuestSecretKey(secretKey);
+    }
+
+    @Override
+    public boolean isSigned(String key) {
+        return key.startsWith(ACCESS_IDENTITY) && ACCESS_SIGNATURE.equals(key);
     }
 
     private boolean isValidGuestApiKey(String apiKey) {

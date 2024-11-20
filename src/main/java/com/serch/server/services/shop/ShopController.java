@@ -39,7 +39,7 @@ public class ShopController {
             @RequestParam(name = "lat") Double lat,
             @RequestParam(required = false, name = "radius") Double radius,
             @RequestParam(required = false) DriveScope scope
-            ) {
+    ) {
         ApiResponse<List<SearchShopResponse>> response = shopService.drive(query, category, lng, lat, radius, scope);
         return new ResponseEntity<>(response, response.getStatus());
     }

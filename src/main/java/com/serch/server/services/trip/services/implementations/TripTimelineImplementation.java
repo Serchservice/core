@@ -5,14 +5,11 @@ import com.serch.server.models.trip.Trip;
 import com.serch.server.models.trip.TripShare;
 import com.serch.server.models.trip.TripTimeline;
 import com.serch.server.repositories.trip.TripTimelineRepository;
-import com.serch.server.services.trip.responses.TripTimelineResponse;
 import com.serch.server.services.trip.services.TripTimelineService;
 import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -47,17 +44,5 @@ public class TripTimelineImplementation implements TripTimelineService {
                         tripTimelineRepository.save(timeline);
                     });
         }
-    }
-
-    @Override
-    @Transactional
-    public TripTimelineResponse response(TripTimeline timeline) {
-        return null;
-    }
-
-    @Override
-    @Transactional
-    public List<TripTimelineResponse> response(Trip trip) {
-        return List.of();
     }
 }

@@ -61,12 +61,14 @@ public class ActiveImplementation implements ActiveService {
                     existing.get().setUpdatedAt(TimeUtil.now());
                     updateActive(request, existing.get());
                     activeRepository.save(existing.get());
+
                     return new ApiResponse<>(ProviderStatus.OFFLINE);
                 } else if(existing.get().getStatus() == ProviderStatus.OFFLINE) {
                     existing.get().setStatus(ProviderStatus.ONLINE);
                     existing.get().setUpdatedAt(TimeUtil.now());
                     updateActive(request, existing.get());
                     activeRepository.save(existing.get());
+
                     return new ApiResponse<>(ProviderStatus.ONLINE);
                 } else {
                     throw new TripException("Can't update your trip status");

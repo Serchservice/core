@@ -9,7 +9,6 @@ import com.serch.server.core.map.responses.MapSuggestionsResponse;
 import com.serch.server.core.map.responses.PlacesResponse;
 import com.serch.server.enums.ServerHeader;
 import com.serch.server.enums.shop.ShopStatus;
-import com.serch.server.exceptions.others.SerchException;
 import com.serch.server.services.shop.responses.SearchShopResponse;
 import com.serch.server.services.shop.responses.ShopResponse;
 import com.serch.server.utils.HelperUtil;
@@ -144,16 +143,11 @@ public class LocationImplementation implements LocationService {
     }
 
     @Override
-    public ApiResponse<Address> search(String id) {
-        return null;
-    }
-
-    @Override
     public List<SearchShopResponse> nearbySearch(String category, Double longitude, Double latitude, Double radius) {
         NearbySearchRequest request = new NearbySearchRequest();
         request.setIncludedTypes(new ArrayList<>(Collections.singletonList(category.toLowerCase())));
 
-        request.getLocationRestriction().getCircle().setRadius(radius / 10);
+        request.getLocationRestriction().getCircle().setRadius(radius * 10);
         request.getLocationRestriction().getCircle().getCenter().setLatitude(latitude);
         request.getLocationRestriction().getCircle().getCenter().setLongitude(longitude);
         log.info(String.format("Nearby Search for - %s", request));
@@ -182,7 +176,7 @@ public class LocationImplementation implements LocationService {
                 }
             }
         } catch (Exception e) {
-            throw new SerchException(e.getMessage());
+            log.error(e.getMessage());
         }
 
         return shops;

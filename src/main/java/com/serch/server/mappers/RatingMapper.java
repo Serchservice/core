@@ -6,7 +6,6 @@ import com.serch.server.services.rating.requests.RateAppRequest;
 import com.serch.server.services.rating.requests.RatingCalculation;
 import com.serch.server.services.rating.responses.RatingResponse;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper

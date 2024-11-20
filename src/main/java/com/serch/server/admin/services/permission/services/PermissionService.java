@@ -3,7 +3,7 @@ package com.serch.server.admin.services.permission.services;
 import com.serch.server.admin.enums.Permission;
 import com.serch.server.admin.enums.PermissionScope;
 import com.serch.server.admin.models.*;
-import com.serch.server.admin.services.account.responses.AdminTeamResponse;
+import com.serch.server.admin.services.team.responses.AdminTeamResponse;
 import com.serch.server.admin.services.permission.requests.PermissionRequest;
 import com.serch.server.admin.services.permission.requests.PermissionScopeRequest;
 import com.serch.server.admin.services.permission.responses.*;

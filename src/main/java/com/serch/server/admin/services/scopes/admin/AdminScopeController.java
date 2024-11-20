@@ -5,6 +5,7 @@ import com.serch.server.admin.services.responses.ChartMetric;
 import com.serch.server.admin.services.scopes.admin.requests.ChangeRoleRequest;
 import com.serch.server.admin.services.scopes.admin.requests.ChangeStatusRequest;
 import com.serch.server.admin.services.scopes.admin.responses.AdminScopeResponse;
+import com.serch.server.admin.services.scopes.admin.services.AdminScopeService;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.core.storage.requests.FileUploadRequest;
 import lombok.RequiredArgsConstructor;

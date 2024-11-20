@@ -2,10 +2,7 @@ package com.serch.server.services.category;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.serch.server.enums.account.SerchCategory;
-import com.serch.server.services.account.responses.SpecialtyResponse;
 import lombok.Data;
-
-import java.util.List;
 
 @Data
 public class SerchCategoryResponse {

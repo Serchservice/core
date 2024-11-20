@@ -58,7 +58,7 @@ public class SharedLogin extends BaseModel {
 
     public UseStatus nextUsageStatus() {
         if(statuses != null && !statuses.isEmpty()) {
-            UseStatus latestStatus = statuses.get(statuses.size() - 1).getUseStatus();
+            UseStatus latestStatus = statuses.getLast().getUseStatus();
             return latestStatus.next();
         } else {
             return UseStatus.COUNT_1;

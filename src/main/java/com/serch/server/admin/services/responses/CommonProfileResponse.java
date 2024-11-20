@@ -16,6 +16,7 @@ public class CommonProfileResponse {
     private String avatar;
     private Role role;
     private String category;
+    private Double rating;
     private String image;
     private AccountStatus status;
     private ZonedDateTime createdAt;

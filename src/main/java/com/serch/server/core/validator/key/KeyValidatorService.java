@@ -25,4 +25,12 @@ public interface KeyValidatorService {
      * @return true if the request is a valid guest operation request, false otherwise.
      */
     boolean isGuest(String apiKey, String secretKey);
+
+    /**
+     * Determines if the request is signed by Serch.
+     *
+     * @param key    The Signed key sent with the request.
+     * @return true if the request is a valid-signed request, false otherwise.
+     */
+    boolean isSigned(String key);
 }

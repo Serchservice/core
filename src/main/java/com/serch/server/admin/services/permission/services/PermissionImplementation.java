@@ -8,7 +8,7 @@ import com.serch.server.admin.repositories.AdminRepository;
 import com.serch.server.admin.repositories.GrantedPermissionRepository;
 import com.serch.server.admin.repositories.GrantedPermissionScopeRepository;
 import com.serch.server.admin.repositories.RequestedPermissionRepository;
-import com.serch.server.admin.services.account.responses.AdminTeamResponse;
+import com.serch.server.admin.services.team.responses.AdminTeamResponse;
 import com.serch.server.admin.services.account.services.AdminActivityService;
 import com.serch.server.admin.services.account.services.AdminProfileService;
 import com.serch.server.admin.services.notification.AdminNotificationService;

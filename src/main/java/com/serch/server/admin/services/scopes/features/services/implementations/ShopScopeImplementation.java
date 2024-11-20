@@ -2,7 +2,7 @@ package com.serch.server.admin.services.scopes.features.services.implementations
 
 import com.serch.server.admin.services.responses.ChartMetric;
 import com.serch.server.admin.services.responses.Metric;
-import com.serch.server.admin.services.scopes.common.CommonProfileService;
+import com.serch.server.admin.services.scopes.common.services.CommonProfileService;
 import com.serch.server.admin.services.scopes.features.responses.ShopScopeOverviewResponse;
 import com.serch.server.admin.services.scopes.features.responses.ShopScopeResponse;
 import com.serch.server.admin.services.scopes.features.services.ShopScopeService;
@@ -64,7 +64,7 @@ public class ShopScopeImplementation implements ShopScopeService {
                 metric.setFeature(category.getImage());
                 metrics.add(metric);
             });
-            FeatureScopeImplementation.updateShopMetrics(metrics, groups, Set.of(PERSONAL_SHOPPER, GUEST, USER));
+            FeatureScopeImplementation.updateMetrics(metrics, Set.of(PERSONAL_SHOPPER, GUEST, USER), groups);
         }
 
         return metrics;
@@ -80,7 +80,7 @@ public class ShopScopeImplementation implements ShopScopeService {
             ChartMetric metric = new ChartMetric();
             metric.setLabel(startMonth.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH));
             metric.setColor(AdminUtil.randomColor());
-            metric.setValue((int) shopRepository.countByDateRange(startMonth, startMonth.plusMonths(1).minusSeconds(1)));
+            metric.setValue(shopRepository.countByDateRange(startMonth, startMonth.plusMonths(1).minusSeconds(1)));
             metrics.add(metric);
         }
 

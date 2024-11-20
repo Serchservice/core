@@ -9,7 +9,7 @@ import com.serch.server.admin.repositories.AdminRepository;
 import com.serch.server.admin.services.account.requests.AdminProfileUpdateRequest;
 import com.serch.server.admin.services.account.responses.AdminProfileResponse;
 import com.serch.server.admin.services.account.responses.AdminResponse;
-import com.serch.server.admin.services.account.responses.AdminTeamResponse;
+import com.serch.server.admin.services.team.responses.AdminTeamResponse;
 import com.serch.server.admin.services.permission.services.GrantedPermissionService;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.exceptions.auth.AuthException;

@@ -6,7 +6,6 @@ import com.serch.server.services.conversation.responses.ChatRoomResponse;
 import com.serch.server.core.notification.repository.INotificationRepository;
 import com.serch.server.core.notification.requests.NotificationMessage;
 import com.serch.server.services.schedule.responses.ScheduleResponse;
-import com.serch.server.services.trip.responses.TripResponse;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.MoneyUtil;
 import lombok.RequiredArgsConstructor;
@@ -187,11 +186,6 @@ public class NotificationImplementation implements NotificationService {
                 }
             };
         }
-    }
-
-    @Override
-    public void send(String id, TripResponse response) {
-
     }
 
     @Override

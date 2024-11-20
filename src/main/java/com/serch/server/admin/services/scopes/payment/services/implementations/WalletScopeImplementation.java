@@ -1,7 +1,7 @@
 package com.serch.server.admin.services.scopes.payment.services.implementations;
 
 import com.serch.server.admin.mappers.ScopeMapper;
-import com.serch.server.admin.services.scopes.common.CommonProfileService;
+import com.serch.server.admin.services.scopes.common.services.CommonProfileService;
 import com.serch.server.admin.services.scopes.payment.responses.transactions.PaymentApiResponse;
 import com.serch.server.admin.services.scopes.payment.responses.wallet.WalletScopeResponse;
 import com.serch.server.admin.services.scopes.payment.services.WalletScopeService;

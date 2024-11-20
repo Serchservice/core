@@ -1,9 +1,10 @@
 package com.serch.server.repositories.auth;
 
 import com.serch.server.enums.account.AccountStatus;
+import com.serch.server.enums.auth.Role;
 import com.serch.server.models.auth.AccountStatusTracker;
-import com.serch.server.models.auth.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.lang.NonNull;
 
 import java.time.ZonedDateTime;
@@ -18,7 +19,8 @@ public interface AccountStatusTrackerRepository extends JpaRepository<AccountSta
             ZonedDateTime createdAt2
     );
 
-    void deleteByUser(@NonNull User user);
-
     List<AccountStatusTracker> findByUser_Id(@NonNull UUID id);
+
+    @Query("select b from AccountStatusTracker b where b.user.role = ?1 and b.createdAt between ?2 and ?3")
+    List<AccountStatusTracker> findByRoleAndCreatedAtBetween(Role role, ZonedDateTime startMonth, ZonedDateTime endMonth);
 }

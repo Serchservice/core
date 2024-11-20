@@ -284,6 +284,11 @@
       "name": "application.guest.key.secret",
       "type": "java.lang.String",
       "description": "This is the Secret Key for Guest access in User mobile application."
+    },
+    {
+      "name": "application.access.signature",
+      "type": "java.lang.String",
+      "description": "This is the access signature for all Serch products accessing the server."
     }
   ]
 }

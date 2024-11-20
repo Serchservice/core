@@ -4,7 +4,7 @@ import com.serch.server.admin.exceptions.PermissionException;
 import com.serch.server.admin.mappers.AdminCompanyMapper;
 import com.serch.server.admin.models.Admin;
 import com.serch.server.admin.repositories.AdminRepository;
-import com.serch.server.admin.services.scopes.common.CommonProfileService;
+import com.serch.server.admin.services.scopes.common.services.CommonProfileService;
 import com.serch.server.admin.services.scopes.support.responses.SpeakWithSerchOverviewResponse;
 import com.serch.server.admin.services.scopes.support.responses.SpeakWithSerchScopeResponse;
 import com.serch.server.bases.ApiResponse;

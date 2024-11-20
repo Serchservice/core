@@ -1,6 +1,6 @@
 package com.serch.server.admin.services.permission;
 
-import com.serch.server.admin.services.account.responses.AdminTeamResponse;
+import com.serch.server.admin.services.team.responses.AdminTeamResponse;
 import com.serch.server.admin.services.permission.requests.PermissionRequest;
 import com.serch.server.admin.services.permission.responses.PermissionAccountSearchResponse;
 import com.serch.server.admin.services.permission.responses.PermissionRequestGroupResponse;

@@ -7,7 +7,7 @@ import com.serch.server.admin.models.Admin;
 import com.serch.server.admin.models.transaction.ResolvedTransaction;
 import com.serch.server.admin.repositories.AdminRepository;
 import com.serch.server.admin.repositories.transactions.ResolvedTransactionRepository;
-import com.serch.server.admin.services.scopes.common.CommonProfileService;
+import com.serch.server.admin.services.scopes.common.services.CommonProfileService;
 import com.serch.server.admin.services.scopes.payment.responses.transactions.*;
 import com.serch.server.admin.services.scopes.payment.services.TransactionScopeService;
 import com.serch.server.bases.ApiResponse;

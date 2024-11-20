@@ -14,7 +14,6 @@ import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 
 /**
  * The Transaction class represents a financial transaction in the platform schema.
@@ -53,9 +52,6 @@ public class Transaction extends BaseDateTime {
 
     @Column(nullable = false, columnDefinition = "TEXT", updatable = false)
     private String sender;
-
-//    @Column(columnDefinition = "TEXT", updatable = false)
-//    private UUID associate;
 
     @Column(columnDefinition = "TEXT", updatable = false)
     private String event;

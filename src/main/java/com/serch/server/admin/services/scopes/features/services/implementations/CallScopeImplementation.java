@@ -84,7 +84,7 @@ public class CallScopeImplementation implements CallScopeService {
             ChartMetric metric = new ChartMetric();
             metric.setLabel(startMonth.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH));
             metric.setColor(AdminUtil.randomColor());
-            metric.setValue((int) callRepository.countByType(callType, startMonth, startMonth.plusMonths(1).minusSeconds(1)));
+            metric.setValue(callRepository.countByType(callType, startMonth, startMonth.plusMonths(1).minusSeconds(1)));
             metrics.add(metric);
         }
 
@@ -112,7 +112,7 @@ public class CallScopeImplementation implements CallScopeService {
                 metric.setLabel(category.getType());
                 metric.setImage(category.getImage());
                 metric.setColor(AdminUtil.randomColor());
-                metric.setValue(calls.size());
+                metric.setValue((long) calls.size());
                 metrics.add(metric);
             });
             FeatureScopeImplementation.updateCategoryChartMetrics(metrics, Set.of(PERSONAL_SHOPPER, BUSINESS, GUEST, USER), groups);

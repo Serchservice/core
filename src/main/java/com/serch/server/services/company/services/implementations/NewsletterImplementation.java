@@ -70,9 +70,7 @@ public class NewsletterImplementation implements NewsletterService {
         } else if(isValid(emailAddress)) {
             AtomicReference<String> message = new AtomicReference<>("Subscribed");
             newsletterRepository.findByEmailAddressIgnoreCase(emailAddress)
-                    .ifPresentOrElse(newsletter -> {
-                        message.set("You already have an existing subscription");
-                    }, () -> {
+                    .ifPresentOrElse(newsletter -> message.set("You already have an existing subscription"), () -> {
                         Newsletter newsletter = new Newsletter();
                         newsletter.setEmailAddress(emailAddress);
                         newsletterRepository.save(newsletter);

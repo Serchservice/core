@@ -3,14 +3,9 @@ package com.serch.server.mappers;
 import com.serch.server.models.account.*;
 import com.serch.server.models.auth.incomplete.IncompletePhoneInformation;
 import com.serch.server.models.auth.incomplete.IncompleteProfile;
-import com.serch.server.models.account.BusinessProfile;
-import com.serch.server.services.account.requests.AddAssociateRequest;
 import com.serch.server.services.account.responses.*;
 import com.serch.server.services.auth.requests.RequestPhoneInformation;
 import com.serch.server.services.auth.requests.RequestProfile;
-import com.serch.server.services.auth.requests.RequestProviderProfile;
-import com.serch.server.services.account.responses.BusinessInformationData;
-import com.serch.server.services.account.responses.BusinessProfileResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
@@ -31,8 +26,6 @@ public interface AccountMapper {
 
     @Mapping(source = "id", target = "id", ignore = true)
     PhoneInformation phoneInformation(IncompletePhoneInformation phoneInformation);
-
-    RequestProviderProfile profile(AddAssociateRequest request);
 
     AdditionalInformationResponse additional(AdditionalInformation additionalInformation);
 

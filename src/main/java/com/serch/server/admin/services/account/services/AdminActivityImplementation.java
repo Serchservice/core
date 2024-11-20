@@ -6,7 +6,7 @@ import com.serch.server.admin.models.Admin;
 import com.serch.server.admin.models.AdminActivity;
 import com.serch.server.admin.repositories.AdminActivityRepository;
 import com.serch.server.admin.repositories.AdminRepository;
-import com.serch.server.admin.services.account.responses.AdminActivityResponse;
+import com.serch.server.admin.services.team.responses.AdminActivityResponse;
 import com.serch.server.enums.auth.Role;
 import com.serch.server.exceptions.auth.AuthException;
 import com.serch.server.models.auth.User;

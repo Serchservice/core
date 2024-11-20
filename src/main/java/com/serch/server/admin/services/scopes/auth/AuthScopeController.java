@@ -1,7 +1,7 @@
 package com.serch.server.admin.services.scopes.auth;
 
 import com.serch.server.admin.services.responses.auth.AccountSessionResponse;
-import com.serch.server.admin.services.scopes.common.CommonAuthService;
+import com.serch.server.admin.services.scopes.common.services.CommonAuthService;
 import com.serch.server.bases.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

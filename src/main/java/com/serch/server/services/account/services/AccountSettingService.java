@@ -1,7 +1,6 @@
 package com.serch.server.services.account.services;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.enums.account.Gender;
 import com.serch.server.models.auth.User;
 import com.serch.server.services.account.responses.AccountSettingResponse;
 

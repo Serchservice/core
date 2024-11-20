@@ -23,10 +23,4 @@ public class LocationController {
         ApiResponse<List<Address>> response = locationService.predictions(q);
         return new ResponseEntity<>(response, response.getStatus());
     }
-
-    @GetMapping("/search/place")
-    public ResponseEntity<ApiResponse<Address>> search(@RequestParam String id) {
-        ApiResponse<Address> response = locationService.search(id);
-        return new ResponseEntity<>(response, response.getStatus());
-    }
 }

@@ -1,11 +1,13 @@
 package com.serch.server.repositories.trip;
 
+import com.serch.server.enums.auth.Role;
 import com.serch.server.models.trip.Active;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.lang.NonNull;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -205,4 +207,7 @@ public interface ActiveRepository extends JpaRepository<Active, Long> {
             @Param("category") String category,
             @Param("filters") String filters
     );
+
+    @Query("select b from Active b where b.profile.user.role = ?1 and b.createdAt between ?2 and ?3")
+    List<Active> findByRoleAndCreatedAtBetween(Role role, ZonedDateTime startMonth, ZonedDateTime endMonth);
 }

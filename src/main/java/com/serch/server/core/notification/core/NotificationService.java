@@ -3,7 +3,6 @@ package com.serch.server.core.notification.core;
 import com.serch.server.services.conversation.responses.ActiveCallResponse;
 import com.serch.server.services.conversation.responses.ChatRoomResponse;
 import com.serch.server.services.schedule.responses.ScheduleResponse;
-import com.serch.server.services.trip.responses.TripResponse;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -42,14 +41,6 @@ public interface NotificationService {
      * @param response The {@link ScheduleResponse} containing the schedule details.
      */
     void send(UUID id, ScheduleResponse response);
-
-    /**
-     * Sends a trip notification to the preferred device of the specified guest.
-     *
-     * @param id The ID of the guest receiving the notification.
-     * @param response The {@link TripResponse} containing the trip details.
-     */
-    void send(String id, TripResponse response);
 
     /**
      * Sends a trip invite or request notification to the preferred device of the specified guest.

@@ -7,7 +7,7 @@ import com.serch.server.admin.repositories.AdminRepository;
 import com.serch.server.admin.repositories.OrganizationRepository;
 import com.serch.server.admin.services.organization.data.OrganizationDto;
 import com.serch.server.admin.services.organization.data.OrganizationResponse;
-import com.serch.server.admin.services.scopes.common.CommonProfileService;
+import com.serch.server.admin.services.scopes.common.services.CommonProfileService;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.core.code.TokenService;
 import com.serch.server.core.qr_code.QRCodeService;

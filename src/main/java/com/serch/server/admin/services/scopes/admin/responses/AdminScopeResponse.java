@@ -1,7 +1,7 @@
 package com.serch.server.admin.services.scopes.admin.responses;
 
 import com.serch.server.admin.services.account.responses.AdminResponse;
-import com.serch.server.admin.services.account.responses.CompanyStructure;
+import com.serch.server.admin.services.team.responses.CompanyStructure;
 import com.serch.server.admin.services.responses.AnalysisResponse;
 import com.serch.server.admin.services.responses.auth.AccountAuthResponse;
 import com.serch.server.admin.services.responses.auth.AccountMFAChallengeResponse;

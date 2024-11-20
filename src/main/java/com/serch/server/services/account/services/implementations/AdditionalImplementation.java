@@ -43,10 +43,6 @@ public class AdditionalImplementation implements AdditionalService {
         AdditionalInformation information = additionalInformationRepository.findByProfile_Id(userUtil.getUser().getId())
                 .orElseThrow(() -> new AccountException("User has no additional profile"));
 
-        return new ApiResponse<>(
-                "Additional fetched successfully",
-                AccountMapper.INSTANCE.additional(information),
-                HttpStatus.OK
-        );
+        return new ApiResponse<>("Additional fetched successfully", AccountMapper.INSTANCE.additional(information), HttpStatus.OK);
     }
 }

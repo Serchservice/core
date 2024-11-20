@@ -69,19 +69,17 @@ public class SupportScopeImplementation implements SupportScopeService {
 
     private List<ChartMetric> getChartMetrics(Integer year, boolean isComplaint) {
         return Arrays.stream(IssueStatus.values()).map(status -> {
-            ChartMetric chartMetric = new ChartMetric();
-            chartMetric.setColor(AdminUtil.randomColor());
-            chartMetric.setLabel(status.getType());
+            ChartMetric metric = new ChartMetric();
+            metric.setColor(AdminUtil.randomColor());
+            metric.setLabel(status.getType());
 
-            long count;
             if (isComplaint) {
-                count = complaintRepository.countByYearAndStatus(year, status);
+                metric.setValue(complaintRepository.countByYearAndStatus(year, status));
             } else {
-                count = speakWithSerchRepository.countByYearAndStatus(year, status);
+                metric.setValue(speakWithSerchRepository.countByYearAndStatus(year, status));
             }
 
-            chartMetric.setValue((int) count);
-            return chartMetric;
+            return metric;
         }).toList();
     }
 

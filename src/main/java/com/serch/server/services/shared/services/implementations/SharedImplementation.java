@@ -231,7 +231,7 @@ public class SharedImplementation implements SharedService {
     }
 
     @Override
-    public SharedStatus create(String linkId, String account, Trip trip) {
+    public void create(String linkId, String account, Trip trip) {
         if(linkId != null && !linkId.isEmpty()) {
             SharedLogin login = sharedLoginRepository.findBySharedLink_IdAndGuest_Id(linkId, account)
                     .orElseThrow(() -> new TripException("Guest not found. Check the link you are using."));
@@ -239,16 +239,14 @@ public class SharedImplementation implements SharedService {
             if(login.getSharedLink().isExpired()) {
                 throw new TripException("Link has expired");
             } else {
-                SharedStatus sharedStatus = new SharedStatus();
-                sharedStatus.setSharedLogin(login);
-                sharedStatus.setTrip(trip);
-                sharedStatus.setUseStatus(login.nextUsageStatus());
-                sharedStatus.setSharedLink(login.getSharedLink());
-                sharedStatusRepository.save(sharedStatus);
-                return sharedStatus;
+                SharedStatus status = new SharedStatus();
+                status.setSharedLogin(login);
+                status.setTrip(trip);
+                status.setUseStatus(login.nextUsageStatus());
+                status.setSharedLink(login.getSharedLink());
+                sharedStatusRepository.save(status);
             }
         }
-        return null;
     }
 
     @Override

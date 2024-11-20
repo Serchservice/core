@@ -99,10 +99,8 @@ public interface SharedService {
      * @param linkId The {@link SharedLink} id
      * @param account The {@link Guest} id
      * @param trip The {@link Trip} data
-     *
-     * @return {@link SharedStatus} data
      */
-    SharedStatus create(String linkId, String account, Trip trip);
+    void create(String linkId, String account, Trip trip);
 
     /**
      * Builds an ApiResponse containing the account response for a user.

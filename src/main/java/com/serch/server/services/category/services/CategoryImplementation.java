@@ -27,6 +27,7 @@ public class CategoryImplementation implements CategoryService {
     private SerchCategoryResponse response(SerchCategory category) {
         SerchCategoryResponse response = CompanyMapper.INSTANCE.response(category);
         response.setCategory(category);
+
         return response;
     }
 

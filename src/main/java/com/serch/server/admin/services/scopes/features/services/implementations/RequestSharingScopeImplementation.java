@@ -72,7 +72,7 @@ public class RequestSharingScopeImplementation implements RequestSharingScopeSer
             ChartMetric metric = new ChartMetric();
             metric.setLabel(startMonth.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH));
             metric.setColor(AdminUtil.randomColor());
-            metric.setValue((int) tripShareRepository.countOnlineWithinDateRange(startMonth, startMonth.plusMonths(1).minusSeconds(1)));
+            metric.setValue(tripShareRepository.countOnlineWithinDateRange(startMonth, startMonth.plusMonths(1).minusSeconds(1)));
             metrics.add(metric);
         }
 
@@ -90,7 +90,7 @@ public class RequestSharingScopeImplementation implements RequestSharingScopeSer
             ChartMetric metric = new ChartMetric();
             metric.setLabel(startMonth.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH));
             metric.setColor(AdminUtil.randomColor());
-            metric.setValue((int) tripShareRepository.countOfflineWithinDateRange(startMonth, startMonth.plusMonths(1).minusSeconds(1)));
+            metric.setValue(tripShareRepository.countOfflineWithinDateRange(startMonth, startMonth.plusMonths(1).minusSeconds(1)));
             metrics.add(metric);
         }
 

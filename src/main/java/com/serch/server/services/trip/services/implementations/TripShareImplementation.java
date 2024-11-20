@@ -28,7 +28,6 @@ import java.util.List;
 
 import static com.serch.server.enums.auth.Role.USER;
 import static com.serch.server.enums.trip.TripConnectionStatus.*;
-import static com.serch.server.enums.trip.TripConnectionStatus.REQUESTED;
 import static com.serch.server.enums.trip.TripShareAccess.DENIED;
 import static com.serch.server.enums.trip.TripShareAccess.GRANTED;
 import static com.serch.server.enums.account.ProviderStatus.ONLINE;

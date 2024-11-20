@@ -2,7 +2,7 @@ package com.serch.server.admin.services.account.services;
 
 import com.serch.server.admin.enums.ActivityMode;
 import com.serch.server.admin.models.Admin;
-import com.serch.server.admin.services.account.responses.AdminActivityResponse;
+import com.serch.server.admin.services.team.responses.AdminActivityResponse;
 import com.serch.server.models.auth.User;
 
 import java.util.List;

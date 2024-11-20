@@ -62,94 +62,104 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) {
         System.out.printf("New Request from ip address: %s for %s%n", request.getRemoteAddr(), request.getServletPath());
 
-        if(keyService.isDrive(request.getHeader(ServerHeader.DRIVE_API_KEY.getValue()), request.getHeader(ServerHeader.DRIVE_SECRET_KEY.getValue())) && endpointValidator.isDrivePermitted(request.getServletPath())) {
-            Logging.logRequest(request, "Drive Request");
-
-            SecurityContextHolder.getContext().setAuthentication(
-                    new UsernamePasswordAuthenticationToken(
-                            request.getHeader(ServerHeader.DRIVE_API_KEY.getValue()),
-                            null, new ArrayList<>()
-                    )
-            );
+        if(endpointValidator.isSocketPermitted(request.getServletPath()) || endpointValidator.isSwaggerPermitted(request.getServletPath())){
+            Logging.logRequest(request, "Unsigned request");
 
             filterChain.doFilter(request, response);
-        } else if(keyService.isGuest(request.getHeader(ServerHeader.GUEST_API_KEY.getValue()), request.getHeader(ServerHeader.GUEST_SECRET_KEY.getValue())) && endpointValidator.isGuestPermitted(request.getServletPath())) {
-            Logging.logRequest(request, "Guest Request");
+        } else if(keyService.isSigned(request.getHeader(ServerHeader.SERCH_SIGNED.getValue()))) {
+            Logging.logRequest(request, "Signed request");
 
-            SecurityContextHolder.getContext().setAuthentication(
-                    new UsernamePasswordAuthenticationToken(
-                            request.getHeader(ServerHeader.GUEST_API_KEY.getValue()),
-                            null, new ArrayList<>()
-                    )
-            );
+            if(keyService.isDrive(request.getHeader(ServerHeader.DRIVE_API_KEY.getValue()), request.getHeader(ServerHeader.DRIVE_SECRET_KEY.getValue())) && endpointValidator.isDrivePermitted(request.getServletPath())) {
+                Logging.logRequest(request, "Drive Request");
 
-            filterChain.doFilter(request, response);
-        } else {
-            // Extract JWT token from the Authorization header
-            String header = request.getHeader("Authorization");
-
-            // If the Authorization header is missing or does not start with "Bearer", proceed to the next filter
-            if(header == null || !header.startsWith("Bearer") || header.length() < 7){
-                Logging.logRequest(request, "No Auth Request");
+                SecurityContextHolder.getContext().setAuthentication(
+                        new UsernamePasswordAuthenticationToken(
+                                request.getHeader(ServerHeader.DRIVE_API_KEY.getValue()),
+                                null, new ArrayList<>()
+                        )
+                );
 
                 filterChain.doFilter(request, response);
-                return;
-            }
+            } else if(keyService.isGuest(request.getHeader(ServerHeader.GUEST_API_KEY.getValue()), request.getHeader(ServerHeader.GUEST_SECRET_KEY.getValue())) && endpointValidator.isGuestPermitted(request.getServletPath())) {
+                Logging.logRequest(request, "Guest Request");
 
-            // If remote address contains any of the Whitelisted IP Addresses, proceed to next filter
-            if(ServerUtil.ALLOWED_IP_ADDRESSES.contains(request.getRemoteAddr())){
-                Logging.logRequest(request, "Allowed Ip Request");
+                SecurityContextHolder.getContext().setAuthentication(
+                        new UsernamePasswordAuthenticationToken(
+                                request.getHeader(ServerHeader.GUEST_API_KEY.getValue()),
+                                null, new ArrayList<>()
+                        )
+                );
 
                 filterChain.doFilter(request, response);
-                return;
-            }
+            } else {
+                // Extract JWT token from the Authorization header
+                String header = request.getHeader("Authorization");
 
-            try {
-                Logging.logRequest(request, "JWT Request");
+                // If the Authorization header is missing or does not start with "Bearer", proceed to the next filter
+                if(header == null || !header.startsWith("Bearer") || header.length() < 7){
+                    Logging.logRequest(request, "No Auth Request");
 
-                // Validate the session associated with the JWT token
-                String jwt = header.substring(7);
+                    filterChain.doFilter(request, response);
+                    return;
+                }
 
-                var session = sessionService.validateSession(jwt, null, null);
-                if(session.getStatus().is2xxSuccessful()) {
-                    // If the user is not already authenticated, set up the authentication context
-                    if(SecurityContextHolder.getContext().getAuthentication() == null) {
-                        UserDetails userDetails = this.userDetailsService.loadUserByUsername(session.getData());
-                        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities()
-                        );
-                        token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                        SecurityContextHolder.getContext().setAuthentication(token);
-                        // Update the last seen timestamp of the session
-                        sessionService.updateLastSignedIn();
+                // If remote address contains any of the Whitelisted IP Addresses, proceed to next filter
+                if(ServerUtil.ALLOWED_IP_ADDRESSES.contains(request.getRemoteAddr())){
+                    Logging.logRequest(request, "Allowed Ip Request");
 
-                        if(request.getRemoteAddr() != null) {
-                            sessionService.updateSessionDetails(request.getRemoteAddr(), jwt);
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
+                try {
+                    Logging.logRequest(request, "JWT Request");
+
+                    // Validate the session associated with the JWT token
+                    String jwt = header.substring(7);
+
+                    var session = sessionService.validateSession(jwt, null, null);
+                    if(session.getStatus().is2xxSuccessful()) {
+                        // If the user is not already authenticated, set up the authentication context
+                        if(SecurityContextHolder.getContext().getAuthentication() == null) {
+                            UserDetails userDetails = this.userDetailsService.loadUserByUsername(session.getData());
+                            UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
+                                    userDetails,
+                                    null,
+                                    userDetails.getAuthorities()
+                            );
+                            token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                            SecurityContextHolder.getContext().setAuthentication(token);
+                            // Update the last seen timestamp of the session
+                            sessionService.updateLastSignedIn();
+
+                            if(request.getRemoteAddr() != null) {
+                                sessionService.updateSessionDetails(request.getRemoteAddr(), jwt);
+                            }
                         }
                     }
-                }
-                // Proceed to the next filter
-                filterChain.doFilter(request, response);
-            } catch (ExpiredJwtException | MalformedJwtException | AuthException | SignatureException
-                     | UnsupportedJwtException | IllegalArgumentException | StringIndexOutOfBoundsException e
-            ) {
-                // Handle various exceptions related to JWT processing and authentication
-                if(e instanceof AuthException) {
-                    handler.handleAuthException((AuthException) e);
-                } else if(e instanceof  ExpiredJwtException) {
-                    handler.handleExpiredJwtException((ExpiredJwtException) e);
-                } else if(e instanceof  MalformedJwtException) {
-                    handler.handleMalformedJwtException((MalformedJwtException) e);
-                } else if(e instanceof  SignatureException) {
-                    handler.handleSignatureException((SignatureException) e);
-                } else if(e instanceof  UnsupportedJwtException) {
-                    handler.handleUnsupportedJwtException((UnsupportedJwtException) e);
-                } else if(e instanceof  StringIndexOutOfBoundsException) {
-                    handler.handleStringIndexOutOfBoundsException((StringIndexOutOfBoundsException) e);
+                    // Proceed to the next filter
+                    filterChain.doFilter(request, response);
+                } catch (ExpiredJwtException | MalformedJwtException | AuthException | SignatureException
+                         | UnsupportedJwtException | IllegalArgumentException | StringIndexOutOfBoundsException e
+                ) {
+                    // Handle various exceptions related to JWT processing and authentication
+                    if(e instanceof AuthException) {
+                        handler.handleAuthException((AuthException) e);
+                    } else if(e instanceof  ExpiredJwtException) {
+                        handler.handleExpiredJwtException((ExpiredJwtException) e);
+                    } else if(e instanceof  MalformedJwtException) {
+                        handler.handleMalformedJwtException((MalformedJwtException) e);
+                    } else if(e instanceof  SignatureException) {
+                        handler.handleSignatureException((SignatureException) e);
+                    } else if(e instanceof  UnsupportedJwtException) {
+                        handler.handleUnsupportedJwtException((UnsupportedJwtException) e);
+                    } else if(e instanceof  StringIndexOutOfBoundsException) {
+                        handler.handleStringIndexOutOfBoundsException((StringIndexOutOfBoundsException) e);
+                    }
                 }
             }
+        } else {
+            handler.handleAuthException(new AuthException("Request is missing core authorization access."));
         }
     }
 }

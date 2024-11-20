@@ -1,7 +1,7 @@
 package com.serch.server.admin.mappers;
 
 import com.serch.server.admin.models.*;
-import com.serch.server.admin.services.account.responses.AdminActivityResponse;
+import com.serch.server.admin.services.team.responses.AdminActivityResponse;
 import com.serch.server.admin.services.account.responses.AdminProfileResponse;
 import com.serch.server.admin.services.notification.AdminNotificationResponse;
 import com.serch.server.admin.services.organization.data.OrganizationDto;

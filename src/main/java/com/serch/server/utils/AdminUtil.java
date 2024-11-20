@@ -54,4 +54,33 @@ public class AdminUtil {
             return ZonedDateTime.of(LocalDateTime.of(now.getYear(), 1, 1, 0, 0), TimeUtil.defaultZone());
         }
     }
+
+    /**
+     * Formats a numeric value into a human-readable string with appropriate
+     * suffixes for large numbers (thousand, million, billion) or as-is for smaller values.
+     *
+     * - Numbers in the billions are suffixed with "billion" and rounded to one decimal place.
+     * - Numbers in the millions are suffixed with "million" and rounded to one decimal place.
+     * - Numbers in the thousands include commas for readability.
+     * - Numbers below a thousand are returned as-is.
+     *
+     * Examples:
+     * - Input: 1500 -> Output: "1,500"
+     * - Input: 1_200_000 -> Output: "1.2 million"
+     * - Input: 3_000_000_000 -> Output: "3.0 billion"
+     *
+     * @param count The numeric value to format.
+     * @return A string representation of the formatted value.
+     */
+    public static String formatCount(Long count) {
+        if (count >= 1_000_000_000) {
+            return String.format("%.1f billion", count / 1_000_000_000.0);
+        } else if (count >= 1_000_000) {
+            return String.format("%.1f million", count / 1_000_000.0);
+        } else if (count >= 1_000) {
+            return String.format("%,d", count);
+        } else {
+            return count.toString();
+        }
+    }
 }

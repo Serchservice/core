@@ -1,5 +1,6 @@
 package com.serch.server.core.storage.core;
 
+import com.serch.server.enums.ServerHeader;
 import com.serch.server.exceptions.others.StorageException;
 import com.serch.server.core.storage.requests.FileUploadRequest;
 import lombok.RequiredArgsConstructor;
@@ -32,8 +33,8 @@ public class Storage implements StorageService {
     private HttpHeaders headers(MediaType content) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(content);
-        headers.add("apiKey", API_KEY);
-        headers.add("Authorization", "Bearer "+ API_KEY);
+        headers.add(ServerHeader.SUPABASE_API_KEY.getValue(), API_KEY);
+        headers.add(ServerHeader.AUTHORIZATION.getValue(), "Bearer "+ API_KEY);
         return headers;
     }
 

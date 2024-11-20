@@ -39,25 +39,6 @@ public interface LocationService {
     ApiResponse<List<Address>> predictions(String query);
 
     /**
-     * Searches for a place using its ID.
-     * <p>
-     * This method takes a unique identifier for a location and returns
-     * the corresponding address details. This is useful for retrieving
-     * full information about a specific place that has already been
-     * identified, such as when a user selects a location from a list
-     * of predictions.
-     * </p>
-     *
-     * @param id The ID of the place to search for. This should correspond
-     *           to an existing location in the mapping service's database.
-     * @return An {@link ApiResponse} containing a {@link Address} object
-     *         representing the found place. If the ID does not correspond
-     *         to a valid location, the response should indicate this
-     *         status appropriately.
-     */
-    ApiResponse<Address> search(String id);
-
-    /**
      * Searches for nearby shops based on the specified category and location.
      *
      * @param category the category of shops to search for (e.g., "restaurant", "cafe")

@@ -82,7 +82,7 @@ public class SharedLink extends BaseDateTime {
 
     public UseStatus nextLoginStatus() {
         if(logins != null && !logins.isEmpty()) {
-            UseStatus latestStatus = logins.get(logins.size() - 1).getStatus();
+            UseStatus latestStatus = logins.getLast().getStatus();
             return latestStatus.next();
         } else {
             return UseStatus.COUNT_1;

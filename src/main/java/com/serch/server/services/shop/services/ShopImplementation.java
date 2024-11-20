@@ -3,7 +3,6 @@ package com.serch.server.services.shop.services;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.core.map.services.LocationService;
 import com.serch.server.core.storage.core.StorageService;
-import com.serch.server.enums.shop.DriveCategory;
 import com.serch.server.enums.shop.DriveScope;
 import com.serch.server.enums.shop.ShopStatus;
 import com.serch.server.enums.shop.Weekday;
@@ -323,12 +322,14 @@ public class ShopImplementation implements ShopService {
     }
 
     private void addGoogleShops(List<SearchShopResponse> list, String query, String category, Double longitude, Double latitude, Double radius) {
-        DriveCategory search = DriveCategory.get(category == null || category.isEmpty() ? query : category);
-        if(search != null) {
-            List<SearchShopResponse> shops = locationService.nearbySearch(search.getGoogle(), longitude, latitude, radius);
-            if (shops != null && !shops.isEmpty()) {
-                list.addAll(shops);
-            }
+        List<SearchShopResponse> shops = locationService.nearbySearch(
+                (category == null || category.isEmpty() ? query : category.equalsIgnoreCase("mechanic") ? "car_repair" : category).toLowerCase(),
+                longitude,
+                latitude,
+                radius
+        );
+        if (shops != null && !shops.isEmpty()) {
+            list.addAll(shops);
         }
     }
 
@@ -353,7 +354,12 @@ public class ShopImplementation implements ShopService {
 
     private List<Shop> getShops(String query, String category, Double longitude, Double latitude, Double radius) {
         if(query != null && !query.isEmpty()) {
-            return shopRepository.findByServiceAndLocation(latitude, longitude, query.toLowerCase(), radius);
+            return shopRepository.findByServiceAndLocation(
+                    latitude,
+                    longitude,
+                    query.equalsIgnoreCase("car_repair") ? "mechanic" : query.toLowerCase(),
+                    radius
+            );
         } else {
             return shopRepository.findByServiceAndLocation(latitude, longitude, category.toLowerCase(), radius);
         }

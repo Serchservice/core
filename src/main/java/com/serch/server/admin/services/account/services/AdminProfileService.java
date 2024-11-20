@@ -4,7 +4,7 @@ import com.serch.server.admin.models.Admin;
 import com.serch.server.admin.services.account.requests.AdminProfileUpdateRequest;
 import com.serch.server.admin.services.account.responses.AdminProfileResponse;
 import com.serch.server.admin.services.account.responses.AdminResponse;
-import com.serch.server.admin.services.account.responses.AdminTeamResponse;
+import com.serch.server.admin.services.team.responses.AdminTeamResponse;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.core.storage.requests.FileUploadRequest;
 

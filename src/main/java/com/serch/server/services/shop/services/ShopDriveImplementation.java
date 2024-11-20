@@ -1,7 +1,6 @@
 package com.serch.server.services.shop.services;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.enums.shop.DriveCategory;
 import com.serch.server.exceptions.others.ShopException;
 import com.serch.server.mappers.ShopMapper;
 import com.serch.server.models.shop.Shop;
@@ -11,14 +10,12 @@ import com.serch.server.repositories.shop.ShopRepository;
 import com.serch.server.services.rating.requests.RatingCalculation;
 import com.serch.server.services.rating.services.RatingCalculationService;
 import com.serch.server.services.shop.requests.ShopDriveRequest;
-import com.serch.server.services.shop.responses.DriveCategoryResponse;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -62,19 +59,5 @@ public class ShopDriveImplementation implements ShopDriveService {
         } else {
             throw new ShopException("Access denied");
         }
-    }
-
-    @Override
-    public ApiResponse<List<DriveCategoryResponse>> categories() {
-        return new ApiResponse<>(Arrays.stream(DriveCategory.values()).map(this::mapToDriveCategory).toList());
-    }
-
-    private DriveCategoryResponse mapToDriveCategory(DriveCategory category) {
-        DriveCategoryResponse response = new DriveCategoryResponse();
-        response.setImage(category.getImage());
-        response.setName(category.name());
-        response.setType(category.getType());
-
-        return response;
     }
 }

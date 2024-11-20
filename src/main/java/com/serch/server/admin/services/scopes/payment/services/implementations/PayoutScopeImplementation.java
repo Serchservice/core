@@ -6,7 +6,7 @@ import com.serch.server.admin.models.Admin;
 import com.serch.server.admin.models.transaction.Payout;
 import com.serch.server.admin.repositories.transactions.PayoutRepository;
 import com.serch.server.admin.repositories.AdminRepository;
-import com.serch.server.admin.services.scopes.common.CommonProfileService;
+import com.serch.server.admin.services.scopes.common.services.CommonProfileService;
 import com.serch.server.admin.services.scopes.payment.responses.payouts.PayoutResponse;
 import com.serch.server.admin.services.scopes.payment.responses.payouts.PayoutScopeResponse;
 import com.serch.server.admin.services.scopes.payment.responses.transactions.PaymentApiResponse;

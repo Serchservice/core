@@ -23,6 +23,9 @@ public interface CommonMapper {
             @Mapping(target = "emailAddress", source = "user.emailAddress"),
             @Mapping(target = "status", source = "user.status"),
             @Mapping(target = "role", source = "user.role"),
+            @Mapping(target = "rating", source = "rating"),
+            @Mapping(target = "firstName", source = "user.firstName"),
+            @Mapping(target = "lastName", source = "user.lastName"),
     })
     CommonProfileResponse response(Profile profile);
 
@@ -44,6 +47,9 @@ public interface CommonMapper {
             @Mapping(target = "status", source = "user.status"),
             @Mapping(target = "avatar", source = "businessLogo"),
             @Mapping(target = "role", source = "user.role"),
+            @Mapping(target = "rating", source = "rating"),
+            @Mapping(target = "firstName", source = "user.firstName"),
+            @Mapping(target = "lastName", source = "user.lastName"),
     })
     CommonProfileResponse response(BusinessProfile profile);
 
@@ -55,7 +61,8 @@ public interface CommonMapper {
 
     @Mappings({
             @Mapping(target = "emailAddress", source = "phoneNumber"),
-            @Mapping(target = "status", source = "provider.user.status")
+            @Mapping(target = "status", source = "provider.user.status"),
+            @Mapping(target = "rating", source = "provider.rating"),
     })
     CommonProfileResponse response(TripShare profile);
 }

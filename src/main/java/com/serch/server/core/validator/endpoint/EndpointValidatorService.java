@@ -26,4 +26,22 @@ public interface EndpointValidatorService {
      *         {@code false} otherwise
      */
     boolean isGuestPermitted(String path);
+
+    /**
+     * Checks if the specified path is permitted for swagger access.
+     *
+     * @param path the path to validate
+     * @return {@code true} if the path is permitted for swagger access;
+     *         {@code false} otherwise
+     */
+    boolean isSwaggerPermitted(String path);
+
+    /**
+     * Checks if the specified path is permitted for websocket access.
+     *
+     * @param path the path to validate
+     * @return {@code true} if the path is permitted for websocket access;
+     *         {@code false} otherwise
+     */
+    boolean isSocketPermitted(String path);
 }

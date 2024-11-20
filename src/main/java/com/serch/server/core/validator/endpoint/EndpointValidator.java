@@ -3,6 +3,7 @@ package com.serch.server.core.validator.endpoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -24,5 +25,29 @@ public class EndpointValidator implements EndpointValidatorService {
         );
 
         return endpoints.stream().anyMatch(path::startsWith);
+    }
+
+    @Override
+    public boolean isSwaggerPermitted(String path) {
+        String[] SWAGGER_ENDPOINTS = new String[]{
+                "/swagger-ui",
+                "/webjars",
+                "configuration",
+                "/swagger-resources",
+                "/v2/api-docs",
+                "/v3/api-docs",
+        };
+
+        return Arrays.stream(SWAGGER_ENDPOINTS).anyMatch(path::startsWith);
+    }
+
+    @Override
+    public boolean isSocketPermitted(String path) {
+        String[] WEB_SOCKET_ENDPOINTS = new String[]{
+                "/ws:serch",
+                "/ws:trip",
+        };
+
+        return Arrays.stream(WEB_SOCKET_ENDPOINTS).anyMatch(path::startsWith);
     }
 }

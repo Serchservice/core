@@ -62,7 +62,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) {
         System.out.printf("New Request from ip address: %s for %s%n", request.getRemoteAddr(), request.getServletPath());
 
-        if(keyService.isSigned(request.getHeader(ServerHeader.SERCH_SIGNED.getValue()))) {
+        if(endpointValidator.isSocketPermitted(request.getServletPath()) || endpointValidator.isSwaggerPermitted(request.getServletPath())){
+            Logging.logRequest(request, "Unsigned request");
+
+            filterChain.doFilter(request, response);
+        } else if(keyService.isSigned(request.getHeader(ServerHeader.SERCH_SIGNED.getValue()))) {
+            Logging.logRequest(request, "Signed request");
+
             if(keyService.isDrive(request.getHeader(ServerHeader.DRIVE_API_KEY.getValue()), request.getHeader(ServerHeader.DRIVE_SECRET_KEY.getValue())) && endpointValidator.isDrivePermitted(request.getServletPath())) {
                 Logging.logRequest(request, "Drive Request");
 

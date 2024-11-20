@@ -15,10 +15,10 @@ info:
   license:
     name: Serch Server License
     url: https://www.serchservice.com/hub/legal
-  version: 1.0.9
+  version: 1.1.14
 servers:
-- url: https://api.serchservice.com/api/v1
-  description: Production Server
+- url: https://sandbox.serchservice.com/api/v1
+  description: Sandbox Server
 - url: https://sandbox.serchservice.com/api/v1
   description: Sandbox Server
 security:
@@ -357,96 +357,6 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseSpeakWithSerchScopeResponse'
-  /scope/countries-in-serch/launched/state:
-    post:
-      tags:
-      - countries-in-serch-controller
-      operationId: add
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AddStateRequest'
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/ApiResponseCountryInSerchResponse'
-    delete:
-      tags:
-      - countries-in-serch-controller
-      operationId: deleteLaunched
-      parameters:
-      - name: id
-        in: query
-        required: true
-        schema:
-          type: integer
-          format: int64
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/ApiResponseCountryInSerchResponse'
-  /scope/countries-in-serch/launched/country:
-    post:
-      tags:
-      - countries-in-serch-controller
-      operationId: add_1
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AddCountryRequest'
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/ApiResponseListCountryInSerchResponse'
-    delete:
-      tags:
-      - countries-in-serch-controller
-      operationId: deleteLaunchedCountry
-      parameters:
-      - name: id
-        in: query
-        required: true
-        schema:
-          type: integer
-          format: int64
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/ApiResponseListCountryInSerchResponse'
-    patch:
-      tags:
-      - countries-in-serch-controller
-      operationId: toggleStatus
-      parameters:
-      - name: id
-        in: query
-        required: true
-        schema:
-          type: integer
-          format: int64
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/ApiResponseCountryInSerchResponse'
   /schedule:
     post:
       tags:
@@ -523,7 +433,7 @@ paths:
     post:
       tags:
       - organization-controller
-      operationId: add_2
+      operationId: add
       requestBody:
         content:
           application/json:
@@ -584,24 +494,6 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseSpeakWithSerchResponse'
-  /company/countries/request:
-    post:
-      tags:
-      - company-country-controller
-      operationId: requestMyLocation
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CountryRequest'
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/ApiResponseString'
   /company/complaint/complain:
     post:
       tags:
@@ -642,7 +534,7 @@ paths:
     post:
       tags:
       - business-associate-controller
-      operationId: add_3
+      operationId: add_1
       requestBody:
         content:
           application/json:
@@ -660,7 +552,7 @@ paths:
     post:
       tags:
       - bookmark-controller
-      operationId: add_4
+      operationId: add_2
       requestBody:
         content:
           application/json:
@@ -1181,7 +1073,7 @@ paths:
     post:
       tags:
       - admin-auth-controller
-      operationId: add_5
+      operationId: add_3
       requestBody:
         content:
           application/json:
@@ -1456,7 +1348,7 @@ paths:
     patch:
       tags:
       - specialty-controller
-      operationId: add_6
+      operationId: add_4
       parameters:
       - name: specialty
         in: query
@@ -2808,18 +2700,6 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseListSearchShopResponse'
-  /shop/drive/categories:
-    get:
-      tags:
-      - shop-drive-controller
-      operationId: getCategories
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/ApiResponseListDriveCategoryResponse'
   /server/openapi/save:
     get:
       tags:
@@ -3154,6 +3034,541 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseListSharedLinkResponse'
+  /scope/platform/account/section:
+    get:
+      tags:
+      - platform-account-section-scope-controller
+      operationId: fetchAccounts
+      parameters:
+      - name: role
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - USER
+          - PROVIDER
+          - ASSOCIATE_PROVIDER
+          - BUSINESS
+          - SUPER_ADMIN
+          - ADMIN
+          - MANAGER
+          - TEAM
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: alphabet
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponsePlatformAccountSectionResponse'
+  /scope/platform/account/section/search:
+    get:
+      tags:
+      - platform-account-section-scope-controller
+      operationId: search_2
+      parameters:
+      - name: role
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - USER
+          - PROVIDER
+          - ASSOCIATE_PROVIDER
+          - BUSINESS
+          - SUPER_ADMIN
+          - ADMIN
+          - MANAGER
+          - TEAM
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: q
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponsePlatformAccountSectionResponse'
+  /scope/platform/account/section/metric:
+    get:
+      tags:
+      - platform-account-section-scope-controller
+      operationId: fetch
+      parameters:
+      - name: role
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - USER
+          - PROVIDER
+          - ASSOCIATE_PROVIDER
+          - BUSINESS
+          - SUPER_ADMIN
+          - ADMIN
+          - MANAGER
+          - TEAM
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseMetric'
+  /scope/platform/account/analysis:
+    get:
+      tags:
+      - platform-account-scope-controller
+      operationId: fetchAccountAnalysis
+      parameters:
+      - name: year
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: role
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - USER
+          - PROVIDER
+          - ASSOCIATE_PROVIDER
+          - BUSINESS
+          - SUPER_ADMIN
+          - ADMIN
+          - MANAGER
+          - TEAM
+      - name: for_guest
+        in: query
+        required: false
+        schema:
+          type: boolean
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponsePlatformAccountScopeAnalysisResponse'
+  /scope/platform/account/analysis/trip:
+    get:
+      tags:
+      - platform-account-scope-controller
+      operationId: fetchGroupedAccountAnalysisByTripStatus
+      parameters:
+      - name: year
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: role
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - USER
+          - PROVIDER
+          - ASSOCIATE_PROVIDER
+          - BUSINESS
+          - SUPER_ADMIN
+          - ADMIN
+          - MANAGER
+          - TEAM
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponsePlatformAccountScopeAnalysisResponse'
+  /scope/platform/account/analysis/timezone:
+    get:
+      tags:
+      - platform-account-scope-controller
+      operationId: fetchGroupedAccountAnalysisByTimezone
+      parameters:
+      - name: year
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: role
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - USER
+          - PROVIDER
+          - ASSOCIATE_PROVIDER
+          - BUSINESS
+          - SUPER_ADMIN
+          - ADMIN
+          - MANAGER
+          - TEAM
+      - name: for_guest
+        in: query
+        required: false
+        schema:
+          type: boolean
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponsePlatformAccountScopeAnalysisResponse'
+  /scope/platform/account/analysis/status:
+    get:
+      tags:
+      - platform-account-scope-controller
+      operationId: fetchGroupedAccountAnalysisByAccountStatus
+      parameters:
+      - name: year
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: role
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - USER
+          - PROVIDER
+          - ASSOCIATE_PROVIDER
+          - BUSINESS
+          - SUPER_ADMIN
+          - ADMIN
+          - MANAGER
+          - TEAM
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponsePlatformAccountScopeAnalysisResponse'
+  /scope/platform/account/analysis/state:
+    get:
+      tags:
+      - platform-account-scope-controller
+      operationId: fetchGroupedAccountAnalysisByState
+      parameters:
+      - name: year
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: role
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - USER
+          - PROVIDER
+          - ASSOCIATE_PROVIDER
+          - BUSINESS
+          - SUPER_ADMIN
+          - ADMIN
+          - MANAGER
+          - TEAM
+      - name: for_guest
+        in: query
+        required: false
+        schema:
+          type: boolean
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponsePlatformAccountScopeAnalysisResponse'
+  /scope/platform/account/analysis/rating:
+    get:
+      tags:
+      - platform-account-scope-controller
+      operationId: fetchGroupedAccountAnalysisByRating
+      parameters:
+      - name: year
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: role
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - USER
+          - PROVIDER
+          - ASSOCIATE_PROVIDER
+          - BUSINESS
+          - SUPER_ADMIN
+          - ADMIN
+          - MANAGER
+          - TEAM
+      - name: for_guest
+        in: query
+        required: false
+        schema:
+          type: boolean
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponsePlatformAccountScopeAnalysisResponse'
+  /scope/platform/account/analysis/more:
+    get:
+      tags:
+      - platform-account-scope-analysis-controller
+      operationId: fetch_1
+      parameters:
+      - name: role
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - USER
+          - PROVIDER
+          - ASSOCIATE_PROVIDER
+          - BUSINESS
+          - SUPER_ADMIN
+          - ADMIN
+          - MANAGER
+          - TEAM
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponsePlatformAccountScopeMoreAnalysisResponse'
+  /scope/platform/account/analysis/more/{year}:
+    get:
+      tags:
+      - platform-account-scope-analysis-controller
+      operationId: fetch_2
+      parameters:
+      - name: role
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - USER
+          - PROVIDER
+          - ASSOCIATE_PROVIDER
+          - BUSINESS
+          - SUPER_ADMIN
+          - ADMIN
+          - MANAGER
+          - TEAM
+      - name: year
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseListPlatformAccountScopeMoreAnalysisResponse'
+  /scope/platform/account/analysis/gender:
+    get:
+      tags:
+      - platform-account-scope-controller
+      operationId: fetchGroupedAccountAnalysisByGender
+      parameters:
+      - name: year
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: role
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - USER
+          - PROVIDER
+          - ASSOCIATE_PROVIDER
+          - BUSINESS
+          - SUPER_ADMIN
+          - ADMIN
+          - MANAGER
+          - TEAM
+      - name: for_guest
+        in: query
+        required: false
+        schema:
+          type: boolean
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponsePlatformAccountScopeAnalysisResponse'
+  /scope/platform/account/analysis/country:
+    get:
+      tags:
+      - platform-account-scope-controller
+      operationId: fetchGroupedAccountAnalysisByCountry
+      parameters:
+      - name: year
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: role
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - USER
+          - PROVIDER
+          - ASSOCIATE_PROVIDER
+          - BUSINESS
+          - SUPER_ADMIN
+          - ADMIN
+          - MANAGER
+          - TEAM
+      - name: for_guest
+        in: query
+        required: false
+        schema:
+          type: boolean
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponsePlatformAccountScopeAnalysisResponse'
+  /scope/platform/account/analysis/certification:
+    get:
+      tags:
+      - platform-account-scope-controller
+      operationId: fetchGroupedAccountAnalysisByCertified
+      parameters:
+      - name: year
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: role
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - USER
+          - PROVIDER
+          - ASSOCIATE_PROVIDER
+          - BUSINESS
+          - SUPER_ADMIN
+          - ADMIN
+          - MANAGER
+          - TEAM
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponsePlatformAccountScopeAnalysisResponse'
+  /scope/platform/account/analysis/category:
+    get:
+      tags:
+      - platform-account-scope-controller
+      operationId: fetchGroupedAccountAnalysisByCategory
+      parameters:
+      - name: year
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: role
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - USER
+          - PROVIDER
+          - ASSOCIATE_PROVIDER
+          - BUSINESS
+          - SUPER_ADMIN
+          - ADMIN
+          - MANAGER
+          - TEAM
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponsePlatformAccountScopeAnalysisResponse'
   /scope/payment/wallet:
     get:
       tags:
@@ -3231,7 +3646,7 @@ paths:
     get:
       tags:
       - transaction-scope-controller
-      operationId: search_2
+      operationId: search_3
       parameters:
       - name: page
         in: query
@@ -3550,123 +3965,23 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseListNewsletterResponse'
-  /scope/countries-in-serch:
+  /scope/common/years:
     get:
       tags:
-      - countries-in-serch-controller
-      operationId: overview_6
+      - common-scope-controller
+      operationId: fetchYears
       responses:
         "200":
           description: OK
           content:
             '*/*':
               schema:
-                $ref: '#/components/schemas/ApiResponseCountriesInSerchResponse'
-  /scope/countries-in-serch/requested:
-    get:
-      tags:
-      - countries-in-serch-controller
-      operationId: requestedCountries
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/ApiResponseListCountryInSerchResponse'
-  /scope/countries-in-serch/requested/state/chart:
-    get:
-      tags:
-      - countries-in-serch-controller
-      operationId: requestedStateChart
-      parameters:
-      - name: year
-        in: query
-        required: true
-        schema:
-          type: integer
-          format: int32
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/ApiResponseListChartMetric'
-  /scope/countries-in-serch/requested/country/chart:
-    get:
-      tags:
-      - countries-in-serch-controller
-      operationId: requestedCountryChart
-      parameters:
-      - name: year
-        in: query
-        required: true
-        schema:
-          type: integer
-          format: int32
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/ApiResponseListChartMetric'
-  /scope/countries-in-serch/launched:
-    get:
-      tags:
-      - countries-in-serch-controller
-      operationId: launchedCountries
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/ApiResponseListCountryInSerchResponse'
-  /scope/countries-in-serch/launched/state/chart:
-    get:
-      tags:
-      - countries-in-serch-controller
-      operationId: launchedStateChart
-      parameters:
-      - name: year
-        in: query
-        required: true
-        schema:
-          type: integer
-          format: int32
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/ApiResponseListChartMetric'
-  /scope/countries-in-serch/launched/country/chart:
-    get:
-      tags:
-      - countries-in-serch-controller
-      operationId: launchedCountryChart
-      parameters:
-      - name: year
-        in: query
-        required: true
-        schema:
-          type: integer
-          format: int32
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/ApiResponseListChartMetric'
+                $ref: '#/components/schemas/ApiResponseListInteger'
   /scope/call/overview:
     get:
       tags:
       - call-scope-controller
-      operationId: overview_7
+      operationId: overview_6
       responses:
         "200":
           description: OK
@@ -3759,7 +4074,7 @@ paths:
     get:
       tags:
       - admin-scope-controller
-      operationId: fetch
+      operationId: fetch_3
       parameters:
       - name: id
         in: query
@@ -4083,24 +4398,6 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseListAddress'
-  /location/search/place:
-    get:
-      tags:
-      - location-controller
-      operationId: search_3
-      parameters:
-      - name: id
-        in: query
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/ApiResponseAddress'
   /guest/user/become:
     get:
       tags:
@@ -4208,34 +4505,6 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseString'
-  /company/countries/verify:
-    get:
-      tags:
-      - company-country-controller
-      operationId: verifyMyLocation
-      parameters:
-      - name: country
-        in: query
-        required: true
-        schema:
-          type: string
-      - name: state
-        in: query
-        required: false
-        schema:
-          type: string
-      - name: city
-        in: query
-        required: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/ApiResponseString'
   /chat/rooms:
     get:
       tags:
@@ -4289,7 +4558,7 @@ paths:
     get:
       tags:
       - certificate-controller
-      operationId: fetch_1
+      operationId: fetch_4
       responses:
         "200":
           description: OK
@@ -4355,7 +4624,7 @@ paths:
     get:
       tags:
       - call-controller
-      operationId: fetch_2
+      operationId: fetch_5
       parameters:
       - name: channel
         in: query
@@ -4415,7 +4684,7 @@ paths:
     get:
       tags:
       - business-associate-controller
-      operationId: add_7
+      operationId: add_5
       parameters:
       - name: id
         in: query
@@ -4707,7 +4976,7 @@ paths:
     get:
       tags:
       - team-controller
-      operationId: overview_8
+      operationId: overview_7
       responses:
         "200":
           description: OK
@@ -5129,44 +5398,6 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseShopResponse'
-  /scope/countries-in-serch/requested/state:
-    delete:
-      tags:
-      - countries-in-serch-controller
-      operationId: deleteRequested
-      parameters:
-      - name: id
-        in: query
-        required: true
-        schema:
-          type: integer
-          format: int64
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/ApiResponseCountryInSerchResponse'
-  /scope/countries-in-serch/requested/country:
-    delete:
-      tags:
-      - countries-in-serch-controller
-      operationId: deleteRequestedCountry
-      parameters:
-      - name: id
-        in: query
-        required: true
-        schema:
-          type: integer
-          format: int64
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/ApiResponseListCountryInSerchResponse'
   /organization/{id}:
     delete:
       tags:
@@ -6676,6 +6907,9 @@ components:
           - TEAM
         category:
           type: string
+        rating:
+          type: number
+          format: double
         image:
           type: string
         status:
@@ -6748,254 +6982,6 @@ components:
         created_at:
           type: string
           format: date-time
-    AddStateRequest:
-      required:
-      - state
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        state:
-          type: string
-    ApiResponseCountryInSerchResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          enum:
-          - 100 CONTINUE
-          - 101 SWITCHING_PROTOCOLS
-          - 102 PROCESSING
-          - 103 EARLY_HINTS
-          - 103 CHECKPOINT
-          - 200 OK
-          - 201 CREATED
-          - 202 ACCEPTED
-          - 203 NON_AUTHORITATIVE_INFORMATION
-          - 204 NO_CONTENT
-          - 205 RESET_CONTENT
-          - 206 PARTIAL_CONTENT
-          - 207 MULTI_STATUS
-          - 208 ALREADY_REPORTED
-          - 226 IM_USED
-          - 300 MULTIPLE_CHOICES
-          - 301 MOVED_PERMANENTLY
-          - 302 FOUND
-          - 302 MOVED_TEMPORARILY
-          - 303 SEE_OTHER
-          - 304 NOT_MODIFIED
-          - 305 USE_PROXY
-          - 307 TEMPORARY_REDIRECT
-          - 308 PERMANENT_REDIRECT
-          - 400 BAD_REQUEST
-          - 401 UNAUTHORIZED
-          - 402 PAYMENT_REQUIRED
-          - 403 FORBIDDEN
-          - 404 NOT_FOUND
-          - 405 METHOD_NOT_ALLOWED
-          - 406 NOT_ACCEPTABLE
-          - 407 PROXY_AUTHENTICATION_REQUIRED
-          - 408 REQUEST_TIMEOUT
-          - 409 CONFLICT
-          - 410 GONE
-          - 411 LENGTH_REQUIRED
-          - 412 PRECONDITION_FAILED
-          - 413 PAYLOAD_TOO_LARGE
-          - 413 REQUEST_ENTITY_TOO_LARGE
-          - 414 URI_TOO_LONG
-          - 414 REQUEST_URI_TOO_LONG
-          - 415 UNSUPPORTED_MEDIA_TYPE
-          - 416 REQUESTED_RANGE_NOT_SATISFIABLE
-          - 417 EXPECTATION_FAILED
-          - 418 I_AM_A_TEAPOT
-          - 419 INSUFFICIENT_SPACE_ON_RESOURCE
-          - 420 METHOD_FAILURE
-          - 421 DESTINATION_LOCKED
-          - 422 UNPROCESSABLE_ENTITY
-          - 423 LOCKED
-          - 424 FAILED_DEPENDENCY
-          - 425 TOO_EARLY
-          - 426 UPGRADE_REQUIRED
-          - 428 PRECONDITION_REQUIRED
-          - 429 TOO_MANY_REQUESTS
-          - 431 REQUEST_HEADER_FIELDS_TOO_LARGE
-          - 451 UNAVAILABLE_FOR_LEGAL_REASONS
-          - 500 INTERNAL_SERVER_ERROR
-          - 501 NOT_IMPLEMENTED
-          - 502 BAD_GATEWAY
-          - 503 SERVICE_UNAVAILABLE
-          - 504 GATEWAY_TIMEOUT
-          - 505 HTTP_VERSION_NOT_SUPPORTED
-          - 506 VARIANT_ALSO_NEGOTIATES
-          - 507 INSUFFICIENT_STORAGE
-          - 508 LOOP_DETECTED
-          - 509 BANDWIDTH_LIMIT_EXCEEDED
-          - 510 NOT_EXTENDED
-          - 511 NETWORK_AUTHENTICATION_REQUIRED
-        code:
-          type: integer
-          format: int32
-        message:
-          type: string
-        data:
-          $ref: '#/components/schemas/CountryInSerchResponse'
-    CountryInSerchResponse:
-      type: object
-      properties:
-        id:
-          type: string
-        country:
-          type: string
-        flag:
-          type: string
-        emoji:
-          type: string
-        code:
-          type: string
-        dialCode:
-          type: integer
-          format: int32
-        states:
-          type: array
-          items:
-            $ref: '#/components/schemas/StateInSerchResponse'
-        status:
-          type: string
-          enum:
-          - SUSPENDED
-          - ACTIVE
-          - DEACTIVATED
-          - BUSINESS_DEACTIVATED
-          - DELETED
-          - BUSINESS_DELETED
-          - HAS_REPORTED_ISSUES
-        createdAt:
-          type: string
-          format: date-time
-        updatedAt:
-          type: string
-          format: date-time
-    StateInSerchResponse:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        state:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-        updatedAt:
-          type: string
-          format: date-time
-    AddCountryRequest:
-      required:
-      - code
-      - country
-      - dialCode
-      - emoji
-      - flag
-      type: object
-      properties:
-        country:
-          type: string
-        emoji:
-          type: string
-        flag:
-          type: string
-        dialCode:
-          type: integer
-          format: int32
-        code:
-          maxLength: 3
-          minLength: 2
-          type: string
-    ApiResponseListCountryInSerchResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          enum:
-          - 100 CONTINUE
-          - 101 SWITCHING_PROTOCOLS
-          - 102 PROCESSING
-          - 103 EARLY_HINTS
-          - 103 CHECKPOINT
-          - 200 OK
-          - 201 CREATED
-          - 202 ACCEPTED
-          - 203 NON_AUTHORITATIVE_INFORMATION
-          - 204 NO_CONTENT
-          - 205 RESET_CONTENT
-          - 206 PARTIAL_CONTENT
-          - 207 MULTI_STATUS
-          - 208 ALREADY_REPORTED
-          - 226 IM_USED
-          - 300 MULTIPLE_CHOICES
-          - 301 MOVED_PERMANENTLY
-          - 302 FOUND
-          - 302 MOVED_TEMPORARILY
-          - 303 SEE_OTHER
-          - 304 NOT_MODIFIED
-          - 305 USE_PROXY
-          - 307 TEMPORARY_REDIRECT
-          - 308 PERMANENT_REDIRECT
-          - 400 BAD_REQUEST
-          - 401 UNAUTHORIZED
-          - 402 PAYMENT_REQUIRED
-          - 403 FORBIDDEN
-          - 404 NOT_FOUND
-          - 405 METHOD_NOT_ALLOWED
-          - 406 NOT_ACCEPTABLE
-          - 407 PROXY_AUTHENTICATION_REQUIRED
-          - 408 REQUEST_TIMEOUT
-          - 409 CONFLICT
-          - 410 GONE
-          - 411 LENGTH_REQUIRED
-          - 412 PRECONDITION_FAILED
-          - 413 PAYLOAD_TOO_LARGE
-          - 413 REQUEST_ENTITY_TOO_LARGE
-          - 414 URI_TOO_LONG
-          - 414 REQUEST_URI_TOO_LONG
-          - 415 UNSUPPORTED_MEDIA_TYPE
-          - 416 REQUESTED_RANGE_NOT_SATISFIABLE
-          - 417 EXPECTATION_FAILED
-          - 418 I_AM_A_TEAPOT
-          - 419 INSUFFICIENT_SPACE_ON_RESOURCE
-          - 420 METHOD_FAILURE
-          - 421 DESTINATION_LOCKED
-          - 422 UNPROCESSABLE_ENTITY
-          - 423 LOCKED
-          - 424 FAILED_DEPENDENCY
-          - 425 TOO_EARLY
-          - 426 UPGRADE_REQUIRED
-          - 428 PRECONDITION_REQUIRED
-          - 429 TOO_MANY_REQUESTS
-          - 431 REQUEST_HEADER_FIELDS_TOO_LARGE
-          - 451 UNAVAILABLE_FOR_LEGAL_REASONS
-          - 500 INTERNAL_SERVER_ERROR
-          - 501 NOT_IMPLEMENTED
-          - 502 BAD_GATEWAY
-          - 503 SERVICE_UNAVAILABLE
-          - 504 GATEWAY_TIMEOUT
-          - 505 HTTP_VERSION_NOT_SUPPORTED
-          - 506 VARIANT_ALSO_NEGOTIATES
-          - 507 INSUFFICIENT_STORAGE
-          - 508 LOOP_DETECTED
-          - 509 BANDWIDTH_LIMIT_EXCEEDED
-          - 510 NOT_EXTENDED
-          - 511 NETWORK_AUTHENTICATION_REQUIRED
-        code:
-          type: integer
-          format: int32
-        message:
-          type: string
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/CountryInSerchResponse'
     ScheduleRequest:
       type: object
       properties:
@@ -7532,15 +7518,6 @@ components:
         created_at:
           type: string
           format: date-time
-    CountryRequest:
-      type: object
-      properties:
-        country:
-          type: string
-        state:
-          type: string
-        city:
-          type: string
     ComplaintRequest:
       type: object
       properties:
@@ -11611,99 +11588,6 @@ components:
           type: boolean
         distance_in_km:
           type: string
-    ApiResponseListDriveCategoryResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          enum:
-          - 100 CONTINUE
-          - 101 SWITCHING_PROTOCOLS
-          - 102 PROCESSING
-          - 103 EARLY_HINTS
-          - 103 CHECKPOINT
-          - 200 OK
-          - 201 CREATED
-          - 202 ACCEPTED
-          - 203 NON_AUTHORITATIVE_INFORMATION
-          - 204 NO_CONTENT
-          - 205 RESET_CONTENT
-          - 206 PARTIAL_CONTENT
-          - 207 MULTI_STATUS
-          - 208 ALREADY_REPORTED
-          - 226 IM_USED
-          - 300 MULTIPLE_CHOICES
-          - 301 MOVED_PERMANENTLY
-          - 302 FOUND
-          - 302 MOVED_TEMPORARILY
-          - 303 SEE_OTHER
-          - 304 NOT_MODIFIED
-          - 305 USE_PROXY
-          - 307 TEMPORARY_REDIRECT
-          - 308 PERMANENT_REDIRECT
-          - 400 BAD_REQUEST
-          - 401 UNAUTHORIZED
-          - 402 PAYMENT_REQUIRED
-          - 403 FORBIDDEN
-          - 404 NOT_FOUND
-          - 405 METHOD_NOT_ALLOWED
-          - 406 NOT_ACCEPTABLE
-          - 407 PROXY_AUTHENTICATION_REQUIRED
-          - 408 REQUEST_TIMEOUT
-          - 409 CONFLICT
-          - 410 GONE
-          - 411 LENGTH_REQUIRED
-          - 412 PRECONDITION_FAILED
-          - 413 PAYLOAD_TOO_LARGE
-          - 413 REQUEST_ENTITY_TOO_LARGE
-          - 414 URI_TOO_LONG
-          - 414 REQUEST_URI_TOO_LONG
-          - 415 UNSUPPORTED_MEDIA_TYPE
-          - 416 REQUESTED_RANGE_NOT_SATISFIABLE
-          - 417 EXPECTATION_FAILED
-          - 418 I_AM_A_TEAPOT
-          - 419 INSUFFICIENT_SPACE_ON_RESOURCE
-          - 420 METHOD_FAILURE
-          - 421 DESTINATION_LOCKED
-          - 422 UNPROCESSABLE_ENTITY
-          - 423 LOCKED
-          - 424 FAILED_DEPENDENCY
-          - 425 TOO_EARLY
-          - 426 UPGRADE_REQUIRED
-          - 428 PRECONDITION_REQUIRED
-          - 429 TOO_MANY_REQUESTS
-          - 431 REQUEST_HEADER_FIELDS_TOO_LARGE
-          - 451 UNAVAILABLE_FOR_LEGAL_REASONS
-          - 500 INTERNAL_SERVER_ERROR
-          - 501 NOT_IMPLEMENTED
-          - 502 BAD_GATEWAY
-          - 503 SERVICE_UNAVAILABLE
-          - 504 GATEWAY_TIMEOUT
-          - 505 HTTP_VERSION_NOT_SUPPORTED
-          - 506 VARIANT_ALSO_NEGOTIATES
-          - 507 INSUFFICIENT_STORAGE
-          - 508 LOOP_DETECTED
-          - 509 BANDWIDTH_LIMIT_EXCEEDED
-          - 510 NOT_EXTENDED
-          - 511 NETWORK_AUTHENTICATION_REQUIRED
-        code:
-          type: integer
-          format: int32
-        message:
-          type: string
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/DriveCategoryResponse'
-    DriveCategoryResponse:
-      type: object
-      properties:
-        name:
-          type: string
-        type:
-          type: string
-        image:
-          type: string
     ApiResponseMapStringObject:
       type: object
       properties:
@@ -11875,33 +11759,9 @@ components:
       properties:
         value:
           type: integer
-          format: int32
+          format: int64
         amount:
           type: number
-        challenges:
-          type: integer
-          format: int32
-        devices:
-          type: integer
-          format: int32
-        sessions:
-          type: integer
-          format: int32
-        users:
-          type: integer
-          format: int32
-        providers:
-          type: integer
-          format: int32
-        businesses:
-          type: integer
-          format: int32
-        associates:
-          type: integer
-          format: int32
-        guests:
-          type: integer
-          format: int32
         color:
           type: string
         image:
@@ -12897,6 +12757,499 @@ components:
         total_guests:
           type: integer
           format: int32
+    ApiResponsePlatformAccountSectionResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - 100 CONTINUE
+          - 101 SWITCHING_PROTOCOLS
+          - 102 PROCESSING
+          - 103 EARLY_HINTS
+          - 103 CHECKPOINT
+          - 200 OK
+          - 201 CREATED
+          - 202 ACCEPTED
+          - 203 NON_AUTHORITATIVE_INFORMATION
+          - 204 NO_CONTENT
+          - 205 RESET_CONTENT
+          - 206 PARTIAL_CONTENT
+          - 207 MULTI_STATUS
+          - 208 ALREADY_REPORTED
+          - 226 IM_USED
+          - 300 MULTIPLE_CHOICES
+          - 301 MOVED_PERMANENTLY
+          - 302 FOUND
+          - 302 MOVED_TEMPORARILY
+          - 303 SEE_OTHER
+          - 304 NOT_MODIFIED
+          - 305 USE_PROXY
+          - 307 TEMPORARY_REDIRECT
+          - 308 PERMANENT_REDIRECT
+          - 400 BAD_REQUEST
+          - 401 UNAUTHORIZED
+          - 402 PAYMENT_REQUIRED
+          - 403 FORBIDDEN
+          - 404 NOT_FOUND
+          - 405 METHOD_NOT_ALLOWED
+          - 406 NOT_ACCEPTABLE
+          - 407 PROXY_AUTHENTICATION_REQUIRED
+          - 408 REQUEST_TIMEOUT
+          - 409 CONFLICT
+          - 410 GONE
+          - 411 LENGTH_REQUIRED
+          - 412 PRECONDITION_FAILED
+          - 413 PAYLOAD_TOO_LARGE
+          - 413 REQUEST_ENTITY_TOO_LARGE
+          - 414 URI_TOO_LONG
+          - 414 REQUEST_URI_TOO_LONG
+          - 415 UNSUPPORTED_MEDIA_TYPE
+          - 416 REQUESTED_RANGE_NOT_SATISFIABLE
+          - 417 EXPECTATION_FAILED
+          - 418 I_AM_A_TEAPOT
+          - 419 INSUFFICIENT_SPACE_ON_RESOURCE
+          - 420 METHOD_FAILURE
+          - 421 DESTINATION_LOCKED
+          - 422 UNPROCESSABLE_ENTITY
+          - 423 LOCKED
+          - 424 FAILED_DEPENDENCY
+          - 425 TOO_EARLY
+          - 426 UPGRADE_REQUIRED
+          - 428 PRECONDITION_REQUIRED
+          - 429 TOO_MANY_REQUESTS
+          - 431 REQUEST_HEADER_FIELDS_TOO_LARGE
+          - 451 UNAVAILABLE_FOR_LEGAL_REASONS
+          - 500 INTERNAL_SERVER_ERROR
+          - 501 NOT_IMPLEMENTED
+          - 502 BAD_GATEWAY
+          - 503 SERVICE_UNAVAILABLE
+          - 504 GATEWAY_TIMEOUT
+          - 505 HTTP_VERSION_NOT_SUPPORTED
+          - 506 VARIANT_ALSO_NEGOTIATES
+          - 507 INSUFFICIENT_STORAGE
+          - 508 LOOP_DETECTED
+          - 509 BANDWIDTH_LIMIT_EXCEEDED
+          - 510 NOT_EXTENDED
+          - 511 NETWORK_AUTHENTICATION_REQUIRED
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PlatformAccountSectionResponse'
+    PlatformAccountSectionResponse:
+      type: object
+      properties:
+        accounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommonProfileResponse'
+        total:
+          type: integer
+          format: int64
+        total_pages:
+          type: integer
+          format: int32
+    ApiResponseMetric:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - 100 CONTINUE
+          - 101 SWITCHING_PROTOCOLS
+          - 102 PROCESSING
+          - 103 EARLY_HINTS
+          - 103 CHECKPOINT
+          - 200 OK
+          - 201 CREATED
+          - 202 ACCEPTED
+          - 203 NON_AUTHORITATIVE_INFORMATION
+          - 204 NO_CONTENT
+          - 205 RESET_CONTENT
+          - 206 PARTIAL_CONTENT
+          - 207 MULTI_STATUS
+          - 208 ALREADY_REPORTED
+          - 226 IM_USED
+          - 300 MULTIPLE_CHOICES
+          - 301 MOVED_PERMANENTLY
+          - 302 FOUND
+          - 302 MOVED_TEMPORARILY
+          - 303 SEE_OTHER
+          - 304 NOT_MODIFIED
+          - 305 USE_PROXY
+          - 307 TEMPORARY_REDIRECT
+          - 308 PERMANENT_REDIRECT
+          - 400 BAD_REQUEST
+          - 401 UNAUTHORIZED
+          - 402 PAYMENT_REQUIRED
+          - 403 FORBIDDEN
+          - 404 NOT_FOUND
+          - 405 METHOD_NOT_ALLOWED
+          - 406 NOT_ACCEPTABLE
+          - 407 PROXY_AUTHENTICATION_REQUIRED
+          - 408 REQUEST_TIMEOUT
+          - 409 CONFLICT
+          - 410 GONE
+          - 411 LENGTH_REQUIRED
+          - 412 PRECONDITION_FAILED
+          - 413 PAYLOAD_TOO_LARGE
+          - 413 REQUEST_ENTITY_TOO_LARGE
+          - 414 URI_TOO_LONG
+          - 414 REQUEST_URI_TOO_LONG
+          - 415 UNSUPPORTED_MEDIA_TYPE
+          - 416 REQUESTED_RANGE_NOT_SATISFIABLE
+          - 417 EXPECTATION_FAILED
+          - 418 I_AM_A_TEAPOT
+          - 419 INSUFFICIENT_SPACE_ON_RESOURCE
+          - 420 METHOD_FAILURE
+          - 421 DESTINATION_LOCKED
+          - 422 UNPROCESSABLE_ENTITY
+          - 423 LOCKED
+          - 424 FAILED_DEPENDENCY
+          - 425 TOO_EARLY
+          - 426 UPGRADE_REQUIRED
+          - 428 PRECONDITION_REQUIRED
+          - 429 TOO_MANY_REQUESTS
+          - 431 REQUEST_HEADER_FIELDS_TOO_LARGE
+          - 451 UNAVAILABLE_FOR_LEGAL_REASONS
+          - 500 INTERNAL_SERVER_ERROR
+          - 501 NOT_IMPLEMENTED
+          - 502 BAD_GATEWAY
+          - 503 SERVICE_UNAVAILABLE
+          - 504 GATEWAY_TIMEOUT
+          - 505 HTTP_VERSION_NOT_SUPPORTED
+          - 506 VARIANT_ALSO_NEGOTIATES
+          - 507 INSUFFICIENT_STORAGE
+          - 508 LOOP_DETECTED
+          - 509 BANDWIDTH_LIMIT_EXCEEDED
+          - 510 NOT_EXTENDED
+          - 511 NETWORK_AUTHENTICATION_REQUIRED
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/Metric'
+    ApiResponsePlatformAccountScopeAnalysisResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - 100 CONTINUE
+          - 101 SWITCHING_PROTOCOLS
+          - 102 PROCESSING
+          - 103 EARLY_HINTS
+          - 103 CHECKPOINT
+          - 200 OK
+          - 201 CREATED
+          - 202 ACCEPTED
+          - 203 NON_AUTHORITATIVE_INFORMATION
+          - 204 NO_CONTENT
+          - 205 RESET_CONTENT
+          - 206 PARTIAL_CONTENT
+          - 207 MULTI_STATUS
+          - 208 ALREADY_REPORTED
+          - 226 IM_USED
+          - 300 MULTIPLE_CHOICES
+          - 301 MOVED_PERMANENTLY
+          - 302 FOUND
+          - 302 MOVED_TEMPORARILY
+          - 303 SEE_OTHER
+          - 304 NOT_MODIFIED
+          - 305 USE_PROXY
+          - 307 TEMPORARY_REDIRECT
+          - 308 PERMANENT_REDIRECT
+          - 400 BAD_REQUEST
+          - 401 UNAUTHORIZED
+          - 402 PAYMENT_REQUIRED
+          - 403 FORBIDDEN
+          - 404 NOT_FOUND
+          - 405 METHOD_NOT_ALLOWED
+          - 406 NOT_ACCEPTABLE
+          - 407 PROXY_AUTHENTICATION_REQUIRED
+          - 408 REQUEST_TIMEOUT
+          - 409 CONFLICT
+          - 410 GONE
+          - 411 LENGTH_REQUIRED
+          - 412 PRECONDITION_FAILED
+          - 413 PAYLOAD_TOO_LARGE
+          - 413 REQUEST_ENTITY_TOO_LARGE
+          - 414 URI_TOO_LONG
+          - 414 REQUEST_URI_TOO_LONG
+          - 415 UNSUPPORTED_MEDIA_TYPE
+          - 416 REQUESTED_RANGE_NOT_SATISFIABLE
+          - 417 EXPECTATION_FAILED
+          - 418 I_AM_A_TEAPOT
+          - 419 INSUFFICIENT_SPACE_ON_RESOURCE
+          - 420 METHOD_FAILURE
+          - 421 DESTINATION_LOCKED
+          - 422 UNPROCESSABLE_ENTITY
+          - 423 LOCKED
+          - 424 FAILED_DEPENDENCY
+          - 425 TOO_EARLY
+          - 426 UPGRADE_REQUIRED
+          - 428 PRECONDITION_REQUIRED
+          - 429 TOO_MANY_REQUESTS
+          - 431 REQUEST_HEADER_FIELDS_TOO_LARGE
+          - 451 UNAVAILABLE_FOR_LEGAL_REASONS
+          - 500 INTERNAL_SERVER_ERROR
+          - 501 NOT_IMPLEMENTED
+          - 502 BAD_GATEWAY
+          - 503 SERVICE_UNAVAILABLE
+          - 504 GATEWAY_TIMEOUT
+          - 505 HTTP_VERSION_NOT_SUPPORTED
+          - 506 VARIANT_ALSO_NEGOTIATES
+          - 507 INSUFFICIENT_STORAGE
+          - 508 LOOP_DETECTED
+          - 509 BANDWIDTH_LIMIT_EXCEEDED
+          - 510 NOT_EXTENDED
+          - 511 NETWORK_AUTHENTICATION_REQUIRED
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PlatformAccountScopeAnalysisResponse'
+    PlatformAccountScopeAnalysisResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+          format: int64
+        content:
+          type: string
+        years:
+          type: array
+          items:
+            type: integer
+            format: int32
+        metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChartMetric'
+        info_metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChartMetric'
+    ApiResponsePlatformAccountScopeMoreAnalysisResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - 100 CONTINUE
+          - 101 SWITCHING_PROTOCOLS
+          - 102 PROCESSING
+          - 103 EARLY_HINTS
+          - 103 CHECKPOINT
+          - 200 OK
+          - 201 CREATED
+          - 202 ACCEPTED
+          - 203 NON_AUTHORITATIVE_INFORMATION
+          - 204 NO_CONTENT
+          - 205 RESET_CONTENT
+          - 206 PARTIAL_CONTENT
+          - 207 MULTI_STATUS
+          - 208 ALREADY_REPORTED
+          - 226 IM_USED
+          - 300 MULTIPLE_CHOICES
+          - 301 MOVED_PERMANENTLY
+          - 302 FOUND
+          - 302 MOVED_TEMPORARILY
+          - 303 SEE_OTHER
+          - 304 NOT_MODIFIED
+          - 305 USE_PROXY
+          - 307 TEMPORARY_REDIRECT
+          - 308 PERMANENT_REDIRECT
+          - 400 BAD_REQUEST
+          - 401 UNAUTHORIZED
+          - 402 PAYMENT_REQUIRED
+          - 403 FORBIDDEN
+          - 404 NOT_FOUND
+          - 405 METHOD_NOT_ALLOWED
+          - 406 NOT_ACCEPTABLE
+          - 407 PROXY_AUTHENTICATION_REQUIRED
+          - 408 REQUEST_TIMEOUT
+          - 409 CONFLICT
+          - 410 GONE
+          - 411 LENGTH_REQUIRED
+          - 412 PRECONDITION_FAILED
+          - 413 PAYLOAD_TOO_LARGE
+          - 413 REQUEST_ENTITY_TOO_LARGE
+          - 414 URI_TOO_LONG
+          - 414 REQUEST_URI_TOO_LONG
+          - 415 UNSUPPORTED_MEDIA_TYPE
+          - 416 REQUESTED_RANGE_NOT_SATISFIABLE
+          - 417 EXPECTATION_FAILED
+          - 418 I_AM_A_TEAPOT
+          - 419 INSUFFICIENT_SPACE_ON_RESOURCE
+          - 420 METHOD_FAILURE
+          - 421 DESTINATION_LOCKED
+          - 422 UNPROCESSABLE_ENTITY
+          - 423 LOCKED
+          - 424 FAILED_DEPENDENCY
+          - 425 TOO_EARLY
+          - 426 UPGRADE_REQUIRED
+          - 428 PRECONDITION_REQUIRED
+          - 429 TOO_MANY_REQUESTS
+          - 431 REQUEST_HEADER_FIELDS_TOO_LARGE
+          - 451 UNAVAILABLE_FOR_LEGAL_REASONS
+          - 500 INTERNAL_SERVER_ERROR
+          - 501 NOT_IMPLEMENTED
+          - 502 BAD_GATEWAY
+          - 503 SERVICE_UNAVAILABLE
+          - 504 GATEWAY_TIMEOUT
+          - 505 HTTP_VERSION_NOT_SUPPORTED
+          - 506 VARIANT_ALSO_NEGOTIATES
+          - 507 INSUFFICIENT_STORAGE
+          - 508 LOOP_DETECTED
+          - 509 BANDWIDTH_LIMIT_EXCEEDED
+          - 510 NOT_EXTENDED
+          - 511 NETWORK_AUTHENTICATION_REQUIRED
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PlatformAccountScopeMoreAnalysisResponse'
+    PlatformAccountCountrySectionResponse:
+      type: object
+      properties:
+        content:
+          type: string
+        colors:
+          type: array
+          items:
+            type: string
+        label:
+          type: string
+        value:
+          type: number
+          format: double
+    PlatformAccountScopeMoreAnalysisResponse:
+      type: object
+      properties:
+        section:
+          type: string
+        demographics:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChartMetric'
+        geographics:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChartMetric'
+        activities:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChartMetric'
+        overview:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChartMetric'
+        states:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChartMetric'
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChartMetric'
+        countries:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlatformAccountCountrySectionResponse'
+    ApiResponseListPlatformAccountScopeMoreAnalysisResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - 100 CONTINUE
+          - 101 SWITCHING_PROTOCOLS
+          - 102 PROCESSING
+          - 103 EARLY_HINTS
+          - 103 CHECKPOINT
+          - 200 OK
+          - 201 CREATED
+          - 202 ACCEPTED
+          - 203 NON_AUTHORITATIVE_INFORMATION
+          - 204 NO_CONTENT
+          - 205 RESET_CONTENT
+          - 206 PARTIAL_CONTENT
+          - 207 MULTI_STATUS
+          - 208 ALREADY_REPORTED
+          - 226 IM_USED
+          - 300 MULTIPLE_CHOICES
+          - 301 MOVED_PERMANENTLY
+          - 302 FOUND
+          - 302 MOVED_TEMPORARILY
+          - 303 SEE_OTHER
+          - 304 NOT_MODIFIED
+          - 305 USE_PROXY
+          - 307 TEMPORARY_REDIRECT
+          - 308 PERMANENT_REDIRECT
+          - 400 BAD_REQUEST
+          - 401 UNAUTHORIZED
+          - 402 PAYMENT_REQUIRED
+          - 403 FORBIDDEN
+          - 404 NOT_FOUND
+          - 405 METHOD_NOT_ALLOWED
+          - 406 NOT_ACCEPTABLE
+          - 407 PROXY_AUTHENTICATION_REQUIRED
+          - 408 REQUEST_TIMEOUT
+          - 409 CONFLICT
+          - 410 GONE
+          - 411 LENGTH_REQUIRED
+          - 412 PRECONDITION_FAILED
+          - 413 PAYLOAD_TOO_LARGE
+          - 413 REQUEST_ENTITY_TOO_LARGE
+          - 414 URI_TOO_LONG
+          - 414 REQUEST_URI_TOO_LONG
+          - 415 UNSUPPORTED_MEDIA_TYPE
+          - 416 REQUESTED_RANGE_NOT_SATISFIABLE
+          - 417 EXPECTATION_FAILED
+          - 418 I_AM_A_TEAPOT
+          - 419 INSUFFICIENT_SPACE_ON_RESOURCE
+          - 420 METHOD_FAILURE
+          - 421 DESTINATION_LOCKED
+          - 422 UNPROCESSABLE_ENTITY
+          - 423 LOCKED
+          - 424 FAILED_DEPENDENCY
+          - 425 TOO_EARLY
+          - 426 UPGRADE_REQUIRED
+          - 428 PRECONDITION_REQUIRED
+          - 429 TOO_MANY_REQUESTS
+          - 431 REQUEST_HEADER_FIELDS_TOO_LARGE
+          - 451 UNAVAILABLE_FOR_LEGAL_REASONS
+          - 500 INTERNAL_SERVER_ERROR
+          - 501 NOT_IMPLEMENTED
+          - 502 BAD_GATEWAY
+          - 503 SERVICE_UNAVAILABLE
+          - 504 GATEWAY_TIMEOUT
+          - 505 HTTP_VERSION_NOT_SUPPORTED
+          - 506 VARIANT_ALSO_NEGOTIATES
+          - 507 INSUFFICIENT_STORAGE
+          - 508 LOOP_DETECTED
+          - 509 BANDWIDTH_LIMIT_EXCEEDED
+          - 510 NOT_EXTENDED
+          - 511 NETWORK_AUTHENTICATION_REQUIRED
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlatformAccountScopeMoreAnalysisResponse'
     ApiResponseWalletScopeResponse:
       type: object
       properties:
@@ -13687,7 +14040,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/NewsletterResponse'
-    ApiResponseCountriesInSerchResponse:
+    ApiResponseListInteger:
       type: object
       properties:
         status:
@@ -13768,35 +14121,6 @@ components:
         message:
           type: string
         data:
-          $ref: '#/components/schemas/CountriesInSerchResponse'
-    CountriesInSerchResponse:
-      type: object
-      properties:
-        launchedCountryChart:
-          type: array
-          items:
-            $ref: '#/components/schemas/ChartMetric'
-        launchedStateChart:
-          type: array
-          items:
-            $ref: '#/components/schemas/ChartMetric'
-        requestedCountryChart:
-          type: array
-          items:
-            $ref: '#/components/schemas/ChartMetric'
-        requestedStateChart:
-          type: array
-          items:
-            $ref: '#/components/schemas/ChartMetric'
-        launchedMetrics:
-          type: array
-          items:
-            $ref: '#/components/schemas/Metric'
-        requestedMetrics:
-          type: array
-          items:
-            $ref: '#/components/schemas/Metric'
-        years:
           type: array
           items:
             type: integer
@@ -15065,88 +15389,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Address'
-    ApiResponseAddress:
-      type: object
-      properties:
-        status:
-          type: string
-          enum:
-          - 100 CONTINUE
-          - 101 SWITCHING_PROTOCOLS
-          - 102 PROCESSING
-          - 103 EARLY_HINTS
-          - 103 CHECKPOINT
-          - 200 OK
-          - 201 CREATED
-          - 202 ACCEPTED
-          - 203 NON_AUTHORITATIVE_INFORMATION
-          - 204 NO_CONTENT
-          - 205 RESET_CONTENT
-          - 206 PARTIAL_CONTENT
-          - 207 MULTI_STATUS
-          - 208 ALREADY_REPORTED
-          - 226 IM_USED
-          - 300 MULTIPLE_CHOICES
-          - 301 MOVED_PERMANENTLY
-          - 302 FOUND
-          - 302 MOVED_TEMPORARILY
-          - 303 SEE_OTHER
-          - 304 NOT_MODIFIED
-          - 305 USE_PROXY
-          - 307 TEMPORARY_REDIRECT
-          - 308 PERMANENT_REDIRECT
-          - 400 BAD_REQUEST
-          - 401 UNAUTHORIZED
-          - 402 PAYMENT_REQUIRED
-          - 403 FORBIDDEN
-          - 404 NOT_FOUND
-          - 405 METHOD_NOT_ALLOWED
-          - 406 NOT_ACCEPTABLE
-          - 407 PROXY_AUTHENTICATION_REQUIRED
-          - 408 REQUEST_TIMEOUT
-          - 409 CONFLICT
-          - 410 GONE
-          - 411 LENGTH_REQUIRED
-          - 412 PRECONDITION_FAILED
-          - 413 PAYLOAD_TOO_LARGE
-          - 413 REQUEST_ENTITY_TOO_LARGE
-          - 414 URI_TOO_LONG
-          - 414 REQUEST_URI_TOO_LONG
-          - 415 UNSUPPORTED_MEDIA_TYPE
-          - 416 REQUESTED_RANGE_NOT_SATISFIABLE
-          - 417 EXPECTATION_FAILED
-          - 418 I_AM_A_TEAPOT
-          - 419 INSUFFICIENT_SPACE_ON_RESOURCE
-          - 420 METHOD_FAILURE
-          - 421 DESTINATION_LOCKED
-          - 422 UNPROCESSABLE_ENTITY
-          - 423 LOCKED
-          - 424 FAILED_DEPENDENCY
-          - 425 TOO_EARLY
-          - 426 UPGRADE_REQUIRED
-          - 428 PRECONDITION_REQUIRED
-          - 429 TOO_MANY_REQUESTS
-          - 431 REQUEST_HEADER_FIELDS_TOO_LARGE
-          - 451 UNAVAILABLE_FOR_LEGAL_REASONS
-          - 500 INTERNAL_SERVER_ERROR
-          - 501 NOT_IMPLEMENTED
-          - 502 BAD_GATEWAY
-          - 503 SERVICE_UNAVAILABLE
-          - 504 GATEWAY_TIMEOUT
-          - 505 HTTP_VERSION_NOT_SUPPORTED
-          - 506 VARIANT_ALSO_NEGOTIATES
-          - 507 INSUFFICIENT_STORAGE
-          - 508 LOOP_DETECTED
-          - 509 BANDWIDTH_LIMIT_EXCEEDED
-          - 510 NOT_EXTENDED
-          - 511 NETWORK_AUTHENTICATION_REQUIRED
-        code:
-          type: integer
-          format: int32
-        message:
-          type: string
-        data:
-          $ref: '#/components/schemas/Address'
     GuestToUserRequest:
       type: object
       properties:

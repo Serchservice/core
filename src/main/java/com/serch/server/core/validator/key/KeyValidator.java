@@ -51,7 +51,11 @@ public class KeyValidator implements KeyValidatorService {
 
     @Override
     public boolean isSigned(String key) {
-        return key.startsWith(ACCESS_IDENTITY) && ACCESS_SIGNATURE.equals(key);
+        if(key == null) {
+            return false;
+        } else {
+            return key.startsWith(ACCESS_IDENTITY) && ACCESS_SIGNATURE.equals(key);
+        }
     }
 
     private boolean isValidGuestApiKey(String apiKey) {

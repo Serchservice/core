@@ -16,6 +16,7 @@ public class ServerUtil {
             ServerHeader.DRIVE_SECRET_KEY.getValue(),
             ServerHeader.GUEST_API_KEY.getValue(),
             ServerHeader.GUEST_SECRET_KEY.getValue(),
+            ServerHeader.SERCH_SIGNED.getValue(),
             HttpHeaders.AUTHORIZATION,
             HttpHeaders.ACCEPT,
             HttpHeaders.CONTENT_TYPE

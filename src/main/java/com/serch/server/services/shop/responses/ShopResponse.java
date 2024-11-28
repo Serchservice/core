@@ -19,6 +19,7 @@ public class ShopResponse {
     private String phone;
     private Double latitude;
     private Double longitude;
+    private String link;
 
     private ShopWeekdayResponse current;
     private List<ShopWeekdayResponse> weekdays;

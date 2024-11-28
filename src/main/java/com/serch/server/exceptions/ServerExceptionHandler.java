@@ -15,6 +15,7 @@ import com.serch.server.exceptions.media.MediaAssetException;
 import com.serch.server.exceptions.media.MediaBlogException;
 import com.serch.server.exceptions.media.MediaLegalException;
 import com.serch.server.exceptions.media.MediaNewsroomException;
+import com.serch.server.exceptions.nearby.NearbyException;
 import com.serch.server.exceptions.others.*;
 import com.serch.server.exceptions.transaction.WalletException;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -356,6 +357,14 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(HelpException.class)
     public ApiResponse<String> handleHelpException(HelpException exception) {
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        log.error(exception.getMessage());
+        response.setData(exception.getLocalizedMessage());
+        return response;
+    }
+
+    @ExceptionHandler(NearbyException.class)
+    public ApiResponse<String> handleNearbyException(NearbyException exception) {
         ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
         response.setData(exception.getLocalizedMessage());

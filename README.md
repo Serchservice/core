@@ -63,6 +63,7 @@ create schema if not exists platform;
 create schema if not exists sharing;
 create schema if not exists trip;
 create schema if not exists pricing;
+create schema if not exists nearby;
 create schema if not exists subscription;
 create schema if not exists admin_action;
 ```

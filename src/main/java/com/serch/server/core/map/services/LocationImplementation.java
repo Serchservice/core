@@ -9,6 +9,7 @@ import com.serch.server.core.map.responses.MapSuggestionsResponse;
 import com.serch.server.core.map.responses.PlacesResponse;
 import com.serch.server.enums.ServerHeader;
 import com.serch.server.enums.shop.ShopStatus;
+import com.serch.server.nearby.services.drive.services.NearbyDriveService;
 import com.serch.server.services.shop.responses.SearchShopResponse;
 import com.serch.server.services.shop.responses.ShopResponse;
 import com.serch.server.utils.HelperUtil;
@@ -36,6 +37,8 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class LocationImplementation implements LocationService {
     private static final Logger log = LoggerFactory.getLogger(LocationImplementation.class);
+
+    private final NearbyDriveService driveService;
     private final RestTemplate rest;
 
     @Value("${application.map.api-key}")
@@ -55,20 +58,7 @@ public class LocationImplementation implements LocationService {
 
     @Override
     public ApiResponse<List<Address>> predictions(String query) {
-        LocationRequest request = new LocationRequest();
-        request.setInput(query);
-
-        HttpHeaders headers = headers();
-        headers.set(ServerHeader.GOOGLE_FIELD_MASK.getValue(), "suggestions.placePrediction.placeId");
-        HttpEntity<Object> entity = new HttpEntity<>(request, headers);
-
-        String MAP_AUTOCOMPLETE_BASE_URL = "https://places.googleapis.com/v1/places:autocomplete";
-        ResponseEntity<MapSuggestionsResponse> response = rest.exchange(
-                MAP_AUTOCOMPLETE_BASE_URL,
-                HttpMethod.POST,
-                entity,
-                MapSuggestionsResponse.class
-        );
+        ResponseEntity<MapSuggestionsResponse> response = getPredictionResult(query);
 
         List<Address> predictions = new ArrayList<>();
         if(response.getStatusCode().is2xxSuccessful()) {
@@ -83,15 +73,22 @@ public class LocationImplementation implements LocationService {
         return new ApiResponse<>(predictions);
     }
 
-    private Address getPrediction( MapSuggestionsResponse.PlacePrediction prediction) {
-        String fields = "addressComponents,location,displayName,formattedAddress,shortFormattedAddress";
-        String url = String.format(
-                "https://places.googleapis.com/v1/places/%s?fields=%s&key=%s",
-                prediction.getPlaceId(), fields, MAP_API_KEY
-        );
-        HttpEntity<Object> entity = new HttpEntity<>(headers());
+    private ResponseEntity<MapSuggestionsResponse> getPredictionResult(String query) {
+        LocationRequest request = new LocationRequest();
+        request.setInput(query);
 
-        ResponseEntity<MapAddress> response = rest.exchange(url, HttpMethod.GET, entity, MapAddress.class);
+        HttpHeaders headers = headers();
+        headers.set(ServerHeader.GOOGLE_FIELD_MASK.getValue(), "suggestions.placePrediction.placeId");
+        HttpEntity<Object> entity = new HttpEntity<>(request, headers);
+
+        String MAP_AUTOCOMPLETE_BASE_URL = "https://places.googleapis.com/v1/places:autocomplete";
+
+        return rest.exchange(MAP_AUTOCOMPLETE_BASE_URL, HttpMethod.POST, entity, MapSuggestionsResponse.class);
+    }
+
+    private Address getPrediction( MapSuggestionsResponse.PlacePrediction prediction) {
+        ResponseEntity<MapAddress> response = getAddressResult(prediction);
+
         if(response.getStatusCode().is2xxSuccessful()) {
             if(ObjectUtils.isNotEmpty(Objects.requireNonNull(response.getBody()))) {
                 Address address = mapToAddress(response.getBody());
@@ -101,6 +98,17 @@ public class LocationImplementation implements LocationService {
         }
 
         return new Address();
+    }
+
+    private ResponseEntity<MapAddress> getAddressResult(MapSuggestionsResponse.PlacePrediction prediction) {
+        String fields = "addressComponents,location,displayName,formattedAddress,shortFormattedAddress";
+        String url = String.format(
+                "https://places.googleapis.com/v1/places/%s?fields=%s&key=%s",
+                prediction.getPlaceId(), fields, MAP_API_KEY
+        );
+        HttpEntity<Object> entity = new HttpEntity<>(headers());
+
+        return rest.exchange(url, HttpMethod.GET, entity, MapAddress.class);
     }
 
     private Address mapToAddress(MapAddress mapAddress) {
@@ -143,18 +151,8 @@ public class LocationImplementation implements LocationService {
     }
 
     @Override
-    public List<SearchShopResponse> nearbySearch(String category, Double longitude, Double latitude, Double radius) {
-        NearbySearchRequest request = new NearbySearchRequest();
-        request.setIncludedTypes(new ArrayList<>(Collections.singletonList(category.toLowerCase())));
-
-        request.getLocationRestriction().getCircle().setRadius(radius);
-        request.getLocationRestriction().getCircle().getCenter().setLatitude(latitude);
-        request.getLocationRestriction().getCircle().getCenter().setLongitude(longitude);
-        log.info(String.format("Nearby Search for - %s", request));
-
-        HttpHeaders headers = headers();
-        headers.set(ServerHeader.GOOGLE_FIELD_MASK.getValue(), getFieldMasks());
-        HttpEntity<Object> entity = new HttpEntity<>(request, headers);
+    public List<SearchShopResponse> nearbySearch(String keyword, String category, Double longitude, Double latitude, Double radius) {
+        HttpEntity<Object> entity = getNearbySearchResult(keyword, category, longitude, latitude, radius);
 
         List<SearchShopResponse> shops = new ArrayList<>();
 
@@ -170,8 +168,9 @@ public class LocationImplementation implements LocationService {
             if(response.getStatusCode().is2xxSuccessful()) {
                 if(ObjectUtils.isNotEmpty(Objects.requireNonNull(response.getBody()))) {
                     if(response.getBody().getPlaces() != null && !response.getBody().getPlaces().isEmpty()) {
-                        response.getBody().getPlaces()
-                                .forEach(place -> shops.add(shop(place, latitude, longitude)));
+                        response.getBody().getPlaces().forEach(place ->
+                                shops.add(shop(place, latitude, longitude, getCategory(keyword, category)))
+                        );
                     }
                 }
             }
@@ -182,6 +181,27 @@ public class LocationImplementation implements LocationService {
         return shops;
     }
 
+    private HttpEntity<Object> getNearbySearchResult(String keyword, String category, Double longitude, Double latitude, Double radius) {
+        NearbySearchRequest request = new NearbySearchRequest();
+        request.setIncludedTypes(new ArrayList<>(Collections.singletonList((getCategory(keyword, category)))));
+
+        request.getLocationRestriction().getCircle().setRadius(radius);
+        request.getLocationRestriction().getCircle().getCenter().setLatitude(latitude);
+        request.getLocationRestriction().getCircle().getCenter().setLongitude(longitude);
+        log.info(String.format("Nearby Search for - %s", request));
+
+        driveService.search(getCategory(keyword, category));
+
+        HttpHeaders headers = headers();
+        headers.set(ServerHeader.GOOGLE_FIELD_MASK.getValue(), getFieldMasks());
+
+        return new HttpEntity<>(request, headers);
+    }
+
+    private String getCategory(String keyword, String category) {
+        return (category == null || category.isEmpty() ? keyword : category.equalsIgnoreCase("mechanic") ? "car_repair" : category).toLowerCase();
+    }
+
     private String getFieldMasks() {
         return "places.displayName,places.formattedAddress,places.shortFormattedAddress,places.location,places.id," +
                 "places.nationalPhoneNumber,places.internationalPhoneNumber,places.rating,places.googleMapsUri," +
@@ -189,7 +209,7 @@ public class LocationImplementation implements LocationService {
                 "places.currentOpeningHours.openNow";
     }
 
-    private SearchShopResponse shop(PlacesResponse.Place place, double latitude, double longitude) {
+    private SearchShopResponse shop(PlacesResponse.Place place, double latitude, double longitude, String type) {
         SearchShopResponse response = new SearchShopResponse();
 
         if (place.getLocation() != null) {
@@ -199,18 +219,19 @@ public class LocationImplementation implements LocationService {
             response.setDistance(distance);
         }
 
-        response.setShop(shop(place));
+        response.setShop(shop(place, type));
         response.setGoogle(true);
 
         return response;
     }
 
-    private ShopResponse shop(PlacesResponse.Place place) {
+    private ShopResponse shop(PlacesResponse.Place place, String type) {
         if ( place == null ) {
             return null;
         }
 
         ShopResponse shop = new ShopResponse();
+        shop.setCategory(type.replaceAll("_", " "));
 
         if(place.getInternationalPhoneNumber() != null) {
             shop.setPhone( place.getInternationalPhoneNumber() );
@@ -229,7 +250,7 @@ public class LocationImplementation implements LocationService {
         }
 
         if(place.getGoogleMapsLinks() != null) {
-            shop.setCategory(place.getGoogleMapsLinks().getPlaceUri());
+            shop.setLink(place.getGoogleMapsLinks().getPlaceUri());
         }
 
         shop.setImage(place.getIconMaskBaseUri());

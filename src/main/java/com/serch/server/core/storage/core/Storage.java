@@ -4,6 +4,8 @@ import com.serch.server.enums.ServerHeader;
 import com.serch.server.exceptions.others.StorageException;
 import com.serch.server.core.storage.requests.FileUploadRequest;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,8 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class Storage implements StorageService {
+    private static final Logger log = LoggerFactory.getLogger(Storage.class);
+
     @Value("${application.supabase.api-key}")
     private String API_KEY;
     @Value("${application.supabase.base-url}")
@@ -44,25 +48,13 @@ public class Storage implements StorageService {
         if (content == null) {
             throw new StorageException(String.format("Unsupported file extension for %s", extension));
         } else {
-            String name = request.getMedia().equalsIgnoreCase("PDF") ? request.getPath() : String.format(
-                    "%s-%s%s%s%s%s%s%s",
-                    request.getMedia().equalsIgnoreCase("VIDEO") ? "SVID" : "SIMG",
-                    LocalDateTime.now().getYear(),
-                    LocalDateTime.now().getMonthValue(),
-                    LocalDateTime.now().getDayOfMonth(),
-                    LocalDateTime.now().getHour(),
-                    LocalDateTime.now().getMinute(),
-                    LocalDateTime.now().getSecond(),
-                    UUID.randomUUID().toString().substring(0, 10).replaceAll("-", "")
-            );
-            String filename = request.getMedia().equalsIgnoreCase("PDF")
-                    ? request.getPath()
-                    : String.format("%s.%s", name, extension);
+            String filename = getUploadFilename(request, extension);
 
             HttpEntity<byte[]> entity = new HttpEntity<>(request.getBytes(), headers(content));
             String endpoint = buildUrl(String.format("/storage/v1/object/%s/%s", bucket, filename));
             try {
                 ResponseEntity<Object> response = rest.exchange(endpoint, HttpMethod.POST, entity, Object.class);
+
                 if(response.getStatusCode().is2xxSuccessful()) {
                     return buildUrl(String.format("/storage/v1/object/public/%s/%s", bucket, filename));
                 } else {
@@ -71,17 +63,35 @@ public class Storage implements StorageService {
             } catch (Exception ignored) {
                 try {
                     ResponseEntity<Object> response = rest.exchange(endpoint, HttpMethod.PUT, entity, Object.class);
+
                     if(response.getStatusCode().is2xxSuccessful()) {
                         return buildUrl(String.format("/storage/v1/object/public/%s/%s", bucket, filename));
                     } else {
                         throw new StorageException("Couldn't upload file");
                     }
                 } catch (Exception e) {
-                    System.out.println(e.getMessage());
+                    log.error(e.getMessage());
+
                     throw new StorageException("Operation timed out. Try again later");
                 }
             }
         }
+    }
+
+    private String getUploadFilename(FileUploadRequest request, String extension) {
+        String name = request.getMedia().equalsIgnoreCase("PDF") ? request.getPath() : String.format(
+                "%s-%s%s%s%s%s%s%s",
+                request.getMedia().equalsIgnoreCase("VIDEO") ? "SVID" : "SIMG",
+                LocalDateTime.now().getYear(),
+                LocalDateTime.now().getMonthValue(),
+                LocalDateTime.now().getDayOfMonth(),
+                LocalDateTime.now().getHour(),
+                LocalDateTime.now().getMinute(),
+                LocalDateTime.now().getSecond(),
+                UUID.randomUUID().toString().substring(0, 10).replaceAll("-", "")
+        );
+
+        return request.getMedia().equalsIgnoreCase("PDF") ? request.getPath() : String.format("%s.%s", name, extension);
     }
 
     @Override

@@ -11,7 +11,7 @@ import java.util.List;
 public class EndpointValidator implements EndpointValidatorService {
     @Override
     public boolean isDrivePermitted(String path) {
-        List<String> endpoints = List.of("/location/search", "/shop/search", "/shop/drive/categories");
+        List<String> endpoints = List.of("/location/search", "/shop/search", "/shop/drive/categories", "/auth/nearby", "/nearby");
 
         return endpoints.stream().anyMatch(path::startsWith);
     }

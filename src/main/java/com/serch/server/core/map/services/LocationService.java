@@ -41,6 +41,7 @@ public interface LocationService {
     /**
      * Searches for nearby shops based on the specified category and location.
      *
+     * @param keyword the keyword to search for (e.g., "restaurant", "cafe")
      * @param category the category of shops to search for (e.g., "restaurant", "cafe")
      * @param longitude the longitude of the location to search around
      * @param latitude the latitude of the location to search around
@@ -48,5 +49,5 @@ public interface LocationService {
      * @return a list of {@link SearchShopResponse} objects representing the nearby shops
      *         that match the specified category within the given radius
      */
-    List<SearchShopResponse> nearbySearch(String category, Double longitude, Double latitude, Double radius);
+    List<SearchShopResponse> nearbySearch(String keyword, String category, Double longitude, Double latitude, Double radius);
 }

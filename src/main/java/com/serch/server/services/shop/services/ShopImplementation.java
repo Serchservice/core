@@ -322,12 +322,8 @@ public class ShopImplementation implements ShopService {
     }
 
     private void addGoogleShops(List<SearchShopResponse> list, String query, String category, Double longitude, Double latitude, Double radius) {
-        List<SearchShopResponse> shops = locationService.nearbySearch(
-                (category == null || category.isEmpty() ? query : category.equalsIgnoreCase("mechanic") ? "car_repair" : category).toLowerCase(),
-                longitude,
-                latitude,
-                radius
-        );
+        List<SearchShopResponse> shops = locationService.nearbySearch(query, category, longitude, latitude, radius);
+
         if (shops != null && !shops.isEmpty()) {
             list.addAll(shops);
         }

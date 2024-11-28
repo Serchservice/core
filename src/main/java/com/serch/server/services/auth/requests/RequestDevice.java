@@ -23,6 +23,6 @@ public class RequestDevice {
     @JsonProperty("local_host")
     private String localHost;
 
-    @JsonProperty(value = "ip_address")
+    @JsonProperty("ip_address")
     private String ipAddress;
 }

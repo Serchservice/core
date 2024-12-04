@@ -54,22 +54,20 @@ public class NearbyDriveImplementation implements NearbyDriveService {
     @Override
     public ApiResponse<String> drive(NearbyDriveRequest request) {
         Optional<NearbyShop> optional = nearbyShopRepository.findById(request.getId());
+
+        NearbyShop shop;
         if (optional.isPresent()) {
-            NearbyShop shop = optional.get();
+            shop = optional.get();
             shop.increment();
             nearbyShopRepository.save(shop);
-
-            NearbyTimeline timeline = new NearbyTimeline();
-            timeline.setShop(shop);
-            nearbyTimelineRepository.save(timeline);
         } else {
-            NearbyShop shop = getNearbyShop(request);
-
-            NearbyTimeline timeline = new NearbyTimeline();
-            timeline.setShop(shop);
-            timeline.setOption(request.getOption());
-            nearbyTimelineRepository.save(timeline);
+            shop = getNearbyShop(request);
         }
+
+        NearbyTimeline timeline = new NearbyTimeline();
+        timeline.setShop(shop);
+        timeline.setOption(request.getOption());
+        nearbyTimelineRepository.save(timeline);
 
         return new ApiResponse<>("Success", HttpStatus.OK);
     }

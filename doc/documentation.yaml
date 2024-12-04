@@ -18,7 +18,7 @@ info:
   license:
     name: Serch Server License
     url: https://www.serchservice.com/hub/legal
-  version: 1.1.18
+  version: 1.1.19
 servers:
 - url: https://sandbox.serchservice.com/api/v1
   description: Sandbox Server

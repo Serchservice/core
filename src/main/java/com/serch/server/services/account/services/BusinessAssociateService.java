@@ -67,11 +67,14 @@ public interface BusinessAssociateService {
     /**
      * Fetches the list of business associates that belongs to the business
      *
+     * @param page The page number to retrieve (zero-based index).
+     * @param size The number of items per page.
+     *
      * @return ApiResponse of list {@link BusinessAssociateResponse}
      *
      * @see ApiResponse
      */
-    ApiResponse<List<BusinessAssociateResponse>> all();
+    ApiResponse<List<BusinessAssociateResponse>> all(Integer page, Integer size);
 
     /**
      * Builds the profile of an associate provider

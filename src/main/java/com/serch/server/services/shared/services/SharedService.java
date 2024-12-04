@@ -42,9 +42,11 @@ public interface SharedService {
     /**
      * Retrieves a list of guest responses.
      *
+     * @param page The page number to retrieve (zero-based index).
+     * @param size The number of items per page.
      * @return {@link ApiResponse} list of {@link SharedLinkResponse}
      */
-    ApiResponse<List<SharedLinkResponse>> links();
+    ApiResponse<List<SharedLinkResponse>> links(Integer page, Integer size);
 
     /**
      * Build the response of the shared link
@@ -101,6 +103,28 @@ public interface SharedService {
      * @param trip The {@link Trip} data
      */
     void create(String linkId, String account, Trip trip);
+
+    /**
+     * Builds an account response object for the given user.
+     * The response type is specified by the generic type parameter.
+     *
+     * @param user     The user for whom the account response is being built.
+     * @param response The instance of the account response to populate.
+     * @param <T>      The type of the account response, extending {@link AccountResponse}.
+     * @return The populated account response of type T.
+     */
+    <T extends AccountResponse> T buildWithUser(User user, T response);
+
+    /**
+     * Builds an account response object for the given user.
+     * The response type is specified by the generic type parameter.
+     *
+     * @param user     The user for whom the account response is being built.
+     * @param response The instance of the account response to populate.
+     * @param <T>      The type of the account response, extending {@link AccountResponse}.
+     * @return The populated account response of type T.
+     */
+    <T extends AccountResponse> T buildWithLogin(SharedLogin user, T response);
 
     /**
      * Builds an ApiResponse containing the account response for a user.

@@ -27,8 +27,11 @@ public class CallController {
     }
 
     @GetMapping("/history")
-    public ResponseEntity<ApiResponse<List<CallResponse>>> logs() {
-        ApiResponse<List<CallResponse>> response = service.logs();
+    public ResponseEntity<ApiResponse<List<CallResponse>>> logs(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
+    ) {
+        ApiResponse<List<CallResponse>> response = service.logs(page, size);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

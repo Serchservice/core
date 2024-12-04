@@ -35,12 +35,14 @@ public interface ReferralService {
     /**
      * Retrieves referrals made by the currently logged-in user.
      *
+     * @param page The page number to retrieve (zero-based index).
+     * @param size The number of items per page.
      * @return An ApiResponse containing a list of referral responses.
      *
      * @see ReferralResponse
      * @see ApiResponse
      */
-    ApiResponse<List<ReferralResponse>> viewReferrals();
+    ApiResponse<List<ReferralResponse>> viewReferrals(Integer page, Integer size);
 
     /**
      * Get user avatar from user

@@ -1,6 +1,8 @@
 package com.serch.server.repositories.rating;
 
 import com.serch.server.models.rating.Rating;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.lang.NonNull;
@@ -11,13 +13,15 @@ import java.util.Optional;
 public interface RatingRepository extends JpaRepository<Rating, Long> {
     List<Rating> findByRated(@NonNull String rated);
 
+    Page<Rating> findByRated(@NonNull String rated, Pageable pageable);
+
     List<Rating> findByRater(@NonNull String rater);
 
     @Query("SELECT r FROM Rating r WHERE r.rating < 3.0 and r.rated = :id")
-    List<Rating> findBad(String id);
+    Page<Rating> findBad(String id, Pageable pageable);
 
     @Query("SELECT r FROM Rating r WHERE r.rating >= 3.0 and r.rated = :id")
-    List<Rating> findGood(String id);
+    Page<Rating> findGood(String id, Pageable pageable);
 
     @Query(nativeQuery = true, value =
             "SELECT " +

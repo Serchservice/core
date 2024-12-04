@@ -263,7 +263,11 @@ public class WalletImplementation implements WalletService {
         Wallet wallet = walletRepository.findByUser_Id(userUtil.getUser().getId())
                 .orElseThrow(() -> new WalletException("User wallet not found"));
 
-        WalletResponse response = TransactionMapper.INSTANCE.wallet(wallet);
+        return new ApiResponse<>(buildWallet(wallet, TransactionMapper.INSTANCE.wallet(wallet)));
+    }
+
+    @Override
+    public <T extends WalletResponse> T buildWallet(Wallet wallet, T response) {
         response.setBalance(MoneyUtil.formatToNaira(wallet.getBalance()));
         response.setDeposit(MoneyUtil.formatToNaira(wallet.getDeposit()));
         response.setUncleared(MoneyUtil.formatToNaira(wallet.getUncleared()));
@@ -271,7 +275,7 @@ public class WalletImplementation implements WalletService {
         response.setWallet(wallet(wallet.getId()));
         response.setNextPayday(formatNextPayday(wallet));
 
-        return new ApiResponse<>(response);
+        return response;
     }
 
     private String wallet(String wallet) {

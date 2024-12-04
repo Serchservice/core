@@ -7,7 +7,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class PlatformAccountScopeAnalysisResponse {
+public class AccountScopeAnalysisResponse {
     private Long total;
     private String content;
     private List<Integer> years;

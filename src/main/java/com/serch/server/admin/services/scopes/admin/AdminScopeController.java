@@ -24,19 +24,29 @@ public class AdminScopeController {
     private final AdminScopeService service;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<AdminScopeResponse>> fetch(@RequestParam UUID id) {
-        ApiResponse<AdminScopeResponse> response = service.fetch(id);
+    public ResponseEntity<ApiResponse<AdminScopeResponse>> fetch(
+            @RequestParam UUID id,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
+    ) {
+        ApiResponse<AdminScopeResponse> response = service.fetch(id, page, size);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @GetMapping("/chart/auth")
-    public ResponseEntity<ApiResponse<List<ChartMetric>>> fetchAuthChart(@RequestParam UUID id, @RequestParam Integer year) {
+    public ResponseEntity<ApiResponse<List<ChartMetric>>> fetchAuthChart(
+            @RequestParam UUID id,
+            @RequestParam(required = false) Integer year
+    ) {
         ApiResponse<List<ChartMetric>> response = service.fetchAuthChart(id, year);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @GetMapping("/chart/account/status")
-    public ResponseEntity<ApiResponse<List<ChartMetric>>> fetchAccountStatusChart(@RequestParam UUID id, @RequestParam Integer year) {
+    public ResponseEntity<ApiResponse<List<ChartMetric>>> fetchAccountStatusChart(
+            @RequestParam UUID id,
+            @RequestParam(required = false) Integer year
+    ) {
         ApiResponse<List<ChartMetric>> response = service.fetchAccountStatusChart(id, year);
         return new ResponseEntity<>(response, response.getStatus());
     }

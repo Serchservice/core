@@ -2,6 +2,8 @@ package com.serch.server.repositories.account;
 
 import com.serch.server.enums.auth.Role;
 import com.serch.server.models.account.Profile;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.lang.NonNull;
@@ -19,4 +21,7 @@ public interface ProfileRepository extends JpaRepository<Profile, UUID> {
 
     @Query("select b from Profile b where b.user.role = ?1 and b.createdAt between ?2 and ?3")
     List<Profile> findByRoleAndCreatedAtBetween(Role role, ZonedDateTime startMonth, ZonedDateTime endMonth);
+
+    @Query("select p from Profile p where p.business.id = ?1 and p.user.status != 'BUSINESS_DELETED'")
+    Page<Profile> findActiveAssociatesByBusinessId(@NonNull UUID id, Pageable pageable);
 }

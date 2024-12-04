@@ -1,18 +1,19 @@
 package com.serch.server.repositories.trip;
 
 import com.serch.server.models.trip.TripInvite;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.lang.NonNull;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface TripInviteRepository extends JpaRepository<TripInvite, String> {
-    List<TripInvite> findByAccount(@NonNull String account);
+    Page<TripInvite> findByAccount(@NonNull String account, Pageable pageable);
 
-    List<TripInvite> findByAccountAndLinkId(@NonNull String account, @NonNull String linkId);
+    Page<TripInvite> findByAccountAndLinkId(@NonNull String account, @NonNull String linkId, Pageable pageable);
 
     @Query(
             value = "SELECT DISTINCT ti.*, " +
@@ -44,7 +45,7 @@ public interface TripInviteRepository extends JpaRepository<TripInvite, String> 
                     "ORDER BY distance, verification_status, provider_status, provider_rating DESC",
             nativeQuery = true
     )
-    List<TripInvite> sortAllWithinDistance(@Param("radius") Double radius, @Param("category") String category);
+    Page<TripInvite> sortAllWithinDistance(@Param("radius") Double radius, @Param("category") String category, Pageable pageable);
 
-    List<TripInvite> findBySelected(@NonNull UUID selected);
+    Page<TripInvite> findBySelected(@NonNull UUID selected, Pageable pageable);
 }

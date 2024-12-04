@@ -3,15 +3,17 @@ package com.serch.server.services.referral.services;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.models.account.BusinessProfile;
 import com.serch.server.models.account.Profile;
-import com.serch.server.models.referral.Referral;
 import com.serch.server.models.auth.User;
+import com.serch.server.models.referral.Referral;
 import com.serch.server.repositories.account.BusinessProfileRepository;
 import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.referral.ReferralRepository;
 import com.serch.server.services.referral.responses.ReferralResponse;
+import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,12 +53,12 @@ public class ReferralImplementation implements ReferralService {
     }
 
     @Override
-    public ApiResponse<List<ReferralResponse>> viewReferrals() {
-        List<Referral> referrals = referralRepository.findByReferredBy_User_EmailAddress(UserUtil.getLoginUser());
+    public ApiResponse<List<ReferralResponse>> viewReferrals(Integer page, Integer size) {
+        Page<Referral> referrals = referralRepository.findByReferredBy_User_EmailAddress(UserUtil.getLoginUser(), HelperUtil.getPageable(page, size));
         List<ReferralResponse> list = new ArrayList<>();
 
-        if(!referrals.isEmpty()) {
-            list = referrals.stream()
+        if(referrals != null && !referrals.getContent().isEmpty()) {
+            list = referrals.getContent().stream()
                     .sorted(Comparator.comparing(Referral::getCreatedAt))
                     .map(referral -> {
                         ReferralResponse response = new ReferralResponse();
@@ -72,6 +74,7 @@ public class ReferralImplementation implements ReferralService {
                     })
                     .toList();
         }
+
         return new ApiResponse<>(list);
     }
 

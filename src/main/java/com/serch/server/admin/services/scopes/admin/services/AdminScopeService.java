@@ -17,13 +17,15 @@ public interface AdminScopeService {
      * This method retrieves all relevant information related to the admin,
      * including their profile details, permissions, and roles within the system.
      *
+     * @param page The page number to retrieve (zero-based index).
+     * @param size The number of items per page.
      * @param id The unique identifier of the admin in {@link UUID} format.
      *           This ID must correspond to an existing admin in the system.
      * @return {@link ApiResponse} containing an {@link AdminScopeResponse}
      *         with the admin's details. The response may include error messages
      *         if the admin ID does not exist.
      */
-    ApiResponse<AdminScopeResponse> fetch(UUID id);
+    ApiResponse<AdminScopeResponse> fetch(UUID id, Integer page, Integer size);
 
     /**
      * Fetches authentication chart data for a particular year

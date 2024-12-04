@@ -110,6 +110,17 @@ public interface WalletService {
     ApiResponse<WalletResponse> view();
 
     /**
+     * Builds a wallet response object based on the provided wallet entity.
+     * The response type is specified by the generic type parameter.
+     *
+     * @param wallet   The {@link Wallet} entity from which the response is built.
+     * @param response The instance of the wallet response to populate.
+     * @param <T>      The type of the wallet response, extending {@link WalletResponse}.
+     * @return The populated wallet response of type T.
+     */
+    <T extends WalletResponse> T buildWallet(Wallet wallet, T response);
+
+    /**
      * Updates the wallet details based on the provided request.
      *<p>
      * This method allows modifications to the wallet's configuration, such as

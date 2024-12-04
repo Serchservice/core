@@ -38,16 +38,18 @@ public class SwaggerConfiguration {
         return new OpenAPI()
                 .info(new Info()
                         .title("Serch Server - Service made easy")
-                        .version("1.0.9")
+                        .version("1.1.18")
                         .summary("This contains the server implementations for Serch platform")
                         .description("""
-                                This API supports three authentication methods:\s
-
-                                1. **Bearer Authentication**: Use a JWT token in the `Authorization` header as `Bearer <token>`.
-                                2. **Drive Authentication**: Use `X-Serch-Drive-Api-Key` and `X-Serch-Drive-Secret-Key` headers for Drive authentication.
-                                3. **Guest Authentication**: Use `X-Serch-Guest-Api-Key` and `X-Serch-Guest-Secret-Key` headers for Guest access.
-
-                                Choose one of these methods to authenticate requests."""
+                                This API supports four authentication methods:
+                                
+                                 1. **Signature Authentication**: Use the `X-Serch-Signed` header to verify that the connection is coming from an authorized Serch user. This is **compulsory** for any API request.
+                                 2. **Bearer Authentication**: Optionally, use a JWT token in the `Authorization` header as `Bearer <token>`.
+                                 3. **Drive Authentication**: Optionally, use the `X-Serch-Drive-Api-Key` and `X-Serch-Drive-Secret-Key` headers for Drive authentication.
+                                 4. **Guest Authentication**: Optionally, use the `X-Serch-Guest-Api-Key` and `X-Serch-Guest-Secret-Key` headers for Guest access.
+                                
+                                 Choose **Signature Authentication** for all requests, and optionally select one of the other methods for additional access control.
+                                """
                         )
                         .termsOfService("https://www.serchservice.com/hub/legal/terms-and-conditions")
                         .license(new License()
@@ -64,6 +66,7 @@ public class SwaggerConfiguration {
                 .components(getSecurityComponent())
                 .servers(getServers())
                 .addSecurityItem(new SecurityRequirement()
+                        .addList("Signature Authentication")
                         .addList("Bearer Authentication")
                         .addList("Drive Authentication")
                         .addList("Drive Secret Key")
@@ -76,13 +79,31 @@ public class SwaggerConfiguration {
         // Add Bearer Authentication scheme
         components.addSecuritySchemes("Bearer Authentication", getBearerScheme());
 
+        // Add Signature API Key scheme
+        components.addSecuritySchemes(
+                "Signature Authentication",
+                getApiKeyScheme("X-Serch-Signed", "API key for Signature Authentication")
+        );
+
         // Add Drive API Key scheme
-        components.addSecuritySchemes("Drive Authentication", getDriveApiKeyScheme());
-        components.addSecuritySchemes("Drive Secret Key", getDriveSecretKeyScheme());
+        components.addSecuritySchemes(
+                "Drive Authentication",
+                getApiKeyScheme("X-Serch-Drive-Api-Key", "API key for Drive App authentication")
+        );
+        components.addSecuritySchemes(
+                "Drive Secret Key",
+                getApiKeyScheme("X-Serch-Drive-Secret-Key", "Secret key for Drive App authentication")
+        );
 
         // Add Guest API Key scheme
-        components.addSecuritySchemes("Guest Authentication", getGuestApiKeyScheme());
-        components.addSecuritySchemes("Guest Secret Key", getGuestSecretKeyScheme());
+        components.addSecuritySchemes(
+                "Guest Authentication",
+                getApiKeyScheme("X-Serch-Guest-Api-Key", "API key for Guest App authentication")
+        );
+        components.addSecuritySchemes(
+                "Guest Secret Key",
+                getApiKeyScheme("X-Serch-Guest-Secret-Key", "Secret key for Guest App authentication")
+        );
 
         return components;
     }
@@ -97,42 +118,12 @@ public class SwaggerConfiguration {
         return scheme;
     }
 
-    private SecurityScheme getDriveApiKeyScheme() {
+    private SecurityScheme getApiKeyScheme(String name, String description) {
         SecurityScheme scheme = new SecurityScheme();
         scheme.setType(SecurityScheme.Type.APIKEY);
         scheme.setIn(SecurityScheme.In.HEADER);
-        scheme.setName("X-Serch-Drive-Api-Key");
-        scheme.setDescription("API key for Drive App authentication");
-
-        return scheme;
-    }
-
-    private SecurityScheme getDriveSecretKeyScheme() {
-        SecurityScheme scheme = new SecurityScheme();
-        scheme.setType(SecurityScheme.Type.APIKEY);
-        scheme.setIn(SecurityScheme.In.HEADER);
-        scheme.setName("X-Serch-Drive-Secret-Key");
-        scheme.setDescription("Secret key for Drive App authentication");
-
-        return scheme;
-    }
-
-    private SecurityScheme getGuestApiKeyScheme() {
-        SecurityScheme scheme = new SecurityScheme();
-        scheme.setType(SecurityScheme.Type.APIKEY);
-        scheme.setIn(SecurityScheme.In.HEADER);
-        scheme.setName("X-Serch-Guest-Api-Key");
-        scheme.setDescription("API key for Guest App authentication");
-
-        return scheme;
-    }
-
-    private SecurityScheme getGuestSecretKeyScheme() {
-        SecurityScheme scheme = new SecurityScheme();
-        scheme.setType(SecurityScheme.Type.APIKEY);
-        scheme.setIn(SecurityScheme.In.HEADER);
-        scheme.setName("X-Serch-Guest-Secret-Key");
-        scheme.setDescription("Secret key for Guest App authentication");
+        scheme.setName(name);
+        scheme.setDescription(description);
 
         return scheme;
     }

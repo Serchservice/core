@@ -22,12 +22,14 @@ public interface SpeakWithSerchService {
     /**
      * Fetches all Speak With Serch messages
      *
+     * @param page The page number to retrieve (zero-based index).
+     * @param size The number of items per page.
      * @return ApiResponse containing all messages.
      *
      * @see ApiResponse
      * @see SpeakWithSerchResponse
      */
-    ApiResponse<List<SpeakWithSerchResponse>> message();
+    ApiResponse<List<SpeakWithSerchResponse>> messages(Integer page, Integer size);
 
     /**
      * Marks all the message in a SpeakWithSerch record read

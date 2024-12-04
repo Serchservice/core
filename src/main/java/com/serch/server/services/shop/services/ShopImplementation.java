@@ -19,20 +19,18 @@ import com.serch.server.services.shop.requests.ShopWeekdayRequest;
 import com.serch.server.services.shop.requests.UpdateShopRequest;
 import com.serch.server.services.shop.responses.SearchShopResponse;
 import com.serch.server.services.shop.responses.ShopResponse;
-import com.serch.server.services.shop.responses.ShopServiceResponse;
 import com.serch.server.services.shop.responses.ShopWeekdayResponse;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -57,22 +55,10 @@ public class ShopImplementation implements ShopService {
     @Value("${application.map.search-radius}")
     private String MAP_SEARCH_RADIUS;
 
-    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("h:mma");
-
-    private static LocalTime toTime(String timeString) {
-        return LocalTime.parse(timeString.toUpperCase(), TIME_FORMATTER);
-    }
-
-    private static String toString(LocalTime time) {
-        return time.format(TIME_FORMATTER);
-    }
-
     @Override
     public ShopResponse response(Shop shop) {
         ShopResponse response = ShopMapper.INSTANCE.shop(shop);
-        response.setOpen(shop.getStatus() == ShopStatus.OPEN);
-        response.setCategory(shop.getCategory().getType());
-        response.setImage(shop.getCategory().getImage());
+        response.setOpen(shop.isOpen());
         if(shop.getWeekdays() != null && !shop.getWeekdays().isEmpty()) {
             response.setWeekdays(shop.getWeekdays().stream().map(this::response).toList());
             DayOfWeek currentDay = LocalDateTime.now().getDayOfWeek();
@@ -80,26 +66,20 @@ public class ShopImplementation implements ShopService {
                     .ifPresent(weekday -> response.setCurrent(response(weekday)));
         }
         if(shop.getServices() != null && !shop.getServices().isEmpty()) {
-            response.setServices(shop.getServices().stream().map(this::response).toList());
+            response.setServices(shop.getServices().stream().map(ShopMapper.INSTANCE::service).toList());
         }
+
         return response;
     }
 
-    private ShopServiceResponse response(ShopSpecialty service) {
-        return ShopServiceResponse.builder()
-                .service(service.getService())
-                .id(service.getId())
-                .build();
-    }
-
     private ShopWeekdayResponse response(ShopWeekday weekday) {
-        return ShopWeekdayResponse.builder()
-                .day(weekday.getDay().getDay())
-                .closing(toString(weekday.getClosing()))
-                .opening(toString(weekday.getOpening()))
-                .id(weekday.getId())
-                .open(weekday.getShop().getStatus() == ShopStatus.OPEN)
-                .build();
+        ShopWeekdayResponse response = ShopMapper.INSTANCE.weekday(weekday);
+        response.setDay(weekday.getDay().getDay());
+        response.setClosing(TimeUtil.toString(weekday.getClosing()));
+        response.setOpening(TimeUtil.toString(weekday.getOpening()));
+        response.setOpen(weekday.getShop().isOpen());
+
+        return response;
     }
 
     protected ApiResponse<ShopResponse> getUpdatedShopResponse(String shopId) {
@@ -134,15 +114,15 @@ public class ShopImplementation implements ShopService {
                         .map(s -> {
                             ShopWeekday weekday = new ShopWeekday();
                             weekday.setShop(shop);
-                            weekday.setClosing(toTime(s.getClosing()));
-                            weekday.setOpening(toTime(s.getOpening()));
+                            weekday.setClosing(TimeUtil.toTime(s.getClosing()));
+                            weekday.setOpening(TimeUtil.toTime(s.getOpening()));
                             weekday.setDay(s.getDay());
                             return weekday;
                         }).forEach(shopWeekdayRepository::save);
             }
         }
 
-        return fetch();
+        return fetch(null, null);
     }
 
     @Override
@@ -151,8 +131,8 @@ public class ShopImplementation implements ShopService {
                 .orElseThrow(() -> new ShopException("Shop not found"));
         ShopWeekday weekday = new ShopWeekday();
         weekday.setShop(shop);
-        weekday.setClosing(toTime(request.getClosing()));
-        weekday.setOpening(toTime(request.getOpening()));
+        weekday.setClosing(TimeUtil.toTime(request.getClosing()));
+        weekday.setOpening(TimeUtil.toTime(request.getOpening()));
         weekday.setDay(request.getDay());
         shopWeekdayRepository.save(weekday);
 
@@ -203,11 +183,11 @@ public class ShopImplementation implements ShopService {
     public ApiResponse<ShopResponse> update(Long id, String shopId, ShopWeekdayRequest request) {
         ShopWeekday weekday = shopWeekdayRepository.findByIdAndShop_Id(id, shopId)
                 .orElseThrow(() -> new ShopException("Weekday not found"));
-        if(!weekday.getClosing().equals(toTime(request.getClosing()))) {
-            weekday.setClosing(toTime(request.getClosing()));
+        if(!weekday.getClosing().equals(TimeUtil.toTime(request.getClosing()))) {
+            weekday.setClosing(TimeUtil.toTime(request.getClosing()));
         }
-        if(!weekday.getOpening().equals(toTime(request.getOpening()))) {
-            weekday.setOpening(toTime(request.getOpening()));
+        if(!weekday.getOpening().equals(TimeUtil.toTime(request.getOpening()))) {
+            weekday.setOpening(TimeUtil.toTime(request.getOpening()));
         }
         weekday.setUpdatedAt(TimeUtil.now());
         shopWeekdayRepository.save(weekday);
@@ -227,12 +207,18 @@ public class ShopImplementation implements ShopService {
     }
 
     @Override
-    public ApiResponse<List<ShopResponse>> fetch() {
-        List<Shop> shops = shopRepository.findByUser_Id(userUtil.getUser().getId());
-        List<ShopResponse> list = shops == null || shops.isEmpty() ? List.of() : shops
-                .stream()
-                .map(this::response)
-                .toList();
+    public ApiResponse<List<ShopResponse>> fetch(Integer page, Integer size) {
+        Page<Shop> shops = shopRepository.findByUser_Id(userUtil.getUser().getId(), HelperUtil.getPageable(page, size));
+
+        List<ShopResponse> list = new ArrayList<>();
+
+        if(shops != null && !shops.getContent().isEmpty()) {
+            list = shops.getContent()
+                    .stream()
+                    .map(this::response)
+                    .toList();
+        }
+
         return new ApiResponse<>(list);
     }
 
@@ -245,7 +231,7 @@ public class ShopImplementation implements ShopService {
     @Override
     public ApiResponse<List<ShopResponse>> remove(String shopId) {
         shopRepository.findByIdAndUser_Id(shopId, userUtil.getUser().getId()).ifPresent(shopRepository::delete);
-        return fetch();
+        return fetch(null, null);
     }
 
     @Override
@@ -276,26 +262,28 @@ public class ShopImplementation implements ShopService {
                 }
                 shop.setUpdatedAt(TimeUtil.now());
             }).forEach(shopRepository::save);
-            return fetch();
+            return fetch(null, null);
         } else {
             throw new ShopException("You have no shops");
         }
     }
 
     @Override
-    public ApiResponse<List<SearchShopResponse>> drive(String query, String category, Double longitude, Double latitude, Double radius, DriveScope scope) {
+    public ApiResponse<List<SearchShopResponse>> drive(String query, String category, Double longitude, Double latitude, Double radius, DriveScope scope, Integer page, Integer size) {
         return new ApiResponse<>(list(
                 query,
                 category,
                 longitude,
                 latitude,
                 radius == null ? Double.parseDouble(MAP_SEARCH_RADIUS) : radius,
-                scope == null ? DriveScope.ALL : scope
+                scope == null ? DriveScope.ALL : scope,
+                page,
+                size
         ));
     }
 
     @Override
-    public List<SearchShopResponse> list(String query, String category, Double longitude, Double latitude, Double radius, DriveScope scope) {
+    public List<SearchShopResponse> list(String query, String category, Double longitude, Double latitude, Double radius, DriveScope scope, Integer page, Integer size) {
         if((query == null || query.isEmpty()) && (category == null || category.isEmpty()) ) {
             throw new ShopException("Query and category cannot be null or empty");
         }
@@ -303,12 +291,12 @@ public class ShopImplementation implements ShopService {
         List<SearchShopResponse> list = new ArrayList<>();
 
         if(scope == DriveScope.ALL) {
-            addSerchShops(list, query, category, longitude, latitude, radius);
+            addSerchShops(list, query, category, longitude, latitude, radius, page, size);
             addGoogleShops(list, query, category, longitude, latitude, radius);
         } else if(scope == DriveScope.GOOGLE) {
             addGoogleShops(list, query, category, longitude, latitude, radius);
         } else {
-            addSerchShops(list, query, category, longitude, latitude, radius);
+            addSerchShops(list, query, category, longitude, latitude, radius, page, size);
         }
 
         // Sort the list first by isGoogle (false first), then by distance, treating null as max value
@@ -329,10 +317,10 @@ public class ShopImplementation implements ShopService {
         }
     }
 
-    private void addSerchShops(List<SearchShopResponse> list, String query, String category, Double longitude, Double latitude, Double radius) {
-        List<Shop> shops = getShops(query, category, longitude, latitude, radius);
+    private void addSerchShops(List<SearchShopResponse> list, String query, String category, Double longitude, Double latitude, Double radius, Integer page, Integer size) {
+        Page<Shop> shops = getShops(query, category, longitude, latitude, radius, page, size);
 
-        if(shops != null && !shops.isEmpty()) {
+        if(shops != null && !shops.getContent().isEmpty()) {
             shops.forEach(shop -> {
                 SearchShopResponse response = new SearchShopResponse();
                 double distance = HelperUtil.getDistance(latitude, longitude, shop.getLatitude(), shop.getLongitude());
@@ -348,16 +336,17 @@ public class ShopImplementation implements ShopService {
         }
     }
 
-    private List<Shop> getShops(String query, String category, Double longitude, Double latitude, Double radius) {
+    private Page<Shop> getShops(String query, String category, Double longitude, Double latitude, Double radius, Integer page, Integer size) {
         if(query != null && !query.isEmpty()) {
             return shopRepository.findByServiceAndLocation(
                     latitude,
                     longitude,
                     query.equalsIgnoreCase("car_repair") ? "mechanic" : query.toLowerCase(),
-                    radius
+                    radius,
+                    HelperUtil.getPageable(page, size)
             );
         } else {
-            return shopRepository.findByServiceAndLocation(latitude, longitude, category.toLowerCase(), radius);
+            return shopRepository.findByServiceAndLocation(latitude, longitude, category.toLowerCase(), radius, HelperUtil.getPageable(page, size));
         }
     }
 

@@ -65,9 +65,11 @@ public interface TripHistoryService {
      * @param userId  The ID of the user whose trip invitation history is to be retrieved.
      * @param linkId  The shared link ID (can be {@code null}).
      * @param guestId The guest ID (can be {@code null}).
+     * @param page The page number to retrieve (zero-based index).
+     * @param size The number of items per page.
      * @return A list of {@link TripResponse} objects representing the pending trip invitations.
      */
-    List<TripResponse> inviteHistory(String guestId, UUID userId, String linkId);
+    List<TripResponse> inviteHistory(String guestId, UUID userId, String linkId, Integer page, Integer size);
 
     /**
      * Retrieves the trip history for the specified trip.
@@ -81,9 +83,11 @@ public interface TripHistoryService {
      * @param sendUpdate  Indicates whether to send a socket update to all associated accounts.
      * @param linkId      The shared link ID (can be {@code null}).
      * @param guest       The guest ID (can be {@code null}).
+     * @param page The page number to retrieve (zero-based index).
+     * @param size The number of items per page.
      * @return An {@link ApiResponse} containing a list of {@link TripResponse} objects.
      */
-    ApiResponse<List<TripResponse>> history(String guest, String linkId, boolean sendUpdate, String trip);
+    ApiResponse<List<TripResponse>> history(String guest, String linkId, boolean sendUpdate, String trip, Integer page, Integer size);
 
     /**
      * Retrieves the trip history for the logged-in user or provider.
@@ -94,7 +98,9 @@ public interface TripHistoryService {
      *
      * @param linkId The shared link ID (can be {@code null}).
      * @param guest  The guest ID (can be {@code null}).
+     * @param page The page number to retrieve (zero-based index).
+     * @param size The number of items per page.
      * @return An {@link ApiResponse} containing a list of {@link TripResponse} objects.
      */
-    ApiResponse<List<TripResponse>> history(String guest, String linkId);
+    ApiResponse<List<TripResponse>> history(String guest, String linkId, Integer page, Integer size);
 }

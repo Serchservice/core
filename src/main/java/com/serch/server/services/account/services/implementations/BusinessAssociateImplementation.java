@@ -2,43 +2,45 @@ package com.serch.server.services.account.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.core.email.EmailService;
+import com.serch.server.core.jwt.JwtService;
 import com.serch.server.enums.account.AccountStatus;
 import com.serch.server.enums.auth.Role;
 import com.serch.server.enums.email.EmailType;
 import com.serch.server.enums.verified.ConsentType;
 import com.serch.server.exceptions.account.AccountException;
 import com.serch.server.mappers.AccountMapper;
+import com.serch.server.models.account.BusinessProfile;
 import com.serch.server.models.account.PhoneInformation;
+import com.serch.server.models.account.Profile;
 import com.serch.server.models.account.Specialty;
 import com.serch.server.models.auth.Pending;
-import com.serch.server.models.account.BusinessProfile;
-import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.User;
 import com.serch.server.models.auth.incomplete.Incomplete;
 import com.serch.server.models.email.SendEmail;
+import com.serch.server.repositories.account.BusinessProfileRepository;
 import com.serch.server.repositories.account.PhoneInformationRepository;
+import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.account.SpecialtyRepository;
 import com.serch.server.repositories.auth.PendingRepository;
-import com.serch.server.repositories.account.BusinessProfileRepository;
-import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.auth.incomplete.IncompleteRepository;
 import com.serch.server.services.account.requests.AddAssociateRequest;
+import com.serch.server.services.account.responses.BusinessAssociateResponse;
 import com.serch.server.services.account.services.AccountDeleteService;
+import com.serch.server.services.account.services.BusinessAssociateService;
 import com.serch.server.services.account.services.ProfileService;
 import com.serch.server.services.auth.services.AccountStatusTrackerService;
-import com.serch.server.core.jwt.JwtService;
-import com.serch.server.services.account.responses.BusinessAssociateResponse;
-import com.serch.server.services.account.services.BusinessAssociateService;
 import com.serch.server.services.auth.services.AuthService;
 import com.serch.server.services.auth.services.ProviderAuthService;
 import com.serch.server.services.rating.services.RatingService;
 import com.serch.server.services.referral.services.ReferralProgramService;
 import com.serch.server.services.referral.services.ReferralService;
+import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -87,23 +89,24 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
     @Override
     public BusinessAssociateResponse response(Profile profile) {
         BusinessAssociateResponse response = new BusinessAssociateResponse();
-        response.setBad(ratingService.bad(String.valueOf(profile.getId())).getData());
-        response.setGood(ratingService.good(String.valueOf(profile.getId())).getData());
+        response.setBad(ratingService.bad(String.valueOf(profile.getId()), null, null).getData());
+        response.setGood(ratingService.good(String.valueOf(profile.getId()), null, null).getData());
         response.setChart(ratingService.chart(String.valueOf(profile.getId())).getData());
         response.setProfile(profileService.profile(profile));
         response.setStatus(profile.getUser().getStatus());
         response.setVerified(profile.getUser().getIsEmailConfirmed());
+
         return response;
     }
 
-    private List<BusinessAssociateResponse> associates() {
-        BusinessProfile business = businessProfileRepository.findById(util.getUser().getId())
-                .orElseThrow(() -> new AccountException("Business not found"));
-        if(business.getAssociates() == null || business.getAssociates().isEmpty()) {
+    private List<BusinessAssociateResponse> associates(Integer page, Integer size) {
+        Page<Profile> associates = profileRepository.findActiveAssociatesByBusinessId(util.getUser().getId(), HelperUtil.getPageable(page, size));
+
+        if(associates == null || associates.getContent().isEmpty()) {
             return List.of();
         } else {
-            return business.getAssociates().stream()
-                    .filter(profile -> profile.getUser().getStatus() != AccountStatus.BUSINESS_DELETED)
+            return associates.getContent()
+                    .stream()
                     .sorted(Comparator.comparing(Profile::getCreatedAt))
                     .map(this::response)
                     .toList();
@@ -135,7 +138,7 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
                     sendEmailInvite(request.getEmailAddress(), business, user);
                     return new ApiResponse<>(
                             "Account created. Do inform the provider to confirm email when logging in",
-                            associates(),
+                            associates(null, null),
                             HttpStatus.OK
                     );
                 }
@@ -201,6 +204,7 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
         user.setStatus(AccountStatus.BUSINESS_DEACTIVATED);
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
+
         return userRepository.save(user);
     }
 
@@ -248,7 +252,7 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
             }
             return new ApiResponse<>(
                     "Account is pending deletion. This takes time to be effected",
-                    associates(),
+                    associates(null, null),
                     HttpStatus.OK
             );
         } else {
@@ -314,7 +318,7 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
     }
 
     @Override
-    public ApiResponse<List<BusinessAssociateResponse>> all() {
-        return new ApiResponse<>(associates());
+    public ApiResponse<List<BusinessAssociateResponse>> all(Integer page, Integer size) {
+        return new ApiResponse<>(associates(page, size));
     }
 }

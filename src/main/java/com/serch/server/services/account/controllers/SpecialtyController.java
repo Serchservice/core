@@ -18,14 +18,21 @@ public class SpecialtyController {
 
     @GetMapping("/search")
     @PreAuthorize(value = "hasRole('PROVIDER') || hasRole('ASSOCIATE_PROVIDER') || hasRole('USER')")
-    public ResponseEntity<ApiResponse<List<SpecialtyResponse>>> search(@RequestParam String query) {
-        ApiResponse<List<SpecialtyResponse>> response = service.search(query);
+    public ResponseEntity<ApiResponse<List<SpecialtyResponse>>> search(
+            @RequestParam String query,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
+    ) {
+        ApiResponse<List<SpecialtyResponse>> response = service.search(query, page, size);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse<List<String>>> specialties() {
-        ApiResponse<List<String>> response = service.specialties();
+    public ResponseEntity<ApiResponse<List<String>>> specialties(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
+    ) {
+        ApiResponse<List<String>> response = service.specialties(page, size);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

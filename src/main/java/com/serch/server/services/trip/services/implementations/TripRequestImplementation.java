@@ -147,6 +147,7 @@ public class TripRequestImplementation implements TripRequestService {
                     request.getLatitude(), request.getLongitude(),
                     Double.parseDouble(MAP_SEARCH_RADIUS), request.getCategory().name()
             );
+
             if(actives != null && !actives.isEmpty()) {
                 actives.forEach(active -> {
                     messaging.convertAndSend(
@@ -376,7 +377,7 @@ public class TripRequestImplementation implements TripRequestService {
         if(trip.getQuotes() != null && !trip.getQuotes().isEmpty()) {
             trip.getQuotes().forEach(q -> messaging.convertAndSend(
                     "/platform/%s".formatted(String.valueOf(q.getProvider().getId())),
-                    historyService.inviteHistory(null, q.getProvider().getId(), null)
+                    historyService.inviteHistory(null, q.getProvider().getId(), null, null, null)
             ));
         }
 
@@ -397,12 +398,12 @@ public class TripRequestImplementation implements TripRequestService {
         try {
             messaging.convertAndSend(
                     "/platform/%s".formatted(quote.getAccount()),
-                    historyService.inviteHistory(null, UUID.fromString(quote.getAccount()), null)
+                    historyService.inviteHistory(null, UUID.fromString(quote.getAccount()), null, null, null)
             );
         } catch (Exception ignored) {
             messaging.convertAndSend(
                     "/platform/%s".formatted(quote.getAccount()),
-                    historyService.inviteHistory(quote.getAccount(), null, request.getLinkId())
+                    historyService.inviteHistory(quote.getAccount(), null, request.getLinkId(), null, null)
             );
         }
 
@@ -412,7 +413,7 @@ public class TripRequestImplementation implements TripRequestService {
 
     @Override
     @Transactional
-    public ApiResponse<List<TripResponse>> history(String guestId, String linkId) {
-        return new ApiResponse<>(historyService.inviteHistory(guestId, null, linkId));
+    public ApiResponse<List<TripResponse>> history(String guestId, String linkId, Integer page, Integer size) {
+        return new ApiResponse<>(historyService.inviteHistory(guestId, null, linkId, page, size));
     }
 }

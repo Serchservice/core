@@ -352,7 +352,7 @@ public class TripShareImplementation implements TripShareService {
         timelineService.create(null, share, COMPLETED);
         activeService.toggle(userUtil.getUser(), ONLINE, request);
 
-        return historyService.history(null, null, true, share.getTrip().getId());
+        return historyService.history(null, null, true, share.getTrip().getId(), null, null);
     }
 
     @Override
@@ -387,6 +387,6 @@ public class TripShareImplementation implements TripShareService {
                 String.valueOf(userUtil.getUser().getId()), null, false
         );
 
-        return historyService.history(null, null, true, share.getTrip().getId());
+        return historyService.history(null, null, true, share.getTrip().getId(), null, null);
     }
 }

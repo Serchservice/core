@@ -24,6 +24,7 @@ import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -33,12 +34,13 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 
+import static com.serch.server.enums.account.ProviderStatus.*;
 import static com.serch.server.enums.auth.Role.USER;
 import static com.serch.server.enums.trip.TripConnectionStatus.*;
-import static com.serch.server.enums.trip.TripMode.*;
-import static com.serch.server.enums.account.ProviderStatus.*;
+import static com.serch.server.enums.trip.TripMode.FROM_USER;
 import static com.serch.server.enums.trip.TripStatus.*;
-import static com.serch.server.enums.trip.TripType.*;
+import static com.serch.server.enums.trip.TripType.REQUEST;
+import static com.serch.server.enums.trip.TripType.SPEAK_TO;
 
 @Service
 @RequiredArgsConstructor
@@ -231,7 +233,7 @@ public class TripImplementation implements TripService {
             activeService.toggle(trip.getInvited().getProvider().getUser(), ONLINE, TripMapper.INSTANCE.request(trip));
         }
 
-        return historyService.history(request.getGuest(), request.getLinkId(), true, trip.getId());
+        return historyService.history(request.getGuest(), request.getLinkId(), true, trip.getId(), null, null);
     }
 
     @Override
@@ -280,7 +282,7 @@ public class TripImplementation implements TripService {
             );
         }
 
-        return historyService.history(request.getGuest(), request.getLinkId(), true, trip.getId());
+        return historyService.history(request.getGuest(), request.getLinkId(), true, trip.getId(), null, null);
     }
 
     @Override
@@ -361,20 +363,20 @@ public class TripImplementation implements TripService {
                     String.valueOf(userUtil.getUser().getId()), null, false
             );
 
-            return historyService.history(null, null, true, trip.getId());
+            return historyService.history(null, null, true, trip.getId(), null, null);
         }
         throw new TripException("You cannot leave trip unless there is another provider on the trip");
     }
 
     @Override
     @Transactional
-    public ApiResponse<List<ActiveResponse>> search(String phoneNumber, Double lat, Double lng) {
-        List<PhoneInformation> list = phoneInformationRepository.findByPhoneNumber(phoneNumber);
+    public ApiResponse<List<ActiveResponse>> search(String phoneNumber, Double lat, Double lng, Integer page, Integer size) {
+        Page<PhoneInformation> list = phoneInformationRepository.findByPhoneNumber(phoneNumber, HelperUtil.getPageable(page, size));
 
-        if(list == null || list.isEmpty()) {
+        if(list == null || !list.hasContent()) {
             return new ApiResponse<>(List.of());
         } else {
-            List<ActiveResponse> responses = list.stream()
+            List<ActiveResponse> responses = list.getContent().stream()
                     .map(phone -> {
                         Profile profile = profileRepository.findById(phone.getUser().getId()).orElse(null);
                         ProviderStatus status = activeRepository.findByProfile_Id(phone.getUser().getId())

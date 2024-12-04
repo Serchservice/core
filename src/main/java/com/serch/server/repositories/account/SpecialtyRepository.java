@@ -1,6 +1,8 @@
 package com.serch.server.repositories.account;
 
 import com.serch.server.models.account.Specialty;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.lang.NonNull;
@@ -22,5 +24,5 @@ public interface SpecialtyRepository extends JpaRepository<Specialty, Long> {
                     "OR to_tsvector('english', COALESCE(p.serch_category, '')) @@ plainto_tsquery(?1) ",
             nativeQuery = true
     )
-    List<Specialty> fullTextSearch(String query);
+    Page<Specialty> fullTextSearch(String query, Pageable pageable);
 }

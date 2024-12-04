@@ -1,11 +1,13 @@
 package com.serch.server.repositories.trip;
 
 import com.serch.server.models.trip.Trip;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.lang.NonNull;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -32,8 +34,23 @@ public interface TripRepository extends JpaRepository<Trip, String> {
     @Query("select t from Trip t where t.account = ?1")
     List<Trip> findByAccount(@NonNull String account);
 
+    @Query("SELECT COUNT(t) from Trip t where t.account = ?1 and t.createdAt between ?2 and ?3")
+    long countByAccountAndDate(@NonNull String account, ZonedDateTime from, ZonedDateTime to);
+
+    @Query("SELECT COUNT(t) from Trip t " +
+            "left join t.invited ti " +
+            "left join t.provider p " +
+            "left join p.business b " +
+            "left join ti.provider tip " +
+            "left join tip.business tib " +
+            "where ((p.id = ?1 or b.id = ?1) or (tip.id = ?1 or tib.id = ?1)) and t.createdAt between ?2 and ?3")
+    long countByAccountAndDate(@NonNull UUID account, ZonedDateTime from, ZonedDateTime to);
+
+    @Query("select t from Trip t where t.account = ?1")
+    Page<Trip> findByAccount(@NonNull String account, Pageable pageable);
+
     @Query("select t from Trip t where t.account = ?1 and t.linkId = ?2")
-    List<Trip> findByAccount(@NonNull String account, @NonNull String linkId);
+    Page<Trip> findByAccount(@NonNull String account, @NonNull String linkId, Pageable pageable);
 
     @Query("SELECT t from Trip t left JOIN t.timelines tt where t.account = ?1 and " +
             "tt.status in (com.serch.server.enums.trip.TripConnectionStatus.COMPLETED) " +
@@ -63,6 +80,16 @@ public interface TripRepository extends JpaRepository<Trip, String> {
             "where (p.id = ?1 or b.id = ?1) " +
             "or (tip.id = ?1 or tib.id = ?1)")
     List<Trip> findByProviderId(@NonNull UUID id);
+
+    @Query("select t from Trip t " +
+            "left join t.invited ti " +
+            "left join t.provider p " +
+            "left join p.business b " +
+            "left join ti.provider tip " +
+            "left join tip.business tib " +
+            "where (p.id = ?1 or b.id = ?1) " +
+            "or (tip.id = ?1 or tib.id = ?1)")
+    Page<Trip> findByProviderId(@NonNull UUID id, Pageable pageable);
 
     @Query("SELECT t FROM Trip t left JOIN t.provider p GROUP BY t.id, t.cancelReason, t.invited, t.account, t.access, t.isActive, t.address, t.amount, t.userShare, t.authentication, t.address, t.shared, t.serviceFee, t.provider ORDER BY COUNT(p.category) DESC")
     List<Trip> findPopularCategories(Pageable pageable);

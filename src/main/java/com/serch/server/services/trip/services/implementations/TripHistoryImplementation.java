@@ -30,6 +30,7 @@ import com.serch.server.services.trip.services.TripHistoryService;
 import com.serch.server.utils.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -455,55 +456,22 @@ public class TripHistoryImplementation implements TripHistoryService {
 
     @Override
     @Transactional
-    public List<TripResponse> inviteHistory(String guestId, UUID userId, String linkId) {
+    public List<TripResponse> inviteHistory(String guestId, UUID userId, String linkId, Integer page, Integer size) {
         List<TripResponse> invites = new ArrayList<>();
-
         if (guestId != null && !guestId.isEmpty()) {
-            Guest guest = guestRepository.findById(guestId)
-                    .orElseThrow(() -> new TripException("Guest not found"));
-
-            invites.addAll(tripInviteRepository.findByAccountAndLinkId(guest.getId(), linkId)
-                    .stream()
-                    .sorted(Comparator.comparing(TripInvite::getUpdatedAt).reversed())
-                    .map(invite -> response(invite.getId(), guest.getId()))
-                    .toList());
-
-            invites.addAll(tripRepository.findByAccount(guest.getId(), linkId)
-                    .stream()
-                    .filter(trip -> trip.getStatus() == WAITING)
-                    .sorted(Comparator.comparing(Trip::getUpdatedAt).reversed())
-                    .map(trip -> response(trip.getId(), guestId, null, false, null))
-                    .toList());
-
+            buildGuestInviteHistory(guestId, linkId, page, size, invites);
         } else if (userId != null) {
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new TripException("User not found"));
+            User user = userRepository.findById(userId).orElseThrow(() -> new TripException("User not found"));
 
             if (user.isUser()) {
-                buildUserList(invites, user);
+                buildUserList(invites, user, page, size);
             } else {
-                SerchCategory category = profileRepository.findById(userId)
-                        .map(Profile::getCategory)
-                        .orElse(businessProfileRepository.findById(userId)
-                                .map(BusinessProfile::getCategory)
-                                .orElse(SerchCategory.USER));
-
-                buildProviderWaitingList(category, invites, user);
+                buildProviderWaitingList(invites, user, page, size);
             }
+        } else if (userUtil.getUser().isUser()) {
+            buildUserList(invites, userUtil.getUser(), page, size);
         } else {
-            User currentUser = userUtil.getUser();
-
-            if (currentUser.isUser()) {
-                buildUserList(invites, currentUser);
-            } else {
-                SerchCategory category = profileRepository.findById(currentUser.getId())
-                        .map(Profile::getCategory)
-                        .orElse(businessProfileRepository.findById(currentUser.getId())
-                                .map(BusinessProfile::getCategory)
-                                .orElse(SerchCategory.USER));
-
-                buildProviderWaitingList(category, invites, currentUser);
-            }
+            buildProviderWaitingList(invites, userUtil.getUser(), page, size);
         }
 
         return invites.stream()
@@ -515,69 +483,60 @@ public class TripHistoryImplementation implements TripHistoryService {
     }
 
     @Transactional
-    protected void buildUserList(List<TripResponse> invites, User user) {
-        invites.addAll(tripInviteRepository.findByAccount(String.valueOf(user.getId()))
-                .stream()
-                .sorted(Comparator.comparing(TripInvite::getUpdatedAt).reversed())
-                .map(invite -> response(invite.getId(), String.valueOf(user.getId())))
-                .toList());
+    protected void buildGuestInviteHistory(String guestId, String linkId, Integer page, Integer size, List<TripResponse> invites) {
+        Guest guest = guestRepository.findById(guestId).orElseThrow(() -> new TripException("Guest not found"));
 
-        invites.addAll(tripRepository.findByAccount(String.valueOf(user.getId()))
-                .stream()
-                .filter(trip -> trip.getStatus() == WAITING)
-                .sorted(Comparator.comparing(Trip::getUpdatedAt).reversed())
-                .map(trip -> response(trip.getId(), String.valueOf(user.getId()), null, false, null))
-                .toList());
+        addTripToHistory(tripRepository.findByAccount(guest.getId(), linkId, HelperUtil.getPageable(page, size)), invites, guestId);
+        addInviteToHistory(invites, guest.getId(), tripInviteRepository.findByAccountAndLinkId(guest.getId(), linkId, HelperUtil.getPageable(page, size)), false);
     }
 
     @Transactional
-    protected void buildProviderWaitingList(SerchCategory category, List<TripResponse> invites, User user) {
-        invites.addAll(tripInviteRepository.sortAllWithinDistance(Double.parseDouble(MAP_SEARCH_RADIUS), category.name())
-                .stream()
-                .filter(invite -> invite.getSelected() == null)
-                .sorted(Comparator.comparing(TripInvite::getUpdatedAt).reversed())
-                .map(invite -> response(invite.getId(), String.valueOf(user.getId())))
-                .toList());
-        invites.addAll(tripInviteRepository.findBySelected(userUtil.getUser().getId())
-                .stream()
-                .sorted(Comparator.comparing(TripInvite::getUpdatedAt).reversed())
-                .map(invite -> response(invite.getId(), String.valueOf(user.getId())))
-                .toList());
+    protected void addInviteToHistory(List<TripResponse> invites, String id, Page<TripInvite> list, boolean filter) {
+        if(list != null && list.hasContent()) {
+            invites.addAll(list.getContent()
+                    .stream()
+                    .filter(invite -> !filter || invite.getSelected() == null)
+                    .sorted(Comparator.comparing(TripInvite::getUpdatedAt).reversed())
+                    .map(invite -> response(invite.getId(), id))
+                    .toList());
+        }
+    }
 
-        invites.addAll(tripRepository.findByProviderId(userUtil.getUser().getId())
-                .stream()
-                .filter(trip -> trip.getStatus() == WAITING)
-                .sorted(Comparator.comparing(Trip::getUpdatedAt).reversed())
-                .map(trip -> response(trip.getId(), String.valueOf(user.getId()), null, false, null))
-                .toList());
+    @Transactional
+    protected void addTripToHistory(Page<Trip> trips, List<TripResponse> invites, String user) {
+        if (trips != null && trips.hasContent()) {
+            invites.addAll(trips.getContent()
+                    .stream()
+                    .filter(trip -> trip.getStatus() == WAITING)
+                    .sorted(Comparator.comparing(Trip::getUpdatedAt).reversed())
+                    .map(trip -> response(trip.getId(), user, null, false, null))
+                    .toList());
+        }
+    }
+
+    @Transactional
+    protected void buildUserList(List<TripResponse> invites, User user, Integer page, Integer size) {
+        addInviteToHistory(invites, String.valueOf(user.getId()), tripInviteRepository.findByAccount(String.valueOf(user.getId()), HelperUtil.getPageable(page, size)), false);
+        addTripToHistory(tripRepository.findByAccount(String.valueOf(user.getId()), HelperUtil.getPageable(page, size)), invites, String.valueOf(user.getId()));
+    }
+
+    @Transactional
+    protected void buildProviderWaitingList(List<TripResponse> invites, User user, Integer page, Integer size) {
+        SerchCategory category = profileRepository.findById(user.getId())
+                .map(Profile::getCategory)
+                .orElse(businessProfileRepository.findById(user.getId())
+                        .map(BusinessProfile::getCategory)
+                        .orElse(SerchCategory.USER));
+
+        addInviteToHistory(invites, String.valueOf(user.getId()), tripInviteRepository.sortAllWithinDistance(Double.parseDouble(MAP_SEARCH_RADIUS), category.name(), HelperUtil.getPageable(page, size)), true);
+        addInviteToHistory(invites, String.valueOf(user.getId()), tripInviteRepository.findBySelected(userUtil.getUser().getId(), HelperUtil.getPageable(page, size)), false);
+        addTripToHistory(tripRepository.findByProviderId(userUtil.getUser().getId(), HelperUtil.getPageable(page, size)), invites, String.valueOf(user.getId()));
     }
 
 
     @Override
     @Transactional
-    public ApiResponse<List<TripResponse>> history(String guest, String linkId, boolean sendUpdate, String tripId) {
-        List<TripResponse> list;
-
-        if(guest != null && !guest.isEmpty() && linkId != null && !linkId.isEmpty()) {
-            list = tripRepository.findByAccount(guest, linkId)
-                    .stream()
-                    .sorted(Comparator.comparing(Trip::getUpdatedAt).reversed())
-                    .map(trip -> response(trip.getId(), guest, null, sendUpdate, null))
-                    .toList();
-        } else if(userUtil.getUser().isUser()) {
-            list = tripRepository.findByAccount(String.valueOf(userUtil.getUser().getId()))
-                    .stream()
-                    .sorted(Comparator.comparing(Trip::getUpdatedAt).reversed())
-                    .map(trip -> response(trip.getId(), String.valueOf(userUtil.getUser().getId()), null, sendUpdate, null))
-                    .toList();
-        } else {
-            list = tripRepository.findByProviderId(userUtil.getUser().getId())
-                    .stream()
-                    .sorted(Comparator.comparing(Trip::getUpdatedAt).reversed())
-                    .map(trip -> response(trip.getId(), String.valueOf(userUtil.getUser().getId()), null, sendUpdate, null))
-                    .toList();
-        }
-
+    public ApiResponse<List<TripResponse>> history(String guest, String linkId, boolean sendUpdate, String tripId, Integer page, Integer size) {
         if(tripId != null && !tripId.isEmpty()) {
             Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new TripException("Trip not found"));
             response(tripId, trip.getAccount(), null, sendUpdate, null);
@@ -587,12 +546,36 @@ public class TripHistoryImplementation implements TripHistoryService {
                 response(tripId, trip.getInvited().getProvider().getId().toString(), null, sendUpdate, null);
             }
         }
-        return new ApiResponse<>(list);
+
+        return new ApiResponse<>(getHistory(guest, linkId, sendUpdate, page, size));
+    }
+
+    @Transactional
+    protected List<TripResponse> getHistory(String guest, String linkId, boolean sendUpdate, Integer page, Integer size) {
+        if(guest != null && !guest.isEmpty() && linkId != null && !linkId.isEmpty()) {
+            return buildTrips(tripRepository.findByAccount(guest, linkId, HelperUtil.getPageable(page, size)), guest, sendUpdate);
+        } else if(userUtil.getUser().isUser()) {
+            return buildTrips(tripRepository.findByAccount(String.valueOf(userUtil.getUser().getId()), HelperUtil.getPageable(page, size)), String.valueOf(userUtil.getUser().getId()), sendUpdate);
+        } else {
+            return buildTrips(tripRepository.findByProviderId(userUtil.getUser().getId(), HelperUtil.getPageable(page, size)), String.valueOf(userUtil.getUser().getId()), sendUpdate);
+        }
+    }
+
+    @Transactional
+    protected List<TripResponse> buildTrips(Page<Trip> trips, String user, boolean update) {
+        if(trips != null && trips.hasContent()) {
+            return trips.getContent().stream()
+                    .sorted(Comparator.comparing(Trip::getUpdatedAt).reversed())
+                    .map(trip -> response(trip.getId(), user, null, update, null))
+                    .toList();
+        } else {
+            return List.of();
+        }
     }
 
     @Override
     @Transactional
-    public ApiResponse<List<TripResponse>> history(String guest, String linkId) {
-        return history(guest, linkId, false, null);
+    public ApiResponse<List<TripResponse>> history(String guest, String linkId, Integer page, Integer size) {
+        return history(guest, linkId, false, null, page, size);
     }
 }

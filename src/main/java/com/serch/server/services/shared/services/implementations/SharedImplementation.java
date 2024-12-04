@@ -27,11 +27,13 @@ import com.serch.server.services.shared.responses.SharedLinkData;
 import com.serch.server.services.shared.responses.SharedLinkResponse;
 import com.serch.server.services.shared.responses.SharedStatusData;
 import com.serch.server.services.shared.services.SharedService;
+import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.MoneyUtil;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -109,7 +111,7 @@ public class SharedImplementation implements SharedService {
             sharedLinkRepository.save(link);
         }
 
-        return links();
+        return links(null, null);
     }
 
     protected void verifyShareEligibility(Profile profile) {
@@ -126,12 +128,18 @@ public class SharedImplementation implements SharedService {
     }
 
     @Override
-    public ApiResponse<List<SharedLinkResponse>> links() {
-        List<SharedLinkResponse> list = sharedLinkRepository.findByUserId(util.getUser().getId())
-                .stream()
-                .sorted(Comparator.comparing(SharedLink::getUpdatedAt).reversed())
-                .map(this::buildLink)
-                .toList();
+    public ApiResponse<List<SharedLinkResponse>> links(Integer page, Integer size) {
+        List<SharedLinkResponse> list = new ArrayList<>();
+
+        Page<SharedLink> links = sharedLinkRepository.findByUserId(util.getUser().getId(), HelperUtil.getPageable(page, size));
+        if(links != null && !links.getContent().isEmpty()) {
+            list = links.getContent()
+                    .stream()
+                    .sorted(Comparator.comparing(SharedLink::getUpdatedAt).reversed())
+                    .map(this::buildLink)
+                    .toList();
+        }
+
         return new ApiResponse<>(list);
     }
 
@@ -250,6 +258,34 @@ public class SharedImplementation implements SharedService {
     }
 
     @Override
+    public <T extends AccountResponse> T buildWithUser(User user, T response) {
+        SerchCategory category = profileRepository.findById(user.getId())
+                .map(Profile::getCategory).orElse(SerchCategory.USER);
+
+        response.setAvatar(profileRepository.findById(user.getId()).map(Profile::getAvatar).orElse(""));
+        response.setName(user.getFullName());
+        response.setCategory(category.getType());
+        response.setCategoryImage(category.getImage());
+        response.setId(user.getId().toString());
+        response.setEmailAddress(user.getEmailAddress());
+
+        return response;
+    }
+
+    @Override
+    public <T extends AccountResponse> T buildWithLogin(SharedLogin login, T response) {
+        response.setId(login.getGuest().getId());
+        response.setAvatar(login.getGuest().getAvatar());
+        response.setName(login.getGuest().getFullName());
+        response.setEmailAddress(login.getGuest().getEmailAddress());
+        response.setLinkId(login.getSharedLink().getId());
+        response.setCategory(SerchCategory.GUEST.getType());
+        response.setCategoryImage(SerchCategory.GUEST.getImage());
+
+        return response;
+    }
+
+    @Override
     public ApiResponse<List<AccountResponse>> buildAccountResponse(Guest guest, User user) {
         List<AccountResponse> list = new ArrayList<>();
         if(guest != null) {
@@ -258,38 +294,16 @@ public class SharedImplementation implements SharedService {
                 List<AccountResponse> guests = logins.stream()
                         .filter(login -> !login.getSharedLink().cannotLogin())
                         .sorted(Comparator.comparing(SharedLogin::getCreatedAt))
-                        .map(login -> {
-                            AccountResponse response = new AccountResponse();
-                            response.setId(login.getGuest().getId());
-                            response.setAvatar(login.getGuest().getAvatar());
-                            response.setName(login.getGuest().getFullName());
-                            response.setEmailAddress(login.getGuest().getEmailAddress());
-                            response.setLinkId(login.getSharedLink().getId());
-                            response.setCategory(SerchCategory.GUEST.getType());
-                            response.setCategoryImage(SerchCategory.GUEST.getImage());
-                            return response;
-                        })
+                        .map(login -> buildWithLogin(login, new AccountResponse()))
                         .toList();
                 list.addAll(guests);
             }
         }
 
         if(user != null) {
-            SerchCategory category = profileRepository.findById(user.getId())
-                    .map(Profile::getCategory).orElse(SerchCategory.USER);
-            AccountResponse response = new AccountResponse();
-            response.setAvatar(profileRepository.findById(user.getId())
-                    .map(Profile::getAvatar)
-                    .orElse("")
-            );
-            response.setName(user.getFullName());
-            response.setCategory(category.getType());
-            response.setCategoryImage(category.getImage());
-            response.setId(user.getId().toString());
-            response.setAvatar(profileRepository.findById(user.getId()).map(Profile::getAvatar).orElse(""));
-            response.setEmailAddress(user.getEmailAddress());
-            list.add(response);
+            list.add(buildWithUser(user, new AccountResponse()));
         }
+
         return new ApiResponse<>(list);
     }
 }

@@ -113,6 +113,7 @@ public class AccountImplementation implements AccountService {
         int size = userUtil.getUser().getRole() == USER
                 ? tripRepository.todayTrips(String.valueOf(id)).size()
                 : tripRepository.todayTrips(id).size();
+
         return String.valueOf(size);
     }
 
@@ -137,6 +138,7 @@ public class AccountImplementation implements AccountService {
     public ApiResponse<List<DashboardResponse>> dashboards() {
         BusinessProfile business = businessProfileRepository.findById(userUtil.getUser().getId())
                 .orElseThrow(() -> new AccountException("Access denied"));
+
         if(business.getAssociates() != null && !business.getAssociates().isEmpty()) {
             List<DashboardResponse> list = new ArrayList<>(business.getAssociates()
                     .stream()
@@ -153,32 +155,19 @@ public class AccountImplementation implements AccountService {
 
             // Calculate cumulative values
             DashboardResponse cumulative = list.stream().reduce(DashboardResponse.builder().build(), (accumulator, current) -> {
-                BigDecimal accumulatorEarning = MoneyUtil.parseFromNaira(accumulator.getEarning());
-                BigDecimal currentEarning = MoneyUtil.parseFromNaira(current.getEarning());
-                BigDecimal totalEarning = accumulatorEarning.add(currentEarning);
-                accumulator.setEarning(MoneyUtil.formatToNaira(totalEarning));
-
-                double accumulatorRating = parseDouble(accumulator.getRating());
-                double currentRating = parseDouble(current.getRating());
-                accumulator.setRating(Double.toString(accumulatorRating + currentRating));
-
-                int accumulatorSchedule = parseInt(accumulator.getSchedule());
-                int currentSchedule = parseInt(current.getSchedule());
-                accumulator.setSchedule(Integer.toString(accumulatorSchedule + currentSchedule));
-
-                int accumulatorShared = parseInt(accumulator.getShared());
-                int currentShared = parseInt(current.getShared());
-                accumulator.setShared(Integer.toString(accumulatorShared + currentShared));
-
-                int accumulatorTrip = parseInt(accumulator.getTrip());
-                int currentTrip = parseInt(current.getTrip());
-                accumulator.setTrip(Integer.toString(accumulatorTrip + currentTrip));
+                buildEarning(accumulator, current);
+                buildRating(accumulator, current);
+                buildSchedule(accumulator, current);
+                buildAccumulator(accumulator, current);
+                buildTrip(accumulator, current);
 
                 return accumulator;
             });
+
             cumulative.setAvatar(business.getCategory().getImage());
             cumulative.setName("Cumulative");
             list.add(cumulative);
+
             return new ApiResponse<>(list);
         }
         return new ApiResponse<>(List.of(DashboardResponse.builder()
@@ -193,6 +182,37 @@ public class AccountImplementation implements AccountService {
         ));
     }
 
+    private void buildTrip(DashboardResponse accumulator, DashboardResponse current) {
+        int accumulatorTrip = parseInt(accumulator.getTrip());
+        int currentTrip = parseInt(current.getTrip());
+        accumulator.setTrip(Integer.toString(accumulatorTrip + currentTrip));
+    }
+
+    private void buildAccumulator(DashboardResponse accumulator, DashboardResponse current) {
+        int accumulatorShared = parseInt(accumulator.getShared());
+        int currentShared = parseInt(current.getShared());
+        accumulator.setShared(Integer.toString(accumulatorShared + currentShared));
+    }
+
+    private void buildSchedule(DashboardResponse accumulator, DashboardResponse current) {
+        int accumulatorSchedule = parseInt(accumulator.getSchedule());
+        int currentSchedule = parseInt(current.getSchedule());
+        accumulator.setSchedule(Integer.toString(accumulatorSchedule + currentSchedule));
+    }
+
+    private void buildRating(DashboardResponse accumulator, DashboardResponse current) {
+        double accumulatorRating = parseDouble(accumulator.getRating());
+        double currentRating = parseDouble(current.getRating());
+        accumulator.setRating(Double.toString(accumulatorRating + currentRating));
+    }
+
+    private void buildEarning(DashboardResponse accumulator, DashboardResponse current) {
+        BigDecimal accumulatorEarning = MoneyUtil.parseFromNaira(accumulator.getEarning());
+        BigDecimal currentEarning = MoneyUtil.parseFromNaira(current.getEarning());
+        BigDecimal totalEarning = accumulatorEarning.add(currentEarning);
+        accumulator.setEarning(MoneyUtil.formatToNaira(totalEarning));
+    }
+
     @Override
     public ApiResponse<String> updateFcmToken(String token) {
         profileRepository.findById(userUtil.getUser().getId()).ifPresentOrElse(profile -> {
@@ -203,19 +223,16 @@ public class AccountImplementation implements AccountService {
                 businessProfileRepository.save(business);
             })
         );
+
         return new ApiResponse<>("Successfully updated FCM token", HttpStatus.OK);
     }
 
     private double parseDouble(String value) {
-        return Optional.ofNullable(value)
-                .map(Double::parseDouble)
-                .orElse(0.0);
+        return Optional.ofNullable(value).map(Double::parseDouble).orElse(0.0);
     }
 
     private int parseInt(String value) {
-        return Optional.ofNullable(value)
-                .map(Integer::parseInt)
-                .orElse(0);
+        return Optional.ofNullable(value).map(Integer::parseInt).orElse(0);
     }
 
     @Override

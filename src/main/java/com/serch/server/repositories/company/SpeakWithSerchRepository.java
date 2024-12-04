@@ -3,6 +3,8 @@ package com.serch.server.repositories.company;
 import com.serch.server.admin.services.projections.MetricProjection;
 import com.serch.server.enums.company.IssueStatus;
 import com.serch.server.models.company.SpeakWithSerch;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.lang.NonNull;
@@ -27,4 +29,6 @@ public interface SpeakWithSerchRepository extends JpaRepository<SpeakWithSerch, 
 
     @Query("select count(s) from SpeakWithSerch s where YEAR(s.createdAt) =  ?1 and s.status = ?2")
     long countByYearAndStatus(Integer year, IssueStatus status);
+
+    Page<SpeakWithSerch> findByUser_Id(@NonNull UUID id, Pageable pageable);
 }

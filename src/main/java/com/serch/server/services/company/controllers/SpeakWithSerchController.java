@@ -17,8 +17,11 @@ public class SpeakWithSerchController {
     private final SpeakWithSerchService service;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<SpeakWithSerchResponse>>> messages() {
-        ApiResponse<List<SpeakWithSerchResponse>> response = service.message();
+    public ResponseEntity<ApiResponse<List<SpeakWithSerchResponse>>> messages(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
+    ) {
+        ApiResponse<List<SpeakWithSerchResponse>> response = service.messages(page, size);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

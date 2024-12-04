@@ -2,6 +2,8 @@ package com.serch.server.repositories.shop;
 
 import com.serch.server.enums.shop.Weekday;
 import com.serch.server.models.shop.Shop;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,6 +16,8 @@ import java.util.UUID;
 
 public interface ShopRepository extends JpaRepository<Shop, String> {
     List<Shop> findByUser_Id(@NonNull UUID id);
+
+    Page<Shop> findByUser_Id(@NonNull UUID id, Pageable pageable);
 
     @Query(
             value = "SELECT shop.* FROM platform.shops shop " +
@@ -73,11 +77,12 @@ public interface ShopRepository extends JpaRepository<Shop, String> {
                     "shop.rating DESC",
             nativeQuery = true
     )
-    List<Shop> findByServiceAndLocation(
+    Page<Shop> findByServiceAndLocation(
             @Param("latitude") Double latitude,
             @Param("longitude") Double longitude,
             @Param("query") String query,
-            @Param("radius") Double radius
+            @Param("radius") Double radius,
+            Pageable pageable
     );
 
     Optional<Shop> findByIdAndUser_Id(@NonNull String id, @NonNull UUID id1);

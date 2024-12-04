@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class PlatformAccountScopeMoreAnalysisResponse {
+public class AccountScopeMoreAnalysisResponse {
     private String section;
     private List<ChartMetric> demographics = new ArrayList<>();
     private List<ChartMetric> geographics = new ArrayList<>();
@@ -15,5 +15,5 @@ public class PlatformAccountScopeMoreAnalysisResponse {
     private List<ChartMetric> overview = new ArrayList<>();
     private List<ChartMetric> states = new ArrayList<>();
     private List<ChartMetric> categories = new ArrayList<>();
-    private List<PlatformAccountCountrySectionResponse> countries = new ArrayList<>();
+    private List<AccountCountrySectionResponse> countries = new ArrayList<>();
 }

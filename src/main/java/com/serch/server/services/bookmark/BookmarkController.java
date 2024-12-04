@@ -16,8 +16,11 @@ public class BookmarkController {
     private final BookmarkService bookmarkService;
 
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse<List<BookmarkResponse>>> bookmarks() {
-        var response = bookmarkService.bookmarks();
+    public ResponseEntity<ApiResponse<List<BookmarkResponse>>> bookmarks(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
+    ) {
+        var response = bookmarkService.bookmarks(page, size);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

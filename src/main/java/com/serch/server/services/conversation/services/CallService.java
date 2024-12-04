@@ -60,9 +60,11 @@ public interface CallService {
     /**
      * Get the list of calls the user's made or joined
      *
+     * @param page The page number to retrieve (zero-based index).
+     * @param size The number of items per page.
      * @return List of {@link CallResponse}
      */
-    ApiResponse<List<CallResponse>> logs();
+    ApiResponse<List<CallResponse>> logs(Integer page, Integer size);
 
     /**
      * This will close any call that is ringing but its wait time has passed 60 seconds

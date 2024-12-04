@@ -59,11 +59,21 @@ public interface SpecialtyService {
     /**
      * Search for a skill or category
      *
+     * @param page The page number to retrieve (zero-based index).
+     * @param size The number of items per page.
      * @param query The skill or category being searched for
      *
      * @return {@link ApiResponse} list of {@link SpecialtyResponse}
      */
-    ApiResponse<List<SpecialtyResponse>> search(String query);
+    ApiResponse<List<SpecialtyResponse>> search(String query, Integer page, Integer size);
 
-    ApiResponse<List<String>> specialties();
+    /**
+     * Get the list of specialties
+     *
+     * @param page The page number to retrieve (zero-based index).
+     * @param size The number of items per page.
+     *
+     * @return {@link ApiResponse} list of String
+     */
+    ApiResponse<List<String>> specialties(Integer page, Integer size);
 }

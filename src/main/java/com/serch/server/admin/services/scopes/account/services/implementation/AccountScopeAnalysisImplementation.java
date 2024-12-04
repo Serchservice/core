@@ -1,9 +1,9 @@
 package com.serch.server.admin.services.scopes.account.services.implementation;
 
 import com.serch.server.admin.services.responses.ChartMetric;
-import com.serch.server.admin.services.scopes.account.responses.PlatformAccountCountrySectionResponse;
-import com.serch.server.admin.services.scopes.account.responses.PlatformAccountScopeMoreAnalysisResponse;
-import com.serch.server.admin.services.scopes.account.services.PlatformAccountScopeAnalysisService;
+import com.serch.server.admin.services.scopes.account.responses.AccountCountrySectionResponse;
+import com.serch.server.admin.services.scopes.account.responses.AccountScopeMoreAnalysisResponse;
+import com.serch.server.admin.services.scopes.account.services.AccountScopeAnalysisService;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.account.Gender;
 import com.serch.server.enums.account.SerchCategory;
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class PlatformAccountScopeAnalysisImplementation implements PlatformAccountScopeAnalysisService {
+public class AccountScopeAnalysisImplementation implements AccountScopeAnalysisService {
     private final GuestRepository guestRepository;
     private final BusinessProfileRepository businessProfileRepository;
     private final ProfileRepository profileRepository;
@@ -36,12 +36,12 @@ public class PlatformAccountScopeAnalysisImplementation implements PlatformAccou
     private final SessionRepository sessionRepository;
 
     @Override
-    public ApiResponse<PlatformAccountScopeMoreAnalysisResponse> fetch(Role role) {
+    public ApiResponse<AccountScopeMoreAnalysisResponse> fetch(Role role) {
         return new ApiResponse<>(getResponse(role, null, null, "Overview"));
     }
 
-    private PlatformAccountScopeMoreAnalysisResponse getResponse(Role role, ZonedDateTime start, ZonedDateTime end, String section) {
-        PlatformAccountScopeMoreAnalysisResponse response = new PlatformAccountScopeMoreAnalysisResponse();
+    private AccountScopeMoreAnalysisResponse getResponse(Role role, ZonedDateTime start, ZonedDateTime end, String section) {
+        AccountScopeMoreAnalysisResponse response = new AccountScopeMoreAnalysisResponse();
         response.setDemographics(getDemographics(role, start, end));
         response.setGeographics(getGeographics(role, start, end));
         response.setStates(getStates(role, start, end));
@@ -298,8 +298,8 @@ public class PlatformAccountScopeAnalysisImplementation implements PlatformAccou
         return getMetric(0L, "Growth", String.format("%.2f%%", getPercentage(previous, (current - previous))));
     }
 
-    private List<PlatformAccountCountrySectionResponse> getCountries(Role role, ZonedDateTime start, ZonedDateTime end) {
-        List<PlatformAccountCountrySectionResponse> countries = new ArrayList<>();
+    private List<AccountCountrySectionResponse> getCountries(Role role, ZonedDateTime start, ZonedDateTime end) {
+        List<AccountCountrySectionResponse> countries = new ArrayList<>();
 
         if(role != null) {
             List<User> users;
@@ -340,8 +340,8 @@ public class PlatformAccountScopeAnalysisImplementation implements PlatformAccou
         return countries;
     }
 
-    private PlatformAccountCountrySectionResponse getCountry(String country, Double value, Long total, String type) {
-        PlatformAccountCountrySectionResponse response = new PlatformAccountCountrySectionResponse();
+    private AccountCountrySectionResponse getCountry(String country, Double value, Long total, String type) {
+        AccountCountrySectionResponse response = new AccountCountrySectionResponse();
         response.setColors(List.of(AdminUtil.randomColor(), AdminUtil.randomColor()));
         response.setLabel(country);
         response.setValue(value);
@@ -355,8 +355,8 @@ public class PlatformAccountScopeAnalysisImplementation implements PlatformAccou
     }
 
     @Override
-    public ApiResponse<List<PlatformAccountScopeMoreAnalysisResponse>> fetch(Role role, Integer year) {
-        List<PlatformAccountScopeMoreAnalysisResponse> list = new ArrayList<>();
+    public ApiResponse<List<AccountScopeMoreAnalysisResponse>> fetch(Role role, Integer year) {
+        List<AccountScopeMoreAnalysisResponse> list = new ArrayList<>();
 
         ZonedDateTime start = AdminUtil.getStartYear(year);
         list.add(getResponse(role, start, null, "Overview"));

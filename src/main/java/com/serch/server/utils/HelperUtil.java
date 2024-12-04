@@ -1,6 +1,8 @@
 package com.serch.server.utils;
 
 import com.serch.server.core.storage.requests.FileUploadRequest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -12,6 +14,8 @@ import java.util.regex.Pattern;
  * between two geographic points, generating QR codes, and formatting file sizes.
  */
 public class HelperUtil {
+    public static String dummyCertificate = "/storage/v1/object/public/certificate/UnsignedBlur.png";
+
     /**
      * Validates a password based on a regular expression pattern.
      * @param password The password to validate.
@@ -84,5 +88,9 @@ public class HelperUtil {
         } catch (IllegalArgumentException e) {
             return null;
         }
+    }
+
+    public static Pageable getPageable(Integer page, Integer size) {
+        return PageRequest.of(page != null ? page : 0, size != null ? size : 20);
     }
 }

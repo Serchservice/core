@@ -8,13 +8,18 @@ import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.bookmark.BookmarkRepository;
 import com.serch.server.services.bookmark.AddBookmarkRequest;
 import com.serch.server.services.bookmark.BookmarkResponse;
+import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Service implementation for managing bookmarks.
@@ -64,12 +69,13 @@ public class BookmarkImplementation implements BookmarkService {
     }
 
     @Override
-    public ApiResponse<List<BookmarkResponse>> bookmarks() {
+    public ApiResponse<List<BookmarkResponse>> bookmarks(Integer page, Integer size) {
         List<BookmarkResponse> list = new ArrayList<>();
 
-        List<Bookmark> bookmarks = bookmarkRepository.findByUserId(userUtil.getUser().getId());
+        Page<Bookmark> bookmarks = bookmarkRepository.findByUserId(userUtil.getUser().getId(), HelperUtil.getPageable(page, size));
         if(!bookmarks.isEmpty()) {
-            list = bookmarks.stream()
+            list = bookmarks.getContent()
+                    .stream()
                     .sorted(Comparator.comparing(Bookmark::getCreatedAt))
                     .map(bookmark -> {
                         BookmarkResponse response = new BookmarkResponse();
@@ -108,6 +114,7 @@ public class BookmarkImplementation implements BookmarkService {
                     })
                     .toList();
         }
+
         return new ApiResponse<>(list);
     }
 }

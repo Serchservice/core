@@ -14,10 +14,14 @@ import com.serch.server.services.conversation.requests.StartCallRequest;
 import com.serch.server.services.conversation.requests.UpdateCallRequest;
 import com.serch.server.services.conversation.responses.*;
 import com.serch.server.services.transaction.services.WalletService;
-import com.serch.server.utils.*;
+import com.serch.server.utils.CallUtil;
+import com.serch.server.utils.HelperUtil;
+import com.serch.server.utils.TimeUtil;
+import com.serch.server.utils.UserUtil;
 import io.getstream.chat.java.models.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -244,38 +248,44 @@ public class CallImplementation implements CallService {
 
     @Override
     @Transactional
-    public ApiResponse<List<CallResponse>> logs() {
+    public ApiResponse<List<CallResponse>> logs(Integer page, Integer size) {
         List<CallResponse> list = new ArrayList<>();
 
-        CallPeriodResponse period = CallUtil.getPeriod(userUtil.getUser().getTimezone());
+        Page<Call> items = getCalls(page, size);
 
-        callRepository.findByUserId(userUtil.getUser().getId(), period.getStart(), period.getEnd())
-                .stream()
-                .sorted(Comparator.comparing(Call::getCreatedAt))
-                .collect(Collectors.groupingBy(call -> call.getCaller().isSameAs(userUtil.getUser().getId())
-                        ? call.getCalled().getId()
-                        : call.getCaller().getId()
-                ))
-                .forEach((user, calls) -> {
-                    CallResponse response = new CallResponse();
+        if(items != null && !items.getContent().isEmpty()) {
+            items.getContent().stream().sorted(Comparator.comparing(Call::getCreatedAt))
+                    .collect(Collectors.groupingBy(call -> call.getCaller().isSameAs(userUtil.getUser().getId())
+                            ? call.getCalled().getId()
+                            : call.getCaller().getId()
+                    ))
+                    .forEach((user, calls) -> {
+                        CallResponse response = new CallResponse();
 
-                    Call recent = calls.getLast();
-                    response.setRecent(createCallInformation(recent));
-                    response.setMember(recent.getCalled().isSameAs(userUtil.getUser().getId())
-                            ? createCallMemberData(recent.getCaller())
-                            : createCallMemberData(recent.getCalled())
-                    );
+                        Call recent = calls.getLast();
+                        response.setRecent(createCallInformation(recent));
+                        response.setMember(recent.getCalled().isSameAs(userUtil.getUser().getId())
+                                ? createCallMemberData(recent.getCaller())
+                                : createCallMemberData(recent.getCalled())
+                        );
 
-                    List<CallInformation> history = calls.stream()
-                            .sorted(Comparator.comparing(Call::getCreatedAt).reversed())
-                            .skip(1) // Skip the most recent call
-                            .map(this::createCallInformation)
-                            .toList();
-                    response.setHistory(history);
+                        List<CallInformation> history = calls.stream()
+                                .sorted(Comparator.comparing(Call::getCreatedAt).reversed())
+                                .skip(1) // Skip the most recent call
+                                .map(this::createCallInformation)
+                                .toList();
+                        response.setHistory(history);
 
-                    list.add(response);
-                });
+                        list.add(response);
+                    });
+        }
+
         return new ApiResponse<>(list);
+    }
+
+    private Page<Call> getCalls(Integer page, Integer size) {
+        CallPeriodResponse period = CallUtil.getPeriod(userUtil.getUser().getTimezone());
+        return callRepository.findByUserId(userUtil.getUser().getId(), period.getStart(), period.getEnd(), HelperUtil.getPageable(page, size));
     }
 
     private CallInformation createCallInformation(Call call) {

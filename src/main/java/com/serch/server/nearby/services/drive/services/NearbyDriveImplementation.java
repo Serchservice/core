@@ -25,21 +25,20 @@ public class NearbyDriveImplementation implements NearbyDriveService {
     @Override
     public ApiResponse<String> search(String type) {
         Optional<NearbyCategory> optional = nearbyCategoryRepository.findByTypeIgnoreCase(type);
+
+        NearbyCategory category;
         if (optional.isPresent()) {
-            NearbyCategory category = optional.get();
+            category = optional.get();
             category.increment();
             nearbyCategoryRepository.save(category);
-
-            NearbyTimeline timeline = new NearbyTimeline();
-            timeline.setCategory(category);
-            nearbyTimelineRepository.save(timeline);
         } else {
-            NearbyCategory category = getNearbyCategory(type);
-
-            NearbyTimeline timeline = new NearbyTimeline();
-            timeline.setCategory(category);
-            nearbyTimelineRepository.save(timeline);
+            category = getNearbyCategory(type);
         }
+
+        NearbyTimeline timeline = new NearbyTimeline();
+        timeline.setCategory(category);
+        timeline.setOption("DRIVE SEARCH");
+        nearbyTimelineRepository.save(timeline);
 
         return new ApiResponse<>("Success", HttpStatus.OK);
     }

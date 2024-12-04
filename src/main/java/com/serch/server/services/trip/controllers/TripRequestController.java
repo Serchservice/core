@@ -23,9 +23,11 @@ public class TripRequestController {
     @GetMapping
     public ResponseEntity<ApiResponse<List<TripResponse>>> history(
             @RequestParam(required = false) String guest,
-            @RequestParam(required = false) String link
+            @RequestParam(required = false) String link,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
     ) {
-        ApiResponse<List<TripResponse>> response = service.history(guest, link);
+        ApiResponse<List<TripResponse>> response = service.history(guest, link, page, size);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

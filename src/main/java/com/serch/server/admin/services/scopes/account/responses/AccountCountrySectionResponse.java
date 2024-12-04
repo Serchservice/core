@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class PlatformAccountCountrySectionResponse {
+public class AccountCountrySectionResponse {
     private String content;
     private List<String> colors = new ArrayList<>();
     private String label;

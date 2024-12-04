@@ -1,11 +1,9 @@
 package com.serch.server.services.transaction.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
 import lombok.Data;
 
 @Data
-@Builder
 public class WalletResponse {
     private String wallet;
     private String accountName;

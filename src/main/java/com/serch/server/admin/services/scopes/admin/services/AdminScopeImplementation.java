@@ -7,6 +7,7 @@ import com.serch.server.admin.repositories.AdminRepository;
 import com.serch.server.admin.services.account.requests.AdminProfileUpdateRequest;
 import com.serch.server.admin.services.account.services.AdminActivityService;
 import com.serch.server.admin.services.account.services.AdminProfileService;
+import com.serch.server.admin.services.responses.auth.AccountAuthResponse;
 import com.serch.server.admin.services.team.services.TeamService;
 import com.serch.server.admin.services.responses.AnalysisResponse;
 import com.serch.server.admin.services.responses.ChartMetric;
@@ -50,41 +51,45 @@ public class AdminScopeImplementation implements AdminScopeService {
 
     @Override
     @Transactional
-    public ApiResponse<AdminScopeResponse> fetch(UUID id) {
-        Admin admin = adminRepository.findById(id)
-                .orElseThrow(() -> new AdminException("Admin not found"));
+    public ApiResponse<AdminScopeResponse> fetch(UUID id, Integer page, Integer size) {
+        Admin admin = adminRepository.findById(id).orElseThrow(() -> new AdminException("Admin not found"));
+
         AdminScopeResponse response = new AdminScopeResponse();
         response.setProfile(profileService.profile(admin));
         response.setTeam(profileService.team(admin));
         response.setActivities(activityService.activities(admin.getId()));
         response.setMfa(authService.mfa(admin.getUser()));
-        response.setAuth(authService.auth(admin.getUser()));
-        response.setChallenges(authService.challenges(admin.getUser()));
-        response.setSessions(authService.sessions(admin.getUser()));
+        response.setAuth(authService.auth(admin.getUser().getId(), page, size, new AccountAuthResponse()));
+        response.setChallenges(authService.challenges(admin.getUser().getId(), page, size));
+        response.setSessions(authService.sessions(admin.getUser().getId(), page, size));
         response.setStructure(teamService.team());
 
+        addAnalysisResponse(admin, response);
+
+        return new ApiResponse<>(response);
+    }
+
+    private void addAnalysisResponse(Admin admin, AdminScopeResponse response) {
         AnalysisResponse analysisResponse = new AnalysisResponse();
         analysisResponse.setAuth(analysisService.auth(admin.getUser(), null));
         analysisResponse.setStatus(analysisService.accountStatus(admin.getUser(), null));
         analysisResponse.setYears(analysisService.years(admin.getUser()));
         response.setAnalysis(analysisResponse);
-
-        return new ApiResponse<>(response);
     }
 
     @Override
     @Transactional
     public ApiResponse<List<ChartMetric>> fetchAuthChart(UUID id, Integer year) {
-        Admin admin = adminRepository.findById(id)
-                .orElseThrow(() -> new AdminException("Admin not found"));
+        Admin admin = adminRepository.findById(id).orElseThrow(() -> new AdminException("Admin not found"));
+
         return new ApiResponse<>(analysisService.auth(admin.getUser(), year));
     }
 
     @Override
     @Transactional
     public ApiResponse<List<ChartMetric>> fetchAccountStatusChart(UUID id, Integer year) {
-        Admin admin = adminRepository.findById(id)
-                .orElseThrow(() -> new AdminException("Admin not found"));
+        Admin admin = adminRepository.findById(id).orElseThrow(() -> new AdminException("Admin not found"));
+
         return new ApiResponse<>(analysisService.accountStatus(admin.getUser(), year));
     }
 
@@ -105,6 +110,7 @@ public class AdminScopeImplementation implements AdminScopeService {
             user.setUpdatedAt(TimeUtil.now());
             adminRepository.save(user);
             activityService.create(ActivityMode.AVATAR_CHANGE, user.getPass(), null, admin);
+
             return new ApiResponse<>("Avatar uploaded", url, HttpStatus.OK);
         }
     }
@@ -126,8 +132,10 @@ public class AdminScopeImplementation implements AdminScopeService {
 
             trackerService.create(user.getUser());
             activityService.create(ActivityMode.STATUS_CHANGE, user.getPass(), null, admin);
+
             return new ApiResponse<>("Status changed", request.getStatus().getType(), HttpStatus.OK);
         }
+
         throw new AdminException("Status not found");
     }
 
@@ -161,6 +169,7 @@ public class AdminScopeImplementation implements AdminScopeService {
             }
 
             activityService.create(ActivityMode.ROLE_CHANGE, user.getPass(), null, admin);
+
             return new ApiResponse<>("Role changed", HttpStatus.OK);
         }
     }
@@ -180,6 +189,7 @@ public class AdminScopeImplementation implements AdminScopeService {
             adminRepository.save(user);
 
             activityService.create(ActivityMode.MFA_CONSTRAINT_REMOVED, user.getPass(), null, admin);
+
             return new ApiResponse<>("MFA constraint is now removed", false, HttpStatus.OK);
         } else {
             user.setMustHaveMFA(true);
@@ -187,6 +197,7 @@ public class AdminScopeImplementation implements AdminScopeService {
             adminRepository.save(user);
 
             activityService.create(ActivityMode.MFA_CONSTRAINT_ENFORCED, user.getPass(), null, admin);
+
             return new ApiResponse<>("MFA constraint is now invoked", true, HttpStatus.OK);
         }
     }
@@ -213,6 +224,7 @@ public class AdminScopeImplementation implements AdminScopeService {
         }
 
         activityService.create(ActivityMode.PROFILE_UPDATE, user.getPass(), null, admin);
+
         return new ApiResponse<>("Profile updated", HttpStatus.OK);
     }
 
@@ -230,6 +242,7 @@ public class AdminScopeImplementation implements AdminScopeService {
         user.getUser().setUpdatedAt(TimeUtil.now());
         userRepository.save(user.getUser());
         activityService.create(ActivityMode.ACCOUNT_DELETE, user.getUser().getFullName(), null, admin);
+
         return new ApiResponse<>("Account deleted", HttpStatus.OK);
     }
 

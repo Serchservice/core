@@ -144,11 +144,13 @@ public interface TripRequestService {
      *                history.
      * @param linkId  The optional shared link identifier for filtering the
      *                trip history.
+     * @param page The page number to retrieve (zero-based index).
+     * @param size The number of items per page.
      * @return An {@link ApiResponse} containing a list of {@link TripResponse}
      *         objects representing the history of trip requests.
      *
      * @see ApiResponse
      * @see TripResponse
      */
-    ApiResponse<List<TripResponse>> history(String guestId, String linkId);
+    ApiResponse<List<TripResponse>> history(String guestId, String linkId, Integer page, Integer size);
 }

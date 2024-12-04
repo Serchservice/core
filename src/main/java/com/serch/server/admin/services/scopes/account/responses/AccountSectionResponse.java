@@ -7,7 +7,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class PlatformAccountSectionResponse {
+public class AccountSectionResponse {
     private List<CommonProfileResponse> accounts;
     private Long total;
 

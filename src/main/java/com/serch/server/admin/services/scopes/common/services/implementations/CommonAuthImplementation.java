@@ -14,8 +14,12 @@ import com.serch.server.models.auth.User;
 import com.serch.server.models.auth.mfa.MFAChallenge;
 import com.serch.server.repositories.auth.RefreshTokenRepository;
 import com.serch.server.repositories.auth.SessionRepository;
+import com.serch.server.repositories.auth.UserRepository;
+import com.serch.server.repositories.auth.mfa.MFAChallengeRepository;
+import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -30,6 +34,8 @@ public class CommonAuthImplementation implements CommonAuthService {
     private final AdminRepository adminRepository;
     private final SessionRepository sessionRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final MFAChallengeRepository mFAChallengeRepository;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
@@ -43,37 +49,74 @@ public class CommonAuthImplementation implements CommonAuthService {
 
     @Override
     @Transactional
-    public List<AccountMFAChallengeResponse> challenges(User user) {
-        if(user.getMfaFactor() == null) {
+    public List<AccountMFAChallengeResponse> challenges(UUID id, Integer page, Integer size) {
+        Page<MFAChallenge> challenges = mFAChallengeRepository.findByMfaFactor_User_Id(id, HelperUtil.getPageable(page, size));
+        if(challenges == null || challenges.isEmpty() || !challenges.hasContent()) {
             return new ArrayList<>();
         }
 
-        List<MFAChallenge> challenges = user.getMfaFactor().getMfaChallenges();
-        if(challenges == null || challenges.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        return challenges.stream().sorted(Comparator.comparing(MFAChallenge::getCreatedAt).reversed())
-                .map(AnalysisMapper.instance::challenge).toList();
+        return challenges.getContent()
+                .stream()
+                .sorted(Comparator.comparing(MFAChallenge::getCreatedAt).reversed())
+                .map(AnalysisMapper.instance::challenge)
+                .toList();
     }
 
     @Override
     @Transactional
-    public List<AccountSessionResponse> sessions(User user) {
-        List<Session> sessions = user.getSessions();
-        if(sessions == null || sessions.isEmpty()) {
+    public List<AccountSessionResponse> sessions(UUID id, Integer page, Integer size) {
+        Page<Session> sessions = sessionRepository.getByUser_Id(id, HelperUtil.getPageable(page, size));
+        if(sessions == null || sessions.isEmpty() || !sessions.hasContent()) {
             return new ArrayList<>();
         }
 
-        return sessions.stream().sorted(Comparator.comparing(Session::getCreatedAt).reversed())
-                .map(AnalysisMapper.instance::session).toList();
+        return sessions.getContent()
+                .stream()
+                .sorted(Comparator.comparing(Session::getCreatedAt).reversed())
+                .map(AnalysisMapper.instance::session)
+                .toList();
+    }
+
+    @Override
+    public List<AccountAuthDeviceResponse> devices(UUID id, Integer page, Integer size) {
+        Page<Session> sessions = sessionRepository.getByUser_Id(id, HelperUtil.getPageable(page, size));
+        if(sessions == null || sessions.isEmpty() || !sessions.hasContent()) {
+            return new ArrayList<>();
+        }
+
+        Map<String, List<Session>> groups = sessions.getContent()
+                .stream()
+                .collect(Collectors.groupingBy(Session::getIpAddress));
+
+        List<AccountAuthDeviceResponse> devices = new ArrayList<>();
+        groups.forEach((k, v) -> {
+            v.sort(Comparator.comparing(Session::getCreatedAt).reversed());
+            Session latest = v.getFirst();
+
+            AccountAuthDeviceResponse device = new AccountAuthDeviceResponse();
+            device.setCount(v.size());
+            device.setName(k);
+            device.setRevoked(latest.getRevoked());
+
+            if(latest.getName() == null || latest.getName().isEmpty()) {
+                device.setPlatform(String.format("Unknown | %s", latest.getPlatform()));
+            } else {
+                device.setPlatform(String.format("%s | %s", latest.getName(), latest.getPlatform()));
+            }
+
+            devices.add(device);
+        });
+
+        return devices;
     }
 
     @Override
     @Transactional
-    public AccountAuthResponse auth(User user) {
-        AccountAuthResponse response = new AccountAuthResponse();
+    public <T extends AccountAuthResponse> T auth(UUID id, Integer page, Integer size, T response) {
+        User user = userRepository.findById(id).orElseThrow(() -> new SerchException("User not found"));
+
         response.setHasMFA(user.hasMFA());
+        response.setDevices(devices(id, page, size));
         response.setMustHaveMFA(adminRepository.findById(user.getId()).map(Admin::getMustHaveMFA).orElse(false));
 
         List<Session> list = sessionRepository.findMostRecentSessionByUser(user.getId(), PageRequest.of(0, 1));
@@ -86,33 +129,6 @@ public class CommonAuthImplementation implements CommonAuthService {
             response.setLevel(String.format("%s - %s", recent.getAuthLevel(), recent.getAuthLevel().getType()));
         }
 
-        if(user.getSessions() == null || user.getSessions().isEmpty()) {
-            response.setDevices(new ArrayList<>());
-        } else {
-            Map<String, List<Session>> groups = sessionRepository.findByUser_Id(user.getId())
-                            .stream().collect(Collectors.groupingBy(Session::getIpAddress));
-
-            List<AccountAuthDeviceResponse> devices = new ArrayList<>();
-            groups.forEach((k, v) -> {
-                v.sort(Comparator.comparing(Session::getCreatedAt).reversed());
-                Session latest = v.getFirst();
-
-                AccountAuthDeviceResponse device = new AccountAuthDeviceResponse();
-                device.setCount(v.size());
-                device.setName(k);
-                device.setRevoked(latest.getRevoked());
-
-                if(latest.getName() == null || latest.getName().isEmpty()) {
-                    device.setPlatform(latest.getPlatform());
-                } else {
-                    device.setPlatform(String.format("%s | %s", latest.getName(), latest.getPlatform()));
-                }
-
-                devices.add(device);
-            });
-
-            response.setDevices(devices);
-        }
         return response;
     }
 
@@ -129,7 +145,7 @@ public class CommonAuthImplementation implements CommonAuthService {
             session.setUpdatedAt(TimeUtil.now());
             sessionRepository.save(session);
 
-            return new ApiResponse<>("Session is now revoked", sessions(session.getUser()), HttpStatus.OK);
+            return new ApiResponse<>("Session is now revoked", sessions(session.getUser().getId(), null, null), HttpStatus.OK);
         }
     }
 
@@ -146,7 +162,7 @@ public class CommonAuthImplementation implements CommonAuthService {
             refreshToken.setUpdatedAt(TimeUtil.now());
             refreshTokenRepository.save(refreshToken);
 
-            return new ApiResponse<>("Refresh Token is now revoked", sessions(refreshToken.getUser()), HttpStatus.OK);
+            return new ApiResponse<>("Refresh Token is now revoked", sessions(refreshToken.getUser().getId(), null, null), HttpStatus.OK);
         }
     }
 }

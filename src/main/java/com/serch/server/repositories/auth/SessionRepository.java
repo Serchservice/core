@@ -2,6 +2,7 @@ package com.serch.server.repositories.auth;
 
 import com.serch.server.enums.auth.Role;
 import com.serch.server.models.auth.Session;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -34,4 +35,6 @@ public interface SessionRepository extends JpaRepository<Session, UUID> {
 
     @Query("select count(distinct s.user) from Session s where s.user.role = ?1 AND s.createdAt BETWEEN ?2 AND ?3")
     long countDistinctUsersByRoleAndDateRange(Role role, ZonedDateTime start, ZonedDateTime end);
+
+    Page<Session> getByUser_Id(@NonNull UUID id, Pageable pageable);
 }

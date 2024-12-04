@@ -89,6 +89,14 @@ public class SharedLink extends BaseDateTime {
         }
     }
 
+    public UseStatus status() {
+        if(logins != null && !logins.isEmpty()) {
+            return logins.getLast().getStatus();
+        } else {
+            return null;
+        }
+    }
+
     public boolean is(String emailAddress) {
         return user.getUser().getEmailAddress().equalsIgnoreCase(emailAddress)
                 || provider.getUser().getEmailAddress().equalsIgnoreCase(emailAddress);

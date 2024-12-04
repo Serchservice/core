@@ -28,8 +28,11 @@ public class SharedController {
 
     @GetMapping("/links")
     @PreAuthorize(value = "hasRole('BUSINESS') || hasRole('USER') || hasRole('PROVIDER') || hasRole('ASSOCIATE_PROVIDER')")
-    public ResponseEntity<ApiResponse<List<SharedLinkResponse>>> links() {
-        ApiResponse<List<SharedLinkResponse>> response = service.links();
+    public ResponseEntity<ApiResponse<List<SharedLinkResponse>>> links(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
+    ) {
+        ApiResponse<List<SharedLinkResponse>> response = service.links(page, size);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

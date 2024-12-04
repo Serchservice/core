@@ -19,8 +19,11 @@ public class ReferralController {
     private final ReferralProgramService programService;
 
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse<List<ReferralResponse>>> viewReferrals() {
-        var response = service.viewReferrals();
+    public ResponseEntity<ApiResponse<List<ReferralResponse>>> viewReferrals(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
+    ) {
+        var response = service.viewReferrals(page, size);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

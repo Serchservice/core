@@ -26,8 +26,11 @@ public class ShopController {
     private final ShopService shopService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<ShopResponse>>> fetchShops() {
-        ApiResponse<List<ShopResponse>> response = shopService.fetch();
+    public ResponseEntity<ApiResponse<List<ShopResponse>>> fetchShops(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
+    ) {
+        ApiResponse<List<ShopResponse>> response = shopService.fetch(page, size);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
@@ -38,9 +41,11 @@ public class ShopController {
             @RequestParam(name = "lng") Double lng,
             @RequestParam(name = "lat") Double lat,
             @RequestParam(required = false, name = "radius") Double radius,
-            @RequestParam(required = false) DriveScope scope
+            @RequestParam(required = false) DriveScope scope,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
     ) {
-        ApiResponse<List<SearchShopResponse>> response = shopService.drive(query, category, lng, lat, radius, scope);
+        ApiResponse<List<SearchShopResponse>> response = shopService.drive(query, category, lng, lat, radius, scope, page, size);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

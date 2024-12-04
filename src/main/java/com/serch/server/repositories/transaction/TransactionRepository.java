@@ -54,6 +54,15 @@ public interface TransactionRepository extends JpaRepository<Transaction, String
     @Query("select t from Transaction t where t.type = 'WITHDRAW' ")
     Page<Transaction> findWithdrawals(Pageable pageable);
 
+    @Query("select count(t) from Transaction t where ((t.account = ?1 or t.sender = ?1) or (t.account = ?2 or t.sender = ?2))")
+    Page<Transaction> findByUser(String id, String wallet, Pageable pageable);
+
+    @Query("select count(t) from Transaction t where (t.account = ?1 or t.sender = ?1) and t.createdAt between ?2 and ?3")
+    long countByAccountAndDate(String id, ZonedDateTime start, ZonedDateTime end);
+
+    @Query("select count(t) from Transaction t where ((t.account = ?1 or t.sender = ?1) or (t.account = ?2 or t.sender = ?2)) and t.createdAt between ?3 and ?4")
+    long countByUserAndDate(String id, String wallet, ZonedDateTime start, ZonedDateTime end);
+
     @Query("select count(t) from Transaction t where t.type = 'WITHDRAW' and t.status = ?1")
     long countWithdrawals(TransactionStatus status);
 

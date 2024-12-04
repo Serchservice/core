@@ -4,9 +4,13 @@ import com.serch.server.admin.models.Admin;
 import com.serch.server.admin.services.account.requests.AdminProfileUpdateRequest;
 import com.serch.server.admin.services.account.responses.AdminProfileResponse;
 import com.serch.server.admin.services.account.responses.AdminResponse;
+import com.serch.server.admin.services.responses.AccountScopeDetailResponse;
 import com.serch.server.admin.services.team.responses.AdminTeamResponse;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.core.storage.requests.FileUploadRequest;
+import com.serch.server.models.auth.User;
+
+import java.time.ZonedDateTime;
 
 /**
  * Service interface for managing admin profile operations within the Serch organization.
@@ -71,6 +75,20 @@ public interface AdminProfileService {
      * for the specified admin.
      */
     AdminProfileResponse profile(Admin admin);
+
+    /**
+     * Updates the profile details of an account scope with the provided user information
+     * and timestamps for creation and last update.
+     *
+     * @param updatedAt The timestamp indicating when the profile was last updated.
+     * @param createdAt The timestamp indicating when the profile was initially created.
+     * @param user The {@link User} entity containing the user's details to be updated in the profile.
+     * @param response The response object of type {@link AccountScopeDetailResponse}
+     *                 or its subclass, which will be updated with the provided details.
+     * @param <T> A type that extends {@link AccountScopeDetailResponse}.
+     * @return The updated response object containing the modified profile details.
+     */
+    <T extends AccountScopeDetailResponse> T updateProfile(ZonedDateTime updatedAt, ZonedDateTime createdAt, User user, T response);
 
     /**
      * Constructs the team data associated with the specified {@link Admin}.

@@ -2,6 +2,8 @@ package com.serch.server.repositories.schedule;
 
 import com.serch.server.enums.schedule.ScheduleStatus;
 import com.serch.server.models.schedule.Schedule;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.lang.NonNull;
@@ -30,7 +32,13 @@ public interface ScheduleRepository extends JpaRepository<Schedule, String> {
     List<Schedule> findByStatusAndCreatedAtBefore(@NonNull ScheduleStatus status, @NonNull ZonedDateTime createdAt);
 
     @Query("select s from Schedule s where s.user.id = ?1 or s.provider.id = ?1 or s.user.business.id = ?1 or s.provider.business.id = ?1")
-    List<Schedule> findByUser_Id(@NonNull UUID id);
+    List<Schedule> findByUserId(@NonNull UUID id);
+
+    @Query("select s from Schedule s where s.user.id = ?1 or s.provider.id = ?1 or s.user.business.id = ?1 or s.provider.business.id = ?1")
+    Page<Schedule> findByUserId(@NonNull UUID id, Pageable pageable);
+
+    @Query("select count(s) from Schedule s where (s.user.id = ?1 or s.provider.id = ?1 or s.user.business.id = ?1 or s.provider.business.id = ?1) and s.createdAt between ?2 and ?3")
+    long countByIdAndDate(@NonNull UUID id, ZonedDateTime from, ZonedDateTime to);
 
     @Query("select s from Schedule s where (s.user.id = ?1 and s.provider.id = ?2) and (s.status = 'PENDING' or s.status = 'ACCEPTED')")
     Optional<Schedule> findByUserAndProvider(@NonNull UUID id, @NonNull UUID id1);

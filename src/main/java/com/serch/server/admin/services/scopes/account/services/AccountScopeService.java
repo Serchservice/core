@@ -1,22 +1,22 @@
 package com.serch.server.admin.services.scopes.account.services;
 
-import com.serch.server.admin.services.scopes.account.responses.PlatformAccountScopeAnalysisResponse;
+import com.serch.server.admin.services.scopes.account.responses.AccountScopeAnalysisResponse;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.auth.Role;
 
 /**
  * Service interface for analyzing platform accounts based on various groupings and criteria.
  */
-public interface PlatformAccountScopeService {
+public interface AccountScopeService {
     /**
      * Fetches account analysis for the specified year, role, and guest access status.
      *
      * @param year     the year for the analysis
      * @param role     the role to filter the analysis by
      * @param forGuest indicates if the analysis is for guest access
-     * @return an {@link ApiResponse} containing a {@link PlatformAccountScopeAnalysisResponse} with the account analysis data
+     * @return an {@link ApiResponse} containing a {@link AccountScopeAnalysisResponse} with the account analysis data
      */
-    ApiResponse<PlatformAccountScopeAnalysisResponse> fetchAccountAnalysis(Integer year, Role role, Boolean forGuest);
+    ApiResponse<AccountScopeAnalysisResponse> fetchAccountAnalysis(Integer year, Role role, Boolean forGuest);
 
     /**
      * Fetches account analysis grouped by country for the specified year, role, and guest access status.
@@ -24,9 +24,9 @@ public interface PlatformAccountScopeService {
      * @param year     the year for the analysis
      * @param role     the role to filter the analysis by
      * @param forGuest indicates if the analysis is for guest access
-     * @return an {@link ApiResponse} containing a {@link PlatformAccountScopeAnalysisResponse} grouped by country
+     * @return an {@link ApiResponse} containing a {@link AccountScopeAnalysisResponse} grouped by country
      */
-    ApiResponse<PlatformAccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByCountry(Integer year, Role role, Boolean forGuest);
+    ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByCountry(Integer year, Role role, Boolean forGuest);
 
     /**
      * Fetches account analysis grouped by timezone for the specified year, role, and guest access status.
@@ -34,9 +34,9 @@ public interface PlatformAccountScopeService {
      * @param year     the year for the analysis
      * @param role     the role to filter the analysis by
      * @param forGuest indicates if the analysis is for guest access
-     * @return an {@link ApiResponse} containing a {@link PlatformAccountScopeAnalysisResponse} grouped by timezone
+     * @return an {@link ApiResponse} containing a {@link AccountScopeAnalysisResponse} grouped by timezone
      */
-    ApiResponse<PlatformAccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByTimezone(Integer year, Role role, Boolean forGuest);
+    ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByTimezone(Integer year, Role role, Boolean forGuest);
 
     /**
      * Fetches account analysis grouped by state for the specified year, role, and guest access status.
@@ -44,9 +44,9 @@ public interface PlatformAccountScopeService {
      * @param year     the year for the analysis
      * @param role     the role to filter the analysis by
      * @param forGuest indicates if the analysis is for guest access
-     * @return an {@link ApiResponse} containing a {@link PlatformAccountScopeAnalysisResponse} grouped by state
+     * @return an {@link ApiResponse} containing a {@link AccountScopeAnalysisResponse} grouped by state
      */
-    ApiResponse<PlatformAccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByState(Integer year, Role role, Boolean forGuest);
+    ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByState(Integer year, Role role, Boolean forGuest);
 
     /**
      * Fetches account analysis grouped by gender for the specified year, role, and guest access status.
@@ -54,9 +54,9 @@ public interface PlatformAccountScopeService {
      * @param year     the year for the analysis
      * @param role     the role to filter the analysis by
      * @param forGuest indicates if the analysis is for guest access
-     * @return an {@link ApiResponse} containing a {@link PlatformAccountScopeAnalysisResponse} grouped by gender
+     * @return an {@link ApiResponse} containing a {@link AccountScopeAnalysisResponse} grouped by gender
      */
-    ApiResponse<PlatformAccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByGender(Integer year, Role role, Boolean forGuest);
+    ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByGender(Integer year, Role role, Boolean forGuest);
 
     /**
      * Fetches account analysis grouped by rating for the specified year, role, and guest access status.
@@ -64,9 +64,9 @@ public interface PlatformAccountScopeService {
      * @param year     the year for the analysis
      * @param role     the role to filter the analysis by
      * @param forGuest indicates if the analysis is for guest access
-     * @return an {@link ApiResponse} containing a {@link PlatformAccountScopeAnalysisResponse} grouped by rating
+     * @return an {@link ApiResponse} containing a {@link AccountScopeAnalysisResponse} grouped by rating
      */
-    ApiResponse<PlatformAccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByRating(Integer year, Role role, Boolean forGuest);
+    ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByRating(Integer year, Role role, Boolean forGuest);
 
     /**
      * Fetches account analysis grouped by account status for the specified year and role.
@@ -75,9 +75,9 @@ public interface PlatformAccountScopeService {
      *
      * @param year the year for the analysis
      * @param role the role to filter the analysis by
-     * @return an {@link ApiResponse} containing a {@link PlatformAccountScopeAnalysisResponse} grouped by account status
+     * @return an {@link ApiResponse} containing a {@link AccountScopeAnalysisResponse} grouped by account status
      */
-    ApiResponse<PlatformAccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByAccountStatus(Integer year, Role role);
+    ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByAccountStatus(Integer year, Role role);
 
     /**
      * Fetches account analysis grouped by trip status for the specified year and role.
@@ -85,9 +85,9 @@ public interface PlatformAccountScopeService {
      *
      * @param year the year for the analysis
      * @param role the role to filter the analysis by
-     * @return an {@link ApiResponse} containing a {@link PlatformAccountScopeAnalysisResponse} grouped by trip status
+     * @return an {@link ApiResponse} containing a {@link AccountScopeAnalysisResponse} grouped by trip status
      */
-    ApiResponse<PlatformAccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByTripStatus(Integer year, Role role);
+    ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByTripStatus(Integer year, Role role);
 
     /**
      * Fetches account analysis grouped by certification status for the specified year and role.
@@ -96,9 +96,9 @@ public interface PlatformAccountScopeService {
      *
      * @param year the year for the analysis
      * @param role the role to filter the analysis by
-     * @return an {@link ApiResponse} containing a {@link PlatformAccountScopeAnalysisResponse} grouped by certification status
+     * @return an {@link ApiResponse} containing a {@link AccountScopeAnalysisResponse} grouped by certification status
      */
-    ApiResponse<PlatformAccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByCertified(Integer year, Role role);
+    ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByCertified(Integer year, Role role);
 
     /**
      * Fetches account analysis grouped by category for the specified year and role.
@@ -107,7 +107,7 @@ public interface PlatformAccountScopeService {
      *
      * @param year the year for the analysis
      * @param role the role to filter the analysis by
-     * @return an {@link ApiResponse} containing a {@link PlatformAccountScopeAnalysisResponse} grouped by category
+     * @return an {@link ApiResponse} containing a {@link AccountScopeAnalysisResponse} grouped by category
      */
-    ApiResponse<PlatformAccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByCategory(Integer year, Role role);
+    ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByCategory(Integer year, Role role);
 }

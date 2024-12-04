@@ -27,8 +27,11 @@ public class ActiveController {
 
     @GetMapping("/status/all")
     @PreAuthorize("hasRole('BUSINESS')")
-    public ResponseEntity<ApiResponse<List<ActiveResponse>>> statusAll() {
-        ApiResponse<List<ActiveResponse>> response = service.activeList();
+    public ResponseEntity<ApiResponse<List<ActiveResponse>>> statusAll(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
+    ) {
+        ApiResponse<List<ActiveResponse>> response = service.activeList(page, size);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

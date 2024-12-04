@@ -1,9 +1,9 @@
 package com.serch.server.admin.services.scopes.account.services.implementation;
 
 import com.serch.server.admin.services.responses.ChartMetric;
-import com.serch.server.admin.services.scopes.account.responses.PlatformAccountScopeAnalysisResponse;
-import com.serch.server.admin.services.scopes.account.services.PlatformAccountScopeAnalysisService;
-import com.serch.server.admin.services.scopes.account.services.PlatformAccountScopeService;
+import com.serch.server.admin.services.scopes.account.responses.AccountScopeAnalysisResponse;
+import com.serch.server.admin.services.scopes.account.services.AccountScopeAnalysisService;
+import com.serch.server.admin.services.scopes.account.services.AccountScopeService;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.account.AccountStatus;
 import com.serch.server.enums.account.ProviderStatus;
@@ -29,8 +29,8 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class PlatformAccountScopeImplementation implements PlatformAccountScopeService {
-    private final PlatformAccountScopeAnalysisService analysisService;
+public class AccountScopeImplementation implements AccountScopeService {
+    private final AccountScopeAnalysisService analysisService;
     private final GuestRepository guestRepository;
     private final UserRepository userRepository;
     private final BusinessProfileRepository businessProfileRepository;
@@ -40,12 +40,12 @@ public class PlatformAccountScopeImplementation implements PlatformAccountScopeS
     private final CertificateRepository certificateRepository;
 
     @Override
-    public ApiResponse<PlatformAccountScopeAnalysisResponse> fetchAccountAnalysis(Integer year, Role role, Boolean forGuest) {
+    public ApiResponse<AccountScopeAnalysisResponse> fetchAccountAnalysis(Integer year, Role role, Boolean forGuest) {
         validate(role, forGuest);
 
         ZonedDateTime start = AdminUtil.getStartYear(year);
 
-        PlatformAccountScopeAnalysisResponse response = new PlatformAccountScopeAnalysisResponse();
+        AccountScopeAnalysisResponse response = new AccountScopeAnalysisResponse();
         response.setYears(AdminUtil.years());
 
         List<ChartMetric> metrics = new ArrayList<>();
@@ -88,56 +88,56 @@ public class PlatformAccountScopeImplementation implements PlatformAccountScopeS
     }
 
     @Override
-    public ApiResponse<PlatformAccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByCountry(Integer year, Role role, Boolean forGuest) {
+    public ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByCountry(Integer year, Role role, Boolean forGuest) {
         return fetchGroupedAccountAnalysis(year, role, forGuest, "country", "size by country");
     }
 
     @Override
-    public ApiResponse<PlatformAccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByTimezone(Integer year, Role role, Boolean forGuest) {
+    public ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByTimezone(Integer year, Role role, Boolean forGuest) {
         return fetchGroupedAccountAnalysis(year, role, forGuest, "timezone", "size by timezone");
     }
 
     @Override
-    public ApiResponse<PlatformAccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByState(Integer year, Role role, Boolean forGuest) {
+    public ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByState(Integer year, Role role, Boolean forGuest) {
         return fetchGroupedAccountAnalysis(year, role, forGuest, "state", "size by state");
     }
 
     @Override
-    public ApiResponse<PlatformAccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByGender(Integer year, Role role, Boolean forGuest) {
+    public ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByGender(Integer year, Role role, Boolean forGuest) {
         return fetchGroupedAccountAnalysis(year, role, forGuest, "gender", "size by gender");
     }
 
     @Override
-    public ApiResponse<PlatformAccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByRating(Integer year, Role role, Boolean forGuest) {
+    public ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByRating(Integer year, Role role, Boolean forGuest) {
         return fetchGroupedAccountAnalysis(year, role, forGuest, "rating", "size by rating");
     }
 
     @Override
-    public ApiResponse<PlatformAccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByAccountStatus(Integer year, Role role) {
+    public ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByAccountStatus(Integer year, Role role) {
         return fetchGroupedAccountAnalysis(year, role, false, "status", "size by account status");
     }
 
     @Override
-    public ApiResponse<PlatformAccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByTripStatus(Integer year, Role role) {
+    public ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByTripStatus(Integer year, Role role) {
         return fetchGroupedAccountAnalysis(year, role, false, "trip", "size by trip status");
     }
 
     @Override
-    public ApiResponse<PlatformAccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByCertified(Integer year, Role role) {
+    public ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByCertified(Integer year, Role role) {
         return fetchGroupedAccountAnalysis(year, role, false, "certification", "size by certification");
     }
 
     @Override
-    public ApiResponse<PlatformAccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByCategory(Integer year, Role role) {
+    public ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByCategory(Integer year, Role role) {
         return fetchGroupedAccountAnalysis(year, role, false, "category", "size by category");
     }
 
-    private ApiResponse<PlatformAccountScopeAnalysisResponse> fetchGroupedAccountAnalysis(Integer year, Role role, Boolean forGuest, String groupBy, String content) {
+    private ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysis(Integer year, Role role, Boolean forGuest, String groupBy, String content) {
         validate(role, forGuest);
 
         ZonedDateTime start = AdminUtil.getStartYear(year);
 
-        PlatformAccountScopeAnalysisResponse response = new PlatformAccountScopeAnalysisResponse();
+        AccountScopeAnalysisResponse response = new AccountScopeAnalysisResponse();
         response.setYears(AdminUtil.years());
         response.setContent(String.format("%s %s", forGuest != null && forGuest ? "Guest" : role.getType(), content));
 
@@ -182,7 +182,7 @@ public class PlatformAccountScopeImplementation implements PlatformAccountScopeS
         };
     }
 
-    private void buildGuestInfoMetrics(String groupBy, ZonedDateTime start, PlatformAccountScopeAnalysisResponse response) {
+    private void buildGuestInfoMetrics(String groupBy, ZonedDateTime start, AccountScopeAnalysisResponse response) {
         List<Guest> guests = guestRepository.findByCreatedAtBetween(start, start.plusYears(1));
 
         response.setInfoMetrics(createMetricList(buildGuestMetrics(groupBy, guests), "Guest audience"));
@@ -231,7 +231,7 @@ public class PlatformAccountScopeImplementation implements PlatformAccountScopeS
         };
     }
 
-    private void buildUserInfoMetrics(Role role, String groupBy, ZonedDateTime start, PlatformAccountScopeAnalysisResponse response) {
+    private void buildUserInfoMetrics(Role role, String groupBy, ZonedDateTime start, AccountScopeAnalysisResponse response) {
         ZonedDateTime end = start.plusYears(1);
         List<User> users = userRepository.findByRoleAndCreatedAtBetween(role, start, end);
 

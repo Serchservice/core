@@ -101,6 +101,8 @@ public interface TripService {
      * @param phoneNumber the phone number of the provider (optional). If provided, will be used to filter the search.
      * @param lat the latitude of the provider's location.
      * @param lng the longitude of the provider's location.
+     * @param page The page number to retrieve (zero-based index).
+     * @param size The number of items per page.
      *
      * @return an {@link ApiResponse} containing a list of {@link ActiveResponse} instances.
      *         The response provides details of providers who match the search criteria.
@@ -108,7 +110,7 @@ public interface TripService {
      * @see ApiResponse
      * @see ActiveResponse
      */
-    ApiResponse<List<ActiveResponse>> search(String phoneNumber, Double lat, Double lng);
+    ApiResponse<List<ActiveResponse>> search(String phoneNumber, Double lat, Double lng, Integer page, Integer size);
 
     /**
      * Verify the authentication details of a trip.

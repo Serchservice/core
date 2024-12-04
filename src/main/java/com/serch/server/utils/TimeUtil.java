@@ -10,6 +10,8 @@ import java.util.Locale;
  * The TimeUtil class provides utility methods for working with dates and times.
  */
 public class TimeUtil {
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("h:mma");
+
     /**
      * Formats the time difference in minutes, hours, or days before or after the current time.
      * @param diff The time difference in minutes.
@@ -218,5 +220,13 @@ public class TimeUtil {
 
     public static ZonedDateTime now(ZoneId zoneId) {
         return ZonedDateTime.now(zoneId);
+    }
+
+    public static LocalTime toTime(String timeString) {
+        return LocalTime.parse(timeString.toUpperCase(), TIME_FORMATTER);
+    }
+
+    public static String toString(LocalTime time) {
+        return time.format(TIME_FORMATTER);
     }
 }

@@ -89,4 +89,8 @@ public class Shop extends BaseDateTime {
 
     @OneToMany(mappedBy = "shop", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ShopWeekday> weekdays;
+
+    public boolean isOpen() {
+        return getStatus() == ShopStatus.OPEN;
+    }
 }

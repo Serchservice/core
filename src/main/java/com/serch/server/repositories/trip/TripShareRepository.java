@@ -30,6 +30,9 @@ public interface TripShareRepository extends JpaRepository<TripShare, Long> {
   @Query("select count(t) from TripShare t where t.createdAt BETWEEN ?1 AND ?2 AND t.provider is null")
   long countOfflineWithinDateRange(ZonedDateTime startDate, ZonedDateTime endDate);
 
+  @Query("select count(t) from TripShare t where t.provider.id = ?1 and t.createdAt BETWEEN ?2 AND ?3")
+  long countByIdAndDateRange(UUID id, ZonedDateTime startDate, ZonedDateTime endDate);
+
   @Query("select t from TripShare t where t.provider is null")
   List<TripShare> findByProviderNull();
 

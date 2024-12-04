@@ -7,11 +7,13 @@ import com.serch.server.models.account.Specialty;
 import com.serch.server.models.auth.incomplete.Incomplete;
 import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.account.SpecialtyRepository;
-import com.serch.server.services.account.services.SpecialtyService;
 import com.serch.server.services.account.responses.SpecialtyResponse;
+import com.serch.server.services.account.services.SpecialtyService;
+import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -90,18 +92,19 @@ public class SpecialtyImplementation implements SpecialtyService {
     }
 
     @Override
-    public ApiResponse<List<SpecialtyResponse>> search(String query) {
-        List<Specialty> specialties = specialtyRepository.fullTextSearch(query.toLowerCase());
+    public ApiResponse<List<SpecialtyResponse>> search(String query, Integer page, Integer size) {
+        Page<Specialty> specialties = specialtyRepository.fullTextSearch(query.toLowerCase(), HelperUtil.getPageable(page, size));
+
         if(specialties != null && !specialties.isEmpty()) {
-            return new ApiResponse<>(specialties.stream().map(this::response).toList());
+            return new ApiResponse<>(specialties.getContent().stream().map(this::response).toList());
         } else {
             return new ApiResponse<>(List.of());
         }
     }
 
     @Override
-    public ApiResponse<List<String>> specialties() {
-        List<String> response = specialtyRepository.findAll()
+    public ApiResponse<List<String>> specialties(Integer page, Integer size) {
+        List<String> response = specialtyRepository.findAll(HelperUtil.getPageable(page, size))
                 .stream()
                 .map(Specialty::getSpecialty)
                 .toList();

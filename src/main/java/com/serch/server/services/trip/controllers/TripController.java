@@ -28,9 +28,11 @@ public class TripController {
     @GetMapping("/history")
     public ResponseEntity<ApiResponse<List<TripResponse>>> history(
             @RequestParam(required = false) String guest,
-            @RequestParam(required = false) String link
+            @RequestParam(required = false) String link,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
     ) {
-        ApiResponse<List<TripResponse>> response = historyService.history(guest, link);
+        ApiResponse<List<TripResponse>> response = historyService.history(guest, link, page, size);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
@@ -56,9 +58,11 @@ public class TripController {
     public ResponseEntity<ApiResponse<List<ActiveResponse>>> search(
             @RequestParam String phone,
             @RequestParam Double lat,
-            @RequestParam Double lng
+            @RequestParam Double lng,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
     ) {
-        ApiResponse<List<ActiveResponse>> response = service.search(phone, lat, lng);
+        ApiResponse<List<ActiveResponse>> response = service.search(phone, lat, lng, page, size);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

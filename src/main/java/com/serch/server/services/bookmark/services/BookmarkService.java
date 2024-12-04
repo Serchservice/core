@@ -34,10 +34,13 @@ public interface BookmarkService {
     /**
      * Retrieves all bookmarks associated with the current user.
      *
+     * @param page The page number to retrieve (zero-based index).
+     * @param size The number of items per page.
+     *
      * @return ApiResponse containing a list of BookmarkResponse objects.
      *
      * @see BookmarkResponse
      * @see ApiResponse
      */
-    ApiResponse<List<BookmarkResponse>> bookmarks();
+    ApiResponse<List<BookmarkResponse>> bookmarks(Integer page, Integer size);
 }

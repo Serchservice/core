@@ -20,8 +20,11 @@ public class BusinessAssociateController {
     private final BusinessAssociateService service;
 
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse<List<BusinessAssociateResponse>>> all() {
-        ApiResponse<List<BusinessAssociateResponse>> response = service.all();
+    public ResponseEntity<ApiResponse<List<BusinessAssociateResponse>>> all(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
+    ) {
+        ApiResponse<List<BusinessAssociateResponse>> response = service.all(page, size);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

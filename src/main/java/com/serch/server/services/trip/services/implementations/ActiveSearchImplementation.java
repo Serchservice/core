@@ -2,8 +2,8 @@ package com.serch.server.services.trip.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.account.Gender;
-import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.account.ProviderStatus;
+import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.shop.DriveScope;
 import com.serch.server.enums.verified.VerificationStatus;
 import com.serch.server.mappers.AccountMapper;
@@ -23,7 +23,6 @@ import com.serch.server.repositories.trip.TripRepository;
 import com.serch.server.services.account.responses.MoreProfileData;
 import com.serch.server.services.account.services.ProfileService;
 import com.serch.server.services.account.services.SpecialtyService;
-import com.serch.server.services.shop.responses.SearchShopResponse;
 import com.serch.server.services.shop.services.ShopService;
 import com.serch.server.services.trip.responses.ActiveResponse;
 import com.serch.server.services.trip.responses.SearchResponse;
@@ -34,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -107,27 +107,32 @@ public class ActiveSearchImplementation implements ActiveSearchService {
     }
 
     @Override
-    public ApiResponse<SearchResponse> search(SerchCategory category, Double longitude, Double latitude, Double radius, Boolean autoConnect) {
-        List<Active> actives = activeRepository.sortAllWithinDistance(latitude, longitude, getSearchRadius(radius), category.name());
+    public ApiResponse<SearchResponse> search(SerchCategory category, Double longitude, Double latitude, Double radius, Boolean autoConnect, Integer page, Integer size) {
+        SearchResponse response = getSearchResponse(category, longitude, latitude, radius, page, size);
 
-        SearchResponse response = prepareResponse(longitude, latitude, actives);
         if(autoConnect != null && autoConnect) {
             Active bestMatch = activeRepository.findBestMatchWithCategory(latitude, longitude, category.name(), getSearchRadius(radius));
             addBestMatch(longitude, latitude, response, bestMatch);
         }
+
         return new ApiResponse<>(response);
     }
 
-    protected SearchResponse prepareResponse(Double longitude, Double latitude, List<Active> actives) {
+    private SearchResponse getSearchResponse(SerchCategory category, Double longitude, Double latitude, Double radius, Integer page, Integer size) {
+        Page<Active> actives = activeRepository.sortAllWithinDistance(latitude, longitude, getSearchRadius(radius), category.name(), HelperUtil.getPageable(page, size));
+
+        return prepareResponse(longitude, latitude, actives);
+    }
+
+    protected SearchResponse prepareResponse(Double longitude, Double latitude, Page<Active> actives) {
         AtomicReference<AccountSetting> setting = new AtomicReference<>();
-        userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
-                .ifPresent(user -> setting.set(user.getSetting()));
+        userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser()).ifPresent(user -> setting.set(user.getSetting()));
 
         SearchResponse response = new SearchResponse();
         if(setting.get() != null) {
-            if (actives != null && !actives.isEmpty()) {
+            if (actives != null && actives.hasContent() && !actives.getContent().isEmpty()) {
                 Set<Active> distinct = new HashSet<>();
-                List<ActiveResponse> list = actives.stream()
+                List<ActiveResponse> list = actives.getContent().stream()
                         // Filter based on whether certificates are required and whether the certificate exists
                         .filter(active -> {
                             boolean showOnlyCertified = Optional.ofNullable(setting.get().getShowOnlyCertified()).orElse(false);
@@ -163,9 +168,9 @@ public class ActiveSearchImplementation implements ActiveSearchService {
                 response.setProviders(list);
             }
         } else {
-            if(actives != null && !actives.isEmpty()) {
+            if(actives != null && actives.hasContent() && !actives.getContent().isEmpty()) {
                 Set<Active> distinct = new HashSet<>();
-                List<ActiveResponse> list = actives.stream()
+                List<ActiveResponse> list = actives.getContent().stream()
                         .filter(distinct::add)
                         .map(activeProvider -> response(
                                 activeProvider.getProfile(),
@@ -176,21 +181,27 @@ public class ActiveSearchImplementation implements ActiveSearchService {
                 response.setProviders(list);
             }
         }
+
         return response;
     }
 
     @Override
-    public ApiResponse<SearchResponse> search(String query, Double longitude, Double latitude, Double radius, Boolean autoConnect) {
-        List<Active> actives = activeRepository.fullTextSearchWithinDistance(latitude, longitude, query, getSearchRadius(radius));
-        List<SearchShopResponse> shops = shopService.list(query, null, longitude, latitude, getSearchRadius(radius), DriveScope.SERCH);
+    public ApiResponse<SearchResponse> search(String query, Double longitude, Double latitude, Double radius, Boolean autoConnect, Integer page, Integer size) {
+        SearchResponse response = getSearchResponse(query, longitude, latitude, radius, page, size);
+        response.setShops(shopService.list(query, null, longitude, latitude, getSearchRadius(radius), DriveScope.SERCH, page, size));
 
-        SearchResponse response = prepareResponse(longitude, latitude, actives);
-        response.setShops(shops);
         if(autoConnect != null && autoConnect) {
             Active bestMatch = activeRepository.findBestMatchWithQuery(latitude, longitude, query, getSearchRadius(radius));
             addBestMatch(longitude, latitude, response, bestMatch);
         }
+
         return new ApiResponse<>(response);
+    }
+
+    private SearchResponse getSearchResponse(String query, Double longitude, Double latitude, Double radius, Integer page, Integer size) {
+        Page<Active> actives = activeRepository.fullTextSearchWithinDistance(latitude, longitude, query, getSearchRadius(radius), HelperUtil.getPageable(page, size));
+
+        return prepareResponse(longitude, latitude, actives);
     }
 
     protected void addBestMatch(Double longitude, Double latitude, SearchResponse response, Active bestMatch) {

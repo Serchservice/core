@@ -2,26 +2,25 @@ package com.serch.server.services.trip.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.account.ProviderStatus;
-import com.serch.server.exceptions.account.AccountException;
 import com.serch.server.exceptions.others.TripException;
 import com.serch.server.mappers.TripMapper;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.User;
-import com.serch.server.models.account.BusinessProfile;
 import com.serch.server.models.trip.Active;
 import com.serch.server.repositories.account.ProfileRepository;
-import com.serch.server.repositories.account.BusinessProfileRepository;
 import com.serch.server.repositories.trip.ActiveRepository;
 import com.serch.server.services.trip.requests.OnlineRequest;
 import com.serch.server.services.trip.responses.ActiveResponse;
 import com.serch.server.services.trip.responses.MapViewResponse;
 import com.serch.server.services.trip.services.ActiveSearchService;
 import com.serch.server.services.trip.services.ActiveService;
+import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -47,7 +46,6 @@ public class ActiveImplementation implements ActiveService {
     private final SimpMessagingTemplate messaging;
     private final ActiveRepository activeRepository;
     private final ProfileRepository profileRepository;
-    private final BusinessProfileRepository businessProfileRepository;
 
     @Override
     public ApiResponse<ProviderStatus> toggleStatus(OnlineRequest request) {
@@ -120,15 +118,14 @@ public class ActiveImplementation implements ActiveService {
     }
 
     @Override
-    public ApiResponse<List<ActiveResponse>> activeList() {
-        BusinessProfile business = businessProfileRepository.findById(userUtil.getUser().getId())
-                .orElseThrow(() -> new AccountException("Access denied"));
-        if(business.getAssociates() != null && !business.getAssociates().isEmpty()) {
-            List<ActiveResponse> list = business.getAssociates()
+    public ApiResponse<List<ActiveResponse>> activeList(Integer page, Integer size) {
+        Page<Profile> associates = profileRepository.findActiveAssociatesByBusinessId(userUtil.getUser().getId(), HelperUtil.getPageable(page, size));
+
+        if(associates != null && associates.hasContent() && !associates.getContent().isEmpty()) {
+            List<ActiveResponse> list = associates.getContent()
                     .stream()
                     .map(profile -> {
-                        Active active = activeRepository.findByProfile_Id(profile.getId())
-                                .orElse(null);
+                        Active active = activeRepository.findByProfile_Id(profile.getId()).orElse(null);
                         ActiveResponse response = new ActiveResponse();
                         response.setName(profile.getFullName());
                         response.setAvatar(profile.getAvatar());

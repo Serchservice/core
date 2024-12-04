@@ -1,8 +1,8 @@
 package com.serch.server.admin.services.scopes.account.services.implementation;
 
 import com.serch.server.admin.services.responses.Metric;
-import com.serch.server.admin.services.scopes.account.responses.PlatformAccountSectionResponse;
-import com.serch.server.admin.services.scopes.account.services.PlatformAccountSectionScopeService;
+import com.serch.server.admin.services.scopes.account.responses.AccountSectionResponse;
+import com.serch.server.admin.services.scopes.account.services.AccountSectionScopeService;
 import com.serch.server.admin.services.scopes.common.services.CommonProfileService;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.auth.Role;
@@ -11,15 +11,14 @@ import com.serch.server.models.shared.Guest;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.shared.GuestRepository;
 import com.serch.server.utils.AdminUtil;
+import com.serch.server.utils.HelperUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class PlatformAccountSectionScopeImplementation implements PlatformAccountSectionScopeService {
+public class AccountSectionScopeImplementation implements AccountSectionScopeService {
     private final CommonProfileService profileService;
     private final UserRepository userRepository;
     private final GuestRepository guestRepository;
@@ -43,18 +42,17 @@ public class PlatformAccountSectionScopeImplementation implements PlatformAccoun
     }
 
     @Override
-    public ApiResponse<PlatformAccountSectionResponse> fetchAccounts(Role role, Integer page, Integer size, String alphabet) {
-        Pageable pageable = PageRequest.of(page != null ? page : 0, size != null ? size : 20);
-        PlatformAccountSectionResponse response = new PlatformAccountSectionResponse();
+    public ApiResponse<AccountSectionResponse> fetchAccounts(Role role, Integer page, Integer size, String alphabet) {
+        AccountSectionResponse response = new AccountSectionResponse();
 
         if(role != null) {
-            Page<User> users = userRepository.findByRoleAndLastNameStartingWithIgnoreCase(role, alphabet, pageable);
+            Page<User> users = userRepository.findByRoleAndLastNameStartingWithIgnoreCase(role, alphabet, HelperUtil.getPageable(page, size));
 
             response.setTotal(userRepository.countByRoleAndLastNameStartingWithIgnoreCase(role, alphabet));
             response.setAccounts(users.getContent().stream().map(user -> profileService.fromId(user.getId())).toList());
             response.setTotalPages(users.getTotalPages());
         } else {
-            Page<Guest> guests = guestRepository.findByLastNameStartingWithIgnoreCase(alphabet, pageable);
+            Page<Guest> guests = guestRepository.findByLastNameStartingWithIgnoreCase(alphabet, HelperUtil.getPageable(page, size));
 
             response.setTotal(guestRepository.countByLastNameStartingWithIgnoreCase(alphabet));
             response.setAccounts(guests.getContent().stream().map(user -> profileService.fromId(user.getId())).toList());
@@ -65,18 +63,17 @@ public class PlatformAccountSectionScopeImplementation implements PlatformAccoun
     }
 
     @Override
-    public ApiResponse<PlatformAccountSectionResponse> search(Role role, Integer page, Integer size, String query) {
-        Pageable pageable = PageRequest.of(page != null ? page : 0, size != null ? size : 20);
-        PlatformAccountSectionResponse response = new PlatformAccountSectionResponse();
+    public ApiResponse<AccountSectionResponse> search(Role role, Integer page, Integer size, String query) {
+        AccountSectionResponse response = new AccountSectionResponse();
 
         if(role != null) {
-            Page<User> users = userRepository.searchByRoleAndQuery(role, query, pageable);
+            Page<User> users = userRepository.searchByRoleAndQuery(role, query, HelperUtil.getPageable(page, size));
 
             response.setTotal(userRepository.countByRoleAndQuery(role, query));
             response.setAccounts(users.getContent().stream().map(user -> profileService.fromId(user.getId())).toList());
             response.setTotalPages(users.getTotalPages());
         } else {
-            Page<Guest> guests = guestRepository.searchByQuery(query, pageable);
+            Page<Guest> guests = guestRepository.searchByQuery(query, HelperUtil.getPageable(page, size));
 
             response.setTotal(guestRepository.countByQuery(query));
             response.setAccounts(guests.getContent().stream().map(user -> profileService.fromId(user.getId())).toList());

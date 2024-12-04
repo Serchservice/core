@@ -1,7 +1,7 @@
 package com.serch.server.admin.services.scopes.account.controllers;
 
-import com.serch.server.admin.services.scopes.account.responses.PlatformAccountScopeAnalysisResponse;
-import com.serch.server.admin.services.scopes.account.services.PlatformAccountScopeService;
+import com.serch.server.admin.services.scopes.account.responses.AccountScopeAnalysisResponse;
+import com.serch.server.admin.services.scopes.account.services.AccountScopeService;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.auth.Role;
 import lombok.RequiredArgsConstructor;
@@ -16,102 +16,102 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/scope/platform/account")
 @PreAuthorize("hasRole('SUPER_ADMIN') || hasRole('ADMIN') || hasRole('MANAGER') || hasRole('TEAM')")
-public class PlatformAccountScopeController {
-    private final PlatformAccountScopeService service;
+public class AccountScopeController {
+    private final AccountScopeService service;
 
     @GetMapping("/analysis")
-    public ResponseEntity<ApiResponse<PlatformAccountScopeAnalysisResponse>> fetchAccountAnalysis(
+    public ResponseEntity<ApiResponse<AccountScopeAnalysisResponse>> fetchAccountAnalysis(
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Role role,
             @RequestParam(required = false, name = "for_guest") Boolean forGuest
     ) {
-        ApiResponse<PlatformAccountScopeAnalysisResponse> response = service.fetchAccountAnalysis(year, role, forGuest);
+        ApiResponse<AccountScopeAnalysisResponse> response = service.fetchAccountAnalysis(year, role, forGuest);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @GetMapping("/analysis/country")
-    public ResponseEntity<ApiResponse<PlatformAccountScopeAnalysisResponse>> fetchGroupedAccountAnalysisByCountry(
+    public ResponseEntity<ApiResponse<AccountScopeAnalysisResponse>> fetchGroupedAccountAnalysisByCountry(
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Role role,
             @RequestParam(required = false, name = "for_guest") Boolean forGuest
     ) {
-        ApiResponse<PlatformAccountScopeAnalysisResponse> response = service.fetchGroupedAccountAnalysisByCountry(year, role, forGuest);
+        ApiResponse<AccountScopeAnalysisResponse> response = service.fetchGroupedAccountAnalysisByCountry(year, role, forGuest);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @GetMapping("/analysis/timezone")
-    public ResponseEntity<ApiResponse<PlatformAccountScopeAnalysisResponse>> fetchGroupedAccountAnalysisByTimezone(
+    public ResponseEntity<ApiResponse<AccountScopeAnalysisResponse>> fetchGroupedAccountAnalysisByTimezone(
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Role role,
             @RequestParam(required = false, name = "for_guest") Boolean forGuest
     ) {
-        ApiResponse<PlatformAccountScopeAnalysisResponse> response = service.fetchGroupedAccountAnalysisByTimezone(year, role, forGuest);
+        ApiResponse<AccountScopeAnalysisResponse> response = service.fetchGroupedAccountAnalysisByTimezone(year, role, forGuest);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @GetMapping("/analysis/state")
-    public ResponseEntity<ApiResponse<PlatformAccountScopeAnalysisResponse>> fetchGroupedAccountAnalysisByState(
+    public ResponseEntity<ApiResponse<AccountScopeAnalysisResponse>> fetchGroupedAccountAnalysisByState(
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Role role,
             @RequestParam(required = false, name = "for_guest") Boolean forGuest
     ) {
-        ApiResponse<PlatformAccountScopeAnalysisResponse> response = service.fetchGroupedAccountAnalysisByState(year, role, forGuest);
+        ApiResponse<AccountScopeAnalysisResponse> response = service.fetchGroupedAccountAnalysisByState(year, role, forGuest);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @GetMapping("/analysis/gender")
-    public ResponseEntity<ApiResponse<PlatformAccountScopeAnalysisResponse>> fetchGroupedAccountAnalysisByGender(
+    public ResponseEntity<ApiResponse<AccountScopeAnalysisResponse>> fetchGroupedAccountAnalysisByGender(
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Role role,
             @RequestParam(required = false, name = "for_guest") Boolean forGuest
     ) {
-        ApiResponse<PlatformAccountScopeAnalysisResponse> response = service.fetchGroupedAccountAnalysisByGender(year, role, forGuest);
+        ApiResponse<AccountScopeAnalysisResponse> response = service.fetchGroupedAccountAnalysisByGender(year, role, forGuest);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @GetMapping("/analysis/rating")
-    public ResponseEntity<ApiResponse<PlatformAccountScopeAnalysisResponse>> fetchGroupedAccountAnalysisByRating(
+    public ResponseEntity<ApiResponse<AccountScopeAnalysisResponse>> fetchGroupedAccountAnalysisByRating(
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Role role,
             @RequestParam(required = false, name = "for_guest") Boolean forGuest
     ) {
-        ApiResponse<PlatformAccountScopeAnalysisResponse> response = service.fetchGroupedAccountAnalysisByRating(year, role, forGuest);
+        ApiResponse<AccountScopeAnalysisResponse> response = service.fetchGroupedAccountAnalysisByRating(year, role, forGuest);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @GetMapping("/analysis/status")
-    public ResponseEntity<ApiResponse<PlatformAccountScopeAnalysisResponse>> fetchGroupedAccountAnalysisByAccountStatus(
+    public ResponseEntity<ApiResponse<AccountScopeAnalysisResponse>> fetchGroupedAccountAnalysisByAccountStatus(
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Role role
     ) {
-        ApiResponse<PlatformAccountScopeAnalysisResponse> response = service.fetchGroupedAccountAnalysisByAccountStatus(year, role);
+        ApiResponse<AccountScopeAnalysisResponse> response = service.fetchGroupedAccountAnalysisByAccountStatus(year, role);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @GetMapping("/analysis/trip")
-    public ResponseEntity<ApiResponse<PlatformAccountScopeAnalysisResponse>> fetchGroupedAccountAnalysisByTripStatus(
+    public ResponseEntity<ApiResponse<AccountScopeAnalysisResponse>> fetchGroupedAccountAnalysisByTripStatus(
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Role role
     ) {
-        ApiResponse<PlatformAccountScopeAnalysisResponse> response = service.fetchGroupedAccountAnalysisByTripStatus(year, role);
+        ApiResponse<AccountScopeAnalysisResponse> response = service.fetchGroupedAccountAnalysisByTripStatus(year, role);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @GetMapping("/analysis/certification")
-    public ResponseEntity<ApiResponse<PlatformAccountScopeAnalysisResponse>> fetchGroupedAccountAnalysisByCertified(
+    public ResponseEntity<ApiResponse<AccountScopeAnalysisResponse>> fetchGroupedAccountAnalysisByCertified(
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Role role
     ) {
-        ApiResponse<PlatformAccountScopeAnalysisResponse> response = service.fetchGroupedAccountAnalysisByCertified(year, role);
+        ApiResponse<AccountScopeAnalysisResponse> response = service.fetchGroupedAccountAnalysisByCertified(year, role);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @GetMapping("/analysis/category")
-    public ResponseEntity<ApiResponse<PlatformAccountScopeAnalysisResponse>> fetchGroupedAccountAnalysisByCategory(
+    public ResponseEntity<ApiResponse<AccountScopeAnalysisResponse>> fetchGroupedAccountAnalysisByCategory(
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Role role
     ) {
-        ApiResponse<PlatformAccountScopeAnalysisResponse> response = service.fetchGroupedAccountAnalysisByCategory(year, role);
+        ApiResponse<AccountScopeAnalysisResponse> response = service.fetchGroupedAccountAnalysisByCategory(year, role);
         return new ResponseEntity<>(response, response.getStatus());
     }
 }

@@ -25,20 +25,29 @@ public class RatingController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse<List<RatingResponse>>> view() {
-        ApiResponse<List<RatingResponse>> response = service.view();
+    public ResponseEntity<ApiResponse<List<RatingResponse>>> view(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
+    ) {
+        ApiResponse<List<RatingResponse>> response = service.view(page, size);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @GetMapping("/all/bad")
-    public ResponseEntity<ApiResponse<List<RatingResponse>>> bad() {
-        ApiResponse<List<RatingResponse>> response = service.bad(null);
+    public ResponseEntity<ApiResponse<List<RatingResponse>>> bad(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
+    ) {
+        ApiResponse<List<RatingResponse>> response = service.bad(null, page, size);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @GetMapping("/all/good")
-    public ResponseEntity<ApiResponse<List<RatingResponse>>> good() {
-        ApiResponse<List<RatingResponse>> response = service.good(null);
+    public ResponseEntity<ApiResponse<List<RatingResponse>>> good(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
+    ) {
+        ApiResponse<List<RatingResponse>> response = service.good(null, page, size);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

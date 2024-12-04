@@ -25,9 +25,11 @@ import com.serch.server.services.rating.requests.RateRequest;
 import com.serch.server.services.rating.requests.RatingCalculation;
 import com.serch.server.services.rating.responses.RatingChartResponse;
 import com.serch.server.services.rating.responses.RatingResponse;
+import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -286,28 +288,28 @@ public class RatingImplementation implements RatingService {
     }
 
     @Override
-    public ApiResponse<List<RatingResponse>> view() {
-        List<Rating> ratings = ratingRepository.findByRated(String.valueOf(userUtil.getUser().getId()));
-        return ratings(ratings);
+    public ApiResponse<List<RatingResponse>> view(Integer page, Integer size) {
+        return ratings(ratingRepository.findByRated(String.valueOf(userUtil.getUser().getId()), HelperUtil.getPageable(page, size)));
     }
 
     @Override
-    public ApiResponse<List<RatingResponse>> good(String id) {
+    public ApiResponse<List<RatingResponse>> good(String id, Integer page, Integer size) {
         String user = id == null ? String.valueOf(userUtil.getUser().getId()) : id;
-        List<Rating> ratings = ratingRepository.findGood(user);
-        return ratings(ratings);
+
+        return ratings(ratingRepository.findGood(user, HelperUtil.getPageable(page, size)));
     }
 
     @Override
-    public ApiResponse<List<RatingResponse>> ratings(List<Rating> ratings) {
+    public ApiResponse<List<RatingResponse>> ratings(Page<Rating> ratings) {
         List<RatingResponse> list = new ArrayList<>();
 
-        if(!ratings.isEmpty()) {
-            list = ratings.stream()
+        if(ratings != null && !ratings.getContent().isEmpty()) {
+            list = ratings.getContent().stream()
                     .sorted(Comparator.comparing(Rating::getCreatedAt))
                     .map(this::getRatingResponse)
                     .toList();
         }
+
         return new ApiResponse<>(list);
     }
 
@@ -328,14 +330,14 @@ public class RatingImplementation implements RatingService {
     }
 
     @Override
-    public ApiResponse<List<RatingResponse>> bad(String id) {
+    public ApiResponse<List<RatingResponse>> bad(String id, Integer page, Integer size) {
         String user = id == null ? String.valueOf(userUtil.getUser().getId()) : id;
-        List<Rating> ratings = ratingRepository.findBad(user);
-        return ratings(ratings);
+
+        return ratings(ratingRepository.findBad(user, HelperUtil.getPageable(page, size)));
     }
 
     @Override
-    public ApiResponse<List<RatingChartResponse>> chart(String id) {
+    public List<RatingChartResponse> buildChart(String id) {
         String user = id == null ? String.valueOf(userUtil.getUser().getId()) : id;
         List<Object[]> resultList = ratingRepository.chart(user);
 
@@ -366,9 +368,12 @@ public class RatingImplementation implements RatingService {
             responseMap.put(month, new RatingChartResponse(month, bad, good, average, total));
         }
 
-        // Convert the map values to a list
-        List<RatingChartResponse> chartResponses = new ArrayList<>(responseMap.values());
-        return new ApiResponse<>(chartResponses);
+        return new ArrayList<>(responseMap.values());
+    }
+
+    @Override
+    public ApiResponse<List<RatingChartResponse>> chart(String id) {
+        return new ApiResponse<>(buildChart(id));
     }
 
     @Override

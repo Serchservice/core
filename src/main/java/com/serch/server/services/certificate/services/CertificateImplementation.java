@@ -14,7 +14,6 @@ import com.serch.server.models.account.BusinessProfile;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.User;
 import com.serch.server.models.certificate.Certificate;
-import com.serch.server.models.rating.Rating;
 import com.serch.server.repositories.account.AccountReportRepository;
 import com.serch.server.repositories.account.BusinessProfileRepository;
 import com.serch.server.repositories.account.ProfileRepository;
@@ -25,6 +24,7 @@ import com.serch.server.services.certificate.responses.CertificateData;
 import com.serch.server.services.certificate.responses.CertificateResponse;
 import com.serch.server.services.certificate.responses.VerifyCertificateResponse;
 import com.serch.server.services.rating.services.RatingService;
+import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
@@ -127,7 +127,7 @@ public class CertificateImplementation implements CertificateService {
             );
             response.setInstructions(instruction(userUtil.getUser(), cert.get()));
         } else {
-            data.setDocument(storageService.buildUrl("/storage/v1/object/public/certificate/UnsignedBlur.png"));
+            data.setDocument(storageService.buildUrl(HelperUtil.dummyCertificate));
             response.setIsGenerated(false);
             response.setReason(
                     "Inorder to generate a skill certificate, you need to fulfill the instructions below. " +
@@ -320,12 +320,11 @@ public class CertificateImplementation implements CertificateService {
                                     .map(BusinessProfile::getCategory)
                                     .orElse(SerchCategory.BUSINESS)
                     );
-            List<Rating> ratings = ratingRepository.findGood(String.valueOf(certificate.getUser()));
 
             VerifyCertificateResponse response = new VerifyCertificateResponse();
             response.setPicture(avatar);
             response.setDocument(certificate.getDocument());
-            response.setRatings(ratingService.ratings(ratings).getData());
+            response.setRatings(ratingService.good(String.valueOf(certificate.getUser()), null, null).getData());
 
             CertificateData data = new CertificateData();
             data.setQrCode(certificate.getCode());

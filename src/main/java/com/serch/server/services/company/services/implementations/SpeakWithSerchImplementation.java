@@ -11,12 +11,14 @@ import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.company.IssueRepository;
 import com.serch.server.repositories.company.SpeakWithSerchRepository;
 import com.serch.server.services.company.requests.IssueRequest;
-import com.serch.server.services.company.services.SpeakWithSerchService;
 import com.serch.server.services.company.responses.IssueResponse;
 import com.serch.server.services.company.responses.SpeakWithSerchResponse;
+import com.serch.server.services.company.services.SpeakWithSerchService;
+import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -87,16 +89,17 @@ public class SpeakWithSerchImplementation implements SpeakWithSerchService {
     }
 
     @Override
-    public ApiResponse<List<SpeakWithSerchResponse>> message() {
+    public ApiResponse<List<SpeakWithSerchResponse>> messages(Integer page, Integer size) {
         User user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new CompanyException("User not found"));
 
-        List<SpeakWithSerch> speak = speakWithSerchRepository.findByUser_Id(user.getId());
+        Page<SpeakWithSerch> speak = speakWithSerchRepository.findByUser_Id(user.getId(), HelperUtil.getPageable(page, size));
         if(speak != null) {
-            return new ApiResponse<>(
-                    speak.stream()
-                            .sorted(Comparator.comparing(SpeakWithSerch::getUpdatedAt))
-                            .map(this::prepareSpeakWithSerchResponse).toList()
+            return new ApiResponse<>(speak.getContent()
+                    .stream()
+                    .sorted(Comparator.comparing(SpeakWithSerch::getUpdatedAt))
+                    .map(this::prepareSpeakWithSerchResponse)
+                    .toList()
             );
         } else {
             return new ApiResponse<>(List.of());
@@ -117,7 +120,7 @@ public class SpeakWithSerchImplementation implements SpeakWithSerchService {
                     serch.setUpdatedAt(TimeUtil.now());
                     issueRepository.save(serch);
                 });
-        return message();
+        return messages(null, null);
     }
 
     @Override

@@ -61,11 +61,13 @@ public interface ActiveSearchService {
      * @param latitude The latitude coordinate of the user's location.
      * @param radius The search radius in kilometers within which to find providers.
      * @param autoConnect A flag indicating whether to find the best matching provider automatically.
+     * @param page The page number to retrieve (zero-based index).
+     * @param size The number of items per page.
      * @return An {@link ApiResponse} containing a {@link SearchResponse} with the list of matching providers.
      *
      * @see SerchCategory
      */
-    ApiResponse<SearchResponse> search(SerchCategory category, Double longitude, Double latitude, Double radius, Boolean autoConnect);
+    ApiResponse<SearchResponse> search(SerchCategory category, Double longitude, Double latitude, Double radius, Boolean autoConnect, Integer page, Integer size);
 
     /**
      * Searches for active providers by specialty within a specified radius from the user's location.
@@ -80,7 +82,9 @@ public interface ActiveSearchService {
      * @param latitude The latitude coordinate of the user's location.
      * @param radius The search radius in kilometers within which to find providers or shops.
      * @param autoConnect A flag indicating whether to automatically find the best match.
+     * @param page The page number to retrieve (zero-based index).
+     * @param size The number of items per page.
      * @return An {@link ApiResponse} containing a {@link SearchResponse} with the list of matching providers and shops.
      */
-    ApiResponse<SearchResponse> search(String query, Double longitude, Double latitude, Double radius, Boolean autoConnect);
+    ApiResponse<SearchResponse> search(String query, Double longitude, Double latitude, Double radius, Boolean autoConnect, Integer page, Integer size);
 }

@@ -20,9 +20,11 @@ public class ActiveSearchController {
             @RequestParam(name = "lng") Double lng,
             @RequestParam(name = "lat") Double lat,
             @RequestParam(required = false, name = "radius") Double radius,
-            @RequestParam(required = false, name = "auto") Boolean autoConnect
+            @RequestParam(required = false, name = "auto") Boolean autoConnect,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
     ) {
-        ApiResponse<SearchResponse> response = service.search(category, lng, lat, radius, autoConnect);
+        ApiResponse<SearchResponse> response = service.search(category, lng, lat, radius, autoConnect, page, size);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
@@ -32,9 +34,11 @@ public class ActiveSearchController {
             @RequestParam(name = "lng") Double lng,
             @RequestParam(name = "lat") Double lat,
             @RequestParam(required = false, name = "radius") Double radius,
-            @RequestParam(required = false, name = "auto") Boolean autoConnect
+            @RequestParam(required = false, name = "auto") Boolean autoConnect,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
     ) {
-        ApiResponse<SearchResponse> response = service.search(query, lng, lat, radius, autoConnect);
+        ApiResponse<SearchResponse> response = service.search(query, lng, lat, radius, autoConnect, page, size);
         return new ResponseEntity<>(response, response.getStatus());
     }
 }

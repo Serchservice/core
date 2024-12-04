@@ -50,9 +50,11 @@ public interface ActiveService {
      * for service, filtered according to the business's criteria.
      * </p>
      *
+     * @param page The page number to retrieve (zero-based index).
+     * @param size The number of items per page.
      * @return An {@link ApiResponse} containing the list of {@link ActiveResponse} representing active providers.
      */
-    ApiResponse<List<ActiveResponse>> activeList();
+    ApiResponse<List<ActiveResponse>> activeList(Integer page, Integer size);
 
     /**
      * Toggles the trip status of the specified user.

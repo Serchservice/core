@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.lang.NonNull;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,8 +16,11 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, String
 
     List<ChatMessage> findByChatRoom_Id(@NonNull String id);
 
-    @Query("SELECT COUNT(m) FROM chat_messages m WHERE m.chatRoom.id = ?1 AND m.sender != ?2  AND m.status != 'READ' and m.state = 'ACTIVE'")
+    @Query("SELECT COUNT(m) FROM chat_messages m WHERE m.chatRoom.id = ?1 AND m.sender != ?2 AND m.status != 'READ' and m.state = 'ACTIVE'")
     Long countMessagesReceivedByUser(String roomId, UUID senderId);
+
+    @Query("SELECT COUNT(m) FROM chat_messages m WHERE m.sender = ?1 and m.createdAt between ?2 and ?3")
+    Long countMessagesSentByUser(UUID senderId, ZonedDateTime start, ZonedDateTime end);
 
     @Query("select c from chat_messages c where c.chatRoom.id = ?1 and c.sender != ?2 and c.status = 'SENT' and c.state = 'ACTIVE'")
     List<ChatMessage> findMessagesReceivedByUser(@NonNull String id, @NonNull UUID sender);

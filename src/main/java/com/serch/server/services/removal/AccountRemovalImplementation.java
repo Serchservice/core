@@ -99,7 +99,7 @@ public class AccountRemovalImplementation implements AccountRemovalService {
 
         /// OTHERS
         /// TODO::: Add Conversation Models and Certificate, Verified
-        bookmarkRepository.deleteAll(bookmarkRepository.findByUserId(user.getId()));
+//        bookmarkRepository.deleteAll(bookmarkRepository.findByUserId(user.getId()));
         speakWithSerchRepository.deleteAll(speakWithSerchRepository.findByUser_Id(user.getId()));
 
         deleteCalls(user);
@@ -114,7 +114,7 @@ public class AccountRemovalImplementation implements AccountRemovalService {
         referralProgramRepository.findByUser_Id(user.getId()).ifPresent(referralProgramRepository::delete);
 
         /// SCHEDULE
-        scheduleRepository.deleteAll(scheduleRepository.findByUser_Id(user.getId()));
+        scheduleRepository.deleteAll(scheduleRepository.findByUserId(user.getId()));
 
         shopRepository.deleteAll(shopRepository.findByUser_Id(user.getId()));
 //        transactionRepository.deleteAll(transactionRepository.findBySender_User_Id(user.getId()));

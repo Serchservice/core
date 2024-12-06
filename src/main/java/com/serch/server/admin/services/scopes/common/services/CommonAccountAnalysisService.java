@@ -2,6 +2,7 @@ package com.serch.server.admin.services.scopes.common.services;
 
 import com.serch.server.admin.services.responses.ChartMetric;
 import com.serch.server.models.auth.User;
+import com.serch.server.models.shared.Guest;
 
 import java.util.List;
 
@@ -33,6 +34,16 @@ public interface CommonAccountAnalysisService {
      * @return a list of {@link Integer} values representing the years the user has been active on the platform.
      */
     List<Integer> years(User user);
+
+    /**
+     * Retrieves the list of years the user has been active on the platform.
+     * This can be used to determine the duration of the user's participation and
+     * fetch data relevant to each active year.
+     *
+     * @param user The {@link Guest} whose active years are being requested.
+     * @return a list of {@link Integer} values representing the years the user has been active on the platform.
+     */
+    List<Integer> years(Guest user);
 
     /**
      * Analyzes the user's wallet transactions over a specified year.

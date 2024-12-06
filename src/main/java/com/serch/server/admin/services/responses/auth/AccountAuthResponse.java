@@ -3,9 +3,6 @@ package com.serch.server.admin.services.responses.auth;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Data
 public class AccountAuthResponse {
     @JsonProperty("has_mfa")
@@ -16,5 +13,4 @@ public class AccountAuthResponse {
 
     private String method;
     private String level;
-    private List<AccountAuthDeviceResponse> devices = new ArrayList<>();
 }

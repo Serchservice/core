@@ -4,10 +4,10 @@ import com.serch.server.admin.services.responses.AnalysisResponse;
 import com.serch.server.admin.services.responses.ChartMetric;
 import com.serch.server.admin.services.responses.CommonProfileResponse;
 import com.serch.server.admin.services.responses.auth.AccountMFAChallengeResponse;
-import com.serch.server.admin.services.responses.auth.AccountSessionResponse;
 import com.serch.server.admin.services.scopes.account.responses.user.*;
 import com.serch.server.admin.services.scopes.account.services.AccountUserScopeService;
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.services.rating.responses.RatingChartResponse;
 import com.serch.server.services.schedule.responses.ScheduleTimeResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +21,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/scope/account")
+@RequestMapping("/scope/account/user")
 public class AccountUserScopeController {
     private final AccountUserScopeService service;
 
@@ -42,12 +42,18 @@ public class AccountUserScopeController {
     }
 
     @GetMapping("/rating")
-    public ResponseEntity<ApiResponse<AccountUserScopeRatingResponse>> rating(
+    public ResponseEntity<ApiResponse<List<AccountUserScopeRatingResponse>>> rating(
             @RequestParam String id,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size
     ) {
-        ApiResponse<AccountUserScopeRatingResponse> response = service.rating(id, page, size);
+        ApiResponse<List<AccountUserScopeRatingResponse>> response = service.rating(id, page, size);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @GetMapping("/rating/chart")
+    public ResponseEntity<ApiResponse<List<RatingChartResponse>>> rating(@RequestParam String id) {
+        ApiResponse<List<RatingChartResponse>> response = service.rating(id);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
@@ -132,16 +138,6 @@ public class AccountUserScopeController {
     @GetMapping("/schedule/times")
     public ResponseEntity<ApiResponse<List<ScheduleTimeResponse>>> times(@RequestParam UUID id) {
         ApiResponse<List<ScheduleTimeResponse>> response = service.times(id);
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
-    @GetMapping("/sessions")
-    public ResponseEntity<ApiResponse<List<AccountSessionResponse>>> sessions(
-            @RequestParam UUID id,
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer size
-    ) {
-        ApiResponse<List<AccountSessionResponse>> response = service.sessions(id, page, size);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

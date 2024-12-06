@@ -116,7 +116,6 @@ public class CommonAuthImplementation implements CommonAuthService {
         User user = userRepository.findById(id).orElseThrow(() -> new SerchException("User not found"));
 
         response.setHasMFA(user.hasMFA());
-        response.setDevices(devices(id, page, size));
         response.setMustHaveMFA(adminRepository.findById(user.getId()).map(Admin::getMustHaveMFA).orElse(false));
 
         List<Session> list = sessionRepository.findMostRecentSessionByUser(user.getId(), PageRequest.of(0, 1));

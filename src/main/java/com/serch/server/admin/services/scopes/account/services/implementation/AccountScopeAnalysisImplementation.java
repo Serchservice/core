@@ -1,22 +1,23 @@
 package com.serch.server.admin.services.scopes.account.services.implementation;
 
 import com.serch.server.admin.services.responses.ChartMetric;
-import com.serch.server.admin.services.scopes.account.responses.AccountCountrySectionResponse;
-import com.serch.server.admin.services.scopes.account.responses.AccountScopeMoreAnalysisResponse;
+import com.serch.server.admin.services.scopes.account.responses.AccountScopeAnalysisResponse;
+import com.serch.server.admin.services.scopes.account.services.AccountScopeMoreAnalysisService;
 import com.serch.server.admin.services.scopes.account.services.AccountScopeAnalysisService;
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.enums.account.Gender;
-import com.serch.server.enums.account.SerchCategory;
+import com.serch.server.enums.account.AccountStatus;
+import com.serch.server.enums.account.ProviderStatus;
 import com.serch.server.enums.auth.Role;
-import com.serch.server.models.account.BusinessProfile;
-import com.serch.server.models.account.Profile;
+import com.serch.server.exceptions.others.SerchException;
 import com.serch.server.models.auth.User;
 import com.serch.server.models.shared.Guest;
 import com.serch.server.repositories.account.BusinessProfileRepository;
 import com.serch.server.repositories.account.ProfileRepository;
-import com.serch.server.repositories.auth.SessionRepository;
+import com.serch.server.repositories.auth.AccountStatusTrackerRepository;
 import com.serch.server.repositories.auth.UserRepository;
+import com.serch.server.repositories.certificate.CertificateRepository;
 import com.serch.server.repositories.shared.GuestRepository;
+import com.serch.server.repositories.trip.ActiveRepository;
 import com.serch.server.utils.AdminUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,380 +30,311 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class AccountScopeAnalysisImplementation implements AccountScopeAnalysisService {
+    private final AccountScopeMoreAnalysisService analysisService;
     private final GuestRepository guestRepository;
+    private final UserRepository userRepository;
     private final BusinessProfileRepository businessProfileRepository;
     private final ProfileRepository profileRepository;
-    private final UserRepository userRepository;
-    private final SessionRepository sessionRepository;
+    private final AccountStatusTrackerRepository accountStatusTrackerRepository;
+    private final ActiveRepository activeRepository;
+    private final CertificateRepository certificateRepository;
 
     @Override
-    public ApiResponse<AccountScopeMoreAnalysisResponse> fetch(Role role) {
-        return new ApiResponse<>(getResponse(role, null, null, "Overview"));
-    }
-
-    private AccountScopeMoreAnalysisResponse getResponse(Role role, ZonedDateTime start, ZonedDateTime end, String section) {
-        AccountScopeMoreAnalysisResponse response = new AccountScopeMoreAnalysisResponse();
-        response.setDemographics(getDemographics(role, start, end));
-        response.setGeographics(getGeographics(role, start, end));
-        response.setStates(getStates(role, start, end));
-        response.setCategories(getCategories(role, start, end));
-        response.setActivities(getActivities(role, start, end));
-        response.setOverview(getOverview(role, start, end));
-        response.setCountries(getCountries(role, start, end));
-        response.setSection(section);
-
-        return response;
-    }
-
-    private List<ChartMetric> getDemographics(Role role, ZonedDateTime start, ZonedDateTime end) {
-        Map<String, Double> data;
-
-        if(role != null) {
-            if(role == Role.BUSINESS) {
-                if(start != null && end != null) {
-                    data = buildBusiness(businessProfileRepository.findByCreatedAtBetween(start, end), "gender");
-                } else if(start != null) {
-                    data = buildBusiness(businessProfileRepository.findByCreatedAtBetween(start, start.plusYears(1)), "gender");
-                } else {
-                    data = buildBusiness(businessProfileRepository.findAll(), "gender");
-                }
-            } else {
-                if(start != null && end != null) {
-                    data = buildProfile(profileRepository.findByCreatedAtBetween(start, end), "gender");
-                } else if(start != null) {
-                    data = buildProfile(profileRepository.findByCreatedAtBetween(start, start.plusYears(1)), "gender");
-                } else {
-                    data = buildProfile(profileRepository.findAll(), "gender");
-                }
-            }
-        } else {
-            if(start != null && end != null) {
-                data = buildGuestResponse(guestRepository.findByCreatedAtBetween(start, end), "gender");
-            } else if(start != null) {
-                data = buildGuestResponse(guestRepository.findByCreatedAtBetween(start, start.plusYears(1)), "gender");
-            } else {
-                data = buildGuestResponse(guestRepository.findAll(), "gender");
-            }
-        }
-
-        return getMetrics(data);
-    }
-
-    private Map<String, Double> buildBusiness(List<BusinessProfile> accounts, String group) {
-        Map<String, Long> groups;
-
-        if(group.equalsIgnoreCase("gender")) {
-            groups = getGender();
-            groups.putAll(accounts.stream().collect(Collectors.groupingBy(p -> p.getGender().getType(), Collectors.counting())));
-        } else {
-            groups = getBusinessCategory();
-            groups.putAll(accounts.stream().collect(Collectors.groupingBy(p -> p.getCategory().getType(), Collectors.counting())));
-        }
-
-        return getPercentage(accounts.size(), groups);
-    }
-
-    private Map<String, Double> getPercentage(long accounts, Map<String, Long> groups) {
-        return groups.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> getPercentage(accounts, entry.getValue())));
-    }
-
-    private Double getPercentage(long total, long value) {
-        return total > 0 ? (value * 100.0) / total : 0.0;
-    }
-
-    private Map<String, Double> buildProfile(List<Profile> profiles, String group) {
-        Map<String, Long> groups;
-
-        if(group.equalsIgnoreCase("gender")) {
-            groups = getGender();
-            groups.putAll(profiles.stream().collect(Collectors.groupingBy(p -> p.getGender().getType(), Collectors.counting())));
-        } else {
-            groups = getProfileCategory();
-            groups.putAll(profiles.stream().collect(Collectors.groupingBy(p -> p.getCategory().getType(), Collectors.counting())));
-        }
-
-        return getPercentage(profiles.size(), groups);
-    }
-
-    private Map<String, Double> buildGuestResponse(List<Guest> guests, String group) {
-        if(group.equalsIgnoreCase("gender")) {
-            Map<String, Long> groups = getGender();
-            groups.putAll(guests.stream().collect(Collectors.groupingBy(p -> p.getGender().getType(), Collectors.counting())));
-
-            return getPercentage(guests.size(), groups);
-        } else if(group.equalsIgnoreCase("country")) {
-            return getPercentage(guests.size(), guests.stream().collect(Collectors.groupingBy(Guest::getCountry, Collectors.counting())));
-        } else {
-            return getPercentage(guests.size(), guests.stream().collect(Collectors.groupingBy(Guest::getState, Collectors.counting())));
-        }
-    }
-
-    private List<ChartMetric> getMetrics(Map<String, Double> data) {
-        return data.entrySet().stream().map(entry -> {
-            String key = entry.getKey() == null || entry.getKey().isEmpty() ? "Unknown" : entry.getKey();
-            return getMetric(0L, key, String.valueOf(entry.getValue()));
-        }).toList();
-    }
-
-    private List<ChartMetric> getGeographics(Role role, ZonedDateTime start, ZonedDateTime end) {
-        Map<String, Double> data;
-
-        if(role != null) {
-            if(start != null && end != null) {
-                data = buildUserResponse(userRepository.findByRoleAndCreatedAtBetween(role, start, end), "country");
-            } else if(start != null) {
-                data = buildUserResponse(userRepository.findByRoleAndCreatedAtBetween(role, start, start.plusYears(1)), "country");
-            } else {
-                data = buildUserResponse(userRepository.findByRole(role), "country");
-            }
-        } else {
-            if(start != null && end != null) {
-                data = buildGuestResponse(guestRepository.findByCreatedAtBetween(start, end), "country");
-            } else if(start != null) {
-                data = buildGuestResponse(guestRepository.findByCreatedAtBetween(start, start.plusYears(1)), "country");
-            } else {
-                data = buildGuestResponse(guestRepository.findAll(), "country");
-            }
-        }
-
-        return getMetrics(data);
-    }
-
-    private Map<String, Double> buildUserResponse(List<User> users, String group) {
-        if(group.equalsIgnoreCase("country")) {
-            return getPercentage(users.size(), users.stream().collect(Collectors.groupingBy(User::getCountry, Collectors.counting())));
-        } else {
-            return getPercentage(users.size(), users.stream().collect(Collectors.groupingBy(User::getState, Collectors.counting())));
-        }
-    }
-
-    private List<ChartMetric> getStates(Role role, ZonedDateTime start, ZonedDateTime end) {
-        Map<String, Double> data;
-
-        if(role != null) {
-            if(start != null && end != null) {
-                data = buildUserResponse(userRepository.findByRoleAndCreatedAtBetween(role, start, end), "state");
-            } else if(start != null) {
-                data = buildUserResponse(userRepository.findByRoleAndCreatedAtBetween(role, start, start.plusYears(1)), "state");
-            } else {
-                data = buildUserResponse(userRepository.findByRole(role), "state");
-            }
-        } else {
-            if(start != null && end != null) {
-                data = buildGuestResponse(guestRepository.findByCreatedAtBetween(start, end), "state");
-            } else if(start != null) {
-                data = buildGuestResponse(guestRepository.findByCreatedAtBetween(start, start.plusYears(1)), "state");
-            } else {
-                data = buildGuestResponse(guestRepository.findAll(), "state");
-            }
-        }
-
-        return getMetrics(data);
-    }
-
-    private List<ChartMetric> getCategories(Role role, ZonedDateTime start, ZonedDateTime end) {
-        Map<String, Double> data;
-
-        if(role != null) {
-            if(role == Role.BUSINESS) {
-                if(start != null && end != null) {
-                    data = buildBusiness(businessProfileRepository.findByCreatedAtBetween(start, end), "category");
-                } else if(start != null) {
-                    data = buildBusiness(businessProfileRepository.findByCreatedAtBetween(start, start.plusYears(1)), "category");
-                } else {
-                    data = buildBusiness(businessProfileRepository.findAll(), "category");
-                }
-            } else if(role == Role.USER) {
-                return new ArrayList<>();
-            } else {
-                if(start != null && end != null) {
-                    data = buildProfile(profileRepository.findByCreatedAtBetween(start, end), "category");
-                } else if(start != null) {
-                    data = buildProfile(profileRepository.findByCreatedAtBetween(start, start.plusYears(1)), "category");
-                } else {
-                    data = buildProfile(profileRepository.findAll(), "category");
-                }
-            }
-        } else {
-            return new ArrayList<>();
-        }
-
-        return getMetrics(data);
-    }
-
-    private List<ChartMetric> getActivities(Role role, ZonedDateTime start, ZonedDateTime end) {
-        if(role != null) {
-            long totalUsers = userRepository.countByRole(role);
-            long activeUsers;
-
-            if(start != null && end != null) {
-                activeUsers = sessionRepository.countDistinctUsersByRoleAndDateRange(role, start, end);
-            } else if(start != null) {
-                activeUsers = sessionRepository.countDistinctUsersByRoleAndDateRange(role, start, start.plusYears(1));
-            } else {
-                activeUsers = sessionRepository.countDistinctUsersByRole(role);
-            }
-
-            return getMetrics(getPercentage(totalUsers, Map.of(
-                    "Active", activeUsers,
-                    "Inactive", totalUsers - activeUsers
-            )));
-        } else {
-            return new ArrayList<>();
-        }
-    }
-
-    private List<ChartMetric> getOverview(Role role, ZonedDateTime start, ZonedDateTime end) {
-        List<ChartMetric> metrics = new ArrayList<>();
-
-        if(role != null) {
-            if(start != null && end != null) {
-                long size = userRepository.findByRoleAndCreatedAtBetween(role, start, end).size();
-
-                metrics.add(getMetric(0L, String.format("New %s", role.getType()), String.valueOf(size)));
-                metrics.add(getGrowthMetric(
-                        size,
-                        userRepository.findByRoleAndCreatedAtBetween(role, start.minusYears(1), end.minusYears(1)).size()
-                ));
-            } else if(start != null) {
-                long size = userRepository.findByRoleAndCreatedAtBetween(role, start, start.plusYears(1)).size();
-
-                metrics.add(getMetric(0L, String.format("New %s", role.getType()), String.valueOf(size)));
-                metrics.add(getGrowthMetric(
-                        size,
-                        userRepository.findByRoleAndCreatedAtBetween(role, start.minusYears(1), start).size()
-                ));
-            } else {
-                metrics.add(getMetric(0L, String.format("Total %s", role.getType()), String.valueOf(userRepository.findByRole(role).size())));
-            }
-        } else {
-            if(start != null && end != null) {
-                long size = guestRepository.findByCreatedAtBetween(start, end).size();
-
-                metrics.add(getMetric(0L, "New guests", String.valueOf(size)));
-                metrics.add(getGrowthMetric(size, guestRepository.findByCreatedAtBetween(start.minusYears(1), end.minusYears(1)).size()));
-            } else if(start != null) {
-                long size = guestRepository.findByCreatedAtBetween(start, start.plusYears(1)).size();
-
-                metrics.add(getMetric(0L, "New guests", String.valueOf(size)));
-                metrics.add(getGrowthMetric(size, guestRepository.findByCreatedAtBetween(start.minusYears(1), start).size()));
-            } else {
-                metrics.add(getMetric(0L, "Total guests", String.valueOf(guestRepository.findAll().size())));
-            }
-        }
-
-        return metrics;
-    }
-
-    private ChartMetric getGrowthMetric(long current, long previous) {
-        return getMetric(0L, "Growth", String.format("%.2f%%", getPercentage(previous, (current - previous))));
-    }
-
-    private List<AccountCountrySectionResponse> getCountries(Role role, ZonedDateTime start, ZonedDateTime end) {
-        List<AccountCountrySectionResponse> countries = new ArrayList<>();
-
-        if(role != null) {
-            List<User> users;
-            if(start != null && end != null) {
-                users = userRepository.findByRoleAndCreatedAtBetween(role, start, end);
-            } else if(start != null) {
-                users = userRepository.findByRoleAndCreatedAtBetween(role, start, start.plusYears(1));
-            } else {
-                users = userRepository.findByRole(role);
-            }
-
-            users.stream().collect(Collectors.groupingBy(User::getCountry))
-                    .forEach((key, value) -> countries.add(getCountry(
-                            key,
-                            getPercentage(users.size(), value.size()),
-                            (long) value.size(),
-                            role.getType()
-                    )));
-        } else {
-            List<Guest> guests;
-            if(start != null && end != null) {
-                guests = guestRepository.findByCreatedAtBetween(start, end);
-            } else if(start != null) {
-                guests = guestRepository.findByCreatedAtBetween(start, start.plusYears(1));
-            } else {
-                guests = guestRepository.findAll();
-            }
-
-            guests.stream().collect(Collectors.groupingBy(Guest::getCountry))
-                    .forEach((key, value) -> countries.add(getCountry(
-                            key,
-                            getPercentage(guests.size(), value.size()),
-                            (long) value.size(),
-                            "guests"
-                    )));
-        }
-
-        return countries;
-    }
-
-    private AccountCountrySectionResponse getCountry(String country, Double value, Long total, String type) {
-        AccountCountrySectionResponse response = new AccountCountrySectionResponse();
-        response.setColors(List.of(AdminUtil.randomColor(), AdminUtil.randomColor()));
-        response.setLabel(country);
-        response.setValue(value);
-        response.setContent(formatContent(total, type));
-
-        return response;
-    }
-
-    private String formatContent(Long total, String type) {
-        return String.format("%s %s", AdminUtil.formatCount(total), type.toLowerCase());
-    }
-
-    @Override
-    public ApiResponse<List<AccountScopeMoreAnalysisResponse>> fetch(Role role, Integer year) {
-        List<AccountScopeMoreAnalysisResponse> list = new ArrayList<>();
+    public ApiResponse<AccountScopeAnalysisResponse> fetchAccountAnalysis(Integer year, Role role, Boolean forGuest) {
+        validate(role, forGuest);
 
         ZonedDateTime start = AdminUtil.getStartYear(year);
-        list.add(getResponse(role, start, null, "Overview"));
 
+        AccountScopeAnalysisResponse response = new AccountScopeAnalysisResponse();
+        response.setYears(AdminUtil.years());
+
+        List<ChartMetric> metrics = new ArrayList<>();
+        if(forGuest != null && forGuest) {
+            response.setContent("Total guest size");
+            response.setTotal(guestRepository.count());
+
+            for (int month = 1; month <= 12; month++) {
+                ZonedDateTime startMonth = start.withMonth(month);
+
+                ChartMetric metric = new ChartMetric();
+                metric.setLabel(startMonth.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH));
+                metric.setValue(guestRepository.countByDateRange(startMonth, startMonth.plusMonths(1).minusSeconds(1)));
+                metric.setColor(AdminUtil.randomColor());
+                metrics.add(metric);
+            }
+        } else {
+            response.setContent(String.format("Total %s size", role.getType().toLowerCase()));
+            response.setTotal(userRepository.countByRole(role));
+
+            for (int month = 1; month <= 12; month++) {
+                ZonedDateTime startMonth = start.withMonth(month);
+
+                ChartMetric metric = new ChartMetric();
+                metric.setLabel(startMonth.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH));
+                metric.setValue(userRepository.countByRoleAndDateRange(role, startMonth, startMonth.plusMonths(1).minusSeconds(1)));
+                metric.setColor(AdminUtil.randomColor());
+                metrics.add(metric);
+            }
+        }
+        response.setMetrics(metrics);
+
+        return new ApiResponse<>(response);
+    }
+
+    void validate(Role role, Boolean forGuest) {
+        if(role == null && (forGuest == null || !forGuest)) {
+            throw new SerchException("You need to specify the account you're trying to fetch its analysis data");
+        }
+    }
+
+    @Override
+    public ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByCountry(Integer year, Role role, Boolean forGuest) {
+        return fetchGroupedAccountAnalysis(year, role, forGuest, "country", "size by country");
+    }
+
+    @Override
+    public ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByTimezone(Integer year, Role role, Boolean forGuest) {
+        return fetchGroupedAccountAnalysis(year, role, forGuest, "timezone", "size by timezone");
+    }
+
+    @Override
+    public ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByState(Integer year, Role role, Boolean forGuest) {
+        return fetchGroupedAccountAnalysis(year, role, forGuest, "state", "size by state");
+    }
+
+    @Override
+    public ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByGender(Integer year, Role role, Boolean forGuest) {
+        return fetchGroupedAccountAnalysis(year, role, forGuest, "gender", "size by gender");
+    }
+
+    @Override
+    public ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByRating(Integer year, Role role, Boolean forGuest) {
+        return fetchGroupedAccountAnalysis(year, role, forGuest, "rating", "size by rating");
+    }
+
+    @Override
+    public ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByAccountStatus(Integer year, Role role) {
+        return fetchGroupedAccountAnalysis(year, role, false, "status", "size by account status");
+    }
+
+    @Override
+    public ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByTripStatus(Integer year, Role role) {
+        return fetchGroupedAccountAnalysis(year, role, false, "trip", "size by trip status");
+    }
+
+    @Override
+    public ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByCertified(Integer year, Role role) {
+        return fetchGroupedAccountAnalysis(year, role, false, "certification", "size by certification");
+    }
+
+    @Override
+    public ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByCategory(Integer year, Role role) {
+        return fetchGroupedAccountAnalysis(year, role, false, "category", "size by category");
+    }
+
+    private ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysis(Integer year, Role role, Boolean forGuest, String groupBy, String content) {
+        validate(role, forGuest);
+
+        ZonedDateTime start = AdminUtil.getStartYear(year);
+
+        AccountScopeAnalysisResponse response = new AccountScopeAnalysisResponse();
+        response.setYears(AdminUtil.years());
+        response.setContent(String.format("%s %s", forGuest != null && forGuest ? "Guest" : role.getType(), content));
+
+        List<ChartMetric> metrics = new ArrayList<>();
         for (int month = 1; month <= 12; month++) {
             ZonedDateTime startMonth = start.withMonth(month);
             ZonedDateTime endMonth = startMonth.plusMonths(1).minusSeconds(1);
 
-            list.add(getResponse(role, startMonth, endMonth, startMonth.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH)));
+            ChartMetric monthMetric = new ChartMetric();
+            monthMetric.setLabel(startMonth.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH));
+
+            if (forGuest != null && forGuest) {
+                // Grouping for guests based on the selected grouping criterion
+                buildGuestMetrics(groupBy, startMonth, endMonth, monthMetric);
+                buildGuestInfoMetrics(groupBy, start, response);
+            } else {
+                // Grouping for users based on the selected grouping criterion
+                buildUserMetrics(role, groupBy, startMonth, endMonth, monthMetric);
+                buildUserInfoMetrics(role, groupBy, start, response);
+            }
+
+            metrics.add(monthMetric);
         }
 
-        return new ApiResponse<>(list);
+        response.setMetrics(metrics);
+        return new ApiResponse<>(response);
     }
 
-    @Override
-    public Map<String, Long> getGender() {
-        return Arrays.stream(Gender.values())
-                .filter(gender -> gender != Gender.NONE)
-                .collect(Collectors.toMap(Gender::getType, g -> 0L, (a, b) -> b, LinkedHashMap::new));
+    private void buildGuestMetrics(String groupBy, ZonedDateTime start, ZonedDateTime end, ChartMetric metric) {
+        List<Guest> guests = guestRepository.findByCreatedAtBetween(start, end);
+
+        metric.setMetrics(createMetricList(buildGuestMetrics(groupBy, guests), "Guest audience"));
     }
 
-    @Override
-    public Map<String, Long> getBusinessCategory() {
-        return Arrays.stream(SerchCategory.values())
-                .filter(category -> category != SerchCategory.USER)
-                .filter(category -> category != SerchCategory.GUEST)
-                .collect(Collectors.toMap(SerchCategory::getType, g -> 0L, (a, b) -> b, LinkedHashMap::new));
+    private Map<String, Long> buildGuestMetrics(String groupBy, List<Guest> guests) {
+        return switch (groupBy) {
+            case "rating" -> groupGuestMetricsByRating(guests);
+            case "gender" -> groupGuestMetricsByGender(guests);
+            case "country" -> guests.stream().collect(Collectors.groupingBy(Guest::getCountry, Collectors.counting()));
+            case "timezone" -> guests.stream().collect(Collectors.groupingBy(Guest::getTimezone, Collectors.counting()));
+            default -> guests.stream().collect(Collectors.groupingBy(Guest::getState, Collectors.counting()));
+        };
     }
 
-    @Override
-    public Map<String, Long> getProfileCategory() {
-        return Arrays.stream(SerchCategory.values())
-                .filter(category -> category != SerchCategory.USER)
-                .filter(category -> category != SerchCategory.BUSINESS)
-                .filter(category -> category != SerchCategory.GUEST)
-                .collect(Collectors.toMap(SerchCategory::getType, g -> 0L, (a, b) -> b, LinkedHashMap::new));
+    private void buildGuestInfoMetrics(String groupBy, ZonedDateTime start, AccountScopeAnalysisResponse response) {
+        List<Guest> guests = guestRepository.findByCreatedAtBetween(start, start.plusYears(1));
+
+        response.setInfoMetrics(createMetricList(buildGuestMetrics(groupBy, guests), "Guest audience"));
     }
 
-    @Override
-    public ChartMetric getMetric(Long count, String id, String info) {
-        ChartMetric metric = new ChartMetric();
-        metric.setLabel(id);
-        metric.setValue(count);
-        metric.setColor(AdminUtil.randomColor());
-        metric.setImage(info);
+    private Map<String, Long> groupGuestMetricsByRating(List<Guest> guests) {
+        Map<String, Long> groups = getEmptyRating();
+        groups.putAll(guests.stream().collect(Collectors.groupingBy(p -> String.format("%.1f", (double) Math.round(p.getRating())), Collectors.counting())));
 
-        return metric;
+        return groups;
+    }
+
+    private Map<String, Long> getEmptyRating() {
+        Map<String, Long> groups = new LinkedHashMap<>();
+        for (int rating = 0; rating <= 5; rating++) {
+            groups.put(String.format("%.1f", (double) rating), 0L);
+        }
+
+        return groups;
+    }
+
+    private Map<String, Long> groupGuestMetricsByGender(List<Guest> guests) {
+        Map<String, Long> groups = analysisService.getGender();
+        groups.putAll(guests.stream().collect(Collectors.groupingBy(guest -> guest.getGender().getType(), Collectors.counting())));
+
+        return groups;
+    }
+
+    private void buildUserMetrics(Role role, String groupBy, ZonedDateTime start, ZonedDateTime end, ChartMetric metric) {
+        List<User> users = userRepository.findByRoleAndCreatedAtBetween(role, start, end);
+
+        metric.setMetrics(createMetricList(buildUserMetrics(groupBy, users, role, start, end), String.format("%s audience", role.getType())));
+    }
+
+    private Map<String, Long> buildUserMetrics(String groupBy, List<User> users, Role role, ZonedDateTime start, ZonedDateTime end) {
+        return switch (groupBy) {
+            case "rating" -> groupUserMetricsByRating(role, start, end);
+            case "category" -> groupUserMetricsByCategory(role, start, end);
+            case "gender" -> groupUserMetricsByGender(role, start, end);
+            case "status" -> groupUserMetricsByStatus(role, start, end);
+            case "trip" -> groupUserMetricsByTrip(role, start, end);
+            case "certificate" -> groupUserMetricsByCertificate(users);
+            case "country" -> users.stream().collect(Collectors.groupingBy(User::getCountry, Collectors.counting()));
+            case "state" -> users.stream().collect(Collectors.groupingBy(User::getState, Collectors.counting()));
+            default -> users.stream().collect(Collectors.groupingBy(User::getTimezone, Collectors.counting()));
+        };
+    }
+
+    private void buildUserInfoMetrics(Role role, String groupBy, ZonedDateTime start, AccountScopeAnalysisResponse response) {
+        ZonedDateTime end = start.plusYears(1);
+        List<User> users = userRepository.findByRoleAndCreatedAtBetween(role, start, end);
+
+        response.setInfoMetrics(createMetricList(buildUserMetrics(groupBy, users, role, start, end), String.format("%s audience", role.getType())));
+    }
+
+    private Map<String, Long> groupUserMetricsByRating(Role role, ZonedDateTime startMonth, ZonedDateTime endMonth) {
+        Map<String, Long> groups = getEmptyRating();
+
+        if(role == Role.BUSINESS) {
+            groups.putAll(businessProfileRepository.findByCreatedAtBetween(startMonth, endMonth)
+                    .stream()
+                    .collect(Collectors.groupingBy(p -> String.format("%.1f", (double) Math.round(p.getRating())), Collectors.counting())));
+        } else {
+            groups.putAll(profileRepository.findByCreatedAtBetween(startMonth, endMonth)
+                    .stream()
+                    .collect(Collectors.groupingBy(p -> String.format("%.1f", (double) Math.round(p.getRating())), Collectors.counting())));
+        }
+
+        return groups;
+    }
+
+    private Map<String, Long> groupUserMetricsByGender(Role role, ZonedDateTime startMonth, ZonedDateTime endMonth) {
+        Map<String, Long> groups = analysisService.getGender();
+
+        if(role == Role.BUSINESS) {
+            groups.putAll(businessProfileRepository.findByCreatedAtBetween(startMonth, endMonth)
+                    .stream()
+                    .collect(Collectors.groupingBy(p -> p.getGender().getType(), Collectors.counting())));
+        } else {
+            groups.putAll(profileRepository.findByCreatedAtBetween(startMonth, endMonth)
+                    .stream()
+                    .collect(Collectors.groupingBy(p -> p.getGender().getType(), Collectors.counting())));
+        }
+
+        return groups;
+    }
+
+    private Map<String, Long> groupUserMetricsByStatus(Role role, ZonedDateTime startMonth, ZonedDateTime endMonth) {
+        Map<String, Long> groups = Arrays.stream(AccountStatus.values())
+                .filter(status -> !(role == Role.USER || role == Role.BUSINESS) || (status != AccountStatus.BUSINESS_DEACTIVATED && status != AccountStatus.BUSINESS_DELETED))
+                .collect(Collectors.toMap(AccountStatus::getType, g -> 0L, (a, b) -> b, LinkedHashMap::new));
+
+        groups.putAll(accountStatusTrackerRepository.findByRoleAndCreatedAtBetween(role, startMonth, endMonth)
+                .stream()
+                .collect(Collectors.groupingBy(p -> p.getStatus().getType(), Collectors.counting())));
+
+        return groups;
+    }
+
+    private Map<String, Long> groupUserMetricsByTrip(Role role, ZonedDateTime startMonth, ZonedDateTime endMonth) {
+        Map<String, Long> groups = Arrays.stream(ProviderStatus.values())
+                .collect(Collectors.toMap(ProviderStatus::getType, g -> 0L, (a, b) -> b, LinkedHashMap::new));
+
+        groups.putAll(activeRepository.findByRoleAndCreatedAtBetween(role, startMonth, endMonth)
+                .stream()
+                .collect(Collectors.groupingBy(p -> p.getStatus().getType(), Collectors.counting())));
+
+        return groups;
+    }
+
+    private Map<String, Long> groupUserMetricsByCertificate(List<User> users) {
+        Map<String, Long> groups = new HashMap<>();
+        groups.put("Certified", 0L);
+        groups.put("Not Certified", 0L);
+
+        for (User user : users) {
+            boolean isCertified = certificateRepository.existsByUser(user.getId());
+
+            if (isCertified) {
+                groups.put("Certified", groups.get("Certified") + 1);
+            } else {
+                groups.put("Not Certified", groups.get("Not Certified") + 1);
+            }
+        }
+
+        return groups;
+    }
+
+    private Map<String, Long> groupUserMetricsByCategory(Role role, ZonedDateTime startMonth, ZonedDateTime endMonth) {
+        Map<String, Long> groups;
+
+        if(role == Role.BUSINESS) {
+            groups = analysisService.getBusinessCategory();
+            groups.putAll(businessProfileRepository.findByCreatedAtBetween(startMonth, endMonth)
+                    .stream()
+                    .collect(Collectors.groupingBy(p -> p.getCategory().getType(), Collectors.counting())));
+
+        } else {
+            groups = analysisService.getProfileCategory();
+            groups.putAll(profileRepository.findByRoleAndCreatedAtBetween(role, startMonth, endMonth)
+                    .stream()
+                    .collect(Collectors.groupingBy(p -> p.getCategory().getType(), Collectors.counting())));
+
+        }
+
+        return groups;
+    }
+
+    private List<ChartMetric> createMetricList(Map<String, Long> groupedData, String description) {
+        return groupedData.entrySet().stream().map(entry -> {
+            String key = entry.getKey() == null || entry.getKey().isEmpty() ? "Unknown" : entry.getKey();
+            return analysisService.getMetric(entry.getValue(), key, String.format("%s from %s", description, key));
+        }).toList();
     }
 }

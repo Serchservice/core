@@ -57,7 +57,7 @@ public class AdminScopeImplementation implements AdminScopeService {
         AdminScopeResponse response = new AdminScopeResponse();
         response.setProfile(profileService.profile(admin));
         response.setTeam(profileService.team(admin));
-        response.setActivities(activityService.activities(admin.getId()));
+        response.setActivities(activityService.activities(admin.getId(), page, size));
         response.setMfa(authService.mfa(admin.getUser()));
         response.setAuth(authService.auth(admin.getUser().getId(), page, size, new AccountAuthResponse()));
         response.setChallenges(authService.challenges(admin.getUser().getId(), page, size));

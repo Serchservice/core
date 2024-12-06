@@ -7,10 +7,7 @@ import com.serch.server.bases.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -22,7 +19,7 @@ import java.util.UUID;
 public class AuthScopeController {
     private final CommonAuthService commonAuthService;
 
-    @PatchMapping("/sessions")
+    @GetMapping("/sessions")
     public ResponseEntity<ApiResponse<List<AccountSessionResponse>>> sessions(
             @RequestParam UUID id,
             @RequestParam(required = false) Integer page,
@@ -32,7 +29,7 @@ public class AuthScopeController {
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @PatchMapping("/devices")
+    @GetMapping("/devices")
     public ResponseEntity<ApiResponse<List<AccountAuthDeviceResponse>>> devices(
             @RequestParam UUID id,
             @RequestParam(required = false) Integer page,

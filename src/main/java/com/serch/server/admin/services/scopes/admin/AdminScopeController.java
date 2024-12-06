@@ -1,11 +1,13 @@
 package com.serch.server.admin.services.scopes.admin;
 
 import com.serch.server.admin.services.account.requests.AdminProfileUpdateRequest;
+import com.serch.server.admin.services.account.services.AdminActivityService;
 import com.serch.server.admin.services.responses.ChartMetric;
 import com.serch.server.admin.services.scopes.admin.requests.ChangeRoleRequest;
 import com.serch.server.admin.services.scopes.admin.requests.ChangeStatusRequest;
 import com.serch.server.admin.services.scopes.admin.responses.AdminScopeResponse;
 import com.serch.server.admin.services.scopes.admin.services.AdminScopeService;
+import com.serch.server.admin.services.team.responses.AdminActivityResponse;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.core.storage.requests.FileUploadRequest;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ import java.util.UUID;
 @PreAuthorize("hasRole('SUPER_ADMIN') || hasRole('ADMIN') || hasRole('MANAGER') || hasRole('TEAM')")
 public class AdminScopeController {
     private final AdminScopeService service;
+    private final AdminActivityService activityService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<AdminScopeResponse>> fetch(
@@ -48,6 +51,16 @@ public class AdminScopeController {
             @RequestParam(required = false) Integer year
     ) {
         ApiResponse<List<ChartMetric>> response = service.fetchAccountStatusChart(id, year);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @GetMapping("/activities")
+    public ResponseEntity<ApiResponse<List<AdminActivityResponse>>> activities(
+            @RequestParam UUID id,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
+    ) {
+        ApiResponse<List<AdminActivityResponse>> response = new ApiResponse<>(activityService.activities(id, page, size));
         return new ResponseEntity<>(response, response.getStatus());
     }
 

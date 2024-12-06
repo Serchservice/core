@@ -4,9 +4,9 @@ import com.serch.server.admin.services.responses.AnalysisResponse;
 import com.serch.server.admin.services.responses.ChartMetric;
 import com.serch.server.admin.services.responses.CommonProfileResponse;
 import com.serch.server.admin.services.responses.auth.AccountMFAChallengeResponse;
-import com.serch.server.admin.services.responses.auth.AccountSessionResponse;
 import com.serch.server.admin.services.scopes.account.responses.user.*;
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.services.rating.responses.RatingChartResponse;
 import com.serch.server.services.schedule.responses.ScheduleTimeResponse;
 
 import java.util.List;
@@ -40,9 +40,17 @@ public interface AccountUserScopeService {
      * @param id    the unique identifier of the user
      * @param page  the page number for pagination
      * @param size  the number of records per page
-     * @return {@link ApiResponse} containing {@link AccountUserScopeRatingResponse} with rating details
+     * @return {@link ApiResponse} containing a list of {@link AccountUserScopeRatingResponse} with rating details
      */
-    ApiResponse<AccountUserScopeRatingResponse> rating(String id, Integer page, Integer size);
+    ApiResponse<List<AccountUserScopeRatingResponse>> rating(String id, Integer page, Integer size);
+
+    /**
+     * Fetches the rating chart for a user based on their ID.
+     *
+     * @param id    the unique identifier of the user
+     * @return {@link ApiResponse} containing a list of {@link RatingChartResponse} with rating chart
+     */
+    ApiResponse<List<RatingChartResponse>> rating(String id);
 
     /**
      * Fetches wallet information for a user.
@@ -137,16 +145,6 @@ public interface AccountUserScopeService {
      * @see ScheduleTimeResponse
      */
     ApiResponse<List<ScheduleTimeResponse>> times(UUID id);
-
-    /**
-     * Fetches the list of active sessions for a user.
-     *
-     * @param id    the unique identifier of the user
-     * @param page  the page number for pagination
-     * @param size  the number of records per page
-     * @return {@link ApiResponse} containing a list of {@link AccountSessionResponse} with session details
-     */
-    ApiResponse<List<AccountSessionResponse>> sessions(UUID id, Integer page, Integer size);
 
     /**
      * Fetches the list of tickets for a user.

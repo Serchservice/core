@@ -40,7 +40,7 @@ public class TeamImplementation implements TeamService {
         response.setOverview(getOverview());
         response.setTeams(getTeams());
         response.setStructure(team());
-        response.setActivities(activityService.activities());
+        response.setActivities(activityService.activities(null, null));
         return new ApiResponse<>(response);
     }
 

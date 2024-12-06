@@ -6,6 +6,7 @@ import com.serch.server.enums.account.AccountStatus;
 import com.serch.server.enums.auth.Role;
 import com.serch.server.models.auth.AccountStatusTracker;
 import com.serch.server.models.auth.User;
+import com.serch.server.models.shared.Guest;
 import com.serch.server.models.transaction.Transaction;
 import com.serch.server.repositories.auth.AccountStatusTrackerRepository;
 import com.serch.server.repositories.auth.SessionRepository;
@@ -66,14 +67,25 @@ public class CommonAccountAnalysisImplementation implements CommonAccountAnalysi
     @Override
     @Transactional
     public List<Integer> years(User user) {
-        int start = user.getCreatedAt().getYear();
+        return getYears(user.getCreatedAt());
+    }
+
+    private List<Integer> getYears(ZonedDateTime user) {
+        int start = user.getYear();
         int current = LocalDateTime.now().getYear();
 
         List<Integer> years = new ArrayList<>();
-        for(int i = start; i <= current; i++) {
+        for (int i = start; i <= current; i++) {
             years.add(i);
         }
+
         return years;
+    }
+
+    @Override
+    @Transactional
+    public List<Integer> years(Guest user) {
+        return getYears(user.getCreatedAt());
     }
 
     private String getKey(Transaction transaction, User user) {

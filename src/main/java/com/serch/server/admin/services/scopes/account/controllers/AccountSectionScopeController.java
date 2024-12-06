@@ -1,6 +1,6 @@
 package com.serch.server.admin.services.scopes.account.controllers;
 
-import com.serch.server.admin.services.responses.Metric;
+import com.serch.server.admin.services.scopes.account.responses.AccountSectionMetricResponse;
 import com.serch.server.admin.services.scopes.account.responses.AccountSectionResponse;
 import com.serch.server.admin.services.scopes.account.services.AccountSectionScopeService;
 import com.serch.server.bases.ApiResponse;
@@ -19,8 +19,8 @@ public class AccountSectionScopeController {
     private final AccountSectionScopeService service;
 
     @GetMapping("/metric")
-    public ResponseEntity<ApiResponse<Metric>> fetch(@RequestParam(required = false) Role role) {
-        ApiResponse<Metric> response = service.fetchMetric(role);
+    public ResponseEntity<ApiResponse<AccountSectionMetricResponse>> fetch(@RequestParam(required = false) Role role) {
+        ApiResponse<AccountSectionMetricResponse> response = service.fetchMetric(role);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

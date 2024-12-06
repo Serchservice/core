@@ -9,7 +9,6 @@ import com.serch.server.admin.services.responses.AnalysisResponse;
 import com.serch.server.admin.services.responses.ChartMetric;
 import com.serch.server.admin.services.responses.CommonProfileResponse;
 import com.serch.server.admin.services.responses.auth.AccountMFAChallengeResponse;
-import com.serch.server.admin.services.responses.auth.AccountSessionResponse;
 import com.serch.server.admin.services.scopes.account.responses.user.*;
 import com.serch.server.admin.services.scopes.account.services.AccountUserScopeService;
 import com.serch.server.admin.services.scopes.common.services.CommonAccountAnalysisService;
@@ -65,6 +64,7 @@ import com.serch.server.repositories.transaction.WalletRepository;
 import com.serch.server.repositories.trip.ActiveRepository;
 import com.serch.server.repositories.trip.TripRepository;
 import com.serch.server.repositories.trip.TripShareRepository;
+import com.serch.server.services.rating.responses.RatingChartResponse;
 import com.serch.server.services.rating.services.RatingService;
 import com.serch.server.services.schedule.responses.ScheduleTimeResponse;
 import com.serch.server.services.schedule.services.ScheduleService;
@@ -182,6 +182,7 @@ public class AccountUserScopeImplementation implements AccountUserScopeService {
                     .ifPresent(rating -> response.setAppRating(AccountUserScopeMapper.instance.rating(rating)));
             phoneInformationRepository.findByUser_Id(user.getId())
                     .ifPresent(phone -> response.setPhoneInformation(AccountUserScopeMapper.instance.phone(phone)));
+            response.setYears(analysisService.years(user));
 
             return new ApiResponse<>(response);
         } else {
@@ -198,6 +199,7 @@ public class AccountUserScopeImplementation implements AccountUserScopeService {
                     .ifPresent(delete -> response.setDelete(AccountUserScopeMapper.instance.delete(delete)));
             appRatingRepository.findByAccount(id)
                     .ifPresent(rating -> response.setAppRating(AccountUserScopeMapper.instance.rating(rating)));
+            response.setYears(analysisService.years(guest));
 
             return new ApiResponse<>(response);
         }
@@ -214,24 +216,28 @@ public class AccountUserScopeImplementation implements AccountUserScopeService {
     }
 
     @Override
-    public ApiResponse<AccountUserScopeRatingResponse> rating(String id, Integer page, Integer size) {
-        AccountUserScopeRatingResponse response = new AccountUserScopeRatingResponse();
-        response.setChart(ratingService.buildChart(id));
+    public ApiResponse<List<AccountUserScopeRatingResponse>> rating(String id, Integer page, Integer size) {
+        List<AccountUserScopeRatingResponse> response = new ArrayList<>();
 
         Page<Rating> ratings = ratingRepository.findByRated(id, HelperUtil.getPageable(page, size));
         if(ratings != null && ratings.hasContent()) {
-            response.setRatings(ratings.getContent().stream().map(rating -> {
-                AccountUserScopeRatingResponse.Rating data = AccountUserScopeMapper.instance.rating(rating);
+            response = ratings.getContent().stream().map(rating -> {
+                AccountUserScopeRatingResponse data = AccountUserScopeMapper.instance.rating(rating);
                 if(rating.getEvent() != null && !rating.getEvent().isEmpty()) {
                     data.setType(callRepository.findById(rating.getEvent()).isPresent() ? EventType.CALL : EventType.TRIP);
                 }
                 data.setProfile(profileService.fromId(rating.getRater()));
 
                 return data;
-            }).toList());
+            }).toList();
         }
 
         return new ApiResponse<>(response);
+    }
+
+    @Override
+    public ApiResponse<List<RatingChartResponse>> rating(String id) {
+        return new ApiResponse<>(ratingService.buildChart(id));
     }
 
     @Override
@@ -383,11 +389,6 @@ public class AccountUserScopeImplementation implements AccountUserScopeService {
     @Override
     public ApiResponse<List<ScheduleTimeResponse>> times(UUID id) {
         return scheduleService.times(id);
-    }
-
-    @Override
-    public ApiResponse<List<AccountSessionResponse>> sessions(UUID id, Integer page, Integer size) {
-        return new ApiResponse<>(authService.sessions(id, page, size));
     }
 
     @Override
@@ -701,12 +702,12 @@ public class AccountUserScopeImplementation implements AccountUserScopeService {
         };
     }
 
-    private List<AccountUserScopeActivityResponse.MonthlyActivity> getMonthlyActivities(int year, Function<ZonedDateTime, Double> calc) {
+    private List<AccountUserScopeActivityResponse.MonthlyActivity> getMonthlyActivities(Integer year, Function<ZonedDateTime, Double> calc) {
         ZonedDateTime start = AdminUtil.getStartYear(year);
 
         return IntStream.rangeClosed(1, 12)
                 .mapToObj(month -> {
-                    YearMonth yearMonth = YearMonth.of(year, month);
+                    YearMonth yearMonth = YearMonth.of(start.getYear(), month);
                     ZonedDateTime startMonth = start.withMonth(month);
 
                     AccountUserScopeActivityResponse.MonthlyActivity monthly = new AccountUserScopeActivityResponse.MonthlyActivity();

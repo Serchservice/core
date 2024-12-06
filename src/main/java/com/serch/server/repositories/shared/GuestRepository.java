@@ -24,6 +24,9 @@ public interface GuestRepository extends JpaRepository<Guest, String> {
 
     long countByLastNameStartingWithIgnoreCase(@NonNull String start);
 
+    @Query("SELECT DISTINCT UPPER(SUBSTRING(g.lastName, 1, 1)) FROM Guest g")
+    List<String> findDistinctStartingLetters();
+
     Page<Guest> findByLastNameStartingWithIgnoreCase(@NonNull String start, Pageable pageable);
 
     @Query("SELECT g FROM Guest g WHERE " +

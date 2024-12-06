@@ -22,20 +22,24 @@ public interface AdminActivityService {
      * This method provides insights into the actions performed by the admin,
      * facilitating monitoring and auditing of admin activities.
      *
+     * @param page The page number to retrieve (zero-based index).
+     * @param size The number of items per page.
      * @param id The unique identifier (UUID) of the admin whose activities are to be retrieved.
      * @return A list of {@link AdminActivityResponse} containing the activity logs associated
      * with the specified admin.
      */
-    List<AdminActivityResponse> activities(UUID id);
+    List<AdminActivityResponse> activities(UUID id, Integer page, Integer size);
 
     /**
      * Retrieves a list of activity logs for all admins within the organization.
      * This method aggregates the activities of all admins, providing a comprehensive view
      * of admin actions across the system.
+     * @param page The page number to retrieve (zero-based index).
+     * @param size The number of items per page.
      *
      * @return A list of {@link AdminActivityResponse} containing activity logs for all admins.
      */
-    List<AdminActivityResponse> activities();
+    List<AdminActivityResponse> activities(Integer page, Integer size);
 
     /**
      * Creates a new activity log entry associated with a specific admin.

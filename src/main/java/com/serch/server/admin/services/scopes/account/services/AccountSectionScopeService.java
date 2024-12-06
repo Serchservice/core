@@ -1,6 +1,6 @@
 package com.serch.server.admin.services.scopes.account.services;
 
-import com.serch.server.admin.services.responses.Metric;
+import com.serch.server.admin.services.scopes.account.responses.AccountSectionMetricResponse;
 import com.serch.server.admin.services.scopes.account.responses.AccountSectionResponse;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.auth.Role;
@@ -10,14 +10,13 @@ import com.serch.server.enums.auth.Role;
  * such as fetching metrics and paginated account data filtered by criteria.
  */
 public interface AccountSectionScopeService {
-
     /**
      * Fetches metrics based on the given user role.
      *
      * @param role The role of the user requesting the metrics.
-     * @return An {@link ApiResponse} containing a {@link Metric} object.
+     * @return An {@link ApiResponse} containing a {@link AccountSectionMetricResponse} object.
      */
-    ApiResponse<Metric> fetchMetric(Role role);
+    ApiResponse<AccountSectionMetricResponse> fetchMetric(Role role);
 
     /**
      * Fetches a paginated list of platform accounts based on the given user role and filter criteria.

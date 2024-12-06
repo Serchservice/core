@@ -1,6 +1,7 @@
 package com.serch.server.admin.services.scopes.account.services.implementation;
 
 import com.serch.server.admin.services.responses.Metric;
+import com.serch.server.admin.services.scopes.account.responses.AccountSectionMetricResponse;
 import com.serch.server.admin.services.scopes.account.responses.AccountSectionResponse;
 import com.serch.server.admin.services.scopes.account.services.AccountSectionScopeService;
 import com.serch.server.admin.services.scopes.common.services.CommonProfileService;
@@ -24,9 +25,21 @@ public class AccountSectionScopeImplementation implements AccountSectionScopeSer
     private final GuestRepository guestRepository;
 
     @Override
-    public ApiResponse<Metric> fetchMetric(Role role) {
-        Metric metric = new Metric();
+    public ApiResponse<AccountSectionMetricResponse> fetchMetric(Role role) {
+        AccountSectionMetricResponse response = new AccountSectionMetricResponse();
+        response.setMetric(getMetric(role));
 
+        if(role != null) {
+            response.setAlphabets(userRepository.findDistinctStartingLettersByRole(role));
+        } else {
+            response.setAlphabets(guestRepository.findDistinctStartingLetters());
+        }
+
+        return new ApiResponse<>(response);
+    }
+
+    private Metric getMetric(Role role) {
+        Metric metric = new Metric();
         if(role != null) {
             metric.setHeader(String.format(
                     "Total number of %s",
@@ -38,7 +51,7 @@ public class AccountSectionScopeImplementation implements AccountSectionScopeSer
             metric.setCount(AdminUtil.formatCount(guestRepository.count()));
         }
 
-        return new ApiResponse<>(metric);
+        return metric;
     }
 
     @Override

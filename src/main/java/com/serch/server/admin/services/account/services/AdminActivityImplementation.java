@@ -10,9 +10,11 @@ import com.serch.server.admin.services.team.responses.AdminActivityResponse;
 import com.serch.server.enums.auth.Role;
 import com.serch.server.exceptions.auth.AuthException;
 import com.serch.server.models.auth.User;
+import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,66 +31,75 @@ public class AdminActivityImplementation implements AdminActivityService {
 
     @Override
     @Transactional
-    public List<AdminActivityResponse> activities(UUID id) {
+    public List<AdminActivityResponse> activities(UUID id, Integer page, Integer size) {
         Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AuthException("Admin not found"));
         Admin account = adminRepository.findById(id).orElseThrow(() -> new AuthException("Admin not found"));
 
-        List<AdminActivity> activities = adminActivityRepository.findByAdminId(id, account.getPass());
-        if(activities == null || activities.isEmpty()) {
+        Page<AdminActivity> activities = adminActivityRepository.findByAdminId(id, account.getPass(), HelperUtil.getPageable(page, size));
+        if(activities == null || activities.isEmpty() || !activities.hasContent()) {
             return new ArrayList<>();
         } else {
-            return activities.stream().sorted(Comparator.comparing(AdminActivity::getCreatedAt).reversed()).map(activity -> response(
-                    activity,
-                    admin.getUser().getRole() != Role.TEAM,
-                    admin.getId().equals(id)
-            )).toList();
+            return activities.getContent()
+                    .stream()
+                    .sorted(Comparator.comparing(AdminActivity::getCreatedAt).reversed()).map(activity -> response(
+                            activity,
+                            admin.getUser().getRole() != Role.TEAM,
+                            admin.getId().equals(id)
+                    )).toList();
         }
     }
 
     @Override
     @Transactional
-    public List<AdminActivityResponse> activities() {
+    public List<AdminActivityResponse> activities(Integer page, Integer size) {
         Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new AuthException("Admin not found"));
+
         return switch (admin.getUser().getRole()) {
             case SUPER_ADMIN -> {
-                List<AdminActivity> activities = adminActivityRepository.findAll();
-                if(activities.isEmpty()) {
+                Page<AdminActivity> activities = adminActivityRepository.findAll(HelperUtil.getPageable(page, size));
+                if(activities.isEmpty() || !activities.hasContent()) {
                     yield new ArrayList<>();
                 } else {
-                    yield activities.stream().sorted(Comparator.comparing(AdminActivity::getCreatedAt).reversed()).map(activity -> response(
-                            activity,
-                            admin.getUser().getRole() != Role.TEAM,
-                            true
-                    )).toList();
+                    yield activities.getContent()
+                            .stream()
+                            .sorted(Comparator.comparing(AdminActivity::getCreatedAt).reversed()).map(activity -> response(
+                                    activity,
+                                    admin.getUser().getRole() != Role.TEAM,
+                                    true
+                            )).toList();
                 }
             }
             case ADMIN -> {
-                List<AdminActivity> activities = adminActivityRepository.findAdmin(admin.getId(), admin.getPass());
-                if(activities.isEmpty()) {
+                Page<AdminActivity> activities = adminActivityRepository.findAdmin(admin.getId(), admin.getPass(), HelperUtil.getPageable(page, size));
+                if(activities == null || activities.isEmpty() || !activities.hasContent()) {
                     yield new ArrayList<>();
                 } else {
-                    yield activities.stream().sorted(Comparator.comparing(AdminActivity::getCreatedAt).reversed()).map(activity -> response(
-                            activity,
-                            admin.getUser().getRole() != Role.TEAM,
-                            true
-                    )).toList();
+                    yield activities.getContent()
+                            .stream()
+                            .sorted(Comparator.comparing(AdminActivity::getCreatedAt).reversed()).map(activity -> response(
+                                    activity,
+                                    admin.getUser().getRole() != Role.TEAM,
+                                    true
+                            )).toList();
                 }
             }
             case MANAGER -> {
-                List<AdminActivity> activities = adminActivityRepository.findManager(admin.getId(), admin.getPass());
-                if(activities.isEmpty()) {
+                Page<AdminActivity> activities = adminActivityRepository.findManager(admin.getId(), admin.getPass(), HelperUtil.getPageable(page, size));
+                if(activities == null || activities.isEmpty() || !activities.hasContent()) {
                     yield new ArrayList<>();
                 } else {
-                    yield activities.stream().sorted(Comparator.comparing(AdminActivity::getCreatedAt).reversed()).map(activity -> response(
-                            activity,
-                            admin.getUser().getRole() != Role.TEAM,
-                            true
-                    )).toList();
+                    yield activities.getContent()
+                            .stream()
+                            .sorted(Comparator.comparing(AdminActivity::getCreatedAt).reversed()).map(activity -> response(
+                                    activity,
+                                    admin.getUser().getRole() != Role.TEAM,
+                                    true
+                            )).toList();
                 }
             }
-            default -> activities(admin.getId());
+            default -> activities(admin.getId(), page, size);
         };
     }
 

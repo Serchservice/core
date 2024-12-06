@@ -54,7 +54,7 @@ public class AdminProfileImplementation implements AdminProfileService {
         AdminResponse response = new AdminResponse();
         response.setProfile(profile(admin));
         response.setTeam(team(admin));
-        response.setActivities(activityService.activities(admin.getId()));
+        response.setActivities(activityService.activities(admin.getId(), null, null));
         return response;
     }
 

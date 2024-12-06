@@ -29,6 +29,7 @@ public class AccountUserScopeProfileResponse extends AccountScopeDetailResponse 
     private Device device;
     private Setting setting;
     private Verification verification;
+    private List<Integer> years = new ArrayList<>();
 
     @JsonProperty("app_rating")
     private AppRating appRating;

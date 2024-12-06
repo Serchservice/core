@@ -34,6 +34,9 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     long countByRoleAndLastNameStartingWithIgnoreCase(@NonNull Role role, @NonNull String start);
 
+    @Query("SELECT DISTINCT UPPER(SUBSTRING(u.lastName, 1, 1)) FROM users u WHERE u.role = :role")
+    List<String> findDistinctStartingLettersByRole(Role role);
+
     Page<User> findByRoleAndLastNameStartingWithIgnoreCase(@NonNull Role role, @NonNull String start, Pageable pageable);
 
     @Query("SELECT u FROM users u WHERE u.role = :role AND " +

@@ -1,79 +1,113 @@
 package com.serch.server.admin.services.scopes.account.services;
 
-import com.serch.server.admin.services.responses.ChartMetric;
-import com.serch.server.admin.services.scopes.account.responses.AccountScopeMoreAnalysisResponse;
+import com.serch.server.admin.services.scopes.account.responses.AccountScopeAnalysisResponse;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.auth.Role;
 
-import java.util.List;
-import java.util.Map;
-
 /**
- * Service interface for fetching analysis data for platform accounts within a specified scope.
- * Provides methods to retrieve detailed analysis data based on user roles and, optionally, a specified year.
- * This interface supports fetching metrics related to demographics, business categories,
- * profile categories, and other analysis data relevant to platform accounts.
+ * Service interface for analyzing platform accounts based on various groupings and criteria.
  */
 public interface AccountScopeAnalysisService {
+    /**
+     * Fetches account analysis for the specified year, role, and guest access status.
+     *
+     * @param year     the year for the analysis
+     * @param role     the role to filter the analysis by
+     * @param forGuest indicates if the analysis is for guest access
+     * @return an {@link ApiResponse} containing a {@link AccountScopeAnalysisResponse} with the account analysis data
+     */
+    ApiResponse<AccountScopeAnalysisResponse> fetchAccountAnalysis(Integer year, Role role, Boolean forGuest);
 
     /**
-     * Fetches analysis data for a specified role.
+     * Fetches account analysis grouped by country for the specified year, role, and guest access status.
      *
-     * @param role The {@link Role} for which analysis data is to be fetched.
-     *             This parameter determines the user category or account type whose analysis data
-     *             is required, such as ADMIN, USER, or BUSINESS roles.
-     * @return An {@link ApiResponse} containing a {@link AccountScopeMoreAnalysisResponse} object
-     *         with aggregated analysis data relevant to the specified role.
+     * @param year     the year for the analysis
+     * @param role     the role to filter the analysis by
+     * @param forGuest indicates if the analysis is for guest access
+     * @return an {@link ApiResponse} containing a {@link AccountScopeAnalysisResponse} grouped by country
      */
-    ApiResponse<AccountScopeMoreAnalysisResponse> fetch(Role role);
+    ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByCountry(Integer year, Role role, Boolean forGuest);
 
     /**
-     * Fetches analysis data for a specified role and year.
+     * Fetches account analysis grouped by timezone for the specified year, role, and guest access status.
      *
-     * @param role The {@link Role} for which analysis data is to be fetched.
-     *             The role determines the user category or account type to be analyzed.
-     * @param year The {@link Integer} representing the year for which the analysis data is to be fetched.
-     *             This parameter restricts the data to the specified year, allowing for time-based comparisons.
-     * @return An {@link ApiResponse} containing a list of {@link AccountScopeMoreAnalysisResponse}
-     *         objects, with each entry representing the analysis data for the specified role within the year.
+     * @param year     the year for the analysis
+     * @param role     the role to filter the analysis by
+     * @param forGuest indicates if the analysis is for guest access
+     * @return an {@link ApiResponse} containing a {@link AccountScopeAnalysisResponse} grouped by timezone
      */
-    ApiResponse<List<AccountScopeMoreAnalysisResponse>> fetch(Role role, Integer year);
+    ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByTimezone(Integer year, Role role, Boolean forGuest);
 
     /**
-     * Retrieves the count of users categorized by gender.
+     * Fetches account analysis grouped by state for the specified year, role, and guest access status.
      *
-     * @return A {@link Map} where the key is a {@link String} representing a gender type
-     *         (e.g., "Male", "Female"), and the value is a {@link Long} representing the count of users
-     *         within that gender group.
+     * @param year     the year for the analysis
+     * @param role     the role to filter the analysis by
+     * @param forGuest indicates if the analysis is for guest access
+     * @return an {@link ApiResponse} containing a {@link AccountScopeAnalysisResponse} grouped by state
      */
-    Map<String, Long> getGender();
+    ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByState(Integer year, Role role, Boolean forGuest);
 
     /**
-     * Constructs a chart metric based on the given parameters.
+     * Fetches account analysis grouped by gender for the specified year, role, and guest access status.
      *
-     * @param count A {@link Long} representing the count of entities associated with this metric.
-     * @param id    A {@link String} identifier for the metric, typically representing a specific category.
-     * @param info  A {@link String} providing additional details or context about the metric.
-     * @return A {@link ChartMetric} object populated with the provided count, id, and info, representing
-     *         a single data point on an analysis chart.
+     * @param year     the year for the analysis
+     * @param role     the role to filter the analysis by
+     * @param forGuest indicates if the analysis is for guest access
+     * @return an {@link ApiResponse} containing a {@link AccountScopeAnalysisResponse} grouped by gender
      */
-    ChartMetric getMetric(Long count, String id, String info);
+    ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByGender(Integer year, Role role, Boolean forGuest);
 
     /**
-     * Retrieves the count of accounts categorized by business type.
+     * Fetches account analysis grouped by rating for the specified year, role, and guest access status.
      *
-     * @return A {@link Map} where the key is a {@link String} representing a business category
-     *         (e.g., "Retail", "Service"), and the value is a {@link Long} representing the count
-     *         of accounts in that business category.
+     * @param year     the year for the analysis
+     * @param role     the role to filter the analysis by
+     * @param forGuest indicates if the analysis is for guest access
+     * @return an {@link ApiResponse} containing a {@link AccountScopeAnalysisResponse} grouped by rating
      */
-    Map<String, Long> getBusinessCategory();
+    ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByRating(Integer year, Role role, Boolean forGuest);
 
     /**
-     * Retrieves the count of profiles categorized by type.
+     * Fetches account analysis grouped by account status for the specified year and role.
+     * Primarily used for roles such as {@link Role#PROVIDER}, {@link Role#ASSOCIATE_PROVIDER},
+     * {@link Role#BUSINESS}, and {@link Role#USER}.
      *
-     * @return A {@link Map} where the key is a {@link String} representing a profile category
-     *         (e.g., "Standard", "Premium"), and the value is a {@link Long} representing the count
-     *         of profiles in that category.
+     * @param year the year for the analysis
+     * @param role the role to filter the analysis by
+     * @return an {@link ApiResponse} containing a {@link AccountScopeAnalysisResponse} grouped by account status
      */
-    Map<String, Long> getProfileCategory();
+    ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByAccountStatus(Integer year, Role role);
+
+    /**
+     * Fetches account analysis grouped by trip status for the specified year and role.
+     * Primarily used for roles such as {@link Role#PROVIDER} and {@link Role#ASSOCIATE_PROVIDER}.
+     *
+     * @param year the year for the analysis
+     * @param role the role to filter the analysis by
+     * @return an {@link ApiResponse} containing a {@link AccountScopeAnalysisResponse} grouped by trip status
+     */
+    ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByTripStatus(Integer year, Role role);
+
+    /**
+     * Fetches account analysis grouped by certification status for the specified year and role.
+     * Primarily used for roles such as {@link Role#PROVIDER}, {@link Role#ASSOCIATE_PROVIDER},
+     * and {@link Role#BUSINESS}.
+     *
+     * @param year the year for the analysis
+     * @param role the role to filter the analysis by
+     * @return an {@link ApiResponse} containing a {@link AccountScopeAnalysisResponse} grouped by certification status
+     */
+    ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByCertified(Integer year, Role role);
+
+    /**
+     * Fetches account analysis grouped by category for the specified year and role.
+     * Primarily used for roles such as {@link Role#PROVIDER}, {@link Role#ASSOCIATE_PROVIDER},
+     * and {@link Role#BUSINESS}.
+     *
+     * @param year the year for the analysis
+     * @param role the role to filter the analysis by
+     * @return an {@link ApiResponse} containing a {@link AccountScopeAnalysisResponse} grouped by category
+     */
+    ApiResponse<AccountScopeAnalysisResponse> fetchGroupedAccountAnalysisByCategory(Integer year, Role role);
 }

@@ -86,7 +86,7 @@ public interface AccountUserScopeMapper {
     })
     AccountUserScopeWalletResponse wallet(Wallet wallet);
 
-    AccountUserScopeRatingResponse.Rating rating(Rating rating);
+    AccountUserScopeRatingResponse rating(Rating rating);
 
     @Mappings({
             @Mapping(target = "setting", source = "setting"),

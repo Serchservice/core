@@ -1,4 +1,4 @@
-package com.serch.server.configurations;
+package com.serch.server.configurations.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -93,9 +93,7 @@ public class ServerConfiguration {
      * @throws Exception If an error occurs while retrieving the authentication manager.
      */
     @Bean
-    public AuthenticationManager authManager(
-            AuthenticationConfiguration authenticationConfiguration
-    ) throws Exception {
+    public AuthenticationManager authManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
@@ -120,6 +118,7 @@ public class ServerConfiguration {
         var daoProvider = new DaoAuthenticationProvider();
         daoProvider.setUserDetailsService(userDetailsService());
         daoProvider.setPasswordEncoder(passwordEncoder());
+
         return daoProvider;
     }
 
@@ -163,6 +162,7 @@ public class ServerConfiguration {
         Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();
         builder.modulesToInstall(new JavaTimeModule());
         builder.simpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+
         return builder.build();
     }
 
@@ -208,6 +208,7 @@ public class ServerConfiguration {
         var properties = new Properties();
         properties.put(DefaultClient.API_KEY_PROP_NAME, CALL_APP_ID);
         properties.put(DefaultClient.API_SECRET_PROP_NAME, CALL_APP_SECRET);
+
         var client = new DefaultClient(properties);
         DefaultClient.setInstance(client);
         log.info(String.format("SERCH::: (AGORA INITIALIZATION) Agora initialized with api key %s", client.getApiKey()));

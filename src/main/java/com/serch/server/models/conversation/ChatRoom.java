@@ -37,6 +37,12 @@ public class ChatRoom extends BaseDateTime {
     @GeneratedValue(generator = "room_id_gen")
     private String id;
 
+    @Column(name = "creator", nullable = false, updatable = false)
+    private UUID creator;
+
+    @Column(name = "roommate", nullable = false, updatable = false)
+    private UUID roommate;
+
     @Column(name = "state", nullable = false)
     @Enumerated(value = EnumType.STRING)
     @SerchEnum(message = "MessageState must be an enum")
@@ -44,10 +50,4 @@ public class ChatRoom extends BaseDateTime {
 
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ChatMessage> messages;
-
-    @Column(name = "creator", nullable = false, updatable = false)
-    private UUID creator;
-
-    @Column(name = "roommate", nullable = false, updatable = false)
-    private UUID roommate;
 }

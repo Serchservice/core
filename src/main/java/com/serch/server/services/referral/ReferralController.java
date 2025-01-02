@@ -18,7 +18,7 @@ public class ReferralController {
     private final ReferralService service;
     private final ReferralProgramService programService;
 
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<ApiResponse<List<ReferralResponse>>> viewReferrals(
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size

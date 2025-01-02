@@ -7,8 +7,8 @@ import com.serch.server.services.trip.responses.TripResponse;
 import com.serch.server.services.trip.services.implementations.TripHistoryImplementation;
 
 import javax.annotation.Nullable;
+import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Service interface for managing trip history and related activities.
@@ -21,7 +21,6 @@ import java.util.UUID;
  * @see com.serch.server.services.trip.controllers.TripController
  */
 public interface TripHistoryService {
-
     /**
      * Prepares the response for a trip invitation.
      * <p>
@@ -56,51 +55,88 @@ public interface TripHistoryService {
     TripResponse response(String id, String userId, @Nullable InitializePaymentData payment, boolean sendUpdate, String requestedId);
 
     /**
-     * Retrieves a list of pending trip invitations for the specified user.
+     * Retrieves the trip history for the logged-in user or provider.
      * <p>
-     * This method returns the trip invitation history, including shared and guest trips,
-     * for the user associated with the specified ID.
+     * This method returns the list of trips based on shared link and id details,
+     * representing the trips the user or provider has been a part of.
      * </p>
      *
-     * @param userId  The ID of the user whose trip invitation history is to be retrieved.
-     * @param linkId  The shared link ID (can be {@code null}).
-     * @param guestId The guest ID (can be {@code null}).
-     * @param page The page number to retrieve (zero-based index).
-     * @param size The number of items per page.
-     * @return A list of {@link TripResponse} objects representing the pending trip invitations.
-     */
-    List<TripResponse> inviteHistory(String guestId, UUID userId, String linkId, Integer page, Integer size);
-
-    /**
-     * Retrieves the trip history for the specified trip.
-     * <p>
-     * This method fetches the history of trips the user or provider has participated in,
-     * with optional configurations for sending socket updates and specifying shared link
-     * and guest details.
-     * </p>
-     *
-     * @param trip        The trip ID to fetch the history for.
-     * @param sendUpdate  Indicates whether to send a socket update to all associated accounts.
-     * @param linkId      The shared link ID (can be {@code null}).
-     * @param guest       The guest ID (can be {@code null}).
+     * @param tripId   The trip ID to fetch the history for.
+     * @param sendUpdate   Specifies whether to send a socket update to all accounts associated with the trip.
+     * @param linkId The shared link ID (can be {@code null}).
+     * @param id  The user/guest id (can be {@code null}).
      * @param page The page number to retrieve (zero-based index).
      * @param size The number of items per page.
      * @return An {@link ApiResponse} containing a list of {@link TripResponse} objects.
      */
-    ApiResponse<List<TripResponse>> history(String guest, String linkId, boolean sendUpdate, String trip, Integer page, Integer size);
+    ApiResponse<List<TripResponse>> history(String id, String linkId, Integer page, Integer size, boolean sendUpdate, String tripId);
+
+    /**
+     * Retrieves the active trip history for the logged-in user or provider.
+     * <p>
+     * This method returns the list of trips based on shared link and id details,
+     * representing the trips the user or provider has been a part of.
+     * </p>
+     *
+     * @param tripId   The trip ID to fetch the history for.
+     * @param sendUpdate   Specifies whether to send a socket update to all accounts associated with the trip.
+     * @param linkId The shared link ID (can be {@code null}).
+     * @param id  The user/guest id (can be {@code null}).
+     * @param page The page number to retrieve (zero-based index).
+     * @param size The number of items per page.
+     * @return An {@link ApiResponse} containing a list of {@link TripResponse} objects.
+     */
+    ApiResponse<List<TripResponse>> active(String id, String linkId, Integer page, Integer size, boolean sendUpdate, String tripId);
+
+    /**
+     * Retrieves the requested trip history for the logged-in user or provider.
+     * <p>
+     * This method returns the list of trips based on shared link and id details,
+     * representing the trips the user or provider has been a part of.
+     * </p>
+     *
+     * @param tripId   The trip ID to fetch the history for.
+     * @param sendUpdate   Specifies whether to send a socket update to all accounts associated with the trip.
+     * @param linkId The shared link ID (can be {@code null}).
+     * @param id  The user/guest id (can be {@code null}).
+     * @param page The page number to retrieve (zero-based index).
+     * @param size The number of items per page.
+     * @return An {@link ApiResponse} containing a list of {@link TripResponse} objects.
+     */
+    ApiResponse<List<TripResponse>> requested(String id, String linkId, Integer page, Integer size, boolean sendUpdate, String tripId);
+
+    /**
+     * Retrieves the shared trip history for the logged-in user or provider.
+     * <p>
+     * This method returns the list of trips based on shared link and id details,
+     * representing the trips the user or provider has been a part of.
+     * </p>
+     *
+     * @param tripId   The trip ID to fetch the history for.
+     * @param sendUpdate   Specifies whether to send a socket update to all accounts associated with the trip.
+     * @param linkId The shared link ID (can be {@code null}).
+     * @param id  The user/guest id (can be {@code null}).
+     * @param page The page number to retrieve (zero-based index).
+     * @param size The number of items per page.
+     * @return An {@link ApiResponse} containing a list of {@link TripResponse} objects.
+     */
+    ApiResponse<List<TripResponse>> shared(String id, String linkId, Integer page, Integer size, boolean sendUpdate, String tripId);
 
     /**
      * Retrieves the trip history for the logged-in user or provider.
      * <p>
-     * This method returns the list of trips based on shared link and guest details,
+     * This method returns the list of trips based on shared link and id details,
      * representing the trips the user or provider has been a part of.
      * </p>
      *
+     * @param dateTime   The date to fetch its history.
+     * @param category   The category to fetch the history for.
+     * @param isShared   Specifies whether to fetch shared trips.
      * @param linkId The shared link ID (can be {@code null}).
-     * @param guest  The guest ID (can be {@code null}).
+     * @param id  The user/guest id (can be {@code null}).
      * @param page The page number to retrieve (zero-based index).
      * @param size The number of items per page.
      * @return An {@link ApiResponse} containing a list of {@link TripResponse} objects.
      */
-    ApiResponse<List<TripResponse>> history(String guest, String linkId, Integer page, Integer size);
+    ApiResponse<List<TripResponse>> history(String id, String linkId, Integer page, Integer size, Boolean isShared, String category, ZonedDateTime dateTime);
 }

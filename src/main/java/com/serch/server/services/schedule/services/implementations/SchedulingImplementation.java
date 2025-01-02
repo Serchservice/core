@@ -1,10 +1,11 @@
-package com.serch.server.services.schedule.services;
+package com.serch.server.services.schedule.services.implementations;
 
 import com.serch.server.mappers.ScheduleMapper;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.schedule.Schedule;
 import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.services.schedule.responses.ScheduleResponse;
+import com.serch.server.services.schedule.services.SchedulingService;
 import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

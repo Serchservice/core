@@ -1,4 +1,4 @@
-package com.serch.server.services.schedule.services;
+package com.serch.server.services.schedule.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.core.notification.core.NotificationService;
@@ -7,16 +7,17 @@ import com.serch.server.exceptions.others.ScheduleException;
 import com.serch.server.exceptions.others.SharedException;
 import com.serch.server.mappers.ScheduleMapper;
 import com.serch.server.models.account.Profile;
-import com.serch.server.models.auth.User;
 import com.serch.server.models.schedule.Schedule;
 import com.serch.server.repositories.account.ProfileRepository;
-import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.schedule.ScheduleRepository;
+import com.serch.server.services.conversation.services.ChattingService;
 import com.serch.server.services.schedule.requests.ScheduleDeclineRequest;
 import com.serch.server.services.schedule.requests.ScheduleRequest;
-import com.serch.server.services.schedule.responses.ScheduleGroupResponse;
 import com.serch.server.services.schedule.responses.ScheduleResponse;
 import com.serch.server.services.schedule.responses.ScheduleTimeResponse;
+import com.serch.server.services.schedule.services.ScheduleHistoryService;
+import com.serch.server.services.schedule.services.ScheduleService;
+import com.serch.server.services.schedule.services.SchedulingService;
 import com.serch.server.services.transaction.services.SchedulePayService;
 import com.serch.server.services.trip.requests.TripInviteRequest;
 import com.serch.server.services.trip.responses.TripResponse;
@@ -36,7 +37,6 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.serch.server.enums.schedule.ScheduleStatus.*;
 
@@ -54,14 +54,15 @@ import static com.serch.server.enums.schedule.ScheduleStatus.*;
 public class ScheduleImplementation implements ScheduleService {
     private final SchedulePayService payService;
     private final SchedulingService schedulingService;
+    private final ScheduleHistoryService historyService;
     private final NotificationService notificationService;
     private final TripService tripService;
+    private final ChattingService chattingService;
     private final SimpMessagingTemplate template;
     private final UserUtil userUtil;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("h:mma");
     private final ProfileRepository profileRepository;
     private final ScheduleRepository scheduleRepository;
-    private final UserRepository userRepository;
 
     @Value("${application.account.schedule.close.limit}")
     private Integer ACCOUNT_SCHEDULE_CLOSE_LIMIT;
@@ -75,6 +76,7 @@ public class ScheduleImplementation implements ScheduleService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<ScheduleResponse> schedule(ScheduleRequest request) {
         Profile provider = profileRepository.findById(request.getProvider())
                 .orElseThrow(() -> new ScheduleException("Provider not found"));
@@ -91,11 +93,10 @@ public class ScheduleImplementation implements ScheduleService {
             Schedule schedule = createNewSchedule(request, provider, user);
             ScheduleResponse response = schedulingService.response(schedule, false, true);
 
-            sendActiveNotification(schedule);
-            notificationService.send(
-                    provider.getId(),
-                    schedulingService.response(schedule, true, true)
-            );
+            sendPendingNotification(schedule);
+            chattingService.notifyAboutSchedule(provider.getId());
+            notificationService.send(provider.getId(), schedulingService.response(schedule, true, true));
+
             return new ApiResponse<>(
                     "Schedule placed for %s. ".formatted(request.getTime()) +
                             "%s will be notified".formatted(schedule.getProvider().getFullName()),
@@ -132,46 +133,69 @@ public class ScheduleImplementation implements ScheduleService {
         schedule.setUser(user);
         schedule.setStatus(PENDING);
         schedule.setTime(request.getTime().toUpperCase());
+
         return scheduleRepository.save(schedule);
     }
 
-    private void sendActiveNotification(Schedule schedule) {
+    @Transactional
+    protected void sendActiveNotification(Schedule schedule) {
         template.convertAndSend(
-                "/platform/%s".formatted(String.valueOf(schedule.getUser().getId())),
-                active(schedule.getUser().getId())
+                "/platform/schedule/active/%s".formatted(String.valueOf(schedule.getUser().getId())),
+                historyService.active(schedule.getUser().getId())
         );
         template.convertAndSend(
-                "/platform/%s".formatted(String.valueOf(schedule.getProvider().getId())),
-                active(schedule.getProvider().getId())
+                "/platform/schedule/active/%s".formatted(String.valueOf(schedule.getProvider().getId())),
+                historyService.active(schedule.getProvider().getId())
         );
 
         if(schedule.getProvider().isAssociate()) {
             template.convertAndSend(
-                    "/platform/%s".formatted(String.valueOf(schedule.getProvider().getBusiness().getId())),
-                    active(schedule.getProvider().getBusiness().getId())
+                    "/platform/schedule/active/%s".formatted(String.valueOf(schedule.getProvider().getBusiness().getId())),
+                    historyService.active(schedule.getProvider().getBusiness().getId())
             );
         }
     }
 
-    private void sendInactiveNotification(Schedule schedule) {
+    @Transactional
+    protected void sendPendingNotification(Schedule schedule) {
         template.convertAndSend(
-                "/platform/%s".formatted(String.valueOf(schedule.getUser().getId())),
-                schedules(schedule.getUser().getId())
+                "/platform/schedule/pending/%s".formatted(String.valueOf(schedule.getUser().getId())),
+                historyService.pending(schedule.getUser().getId())
         );
         template.convertAndSend(
-                "/platform/%s".formatted(String.valueOf(schedule.getProvider().getId())),
-                schedules(schedule.getProvider().getId())
+                "/platform/schedule/pending/%s".formatted(String.valueOf(schedule.getProvider().getId())),
+                historyService.pending(schedule.getProvider().getId())
         );
 
         if(schedule.getProvider().isAssociate()) {
             template.convertAndSend(
-                    "/platform/%s".formatted(String.valueOf(schedule.getProvider().getBusiness().getId())),
-                    schedules(schedule.getProvider().getBusiness().getId())
+                    "/platform/schedule/pending/%s".formatted(String.valueOf(schedule.getProvider().getBusiness().getId())),
+                    historyService.pending(schedule.getProvider().getBusiness().getId())
+            );
+        }
+    }
+
+    @Transactional
+    protected void sendInactiveNotification(Schedule schedule) {
+        template.convertAndSend(
+                "/platform/schedule/history/%s".formatted(String.valueOf(schedule.getUser().getId())),
+                historyService.schedules(schedule.getUser().getId())
+        );
+        template.convertAndSend(
+                "/platform/schedule/history/%s".formatted(String.valueOf(schedule.getProvider().getId())),
+                historyService.schedules(schedule.getProvider().getId())
+        );
+
+        if(schedule.getProvider().isAssociate()) {
+            template.convertAndSend(
+                    "/platform/schedule/history/%s".formatted(String.valueOf(schedule.getProvider().getBusiness().getId())),
+                    historyService.schedules(schedule.getProvider().getBusiness().getId())
             );
         }
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> accept(String id) {
         Schedule schedule = scheduleRepository.findById(id)
                 .orElseThrow(() -> new ScheduleException("Schedule not found"));
@@ -184,10 +208,10 @@ public class ScheduleImplementation implements ScheduleService {
                 scheduleRepository.save(schedule);
 
                 sendActiveNotification(schedule);
-                notificationService.send(
-                        schedule.getUser().getId(),
-                        schedulingService.response(schedule, false, true)
-                );
+                sendPendingNotification(schedule);
+                chattingService.notifyAboutSchedule(schedule.getUser().getId());
+                notificationService.send(schedule.getUser().getId(), schedulingService.response(schedule, false, true));
+
                 return new ApiResponse<>(
                         "Schedule accepted. %s will be notified".formatted(schedule.getUser().getFullName()),
                         HttpStatus.OK
@@ -201,9 +225,11 @@ public class ScheduleImplementation implements ScheduleService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> cancel(String id) {
         Schedule schedule = scheduleRepository.findById(id)
                 .orElseThrow(() -> new ScheduleException("Schedule not found"));
+
         if(schedule.getUser().isSameAs(userUtil.getUser().getId())) {
             if(schedule.getStatus() == PENDING) {
                 schedule.setStatus(CANCELLED);
@@ -211,14 +237,12 @@ public class ScheduleImplementation implements ScheduleService {
                 scheduleRepository.save(schedule);
 
                 sendInactiveNotification(schedule);
-                notificationService.send(
-                        schedule.getProvider().getId(),
-                        schedulingService.response(schedule, true, true)
-                );
+                sendPendingNotification(schedule);
+                chattingService.notifyAboutSchedule(schedule.getProvider().getId());
+                notificationService.send(schedule.getProvider().getId(), schedulingService.response(schedule, true, true));
+
                 return new ApiResponse<>(
-                        "Schedule cancelled. %s will not be notified".formatted(
-                                schedule.getProvider().getFullName()
-                        ),
+                        "Schedule cancelled. %s will not be notified".formatted(schedule.getProvider().getFullName()),
                         HttpStatus.OK
                 );
             } else {
@@ -230,9 +254,11 @@ public class ScheduleImplementation implements ScheduleService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> close(String id) {
         Schedule schedule = scheduleRepository.findById(id)
                 .orElseThrow(() -> new ScheduleException("Schedule not found"));
+
         if(isCurrentUser(schedule.getUser().getId()) || isCurrentUser(schedule.getProvider().getId())) {
             if(schedule.getStatus() == ACCEPTED) {
                 long diff = getDiff(schedule);
@@ -245,6 +271,7 @@ public class ScheduleImplementation implements ScheduleService {
                 scheduleRepository.save(schedule);
 
                 sendInactiveNotification(schedule);
+                sendActiveNotification(schedule);
                 notificationService.send(
                         isCurrentUser(schedule.getProvider().getId()) ? schedule.getUser().getId() : schedule.getProvider().getId(),
                         schedulingService.response(schedule, isCurrentUser(schedule.getProvider().getId()), true)
@@ -298,38 +325,50 @@ public class ScheduleImplementation implements ScheduleService {
     private long getDiff(Schedule schedule) {
         LocalTime currentTime = LocalTime.now();
         LocalTime scheduleTime = LocalTime.parse(schedule.getTime(), formatter);
+
         return ChronoUnit.MINUTES.between(currentTime, scheduleTime);
     }
 
     @Override
+    @Transactional
     public ApiResponse<TripResponse> start(String id) {
         Schedule schedule = scheduleRepository.findById(id)
                 .orElseThrow(() -> new ScheduleException("Schedule not found"));
 
         if(schedule.getProvider().isSameAs(userUtil.getUser().getId()) || schedule.getUser().isSameAs(userUtil.getUser().getId())) {
-            if(schedule.getProvider() == null) {
-                throw new SharedException("Provider not found");
-            } else if(schedule.getProvider().getActive() == null) {
-                throw new SharedException("Provider not active");
+            if(schedule.getStatus() == ACCEPTED) {
+                if(schedule.getProvider() == null) {
+                    throw new SharedException("Provider not found");
+                } else if(schedule.getProvider().getActive() == null) {
+                    throw new SharedException("Provider not active");
+                }
+
+                long diff = getDiff(schedule);
+                schedule.setClosedAt(TimeUtil.formatTimeDifference(diff));
+                schedule.setStatus(ScheduleStatus.ATTENDED);
+                scheduleRepository.save(schedule);
+
+                TripInviteRequest request = ScheduleMapper.INSTANCE.request(schedule);
+                request.setCategory(schedule.getProvider().getCategory());
+
+                sendActiveNotification(schedule);
+                sendInactiveNotification(schedule);
+
+                return tripService.request(request, schedule.getUser(), schedule.getProvider());
+            } else {
+                throw new ScheduleException("Cannot start a trip with unaccepted schedule");
             }
-
-            long diff = getDiff(schedule);
-            schedule.setClosedAt(TimeUtil.formatTimeDifference(diff));
-            schedule.setStatus(ScheduleStatus.ATTENDED);
-            scheduleRepository.save(schedule);
-
-            TripInviteRequest request = ScheduleMapper.INSTANCE.request(schedule);
-            request.setCategory(schedule.getProvider().getCategory());
-            return tripService.request(request, schedule.getUser(), schedule.getProvider());
         } else {
             throw new ScheduleException("An error occurred while trying to start a scheduled trip");
         }
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> decline(ScheduleDeclineRequest request) {
         Schedule schedule = scheduleRepository.findById(request.getId())
                 .orElseThrow(() -> new ScheduleException("Schedule not found"));
+
         if(request.getReason() == null || request.getReason().isEmpty()) {
             throw new ScheduleException("Reason for declining is required");
         } else {
@@ -340,10 +379,10 @@ public class ScheduleImplementation implements ScheduleService {
                     scheduleRepository.save(schedule);
 
                     sendInactiveNotification(schedule);
-                    notificationService.send(
-                            schedule.getUser().getId(),
-                            schedulingService.response(schedule, false, true)
-                    );
+                    sendPendingNotification(schedule);
+                    chattingService.notifyAboutSchedule(schedule.getUser().getId());
+                    notificationService.send(schedule.getUser().getId(), schedulingService.response(schedule, false, true));
+
                     return new ApiResponse<>(
                             "Schedule declined. %s will not be notified".formatted(schedule.getUser().getFullName()),
                             HttpStatus.OK
@@ -355,61 +394,6 @@ public class ScheduleImplementation implements ScheduleService {
                 throw new ScheduleException("Cannot perform any action on this. Permission Denied");
             }
         }
-    }
-
-    @Override
-    public ApiResponse<List<ScheduleResponse>> active() {
-        return new ApiResponse<>(active(userUtil.getUser().getId()));
-    }
-
-    private List<ScheduleResponse> active(UUID id) {
-        List<Schedule> schedules = scheduleRepository.active(id);
-        List<ScheduleResponse> list = new ArrayList<>();
-
-        if(schedules != null && !schedules.isEmpty()) {
-            list = schedules.stream()
-                    .sorted(Comparator.comparing(Schedule::getUpdatedAt))
-                    .map(schedule -> schedulingService.response(
-                            schedule,
-                            schedule.getProvider().getId().equals(id),
-                            userRepository.findById(id).map(User::isProfile).orElse(false)
-                    ))
-                    .toList();
-        }
-        return list;
-    }
-
-    @Override
-    public ApiResponse<List<ScheduleGroupResponse>> schedules() {
-        return new ApiResponse<>(schedules(userUtil.getUser().getId()));
-    }
-
-    private List<ScheduleGroupResponse> schedules(UUID id) {
-        List<Schedule> schedules = scheduleRepository.schedules(id);
-
-        if(schedules != null && !schedules.isEmpty()) {
-            List<ScheduleGroupResponse> list = new ArrayList<>();
-            Map<LocalDate, List<Schedule>> listMap = schedules.stream()
-                    .collect(Collectors.groupingBy(schedule -> schedule.getCreatedAt().toLocalDate()));
-            listMap.forEach((date, scheduleList) -> {
-                ScheduleGroupResponse response = new ScheduleGroupResponse();
-                response.setTime(LocalDateTime.of(date, scheduleList.getFirst().getCreatedAt().toLocalTime()));
-                response.setLabel(TimeUtil.formatChatLabel(LocalDateTime.of(date, scheduleList.getFirst().getCreatedAt().toLocalTime()), userUtil.getUser().getTimezone()));
-                response.setSchedules(scheduleList.stream()
-                        .sorted(Comparator.comparing(Schedule::getUpdatedAt).reversed())
-                        .map(schedule -> schedulingService.response(
-                                schedule,
-                                schedule.getProvider().getId().equals(id),
-                                userRepository.findById(id).map(User::isProfile).orElse(false)
-                        ))
-                        .toList()
-                );
-                list.add(response);
-            });
-            list.sort(Comparator.comparing(ScheduleGroupResponse::getTime).reversed());
-            return list;
-        }
-        return List.of();
     }
 
     @Override
@@ -444,6 +428,7 @@ public class ScheduleImplementation implements ScheduleService {
             responseAM.setIsPmTaken(false); // default value
             list.add(responseAM);
         }
+
         return list;
     }
 
@@ -486,8 +471,8 @@ public class ScheduleImplementation implements ScheduleService {
                 .forEach(schedule -> {
                     LocalTime currentTime = LocalTime.now();
                     LocalTime time = LocalTime.parse(schedule.getTime(), DateTimeFormatter.ofPattern("h:mma"));
+
                     if(time.equals(currentTime)) {
-                        /// TODO:: Send notification to both scheduler and scheduled
                         notificationService.send(
                                 schedule.getProvider().getId(),
                                 schedulingService.response(schedule, true, true)
@@ -516,6 +501,7 @@ public class ScheduleImplementation implements ScheduleService {
         closePendingOrAcceptedForTheDay(current);
     }
 
+    @Transactional
     protected void closePendingOrAcceptedForTheDay(ZonedDateTime current) {
         scheduleRepository.findByCreatedAtBetween(ZonedDateTime.of(LocalDate.now().atStartOfDay(), ZoneOffset.UTC), ZonedDateTime.of(LocalDate.now().atStartOfDay(), ZoneOffset.UTC))
                 .stream()
@@ -523,6 +509,7 @@ public class ScheduleImplementation implements ScheduleService {
                 .forEach(schedule -> performCloseAction(current, schedule));
     }
 
+    @Transactional
     protected void performCloseAction(ZonedDateTime current, Schedule schedule) {
         LocalDateTime currentTime = LocalDateTime.now();
         LocalDateTime requestedTime = LocalDateTime.of(LocalDate.now(), LocalTime.parse(schedule.getTime().toUpperCase(), formatter));
@@ -538,19 +525,8 @@ public class ScheduleImplementation implements ScheduleService {
             scheduleRepository.save(schedule);
         }
 
-        if(schedule.getProvider().isAssociate()) {
-            template.convertAndSend(
-                    "/platform/%s".formatted(String.valueOf(schedule.getProvider().getBusiness().getId())),
-                    active(schedule.getProvider().getBusiness().getId())
-            );
-        }
-        template.convertAndSend(
-                "/platform/%s".formatted(String.valueOf(schedule.getProvider().getId())),
-                active(schedule.getProvider().getId())
-        );
-        template.convertAndSend(
-                "/platform/%s".formatted(String.valueOf(schedule.getUser().getId())),
-                active(schedule.getUser().getId())
-        );
+        sendActiveNotification(schedule);
+        sendPendingNotification(schedule);
+        sendInactiveNotification(schedule);
     }
 }

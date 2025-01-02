@@ -2,6 +2,8 @@ package com.serch.server.services.auth.controllers;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.services.auth.requests.RequestEmailToken;
+import com.serch.server.services.auth.requests.RequestLogin;
+import com.serch.server.services.auth.responses.PendingRegistrationResponse;
 import com.serch.server.services.auth.services.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +24,12 @@ public class AuthController {
     @PostMapping("/email/verify")
     public ResponseEntity<ApiResponse<String>> verifyEmailAndToken(@RequestBody RequestEmailToken request) {
         ApiResponse<String> response = authService.verifyEmailOtp(request);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @PostMapping("/email/verify/pending")
+    public ResponseEntity<ApiResponse<PendingRegistrationResponse>> verifyPending(@RequestBody RequestLogin request) {
+        ApiResponse<PendingRegistrationResponse> response = authService.verifyPendingRegistration(request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 }

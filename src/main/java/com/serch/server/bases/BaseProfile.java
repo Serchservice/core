@@ -55,4 +55,7 @@ public class BaseProfile extends BaseUser {
      */
     @Column(name = "fcm_token", columnDefinition = "TEXT")
     private String fcmToken = null;
+
+    @Column(name = "public_enc_key", columnDefinition = "TEXT DEFAULT ''", nullable = false)
+    private String publicEncryptionKey = "";
 }

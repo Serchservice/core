@@ -141,7 +141,7 @@ public interface WalletService {
      *
      * @return An ApiResponse containing a list of TransactionGroupResponse objects.
      */
-    ApiResponse<List<TransactionGroupResponse>> transactions();
+    ApiResponse<List<TransactionGroupResponse>> transactions(Integer page, Integer size);
 
     /**
      * Fetches the recent transactions of the logged-in user.

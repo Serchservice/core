@@ -24,4 +24,14 @@ public interface ProfileRepository extends JpaRepository<Profile, UUID> {
 
     @Query("select p from Profile p where p.business.id = ?1 and p.user.status != 'BUSINESS_DELETED'")
     Page<Profile> findActiveAssociatesByBusinessId(@NonNull UUID id, Pageable pageable);
+
+    @Query("""
+      select p from Profile p where p.business.id = :id and p.user.status != 'BUSINESS_DELETED'
+      and (
+          lower(p.user.firstName) like lower(concat('%', :q, '%')) or lower(p.user.lastName) like lower(concat('%', :q, '%'))\s
+          or lower(p.category) like lower(concat('%', :q, '%')) or lower(p.user.status) like lower(concat('%', :q, '%'))\s
+          or lower(p.user.emailAddress) like lower(concat('%', :q, '%'))
+      )
+    """)
+    Page<Profile> searchActiveAssociates(@NonNull UUID id, @NonNull String q, Pageable pageable);
 }

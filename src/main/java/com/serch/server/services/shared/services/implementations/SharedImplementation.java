@@ -63,6 +63,9 @@ public class SharedImplementation implements SharedService {
     @Value("${application.trip.count.min}")
     private Integer TRIP_MIN_COUNT_BEFORE_CHARGE;
 
+    @Value("${application.link.invite.shared}")
+    private String SHARED_INVITE_LINK;
+
     @Override
     public ApiResponse<List<AccountResponse>> accounts(String id) {
         Guest guest = guestRepository.findById(id).orElseThrow(() -> new SharedException("Guest not found"));
@@ -77,7 +80,8 @@ public class SharedImplementation implements SharedService {
                 .replaceAll("-", "")
                 .replaceAll("_", "");
         String cat = category.toLowerCase().replaceAll(" ", "-");
-        return "https://www.serchservice.com/provider/request?category=%s&shared_by=%s".formatted(cat, code);
+
+        return "%s?category=%s&shared_by=%s".formatted(SHARED_INVITE_LINK, cat, code);
     }
 
     @Override

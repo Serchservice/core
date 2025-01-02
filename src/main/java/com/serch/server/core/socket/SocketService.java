@@ -27,5 +27,5 @@ public interface SocketService {
      *                 information such as session ID, user information, and other
      *                 metadata associated with the WebSocket connection.
      */
-    void authenticate(SimpMessageHeaderAccessor accessor);
+    void check(SimpMessageHeaderAccessor accessor);
 }

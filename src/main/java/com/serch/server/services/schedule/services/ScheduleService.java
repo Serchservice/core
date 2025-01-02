@@ -3,9 +3,9 @@ package com.serch.server.services.schedule.services;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.services.schedule.requests.ScheduleDeclineRequest;
 import com.serch.server.services.schedule.requests.ScheduleRequest;
-import com.serch.server.services.schedule.responses.ScheduleGroupResponse;
 import com.serch.server.services.schedule.responses.ScheduleResponse;
 import com.serch.server.services.schedule.responses.ScheduleTimeResponse;
+import com.serch.server.services.schedule.services.implementations.ScheduleImplementation;
 import com.serch.server.services.trip.responses.TripResponse;
 
 import java.util.List;
@@ -78,24 +78,6 @@ public interface ScheduleService {
      * @see ScheduleDeclineRequest
      */
     ApiResponse<String> decline(ScheduleDeclineRequest request);
-
-    /**
-     * Retrieves a list of scheduled appointments for the current day.
-     *
-     * @return A response containing a list of scheduled appointments for the current day.
-     *
-     * @see ScheduleResponse
-     */
-    ApiResponse<List<ScheduleResponse>> active();
-
-    /**
-     * Retrieves a list of all scheduled appointments for the user.
-     *
-     * @return A response containing a list of all scheduled appointments for the user.
-     *
-     * @see ScheduleGroupResponse
-     */
-    ApiResponse<List<ScheduleGroupResponse>> schedules();
 
     /**
      * Retrieves available time slots for scheduling appointments with a specific provider.

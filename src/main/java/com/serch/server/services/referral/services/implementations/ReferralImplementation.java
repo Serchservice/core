@@ -1,4 +1,4 @@
-package com.serch.server.services.referral.services;
+package com.serch.server.services.referral.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.models.account.BusinessProfile;
@@ -9,6 +9,7 @@ import com.serch.server.repositories.account.BusinessProfileRepository;
 import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.referral.ReferralRepository;
 import com.serch.server.services.referral.responses.ReferralResponse;
+import com.serch.server.services.referral.services.ReferralService;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;

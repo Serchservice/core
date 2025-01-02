@@ -9,7 +9,6 @@ import com.serch.server.repositories.account.*;
 import com.serch.server.repositories.auth.SessionRepository;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.auth.mfa.MFAFactorRepository;
-import com.serch.server.repositories.bookmark.BookmarkRepository;
 import com.serch.server.repositories.company.SpeakWithSerchRepository;
 import com.serch.server.repositories.conversation.CallRepository;
 import com.serch.server.repositories.conversation.ChatMessageRepository;
@@ -47,7 +46,6 @@ public class AccountRemovalImplementation implements AccountRemovalService {
     private final MFAFactorRepository mFAFactorRepository;
     private final SessionRepository sessionRepository;
     private final UserRepository userRepository;
-    private final BookmarkRepository bookmarkRepository;
     private final CallRepository callRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final ChatRoomRepository chatRoomRepository;

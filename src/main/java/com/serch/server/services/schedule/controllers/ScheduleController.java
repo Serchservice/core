@@ -1,9 +1,8 @@
-package com.serch.server.services.schedule;
+package com.serch.server.services.schedule.controllers;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.services.schedule.requests.ScheduleDeclineRequest;
 import com.serch.server.services.schedule.requests.ScheduleRequest;
-import com.serch.server.services.schedule.responses.ScheduleGroupResponse;
 import com.serch.server.services.schedule.responses.ScheduleResponse;
 import com.serch.server.services.schedule.responses.ScheduleTimeResponse;
 import com.serch.server.services.schedule.services.ScheduleService;
@@ -21,18 +20,6 @@ import java.util.UUID;
 @RequestMapping("/schedule")
 public class ScheduleController {
     private final ScheduleService service;
-
-    @GetMapping("/all")
-    public ResponseEntity<ApiResponse<List<ScheduleGroupResponse>>> schedules() {
-        ApiResponse<List<ScheduleGroupResponse>> response = service.schedules();
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
-    @GetMapping("/all/active")
-    public ResponseEntity<ApiResponse<List<ScheduleResponse>>> today() {
-        ApiResponse<List<ScheduleResponse>> response = service.active();
-        return new ResponseEntity<>(response, response.getStatus());
-    }
 
     @GetMapping("/all/times/{provider}")
     @PreAuthorize("hasRole('USER')")

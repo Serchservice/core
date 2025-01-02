@@ -47,6 +47,10 @@ public class ChatMessage extends BaseDateTime {
     @NotBlank(message = "Message cannot be empty or null")
     private String message;
 
+    @Column(name = "sender_message", columnDefinition = "TEXT DEFAULT ''", nullable = false)
+    @NotBlank(message = "Sender Message cannot be empty or null")
+    private String senderMessage;
+
     @Column(name = "status", nullable = false)
     @Enumerated(value = EnumType.STRING)
     @SerchEnum(message = "MessageStatus must be an enum")

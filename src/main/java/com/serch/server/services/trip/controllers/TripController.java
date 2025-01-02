@@ -1,11 +1,9 @@
 package com.serch.server.services.trip.controllers;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.core.socket.SocketService;
 import com.serch.server.services.trip.requests.*;
 import com.serch.server.services.trip.responses.ActiveResponse;
 import com.serch.server.services.trip.responses.TripResponse;
-import com.serch.server.services.trip.services.TripHistoryService;
 import com.serch.server.services.trip.services.TripService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,20 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/trip")
 public class TripController {
-    private final TripHistoryService historyService;
     private final TripService service;
-    private final SocketService socket;
-
-    @GetMapping("/history")
-    public ResponseEntity<ApiResponse<List<TripResponse>>> history(
-            @RequestParam(required = false) String guest,
-            @RequestParam(required = false) String link,
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer size
-    ) {
-        ApiResponse<List<TripResponse>> response = historyService.history(guest, link, page, size);
-        return new ResponseEntity<>(response, response.getStatus());
-    }
 
     @GetMapping("/pay/service_fee")
     @PreAuthorize("hasRole('PROVIDER') || hasRole('ASSOCIATE_PROVIDER')")
@@ -124,7 +109,7 @@ public class TripController {
 
     @MessageMapping("/trip/update")
     public void update(@Payload MapViewRequest request, SimpMessageHeaderAccessor header) {
-        socket.authenticate(header);
+//        socket.authenticate(header);
         service.update(request);
     }
 }

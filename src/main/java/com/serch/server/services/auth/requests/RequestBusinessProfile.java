@@ -1,6 +1,5 @@
 package com.serch.server.services.auth.requests;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
@@ -14,8 +13,6 @@ public class RequestBusinessProfile {
     private String place;
     private String state;
     private String country;
-
-    @JsonProperty("email_address")
-    private String emailAddress;
+    private String token;
     private RequestDevice device;
 }

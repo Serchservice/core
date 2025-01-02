@@ -10,5 +10,6 @@ import java.util.Optional;
 
 public interface IncompleteRepository extends JpaRepository<Incomplete, Long> {
     Optional<Incomplete> findByEmailAddress(String emailAddress);
+
     List<Incomplete> findByCreatedAtBefore(@NonNull ZonedDateTime createdAt);
 }

@@ -29,6 +29,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class SpeakWithSerchImplementation implements SpeakWithSerchService {
+    private final UserUtil userUtil;
     private final UserRepository userRepository;
     private final SpeakWithSerchRepository speakWithSerchRepository;
     private final IssueRepository issueRepository;
@@ -51,13 +52,18 @@ public class SpeakWithSerchImplementation implements SpeakWithSerchService {
                 return new ApiResponse<>(prepareSpeakWithSerchResponse(existing.get()));
             }
         } else {
-            SpeakWithSerch serch = new SpeakWithSerch();
-            serch.setUser(user);
-            serch.setStatus(IssueStatus.OPENED);
-            SpeakWithSerch saved = speakWithSerchRepository.save(serch);
+            SpeakWithSerch saved = getSpeakWithSerch(user);
             saved.setIssues(List.of(saveNewIssue(request, user, saved)));
             return new ApiResponse<>(prepareSpeakWithSerchResponse(saved));
         }
+    }
+
+    private SpeakWithSerch getSpeakWithSerch(User user) {
+        SpeakWithSerch serch = new SpeakWithSerch();
+        serch.setUser(user);
+        serch.setStatus(IssueStatus.OPENED);
+
+        return speakWithSerchRepository.save(serch);
     }
 
     private Issue saveNewIssue(IssueRequest request, User user, SpeakWithSerch serch) {
@@ -66,6 +72,7 @@ public class SpeakWithSerchImplementation implements SpeakWithSerchService {
         issue.setSender(String.valueOf(user.getId()));
         issue.setSpeakWithSerch(serch);
         issue.setIsRead(true);
+
         return issueRepository.save(issue);
     }
 
@@ -73,54 +80,78 @@ public class SpeakWithSerchImplementation implements SpeakWithSerchService {
         SpeakWithSerchResponse response = CompanyMapper.INSTANCE.response(speakWithSerch);
         response.setLabel(TimeUtil.formatDay(speakWithSerch.getCreatedAt(), ""));
         response.setTime(TimeUtil.formatDay(speakWithSerch.getUpdatedAt(), ""));
-        response.setIssues(
-                speakWithSerch.getIssues() != null
-                        ? speakWithSerch.getIssues().stream()
-                        .sorted(Comparator.comparing(Issue::getCreatedAt))
-                        .map(issue -> {
-                            IssueResponse res = CompanyMapper.INSTANCE.response(issue);
-                            res.setIsSerch(!issue.getSender().equals(String.valueOf(speakWithSerch.getUser().getId())));
-                            res.setLabel(TimeUtil.formatDay(issue.getCreatedAt(), ""));
-                            return res;
-                        }).toList()
-                        : List.of()
-        );
+        response.setTotal(speakWithSerch.getIssues().size());
+        response.setHasSerchMessage(speakWithSerch.getIssues().stream().anyMatch((i) -> !i.getIsRead() && !i.getSender().equals(userUtil.getUser().getId().toString())));
+
+        if(!speakWithSerch.getIssues().isEmpty()) {
+            response.setIssues(getIssues(speakWithSerch.getTicket(), null,  null));
+        }
+
         return response;
     }
 
     @Override
     public ApiResponse<List<SpeakWithSerchResponse>> messages(Integer page, Integer size) {
-        User user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
-                .orElseThrow(() -> new CompanyException("User not found"));
+        return new ApiResponse<>(getTickets( page, size));
+    }
 
-        Page<SpeakWithSerch> speak = speakWithSerchRepository.findByUser_Id(user.getId(), HelperUtil.getPageable(page, size));
+    private List<SpeakWithSerchResponse> getTickets( Integer page, Integer size) {
+        Page<SpeakWithSerch> speak = speakWithSerchRepository
+                .findByUserId(userUtil.getUser().getId(), HelperUtil.getPageable(page, size));
+
         if(speak != null) {
-            return new ApiResponse<>(speak.getContent()
+            return speak.getContent()
                     .stream()
                     .sorted(Comparator.comparing(SpeakWithSerch::getUpdatedAt))
                     .map(this::prepareSpeakWithSerchResponse)
-                    .toList()
-            );
+                    .toList();
         } else {
-            return new ApiResponse<>(List.of());
+            return List.of();
         }
     }
 
     @Override
+    public ApiResponse<List<IssueResponse>> issues(String ticket, Integer page, Integer size) {
+        return new ApiResponse<>(getIssues(ticket, page, size));
+    }
+
+    private List<IssueResponse> getIssues(String ticket, Integer page, Integer size) {
+        Page<Issue> issues = issueRepository.findBySpeakWithSerchTicket(ticket, HelperUtil.getPageable(page, size));
+
+        if(issues != null) {
+            return issues.getContent()
+                    .stream()
+                    .sorted(Comparator.comparing(Issue::getUpdatedAt))
+                    .map(this::getIssueResponse)
+                    .toList();
+        } else {
+            return List.of();
+        }
+    }
+
+    private IssueResponse getIssueResponse(Issue issue) {
+        IssueResponse response = CompanyMapper.INSTANCE.response(issue);
+        response.setIsSerch(!issue.getSender().equals(String.valueOf(userUtil.getUser().getId())));
+        response.setLabel(TimeUtil.formatDay(issue.getCreatedAt(), ""));
+
+        return response;
+    }
+
+    @Override
     public ApiResponse<List<SpeakWithSerchResponse>> markRead(String ticket) {
-        User user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
-                .orElseThrow(() -> new CompanyException("User not found"));
         SpeakWithSerch speakWithSerch = speakWithSerchRepository.findById(ticket)
                 .orElseThrow(() -> new CompanyException("Content not found. Might have been removed by Serch"));
+
         speakWithSerch.getIssues().stream()
                 .filter(serch -> !serch.getIsRead())
-                .filter(serch -> !serch.getSender().equals(String.valueOf(user.getId())))
+                .filter(serch -> !serch.getSender().equals(String.valueOf(userUtil.getUser().getId())))
                 .forEach(serch -> {
                     serch.setIsRead(true);
                     serch.setUpdatedAt(TimeUtil.now());
                     issueRepository.save(serch);
                 });
-        return messages(null, null);
+
+        return new ApiResponse<>(getTickets(speakWithSerch.getIssues().size() - 1, null));
     }
 
     @Override

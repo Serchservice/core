@@ -7,8 +7,6 @@ import com.serch.server.services.trip.requests.TripCancelRequest;
 import com.serch.server.services.trip.requests.TripInviteRequest;
 import com.serch.server.services.trip.responses.TripResponse;
 
-import java.util.List;
-
 /**
  * Service interface for handling trip requests.
  * <p>
@@ -132,25 +130,4 @@ public interface TripRequestService {
      * @see ApiResponse
      */
     ApiResponse<String> cancel(TripCancelRequest request, Long quoteId);
-
-    /**
-     * Retrieves the history of trip requests.
-     * <p>
-     * This method returns a list of trip responses for the specified guest and
-     * shared link identifiers, which are optional.
-     * </p>
-     *
-     * @param guestId The optional guest identifier for filtering the trip
-     *                history.
-     * @param linkId  The optional shared link identifier for filtering the
-     *                trip history.
-     * @param page The page number to retrieve (zero-based index).
-     * @param size The number of items per page.
-     * @return An {@link ApiResponse} containing a list of {@link TripResponse}
-     *         objects representing the history of trip requests.
-     *
-     * @see ApiResponse
-     * @see TripResponse
-     */
-    ApiResponse<List<TripResponse>> history(String guestId, String linkId, Integer page, Integer size);
 }

@@ -16,6 +16,7 @@ public interface ConversationMapper {
             @Mapping(target = "sentAt", source = "createdAt"),
     })
     ChatMessageResponse response(ChatMessage message);
+
     @Mapping(target = "sender", source = "sender", ignore = true)
     ChatReplyResponse reply(ChatMessage message);
 }

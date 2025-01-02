@@ -233,7 +233,7 @@ public class TripImplementation implements TripService {
             activeService.toggle(trip.getInvited().getProvider().getUser(), ONLINE, TripMapper.INSTANCE.request(trip));
         }
 
-        return historyService.history(request.getGuest(), request.getLinkId(), true, trip.getId(), null, null);
+        return historyService.history(request.getGuest(), request.getLinkId(), null, null, true, trip.getId());
     }
 
     @Override
@@ -282,7 +282,7 @@ public class TripImplementation implements TripService {
             );
         }
 
-        return historyService.history(request.getGuest(), request.getLinkId(), true, trip.getId(), null, null);
+        return historyService.history(request.getGuest(), request.getLinkId(), null, null, true, trip.getId());
     }
 
     @Override
@@ -363,7 +363,7 @@ public class TripImplementation implements TripService {
                     String.valueOf(userUtil.getUser().getId()), null, false
             );
 
-            return historyService.history(null, null, true, trip.getId(), null, null);
+            return historyService.history(null, null, null, null, true, trip.getId());
         }
         throw new TripException("You cannot leave trip unless there is another provider on the trip");
     }
@@ -498,6 +498,7 @@ public class TripImplementation implements TripService {
                     view.setSharing(share);
                     mapViewRepository.save(view);
                 }
+
                 sendViewUpdate(view, share.getTrip());
             }
         } else {
@@ -512,6 +513,7 @@ public class TripImplementation implements TripService {
                     view.setTrip(trip);
                     mapViewRepository.save(view);
                 }
+
                 sendViewUpdate(view, trip);
             }
         }
@@ -519,7 +521,8 @@ public class TripImplementation implements TripService {
 
     private void sendViewUpdate(MapView view, Trip share) {
         MapViewResponse response = TripMapper.INSTANCE.view(view);
-        messaging.convertAndSend("/platform/location/%s/%s".formatted(share.getId(), share.getAccount()), response);
+
+        messaging.convertAndSend("/platform/%s/trip/%s/location".formatted(share.getAccount(), share.getId()), response);
         historyService.response(share.getId(), String.valueOf(userUtil.getUser().getId()), null, true, null);
     }
 
@@ -530,6 +533,7 @@ public class TripImplementation implements TripService {
         view.setLatitude(request.getLatitude());
         view.setBearing(request.getBearing());
         view.setUpdatedAt(TimeUtil.now());
+
         mapViewRepository.save(view);
     }
 }

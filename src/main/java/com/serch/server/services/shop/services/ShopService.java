@@ -4,9 +4,7 @@ import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.shop.DriveScope;
 import com.serch.server.enums.shop.ShopStatus;
 import com.serch.server.models.shop.Shop;
-import com.serch.server.services.shop.requests.CreateShopRequest;
-import com.serch.server.services.shop.requests.ShopWeekdayRequest;
-import com.serch.server.services.shop.requests.UpdateShopRequest;
+import com.serch.server.services.shop.requests.*;
 import com.serch.server.services.shop.responses.SearchShopResponse;
 import com.serch.server.services.shop.responses.ShopResponse;
 
@@ -54,11 +52,10 @@ public interface ShopService {
      * This method allows for expanding the range of services offered by the shop,
      * enhancing its value to customers.
      *
-     * @param service The name of the service to be added.
-     * @param shopId The ID of the shop that will offer this service.
+     * @param request The request containing service details of the shop.
      * @return An {@link ApiResponse} containing the updated {@link ShopResponse} reflecting the newly added service.
      */
-    ApiResponse<ShopResponse> create(String shopId, String service);
+    ApiResponse<ShopResponse> create(CreateShopServiceRequest request);
 
     /**
      * Updates details of an existing shop with new information.
@@ -85,12 +82,10 @@ public interface ShopService {
      * Updates the details of a service associated with a shop.
      * This method allows the shop to modify service offerings, such as changing descriptions or prices.
      *
-     * @param service The name of the service with updated details.
-     * @param id The ID of the service to be updated.
-     * @param shopId The ID of the shop that provides the service.
+     * @param request The request containing updated details for the shop service.
      * @return An {@link ApiResponse} containing the updated {@link ShopResponse} reflecting the service changes.
      */
-    ApiResponse<ShopResponse> update(Long id, String shopId, String service);
+    ApiResponse<ShopResponse> update(UpdateShopServiceRequest request);
 
     /**
      * Fetches a list of all existing shops in the system.

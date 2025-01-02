@@ -22,12 +22,14 @@ public class BankController {
     @GetMapping("/verify")
     public ResponseEntity<ApiResponse<BankAccount>> verify(@RequestParam String number, @RequestParam String code) {
         ApiResponse<BankAccount> response = service.verify(number, code);
+
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/banks")
     public ResponseEntity<ApiResponse<List<Bank>>> banks() {
         ApiResponse<List<Bank>> response = service.banks();
+
         return ResponseEntity.ok(response);
     }
 }

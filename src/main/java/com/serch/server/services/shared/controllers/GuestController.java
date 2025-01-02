@@ -23,15 +23,15 @@ public class GuestController {
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @PatchMapping("/fcm/update")
+    @PatchMapping("/update/fcm")
     public ResponseEntity<ApiResponse<String>> updateFcmToken(@RequestParam String token, @RequestParam String guest) {
         ApiResponse<String> response = service.updateFcmToken(token, guest);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @PatchMapping("/update")
-    public ResponseEntity<ApiResponse<String>> updateTimezone(@RequestParam String timezone, @RequestParam String guest) {
-        ApiResponse<String> response = service.updateTimezone(timezone, guest);
+    @PatchMapping("/update/timezone")
+    public ResponseEntity<ApiResponse<String>> updateTimezone(@RequestParam String zone, @RequestParam String guest) {
+        ApiResponse<String> response = service.updateTimezone(zone, guest);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

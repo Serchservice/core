@@ -30,5 +30,6 @@ public interface SpeakWithSerchRepository extends JpaRepository<SpeakWithSerch, 
     @Query("select count(s) from SpeakWithSerch s where YEAR(s.createdAt) =  ?1 and s.status = ?2")
     long countByYearAndStatus(Integer year, IssueStatus status);
 
-    Page<SpeakWithSerch> findByUser_Id(@NonNull UUID id, Pageable pageable);
+    @Query("select s from SpeakWithSerch s where s.user.id = ?1 order by s.updatedAt desc")
+    Page<SpeakWithSerch> findByUserId(@NonNull UUID id, Pageable pageable);
 }

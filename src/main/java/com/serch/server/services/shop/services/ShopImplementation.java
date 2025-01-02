@@ -14,9 +14,7 @@ import com.serch.server.models.shop.ShopWeekday;
 import com.serch.server.repositories.shop.ShopRepository;
 import com.serch.server.repositories.shop.ShopServiceRepository;
 import com.serch.server.repositories.shop.ShopWeekdayRepository;
-import com.serch.server.services.shop.requests.CreateShopRequest;
-import com.serch.server.services.shop.requests.ShopWeekdayRequest;
-import com.serch.server.services.shop.requests.UpdateShopRequest;
+import com.serch.server.services.shop.requests.*;
 import com.serch.server.services.shop.responses.SearchShopResponse;
 import com.serch.server.services.shop.responses.ShopResponse;
 import com.serch.server.services.shop.responses.ShopWeekdayResponse;
@@ -85,6 +83,7 @@ public class ShopImplementation implements ShopService {
     protected ApiResponse<ShopResponse> getUpdatedShopResponse(String shopId) {
         Shop updatedShop = shopRepository.findByIdAndUser_Id(shopId, userUtil.getUser().getId())
                 .orElseThrow(() -> new ShopException("Shop not found"));
+
         return new ApiResponse<>(response(updatedShop));
     }
 
@@ -93,11 +92,8 @@ public class ShopImplementation implements ShopService {
         if(HelperUtil.isUploadEmpty(request.getUpload())) {
             throw new ShopException("Shop logo or image is needed");
         } else {
-            String logo = storageService.upload(request.getUpload(), "shops");
-            Shop newShop = ShopMapper.INSTANCE.shop(request);
-            newShop.setUser(userUtil.getUser());
-            newShop.setLogo(logo);
-            Shop shop = shopRepository.save(newShop);
+            Shop shop = getShop(request);
+
             if(request.getServices() != null && !request.getServices().isEmpty()) {
                 request.getServices()
                         .stream()
@@ -125,10 +121,21 @@ public class ShopImplementation implements ShopService {
         return fetch(null, null);
     }
 
+    private Shop getShop(CreateShopRequest request) {
+        String logo = storageService.upload(request.getUpload(), "shops");
+
+        Shop newShop = ShopMapper.INSTANCE.shop(request);
+        newShop.setUser(userUtil.getUser());
+        newShop.setLogo(logo);
+
+        return shopRepository.save(newShop);
+    }
+
     @Override
     public ApiResponse<ShopResponse> create(String shopId, ShopWeekdayRequest request) {
         Shop shop = shopRepository.findByIdAndUser_Id(shopId, userUtil.getUser().getId())
                 .orElseThrow(() -> new ShopException("Shop not found"));
+
         ShopWeekday weekday = new ShopWeekday();
         weekday.setShop(shop);
         weekday.setClosing(TimeUtil.toTime(request.getClosing()));
@@ -140,15 +147,16 @@ public class ShopImplementation implements ShopService {
     }
 
     @Override
-    public ApiResponse<ShopResponse> create(String shopId, String service) {
-        Shop shop = shopRepository.findByIdAndUser_Id(shopId, userUtil.getUser().getId())
+    public ApiResponse<ShopResponse> create(CreateShopServiceRequest request) {
+        Shop shop = shopRepository.findByIdAndUser_Id(request.getId(), userUtil.getUser().getId())
                 .orElseThrow(() -> new ShopException("Shop not found"));
+
         ShopSpecialty newService = new ShopSpecialty();
         newService.setShop(shop);
-        newService.setService(service);
+        newService.setService(request.getService());
         shopServiceRepository.save(newService);
 
-        return getUpdatedShopResponse(shopId);
+        return getUpdatedShopResponse(request.getId());
     }
 
     @Override
@@ -183,6 +191,7 @@ public class ShopImplementation implements ShopService {
     public ApiResponse<ShopResponse> update(Long id, String shopId, ShopWeekdayRequest request) {
         ShopWeekday weekday = shopWeekdayRepository.findByIdAndShop_Id(id, shopId)
                 .orElseThrow(() -> new ShopException("Weekday not found"));
+
         if(!weekday.getClosing().equals(TimeUtil.toTime(request.getClosing()))) {
             weekday.setClosing(TimeUtil.toTime(request.getClosing()));
         }
@@ -191,19 +200,22 @@ public class ShopImplementation implements ShopService {
         }
         weekday.setUpdatedAt(TimeUtil.now());
         shopWeekdayRepository.save(weekday);
+
         return getUpdatedShopResponse(shopId);
     }
 
     @Override
-    public ApiResponse<ShopResponse> update(Long id, String shopId, String service) {
-        ShopSpecialty shopSpecialty = shopServiceRepository.findByIdAndShop_Id(id, shopId)
+    public ApiResponse<ShopResponse> update(UpdateShopServiceRequest request) {
+        ShopSpecialty shopSpecialty = shopServiceRepository.findByIdAndShop_Id(request.getId(), request.getShop())
                 .orElseThrow(() -> new ShopException("Service not found"));
-        if(!shopSpecialty.getService().equalsIgnoreCase(service)) {
-            shopSpecialty.setService(service);
+
+        if(!shopSpecialty.getService().equalsIgnoreCase(request.getService())) {
+            shopSpecialty.setService(request.getService());
             shopSpecialty.setUpdatedAt(TimeUtil.now());
             shopServiceRepository.save(shopSpecialty);
         }
-        return getUpdatedShopResponse(shopId);
+
+        return getUpdatedShopResponse(request.getShop());
     }
 
     @Override
@@ -247,6 +259,7 @@ public class ShopImplementation implements ShopService {
         shop.setStatus(status);
         shop.setUpdatedAt(TimeUtil.now());
         shopRepository.save(shop);
+
         return getUpdatedShopResponse(shopId);
     }
 
@@ -262,6 +275,7 @@ public class ShopImplementation implements ShopService {
                 }
                 shop.setUpdatedAt(TimeUtil.now());
             }).forEach(shopRepository::save);
+
             return fetch(null, null);
         } else {
             throw new ShopException("You have no shops");
@@ -292,9 +306,13 @@ public class ShopImplementation implements ShopService {
 
         if(scope == DriveScope.ALL) {
             addSerchShops(list, query, category, longitude, latitude, radius, page, size);
-            addGoogleShops(list, query, category, longitude, latitude, radius);
+            if(page == null || page == 0) {
+                addGoogleShops(list, query, category, longitude, latitude, radius);
+            }
         } else if(scope == DriveScope.GOOGLE) {
-            addGoogleShops(list, query, category, longitude, latitude, radius);
+            if(page == null || page == 0) {
+                addGoogleShops(list, query, category, longitude, latitude, radius);
+            }
         } else {
             addSerchShops(list, query, category, longitude, latitude, radius, page, size);
         }

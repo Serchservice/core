@@ -19,12 +19,6 @@ public class ChatMessageResponse {
     private String name;
     private ChatReplyResponse reply;
 
-    @JsonProperty("has_only_emojis")
-    private Boolean hasOnlyEmojis;
-
-    @JsonProperty("has_only_one_emoji")
-    private Boolean hasOnlyOneEmoji;
-
     @JsonProperty("file_size")
     private String fileSize;
 

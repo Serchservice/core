@@ -1,4 +1,4 @@
-package com.serch.server.configurations;
+package com.serch.server.configurations.server;
 
 import com.serch.server.bases.ApiResponse;
 import lombok.RequiredArgsConstructor;

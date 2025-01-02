@@ -1,4 +1,4 @@
-package com.serch.server.configurations;
+package com.serch.server.configurations.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.serch.server.bases.ApiResponse;

@@ -34,15 +34,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.jdbc.datasource.lookup.DataSourceLookupFailureException;
+import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
@@ -227,256 +230,341 @@ import java.util.stream.Collectors;
 public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(ServerExceptionHandler.class);
 
-    private final SimpMessagingTemplate simpMessagingTemplate;
-
     @ExceptionHandler(AdminException.class)
     public ApiResponse<String> handleAdminException(AdminException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
+
+
         return response;
     }
 
     @ExceptionHandler(VerificationException.class)
     public ApiResponse<String> handleVerificationException(VerificationException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return response;
     }
 
     @ExceptionHandler(PermissionException.class)
     public ApiResponse<String> handlePermissionException(PermissionException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return response;
     }
 
     @ExceptionHandler(ChatException.class)
     @MessageExceptionHandler(ChatException.class)
     public ApiResponse<String> handleChatException(ChatException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
-        simpMessagingTemplate.convertAndSendToUser(
-                exception.getUser(),
-                "/queue/errors",
-                exception.getMessage()
-        );
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return response;
     }
 
     @ExceptionHandler(ChatRoomException.class)
     public ApiResponse<String> handleChatRoomException(ChatRoomException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return response;
     }
 
     @ExceptionHandler(CertificateException.class)
     public ApiResponse<String> handleCertificateException(CertificateException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return response;
     }
 
     @ExceptionHandler(CallException.class)
     public ApiResponse<String> handleCallException(CallException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getCode() != null ? exception.getCode() : exception.getLocalizedMessage());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return response;
     }
 
     @ExceptionHandler(RatingException.class)
     public ApiResponse<String> handleRatingException(RatingException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return response;
     }
 
     @ExceptionHandler(ScheduleException.class)
     public ApiResponse<String> handleScheduleException(ScheduleException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return response;
     }
 
     @ExceptionHandler(AccountException.class)
     public ApiResponse<String> handleAccountException(AccountException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return response;
     }
 
     @ExceptionHandler(ReferralException.class)
     public ApiResponse<String> handleReferralException(ReferralException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return response;
     }
 
     @ExceptionHandler(AuthException.class)
     public ApiResponse<String> handleAuthException(AuthException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getCode());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return response;
     }
 
     @ExceptionHandler(SessionException.class)
     public ApiResponse<String> handleSessionException(SessionException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getCode());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return response;
     }
 
     @ExceptionHandler(EmailException.class)
     public ApiResponse<String> handleEmailException(EmailException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return response;
     }
 
     @ExceptionHandler(CompanyException.class)
     public ApiResponse<String> handleCountryException(CompanyException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return response;
     }
 
     @ExceptionHandler(HelpException.class)
     public ApiResponse<String> handleHelpException(HelpException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return response;
     }
 
     @ExceptionHandler(NearbyException.class)
     public ApiResponse<String> handleNearbyException(NearbyException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return response;
     }
 
     @ExceptionHandler(MediaBlogException.class)
     public ApiResponse<String> handleMediaBlogException(MediaBlogException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return response;
     }
 
     @ExceptionHandler(MediaLegalException.class)
     public ApiResponse<String> handleMediaLegalException(MediaLegalException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return response;
     }
 
     @ExceptionHandler(MediaAssetException.class)
     public ApiResponse<String> handleMediaAssetException(MediaAssetException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return response;
     }
 
     @ExceptionHandler(MediaNewsroomException.class)
     public ApiResponse<String> handleMediaNewsroomException(MediaNewsroomException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return response;
     }
 
     @ExceptionHandler(WalletException.class)
     public ApiResponse<String> handleWalletException(WalletException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return response;
     }
 
     @ExceptionHandler(PaymentException.class)
     public ApiResponse<String> handlePaymentException(PaymentException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return response;
     }
 
     @ExceptionHandler(SerchException.class)
     public ApiResponse<String> handleSerchException(SerchException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return response;
     }
 
     @ExceptionHandler(BookmarkException.class)
     public ApiResponse<String> handleBookmarkException(BookmarkException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return response;
     }
 
     @ExceptionHandler(ShopException.class)
     public ApiResponse<String> handleShopException(ShopException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return response;
     }
 
     @ExceptionHandler(StorageException.class)
     public ApiResponse<String> handleStorageException(StorageException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return response;
     }
 
     @ExceptionHandler(SharedException.class)
     public ApiResponse<String> handleSharedException(SharedException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getCode());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return response;
     }
 
     @ExceptionHandler(TripException.class)
     public ApiResponse<String> handleTripException(TripException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return response;
     }
 
     @ExceptionHandler(MapException.class)
     public ApiResponse<String> handleMapException(MapException exception) {
-        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
         response.setData(exception.getLocalizedMessage());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return response;
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ApiResponse<Map<String, Object>> handleConstraintViolationException(ConstraintViolationException exception) {
+        log.error(exception.getMessage());
+
         int violationsCount = exception.getConstraintViolations().size();
         String message;
 
@@ -503,7 +591,8 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
             data.put("Reason %s".formatted(count), reason.getMessage());
         }
         response.setData(data);
-        log.error(exception.getMessage());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
 
         return response;
     }
@@ -511,57 +600,57 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(DisabledException.class)
     public ApiResponse<String> handleDisabledException(DisabledException exception) {
         log.error(exception.getMessage());
-        return new ApiResponse<>(
-                exception.getMessage(),
-                ExceptionCodes.ACCOUNT_DISABLED,
-                HttpStatus.LOCKED
-        );
+
+        return new ApiResponse<>(exception.getMessage(), ExceptionCodes.ACCOUNT_DISABLED, HttpStatus.LOCKED);
     }
 
     @ExceptionHandler(LockedException.class)
     public ApiResponse<String> handleLockedException(LockedException exception) {
         log.error(exception.getMessage());
-        return new ApiResponse<>(
-                exception.getMessage(),
-                ExceptionCodes.ACCOUNT_LOCKED,
-                HttpStatus.LOCKED
-        );
+
+        return new ApiResponse<>(exception.getMessage(), ExceptionCodes.ACCOUNT_LOCKED, HttpStatus.LOCKED);
     }
 
     @ExceptionHandler(BadCredentialsException.class)
     public ApiResponse<String> handleBadCredentialsException(BadCredentialsException exception) {
         log.error(exception.getMessage());
-        return new ApiResponse<>("Incorrect user details");
+
+        return new ApiResponse<>("Incorrect user details", HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(SocketTimeoutException.class)
     public ApiResponse<String> handleSocketTimeoutException(SocketTimeoutException exception) {
         log.error(exception.getMessage());
-        return new ApiResponse<>("No network connection. Check your internet.");
+
+        return new ApiResponse<>("No network connection. Check your internet.", HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(UnknownHostException.class)
     public ApiResponse<String> handleUnknownHostException(UnknownHostException exception) {
         log.error(exception.getMessage());
-        return new ApiResponse<>("No network connection. Check your internet.");
+
+        return new ApiResponse<>("No network connection. Check your internet.", HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(UnexpectedTypeException.class)
     public ApiResponse<String> handleUnexpectedTypeException(UnexpectedTypeException exception) {
         log.error(exception.getMessage());
-        return new ApiResponse<>(exception.getMessage());
+
+        return new ApiResponse<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(Exception.class)
     public ApiResponse<String> handleException(Exception exception) {
         log.error(exception.getMessage());
-        return new ApiResponse<>(exception.getMessage());
+
+        return new ApiResponse<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ApiResponse<String> handleDataIntegrityViolationException(DataIntegrityViolationException exception) {
-        ApiResponse<String> response;
         log.error(exception.getMessage());
+
+        ApiResponse<String> response;
         if(exception.getMessage().contains("Detail:")) {
             int detail = exception.getMessage().indexOf("Detail:");
             int stop = exception.getMessage().indexOf(".]");
@@ -569,22 +658,23 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
         } else {
             response = new ApiResponse<>(exception.getMessage());
         }
+        response.setStatus(HttpStatus.BAD_REQUEST);
         response.setData(exception.getLocalizedMessage());
+
         return response;
     }
 
     @ExceptionHandler(HttpServerErrorException.class)
     public ApiResponse<String> handleHttpServerErrorException(HttpServerErrorException exception){
         log.error(exception.getMessage());
-        return new ApiResponse<>(
-                "Invalid user input.",
-                HttpStatus.BAD_REQUEST
-        );
+
+        return new ApiResponse<>("Invalid user input.", HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(ConnectException.class)
     public ApiResponse<String> handleConnectException(ConnectException exception){
         log.error(exception.getMessage());
+
         return new ApiResponse<>(
                 "Connection timed out. Please check your internet connection",
                 HttpStatus.BAD_REQUEST
@@ -594,112 +684,127 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(MessagingException.class)
     public ApiResponse<String> handleMessagingException(MessagingException exception){
         log.error(exception.getMessage());
-        return new ApiResponse<>(
-                exception.getMessage(),
-                HttpStatus.BAD_REQUEST
-        );
+
+        return new ApiResponse<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(JsonProcessingException.class)
     public ApiResponse<String> handleJsonProcessingException(JsonProcessingException exception) {
         log.error(exception.getMessage());
-        return new ApiResponse<>(exception.getMessage());
+
+        return new ApiResponse<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(DateTimeParseException.class)
     public ApiResponse<String> handleDateTimeParseException(DateTimeParseException exception) {
         log.error(exception.getMessage());
-        return new ApiResponse<>(exception.getMessage());
+
+        return new ApiResponse<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(UsernameNotFoundException.class)
     public ApiResponse<String> handleUsernameNotFoundException(UsernameNotFoundException exception){
         log.error(exception.getMessage());
-        return new ApiResponse<>(exception.getMessage());
+
+        return new ApiResponse<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(HttpClientErrorException.class)
     public ApiResponse<String> handleHttpClientErrorException(HttpClientErrorException exception){
         log.error(exception.getMessage());
-        return new ApiResponse<>(exception.getMessage());
+
+        return new ApiResponse<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(WriterException.class)
     public ApiResponse<String> handleWriterException(WriterException exception){
         log.error(exception.getMessage());
-        return new ApiResponse<>(exception.getMessage());
+
+        return new ApiResponse<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(JDBCException.class)
     public ApiResponse<String> handleJDBCException(JDBCException exception){
         log.error(exception.getSQLException().getMessage());
-        return new ApiResponse<>("An error happened while fetching data, try again.");
+
+        return new ApiResponse<>("An error happened while fetching data, try again.", HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(JDBCConnectionException.class)
     public ApiResponse<String> handleJDBCConnectionException(JDBCConnectionException exception){
         log.error(exception.getSQLException().getMessage());
-        return new ApiResponse<>("Couldn't complete connection while fetching data, try again");
+
+        return new ApiResponse<>("Couldn't complete connection while fetching data, try again", HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(IOException.class)
     public ApiResponse<String> handleIOException(IOException exception){
         log.error(exception.getMessage());
-        return new ApiResponse<>(exception.getMessage());
+
+        return new ApiResponse<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(ExpiredJwtException.class)
     public ApiResponse<String> handleExpiredJwtException(ExpiredJwtException exception){
         log.error(exception.getMessage());
-        return new ApiResponse<>("Token is expired. Try login or request for another");
+
+        return new ApiResponse<>("Token is expired. Try login or request for another", HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(SignatureException.class)
     public ApiResponse<String> handleSignatureException(SignatureException exception){
         log.error(exception.getMessage());
-        return new ApiResponse<>("Error processing user token");
+
+        return new ApiResponse<>("Error processing user token", HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(UnsupportedJwtException.class)
     public ApiResponse<String> handleUnsupportedJwtException(UnsupportedJwtException exception){
         log.error(exception.getMessage());
-        return new ApiResponse<>("Error reading user token");
+
+        return new ApiResponse<>("Error reading user token", HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(MalformedJwtException.class)
     public ApiResponse<String> handleMalformedJwtException(MalformedJwtException exception){
         log.error(exception.getMessage());
-        return new ApiResponse<>("Incorrect token");
+
+        return new ApiResponse<>("Incorrect token", HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(NoRouteToHostException.class)
     public ApiResponse<String> handleNoRouteToHostException(NoRouteToHostException exception){
         log.error(exception.getMessage());
-        return new ApiResponse<>("Host not found for specified route. Please check your internet");
+
+        return new ApiResponse<>("Host not found for specified route. Please check your internet", HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(GeneralSecurityException.class)
     public ApiResponse<String> handleGeneralSecurityException(GeneralSecurityException exception){
         log.error(exception.getMessage());
-        return new ApiResponse<>(exception.getLocalizedMessage());
+
+        return new ApiResponse<>(exception.getLocalizedMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(NoSuchAlgorithmException.class)
     public ApiResponse<String> handleNoSuchAlgorithmException(NoSuchAlgorithmException exception){
         log.error(exception.getMessage());
-        return new ApiResponse<>(exception.getLocalizedMessage());
+
+        return new ApiResponse<>(exception.getLocalizedMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(StringIndexOutOfBoundsException.class)
     public ApiResponse<String> handleStringIndexOutOfBoundsException(StringIndexOutOfBoundsException exception){
         log.error(exception.getMessage());
-        return new ApiResponse<>(exception.getLocalizedMessage());
+
+        return new ApiResponse<>(exception.getLocalizedMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(InvalidKeyException.class)
     public ApiResponse<String> handleInvalidKeyException(InvalidKeyException exception){
         log.error(exception.getMessage());
-        return new ApiResponse<>(exception.getLocalizedMessage());
+
+        return new ApiResponse<>(exception.getLocalizedMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @Override
@@ -724,6 +829,9 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
             message = "Error in validating input";
         }
 
+        log.error(ex.getMessage());
+        log.error(message);
+
         ApiResponse<Map<String, Object>> response = new ApiResponse<>(message);
 
         Map<String, Object> data = new HashMap<>();
@@ -733,9 +841,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
             data.put("Reason %s".formatted(count), reason.getDefaultMessage());
         }
         response.setData(data);
-
-        log.error(ex.getMessage());
-        log.error(message);
+        response.setStatus(HttpStatus.BAD_REQUEST);
 
         return new ResponseEntity<>(response, response.getStatus());
     }
@@ -745,29 +851,37 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
             HttpMessageNotReadableException ex, @NonNull HttpHeaders headers,
             @NonNull HttpStatusCode status, WebRequest request
     ) {
-        ApiResponse<String> response = new ApiResponse<>(ex.getMessage());
         log.error(ex.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>("An error occurred while sending your request message.");
         response.setData(request.getContextPath());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @Override
     protected ResponseEntity<Object> handleTypeMismatch(TypeMismatchException ex, @NonNull HttpHeaders headers, @NonNull HttpStatusCode status, WebRequest request) {
-        ApiResponse<String> response = new ApiResponse<>(ex.getMessage());
         log.error(ex.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(ex.getMessage());
         response.setData(request.getContextPath());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @ExceptionHandler(NullPointerException.class)
     public ApiResponse<String> handleNullPointerException(NullPointerException exception){
         log.error(exception.getMessage());
-        return new ApiResponse<>(exception.getMessage());
+
+        return new ApiResponse<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ApiResponse<String> handleIllegalArgumentException(IllegalArgumentException exception){
         log.error(exception.getMessage());
+
         return new ApiResponse<>(
                 "Invalid data format",
                 ExceptionCodes.IMPROPER_USER_ID_FORMAT,
@@ -778,6 +892,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(AssertionError.class)
     public ApiResponse<String> handleAssertionError(AssertionError exception){
         log.error(exception.getMessage());
+
         return new ApiResponse<>(
                 exception.getMessage(),
                 ExceptionCodes.IMPROPER_USER_ID_FORMAT,
@@ -788,6 +903,29 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(DataSourceLookupFailureException.class)
     public ApiResponse<String> handleDataSourceLookupFailureException(DataSourceLookupFailureException exception){
         log.error(exception.getMessage());
+
+        return new ApiResponse<>(
+                "An error occurred while fetching data, please try again",
+                ExceptionCodes.IMPROPER_USER_ID_FORMAT,
+                HttpStatus.NOT_ACCEPTABLE
+        );
+    }
+
+    @ExceptionHandler(InvalidDataAccessResourceUsageException.class)
+    public ApiResponse<String> handleInvalidDataAccessResourceUsageException(InvalidDataAccessResourceUsageException exception){
+        log.error(exception.getMessage());
+
+        return new ApiResponse<>(
+                "An error occurred while fetching data, please try again",
+                ExceptionCodes.IMPROPER_USER_ID_FORMAT,
+                HttpStatus.NOT_ACCEPTABLE
+        );
+    }
+
+    @ExceptionHandler(InvalidDataAccessApiUsageException.class)
+    public ApiResponse<String> handleInvalidDataAccessApiUsageException(InvalidDataAccessApiUsageException exception){
+        log.error(exception.getMessage());
+
         return new ApiResponse<>(
                 "An error occurred while fetching data, please try again",
                 ExceptionCodes.IMPROPER_USER_ID_FORMAT,
@@ -798,6 +936,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(SystemException.class)
     public ApiResponse<String> handleSystemException(SystemException exception){
         log.error(exception.getMessage());
+
         return new ApiResponse<>(
                 "An error occurred while fetching data, please try again",
                 ExceptionCodes.IMPROPER_USER_ID_FORMAT,
@@ -808,6 +947,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(SQLException.class)
     public ApiResponse<String> handleSQLException(SQLException exception){
         log.error(exception.getMessage());
+
         return new ApiResponse<>(
                 "An error occurred while fetching data, please try again",
                 ExceptionCodes.IMPROPER_USER_ID_FORMAT,
@@ -818,6 +958,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(SQLDataException.class)
     public ApiResponse<String> handleSQLDataException(SQLDataException exception){
         log.error(exception.getMessage());
+
         return new ApiResponse<>(
                 "An error occurred while fetching data, please try again",
                 ExceptionCodes.IMPROPER_USER_ID_FORMAT,
@@ -828,6 +969,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(SQLNonTransientConnectionException.class)
     public ApiResponse<String> handleSQLNonTransientConnectionException(SQLNonTransientConnectionException exception){
         log.error(exception.getMessage());
+
         return new ApiResponse<>(
                 "Connection error occurred, please try again",
                 ExceptionCodes.IMPROPER_USER_ID_FORMAT,
@@ -838,6 +980,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(SQLTimeoutException.class)
     public ApiResponse<String> handleSQLTimeoutException(SQLTimeoutException exception){
         log.error(exception.getMessage());
+
         return new ApiResponse<>(
                 "Timeout. Error while fetching data",
                 ExceptionCodes.IMPROPER_USER_ID_FORMAT,
@@ -848,6 +991,28 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(TransactionSystemException.class)
     public ApiResponse<String> handleTransactionSystemException(TransactionSystemException exception){
         log.error(exception.getMessage());
-        return new ApiResponse<>("An error occurred while saving your data. Try again");
+
+        return new ApiResponse<>("An error occurred while saving your data. Try again", HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MessageDeliveryException.class)
+    public ApiResponse<String> handleMessageDeliveryException(MessageDeliveryException exception){
+        log.error(exception.getMessage());
+
+        return new ApiResponse<>("An error occurred while sending your message", HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(HttpClientErrorException.Unauthorized.class)
+    public ApiResponse<String> handleUnauthorized(HttpClientErrorException.Unauthorized exception){
+        log.error(exception.getMessage());
+
+        return new ApiResponse<>("Unauthorized web access", HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ApiResponse<String> handleAccessDeniedException(AccessDeniedException exception){
+        log.error(exception.getMessage());
+
+        return new ApiResponse<>("Unauthorized web access", HttpStatus.BAD_REQUEST);
     }
 }

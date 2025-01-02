@@ -26,7 +26,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, String
     BigDecimal totalToday(String id, ZonedDateTime startOfDay, ZonedDateTime endOfDay);
 
     @Query("select t from Transaction t where t.sender = ?1 or t.account = ?1")
-    List<Transaction> findBySenderOrReceiver(@NonNull String account);
+    Page<Transaction> findBySenderOrReceiver(@NonNull String account, Pageable pageable);
 
     @Query("select t from Transaction t where t.type = 'SCHEDULE' and t.status = 'PENDING'")
     List<Transaction> findPendingSchedules();

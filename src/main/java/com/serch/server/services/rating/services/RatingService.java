@@ -16,7 +16,6 @@ import java.util.List;
  * statistical data about ratings.
  */
 public interface RatingService {
-
     /**
      * Rates a provider, call, schedule, or trip based on the provided details.
      *

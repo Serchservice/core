@@ -7,6 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ServerHeader {
     AUTHORIZATION("Authorization"),
+    GUEST_AUTHORIZATION("Guest-Auth"),
     SERCH_SIGNED("X-Serch-Signed"),
     GUEST_API_KEY("X-Serch-Guest-Api-Key"),
     GUEST_SECRET_KEY("X-Serch-Guest-Secret-Key"),

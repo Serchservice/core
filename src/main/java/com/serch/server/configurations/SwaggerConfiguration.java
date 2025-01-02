@@ -38,7 +38,7 @@ public class SwaggerConfiguration {
         return new OpenAPI()
                 .info(new Info()
                         .title("Serch Server - Service made easy")
-                        .version("1.1.3")
+                        .version("1.2.0")
                         .summary("This contains the server implementations for Serch platform")
                         .description("""
                                 This API supports four authentication methods:
@@ -46,7 +46,7 @@ public class SwaggerConfiguration {
                                  1. **Signature Authentication**: Use the `X-Serch-Signed` header to verify that the connection is coming from an authorized Serch user. This is **compulsory** for any API request.
                                  2. **Bearer Authentication**: Optionally, use a JWT token in the `Authorization` header as `Bearer <token>`.
                                  3. **Drive Authentication**: Optionally, use the `X-Serch-Drive-Api-Key` and `X-Serch-Drive-Secret-Key` headers for Drive authentication.
-                                 4. **Guest Authentication**: Optionally, use the `X-Serch-Guest-Api-Key` and `X-Serch-Guest-Secret-Key` headers for Guest access.
+                                 4. **Guest Authentication**: Optionally, use the `X-Serch-Guest-Api-Key`, `X-Serch-Guest-Secret-Key` and `Guest-Authorization` headers for Guest access.
                                 
                                  Choose **Signature Authentication** for all requests, and optionally select one of the other methods for additional access control.
                                 """

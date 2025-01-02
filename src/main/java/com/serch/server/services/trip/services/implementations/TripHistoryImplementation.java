@@ -36,6 +36,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -81,6 +82,12 @@ public class TripHistoryImplementation implements TripHistoryService {
     @Transactional
     public TripResponse response(String id, String userId) {
         TripInvite invite = tripInviteRepository.findById(id).orElseThrow(() -> new TripException("Invite not found"));
+
+        return buildInviteResponse(userId, invite);
+    }
+
+    @Transactional
+    protected TripResponse buildInviteResponse(String userId, TripInvite invite) {
         TripResponse response = TripMapper.INSTANCE.response(invite);
 
         if(invite.getShoppingItems() != null && !invite.getShoppingItems().isEmpty()) {
@@ -128,54 +135,46 @@ public class TripHistoryImplementation implements TripHistoryService {
     }
 
     private List<QuotationResponse> buildQuotationList(TripInvite invite, User user, UserResponse userResponse) {
-        return invite.getQuotes().stream()
+        return invite.getQuotes()
+                .stream()
                 .filter(q -> q.getAccount() != null && (q.getProvider().isSameAs(user.getId()) || q.getProvider().belongsToBusiness(user.getId())))
                 .sorted(Comparator.comparing(TripInviteQuotation::getUpdatedAt).reversed())
-                .map(quote -> {
-                    double longitude = quote.getProvider().getActive() != null
-                            ? quote.getProvider().getActive().getLongitude() : 0.0;
-                    double latitude = quote.getProvider().getActive() != null
-                            ? quote.getProvider().getActive().getLatitude() : 0.0;
-
-                    QuotationResponse quotation = TripMapper.INSTANCE.response(quote);
-                    quotation.setAmount(MoneyUtil.formatToNaira(quote.getAmount()));
-                    quotation.setName(userResponse.getName());
-                    quotation.setAvatar(userResponse.getAvatar());
-                    quotation.setRating(userResponse.getRating());
-                    quotation.setDistance(String.format("%s km", HelperUtil.getDistance(invite.getLatitude(), invite.getLongitude(), latitude, longitude)));
-                    return quotation;
-                })
+                .map(quote -> getQuotationResponse(invite, quote, userResponse.getName(), userResponse.getAvatar(), userResponse.getRating()))
                 .toList();
     }
 
     private List<QuotationResponse> buildQuotationList(TripInvite invite) {
-        return invite.getQuotes().stream()
+        return invite.getQuotes()
+                .stream()
                 .filter(q -> q.getAccount() == null)
                 .sorted(Comparator.comparing(TripInviteQuotation::getUpdatedAt).reversed())
-                .map(quote -> {
-                    double latitude = quote.getProvider().getActive() != null
-                            ? quote.getProvider().getActive().getLatitude() : 0.0;
-                    double longitude = quote.getProvider().getActive() != null
-                            ? quote.getProvider().getActive().getLongitude() : 0.0;
-
-                    QuotationResponse quotation = TripMapper.INSTANCE.response(quote);
-                    quotation.setAmount(MoneyUtil.formatToNaira(quote.getAmount()));
-                    quotation.setName(quote.getProvider().getFullName());
-                    quotation.setAvatar(quote.getProvider().getAvatar());
-                    quotation.setRating(quote.getProvider().getRating());
-                    quotation.setDistance(String.format("%s km", HelperUtil.getDistance(invite.getLatitude(), invite.getLongitude(), latitude, longitude)));
-                    return quotation;
-                })
+                .map(quote -> getQuotationResponse(invite, quote, quote.getProvider().getFullName(), quote.getProvider().getAvatar(), quote.getProvider().getRating()))
                 .toList();
+    }
+
+    private QuotationResponse getQuotationResponse(TripInvite invite, TripInviteQuotation quote, String name, String avatar, Double rating) {
+        double latitude = quote.getProvider().getActive() != null ? quote.getProvider().getActive().getLatitude() : 0.0;
+        double longitude = quote.getProvider().getActive() != null ? quote.getProvider().getActive().getLongitude() : 0.0;
+
+        QuotationResponse quotation = TripMapper.INSTANCE.response(quote);
+        quotation.setAmount(MoneyUtil.formatToNaira(quote.getAmount()));
+        quotation.setName(name);
+        quotation.setAvatar(avatar);
+        quotation.setRating(rating);
+        quotation.setDistance(String.format("%s km", HelperUtil.getDistance(invite.getLatitude(), invite.getLongitude(), latitude, longitude)));
+
+        return quotation;
     }
 
     @Transactional
     protected UserResponse buildUserResponse(String id, String trip) {
         AtomicReference<UserResponse> response = new AtomicReference<>(new UserResponse());
+
         try {
             profileRepository.findById(UUID.fromString(id)).ifPresent(profile -> response.set(buildUserResponse(profile, trip)));
         } catch (Exception ignored) {
             Guest guest = guestRepository.findById(id).orElse(null);
+
             if(guest != null) {
                 response.get().setAvatar(guest.getAvatar());
                 response.get().setName(guest.getFullName());
@@ -189,6 +188,7 @@ public class TripHistoryImplementation implements TripHistoryService {
                 response.get().setPhone(guest.getPhoneNumber());
             }
         }
+
         return response.get();
     }
 
@@ -224,6 +224,11 @@ public class TripHistoryImplementation implements TripHistoryService {
     public TripResponse response(String id, String userId, @Nullable InitializePaymentData payment, boolean sendUpdate, String requestedId) {
         Trip trip = tripRepository.findById(id).orElseThrow(() -> new TripException("Trip not found"));
 
+        return buildTripResponse(userId, payment, sendUpdate, requestedId, trip);
+    }
+
+    @Transactional
+    protected TripResponse buildTripResponse(String userId, InitializePaymentData payment, boolean sendUpdate, String requestedId, Trip trip) {
         TripResponse response = TripMapper.INSTANCE.response(trip);
         String business = null;
 
@@ -317,12 +322,30 @@ public class TripHistoryImplementation implements TripHistoryService {
         }
 
         if(sendUpdate) {
-            messaging.convertAndSend("/platform/%s".formatted(userId), response);
-            messaging.convertAndSend("/platform/%s/%s".formatted(response.getId(), userId), response);
+            if(trip.isActive()) {
+                messaging.convertAndSend("/platform/%s/trip/active".formatted(userId), response);
+                messaging.convertAndSend("/platform/%s/trip/active/%s".formatted(userId, response.getId()), response);
 
-            if(business != null) {
-                messaging.convertAndSend("/platform/%s".formatted(business), response);
-                messaging.convertAndSend("/platform/%s/%s".formatted(response.getId(), business), response);
+                if(business != null) {
+                    messaging.convertAndSend("/platform/%s/trip/active".formatted(business), response);
+                    messaging.convertAndSend("/platform/%s/trip/active/%s".formatted(business, response.getId()), response);
+                }
+            } else if(trip.isRequested()) {
+                messaging.convertAndSend("/platform/%s/trip/requested".formatted(userId), response);
+                messaging.convertAndSend("/platform/%s/trip/requested/%s".formatted(userId, response.getId()), response);
+
+                if(business != null) {
+                    messaging.convertAndSend("/platform/%s/trip/requested".formatted(business), response);
+                    messaging.convertAndSend("/platform/%s/trip/requested/%s".formatted(business, response.getId()), response);
+                }
+            } else {
+                messaging.convertAndSend("/platform/%s/trip/history".formatted(userId), response);
+                messaging.convertAndSend("/platform/%s/trip/history/%s".formatted(userId, response.getId()), response);
+
+                if(business != null) {
+                    messaging.convertAndSend("/platform/%s/trip/history".formatted(business), response);
+                    messaging.convertAndSend("/platform/%s/trip/history/%s".formatted(business, response.getId()), response);
+                }
             }
         }
 
@@ -360,6 +383,7 @@ public class TripHistoryImplementation implements TripHistoryService {
 
     private UserResponse buildOfflineProfile(TripShare trip) {
         UserResponse profile = new UserResponse();
+
         profile.setPhone(trip.getPhoneNumber());
         profile.setRole("Offline Provider");
         profile.setCategory(trip.getCategory());
@@ -367,6 +391,7 @@ public class TripHistoryImplementation implements TripHistoryService {
         profile.setRating(0.0);
         profile.setId("");
         profile.setName(trip.fullName());
+
         return profile;
     }
 
@@ -456,108 +481,176 @@ public class TripHistoryImplementation implements TripHistoryService {
 
     @Override
     @Transactional
-    public List<TripResponse> inviteHistory(String guestId, UUID userId, String linkId, Integer page, Integer size) {
-        List<TripResponse> invites = new ArrayList<>();
-        if (guestId != null && !guestId.isEmpty()) {
-            buildGuestInviteHistory(guestId, linkId, page, size, invites);
-        } else if (userId != null) {
-            User user = userRepository.findById(userId).orElseThrow(() -> new TripException("User not found"));
+    public ApiResponse<List<TripResponse>> history(String id, String linkId, Integer page, Integer size, boolean sendUpdate, String tripId) {
+        return new ApiResponse<>(history(id, linkId, sendUpdate, tripId, page, size, false, false, false));
+    }
 
-            if (user.isUser()) {
-                buildUserList(invites, user, page, size);
+    @Override
+    @Transactional
+    public ApiResponse<List<TripResponse>> active(String id, String linkId, Integer page, Integer size, boolean sendUpdate, String tripId) {
+        return new ApiResponse<>(history(id, linkId, sendUpdate, tripId, page, size, true, false, false));
+    }
+
+    @Override
+    @Transactional
+    public ApiResponse<List<TripResponse>> requested(String id, String linkId, Integer page, Integer size, boolean sendUpdate, String tripId) {
+        return new ApiResponse<>(history(id, linkId, sendUpdate, tripId, page, size, false, true, false));
+    }
+
+    @Override
+    @Transactional
+    public ApiResponse<List<TripResponse>> shared(String id, String linkId, Integer page, Integer size, boolean sendUpdate, String tripId) {
+        return new ApiResponse<>(history(id, linkId, sendUpdate, tripId, page, size, false, false, true));
+    }
+
+    @Override
+    @Transactional
+    public ApiResponse<List<TripResponse>> history(String id, String linkId, Integer page, Integer size, Boolean isShared, String category, ZonedDateTime dateTime) {
+        List<TripResponse> list;
+        boolean isGuestAccount = id != null && !id.isEmpty() && linkId != null && !linkId.isEmpty();
+
+        if(dateTime == null) {
+            if(isGuestAccount) {
+                list = buildTrips(tripRepository.findByGuestHistoryTrips(id, linkId, category, TimeUtil.now(), isShared, HelperUtil.getPageable(page, size)), id, false);
+            } else if(userUtil.getUser().isUser()) {
+                list = buildTrips(tripRepository.findByUserHistoryTrips(String.valueOf(userUtil.getUser().getId()), category, TimeUtil.now(), isShared, HelperUtil.getPageable(page, size)), String.valueOf(userUtil.getUser().getId()), false);
             } else {
-                buildProviderWaitingList(invites, user, page, size);
+                list = buildTrips(tripRepository.findByProviderHistoryTrips(userUtil.getUser().getId(), category, TimeUtil.now(), isShared, HelperUtil.getPageable(page, size)), String.valueOf(userUtil.getUser().getId()), false);
             }
-        } else if (userUtil.getUser().isUser()) {
-            buildUserList(invites, userUtil.getUser(), page, size);
         } else {
-            buildProviderWaitingList(invites, userUtil.getUser(), page, size);
+            if(isGuestAccount) {
+                list = buildTrips(tripRepository.findByGuestHistoryTrips(id, linkId, category, dateTime, isShared, HelperUtil.getPageable(page, size)), id, false);
+            } else if(userUtil.getUser().isUser()) {
+                list = buildTrips(tripRepository.findByUserHistoryTrips(String.valueOf(userUtil.getUser().getId()), category, dateTime, isShared, HelperUtil.getPageable(page, size)), String.valueOf(userUtil.getUser().getId()), false);
+            } else {
+                list = buildTrips(tripRepository.findByProviderHistoryTrips(userUtil.getUser().getId(), category, dateTime, isShared, HelperUtil.getPageable(page, size)), String.valueOf(userUtil.getUser().getId()), false);
+            }
         }
 
-        return invites.stream()
-                .collect(Collectors.toMap(TripResponse::getId, response -> response, (existing, replacement) -> existing))
-                .values()
-                .stream()
-                .sorted(Comparator.comparing(TripResponse::getUpdatedAt).reversed())
-                .collect(Collectors.toList());
+        return new ApiResponse<>(list);
     }
 
     @Transactional
-    protected void buildGuestInviteHistory(String guestId, String linkId, Integer page, Integer size, List<TripResponse> invites) {
+    protected List<TripResponse> history(String id, String linkId, boolean sendUpdate, String tripId, Integer page, Integer size, boolean isActive, boolean isRequested, boolean isShared) {
+        if(isRequested) {
+            List<TripResponse> list = new ArrayList<>();
+
+            if (id != null && !id.isEmpty()) {
+                try {
+                    User user = userRepository.findById(UUID.fromString(id)).orElseThrow(() -> new TripException("User not found"));
+
+                    if (user.isUser()) {
+                        buildUserList(list, user, page, size, sendUpdate);
+                    } else {
+                        buildProviderWaitingList(list, user, page, size, sendUpdate);
+                    }
+                } catch (Exception ignored) {
+                    buildGuestInviteHistory(id, linkId, page, size, list, sendUpdate);
+                }
+            } else if (userUtil.getUser().isUser()) {
+                buildUserList(list, userUtil.getUser(), page, size, sendUpdate);
+            } else {
+                buildProviderWaitingList(list, userUtil.getUser(), page, size, sendUpdate);
+            }
+
+            return list.stream()
+                    .collect(Collectors.toMap(TripResponse::getId, response -> response, (existing, replacement) -> existing))
+                    .values()
+                    .stream()
+                    .sorted(Comparator.comparing(TripResponse::getUpdatedAt).reversed())
+                    .collect(Collectors.toList());
+        } else {
+            if(tripId != null && !tripId.isEmpty()) {
+                Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new TripException("Trip not found"));
+                buildTripResponse(trip.getAccount(), null, sendUpdate, null, trip);
+                buildTripResponse(trip.getProvider().getId().toString(), null, sendUpdate, null, trip);
+
+                if(trip.getInvited() != null && trip.getInvited().getProvider() != null) {
+                    buildTripResponse(trip.getInvited().getProvider().getId().toString(), null, sendUpdate, null, trip);
+                }
+            }
+
+            return getHistory(id, linkId, sendUpdate, page, size, isActive, isShared);
+        }
+    }
+
+    @Transactional
+    protected void buildGuestInviteHistory(String guestId, String linkId, Integer page, Integer size, List<TripResponse> invites, boolean sendUpdate) {
         Guest guest = guestRepository.findById(guestId).orElseThrow(() -> new TripException("Guest not found"));
 
-        addTripToHistory(tripRepository.findByAccount(guest.getId(), linkId, HelperUtil.getPageable(page, size)), invites, guestId);
-        addInviteToHistory(invites, guest.getId(), tripInviteRepository.findByAccountAndLinkId(guest.getId(), linkId, HelperUtil.getPageable(page, size)), false);
+        addTripToHistory(tripRepository.findByRequestedGuestTrips(guest.getId(), linkId, HelperUtil.getPageable(page, size)), invites, guestId, sendUpdate);
+        addInviteToHistory(invites, guest.getId(), tripInviteRepository.findByAccountAndLinkId(guest.getId(), linkId, HelperUtil.getPageable(page, size)));
     }
 
     @Transactional
-    protected void addInviteToHistory(List<TripResponse> invites, String id, Page<TripInvite> list, boolean filter) {
-        if(list != null && list.hasContent()) {
-            invites.addAll(list.getContent()
-                    .stream()
-                    .filter(invite -> !filter || invite.getSelected() == null)
-                    .sorted(Comparator.comparing(TripInvite::getUpdatedAt).reversed())
-                    .map(invite -> response(invite.getId(), id))
-                    .toList());
-        }
+    protected void buildUserList(List<TripResponse> invites, User user, Integer page, Integer size, boolean sendUpdate) {
+        addInviteToHistory(invites, String.valueOf(user.getId()), tripInviteRepository.findByAccount(String.valueOf(user.getId()), HelperUtil.getPageable(page, size)));
+        addTripToHistory(tripRepository.findByRequestedUserTrips(String.valueOf(user.getId()), HelperUtil.getPageable(page, size)), invites, String.valueOf(user.getId()), sendUpdate);
     }
 
     @Transactional
-    protected void addTripToHistory(Page<Trip> trips, List<TripResponse> invites, String user) {
-        if (trips != null && trips.hasContent()) {
-            invites.addAll(trips.getContent()
-                    .stream()
-                    .filter(trip -> trip.getStatus() == WAITING)
-                    .sorted(Comparator.comparing(Trip::getUpdatedAt).reversed())
-                    .map(trip -> response(trip.getId(), user, null, false, null))
-                    .toList());
-        }
-    }
-
-    @Transactional
-    protected void buildUserList(List<TripResponse> invites, User user, Integer page, Integer size) {
-        addInviteToHistory(invites, String.valueOf(user.getId()), tripInviteRepository.findByAccount(String.valueOf(user.getId()), HelperUtil.getPageable(page, size)), false);
-        addTripToHistory(tripRepository.findByAccount(String.valueOf(user.getId()), HelperUtil.getPageable(page, size)), invites, String.valueOf(user.getId()));
-    }
-
-    @Transactional
-    protected void buildProviderWaitingList(List<TripResponse> invites, User user, Integer page, Integer size) {
+    protected void buildProviderWaitingList(List<TripResponse> invites, User user, Integer page, Integer size, boolean sendUpdate) {
         SerchCategory category = profileRepository.findById(user.getId())
                 .map(Profile::getCategory)
                 .orElse(businessProfileRepository.findById(user.getId())
                         .map(BusinessProfile::getCategory)
                         .orElse(SerchCategory.USER));
 
-        addInviteToHistory(invites, String.valueOf(user.getId()), tripInviteRepository.sortAllWithinDistance(Double.parseDouble(MAP_SEARCH_RADIUS), category.name(), HelperUtil.getPageable(page, size)), true);
-        addInviteToHistory(invites, String.valueOf(user.getId()), tripInviteRepository.findBySelected(userUtil.getUser().getId(), HelperUtil.getPageable(page, size)), false);
-        addTripToHistory(tripRepository.findByProviderId(userUtil.getUser().getId(), HelperUtil.getPageable(page, size)), invites, String.valueOf(user.getId()));
+        addInviteToHistory(invites, String.valueOf(user.getId()), tripInviteRepository.sortWithinDistanceWithNoneSelected(Double.parseDouble(MAP_SEARCH_RADIUS), category.name(), HelperUtil.getPageable(page, size)));
+        addInviteToHistory(invites, String.valueOf(user.getId()), tripInviteRepository.findBySelected(user.getId(), HelperUtil.getPageable(page, size)));
+        addTripToHistory(tripRepository.findByRequestedProviderTrips(user.getId(), HelperUtil.getPageable(page, size)), invites, String.valueOf(user.getId()), sendUpdate);
     }
 
-
-    @Override
     @Transactional
-    public ApiResponse<List<TripResponse>> history(String guest, String linkId, boolean sendUpdate, String tripId, Integer page, Integer size) {
-        if(tripId != null && !tripId.isEmpty()) {
-            Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new TripException("Trip not found"));
-            response(tripId, trip.getAccount(), null, sendUpdate, null);
-            response(tripId, trip.getProvider().getId().toString(), null, sendUpdate, null);
-
-            if(trip.getInvited() != null && trip.getInvited().getProvider() != null) {
-                response(tripId, trip.getInvited().getProvider().getId().toString(), null, sendUpdate, null);
-            }
+    protected void addInviteToHistory(List<TripResponse> invites, String userId, Page<TripInvite> list) {
+        if(list != null && list.hasContent()) {
+            invites.addAll(list.getContent()
+                    .stream()
+                    .sorted(Comparator.comparing(TripInvite::getUpdatedAt).reversed())
+                    .map(invite -> buildInviteResponse(userId, invite))
+                    .toList());
         }
-
-        return new ApiResponse<>(getHistory(guest, linkId, sendUpdate, page, size));
     }
 
     @Transactional
-    protected List<TripResponse> getHistory(String guest, String linkId, boolean sendUpdate, Integer page, Integer size) {
-        if(guest != null && !guest.isEmpty() && linkId != null && !linkId.isEmpty()) {
-            return buildTrips(tripRepository.findByAccount(guest, linkId, HelperUtil.getPageable(page, size)), guest, sendUpdate);
-        } else if(userUtil.getUser().isUser()) {
-            return buildTrips(tripRepository.findByAccount(String.valueOf(userUtil.getUser().getId()), HelperUtil.getPageable(page, size)), String.valueOf(userUtil.getUser().getId()), sendUpdate);
+    protected void addTripToHistory(Page<Trip> trips, List<TripResponse> invites, String userId, boolean sendUpdate) {
+        if (trips != null && trips.hasContent()) {
+            invites.addAll(trips.getContent()
+                    .stream()
+                    .sorted(Comparator.comparing(Trip::getUpdatedAt).reversed())
+                    .map(trip -> buildTripResponse(userId, null, sendUpdate, null, trip))
+                    .toList());
+        }
+    }
+
+    @Transactional
+    protected List<TripResponse> getHistory(String id, String linkId, boolean sendUpdate, Integer page, Integer size, boolean isActive, boolean isShared) {
+        boolean isGuestAccount = id != null && !id.isEmpty() && linkId != null && !linkId.isEmpty();
+
+        if(isActive) {
+            if(isGuestAccount) {
+                return buildTrips(tripRepository.findByActiveGuestTrips(id, linkId, HelperUtil.getPageable(page, size)), id, sendUpdate);
+            } else if(userUtil.getUser().isUser()) {
+                return buildTrips(tripRepository.findByActiveUserTrips(String.valueOf(userUtil.getUser().getId()), HelperUtil.getPageable(page, size)), String.valueOf(userUtil.getUser().getId()), sendUpdate);
+            } else {
+                return buildTrips(tripRepository.findByActiveProviderTrips(userUtil.getUser().getId(), HelperUtil.getPageable(page, size)), String.valueOf(userUtil.getUser().getId()), sendUpdate);
+            }
+        } else if(isShared) {
+            if(isGuestAccount) {
+                return buildTrips(tripRepository.findBySharedGuestTrips(id, linkId, HelperUtil.getPageable(page, size)), id, sendUpdate);
+            } else if(userUtil.getUser().isUser()) {
+                return buildTrips(tripRepository.findBySharedUserTrips(String.valueOf(userUtil.getUser().getId()), HelperUtil.getPageable(page, size)), String.valueOf(userUtil.getUser().getId()), sendUpdate);
+            } else {
+                return buildTrips(tripRepository.findBySharedProviderTrips(userUtil.getUser().getId(), HelperUtil.getPageable(page, size)), String.valueOf(userUtil.getUser().getId()), sendUpdate);
+            }
         } else {
-            return buildTrips(tripRepository.findByProviderId(userUtil.getUser().getId(), HelperUtil.getPageable(page, size)), String.valueOf(userUtil.getUser().getId()), sendUpdate);
+            if(isGuestAccount) {
+                return buildTrips(tripRepository.findByGuestHistoryTrips(id, linkId, null, null, null, HelperUtil.getPageable(page, size)), id, sendUpdate);
+            } else if(userUtil.getUser().isUser()) {
+                return buildTrips(tripRepository.findByUserHistoryTrips(String.valueOf(userUtil.getUser().getId()), null, null, null, HelperUtil.getPageable(page, size)), String.valueOf(userUtil.getUser().getId()), sendUpdate);
+            } else {
+                return buildTrips(tripRepository.findByProviderHistoryTrips(userUtil.getUser().getId(), null, null, null, HelperUtil.getPageable(page, size)), String.valueOf(userUtil.getUser().getId()), sendUpdate);
+            }
         }
     }
 
@@ -566,16 +659,10 @@ public class TripHistoryImplementation implements TripHistoryService {
         if(trips != null && trips.hasContent()) {
             return trips.getContent().stream()
                     .sorted(Comparator.comparing(Trip::getUpdatedAt).reversed())
-                    .map(trip -> response(trip.getId(), user, null, update, null))
+                    .map(trip -> buildTripResponse(user, null, update, null, trip))
                     .toList();
         } else {
             return List.of();
         }
-    }
-
-    @Override
-    @Transactional
-    public ApiResponse<List<TripResponse>> history(String guest, String linkId, Integer page, Integer size) {
-        return history(guest, linkId, false, null, page, size);
     }
 }

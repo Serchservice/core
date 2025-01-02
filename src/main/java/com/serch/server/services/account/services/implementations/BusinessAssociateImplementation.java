@@ -32,7 +32,6 @@ import com.serch.server.services.account.services.ProfileService;
 import com.serch.server.services.auth.services.AccountStatusTrackerService;
 import com.serch.server.services.auth.services.AuthService;
 import com.serch.server.services.auth.services.ProviderAuthService;
-import com.serch.server.services.rating.services.RatingService;
 import com.serch.server.services.referral.services.ReferralProgramService;
 import com.serch.server.services.referral.services.ReferralService;
 import com.serch.server.utils.HelperUtil;
@@ -67,7 +66,6 @@ import java.util.*;
 public class BusinessAssociateImplementation implements BusinessAssociateService {
     private final ProfileService profileService;
     private final AccountDeleteService deleteService;
-    private final RatingService ratingService;
     private final ReferralService referralService;
     private final JwtService jwtService;
     private final ReferralProgramService referralProgramService;
@@ -83,15 +81,12 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
     private final SpecialtyRepository specialtyRepository;
     private final PendingRepository pendingRepository;
 
-    @Value("${application.link.associate.invite}")
+    @Value("${application.link.invite.associate}")
     private String ASSOCIATE_INVITE_LINK;
 
     @Override
     public BusinessAssociateResponse response(Profile profile) {
         BusinessAssociateResponse response = new BusinessAssociateResponse();
-        response.setBad(ratingService.bad(String.valueOf(profile.getId()), null, null).getData());
-        response.setGood(ratingService.good(String.valueOf(profile.getId()), null, null).getData());
-        response.setChart(ratingService.chart(String.valueOf(profile.getId())).getData());
         response.setProfile(profileService.profile(profile));
         response.setStatus(profile.getUser().getStatus());
         response.setVerified(profile.getUser().getIsEmailConfirmed());
@@ -99,8 +94,10 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
         return response;
     }
 
-    private List<BusinessAssociateResponse> associates(Integer page, Integer size) {
-        Page<Profile> associates = profileRepository.findActiveAssociatesByBusinessId(util.getUser().getId(), HelperUtil.getPageable(page, size));
+    private List<BusinessAssociateResponse> associates(String q, Integer page, Integer size) {
+        Page<Profile> associates = q != null
+                ? profileRepository.searchActiveAssociates(util.getUser().getId(), q, HelperUtil.getPageable(page, size))
+                : profileRepository.findActiveAssociatesByBusinessId(util.getUser().getId(), HelperUtil.getPageable(page, size));
 
         if(associates == null || associates.getContent().isEmpty()) {
             return List.of();
@@ -136,9 +133,10 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
                     referralService.create(user, business.getUser());
 
                     sendEmailInvite(request.getEmailAddress(), business, user);
+
                     return new ApiResponse<>(
                             "Account created. Do inform the provider to confirm email when logging in",
-                            associates(null, null),
+                            associates(null, null, null),
                             HttpStatus.OK
                     );
                 }
@@ -156,6 +154,7 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
                 .orElseThrow(() -> new AccountException("Business not found"));
         if(!user.getIsEmailConfirmed() && business.getAssociates() != null && !business.getAssociates().isEmpty() && business.getAssociates().stream().anyMatch(profile -> profile.isSameAs(user.getId()))) {
             sendEmailInvite(user.getEmailAddress(), business, user);
+
             return new ApiResponse<>("Email invite sent", HttpStatus.OK);
         } else {
             throw new AccountException("Cannot finish request. Check if user belongs to your business or user is already verified");
@@ -250,9 +249,10 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
                 userRepository.save(provider.getUser());
                 trackerService.create(provider.getUser());
             }
+
             return new ApiResponse<>(
                     "Account is pending deletion. This takes time to be effected",
-                    associates(null, null),
+                    associates(null, null, null),
                     HttpStatus.OK
             );
         } else {
@@ -298,6 +298,7 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
 
                     userRepository.save(provider.getUser());
                     trackerService.create(provider.getUser());
+
                     return new ApiResponse<>(
                             "Account activated. Provider can log in to this account.",
                             response(provider),
@@ -318,7 +319,7 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
     }
 
     @Override
-    public ApiResponse<List<BusinessAssociateResponse>> all(Integer page, Integer size) {
-        return new ApiResponse<>(associates(page, size));
+    public ApiResponse<List<BusinessAssociateResponse>> all(String q, Integer page, Integer size) {
+        return new ApiResponse<>(associates(q, page, size));
     }
 }

@@ -244,6 +244,7 @@ public class RatingImplementation implements RatingService {
     @Override
     public ApiResponse<RatingResponse> rate(RateAppRequest request) {
         String account = getAccount(request.getAccount());
+
         if(request.getRating() != null) {
             Optional<AppRating> existing = appRatingRepository.findByAccount(account);
             if(existing.isPresent()) {
@@ -264,6 +265,7 @@ public class RatingImplementation implements RatingService {
             RatingResponse response = new RatingResponse();
             response.setRating(request.getRating());
             response.setComment(request.getComment());
+
             return new ApiResponse<>(response);
         } else {
             throw new RatingException("There is no rating value");
@@ -378,11 +380,12 @@ public class RatingImplementation implements RatingService {
 
     @Override
     public ApiResponse<RatingResponse> app(String account) {
-        AppRating rating = appRatingRepository.findByAccount(getAccount(account))
-                .orElse(new AppRating());
+        AppRating rating = appRatingRepository.findByAccount(getAccount(account)).orElse(new AppRating());
+
         RatingResponse response = new RatingResponse();
         response.setRating(rating.getRating());
         response.setComment(rating.getComment());
+
         return new ApiResponse<>("App rating fetched", response, HttpStatus.OK);
     }
 }

@@ -1,11 +1,9 @@
-package com.serch.server.services.shop;
+package com.serch.server.services.shop.controllers;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.shop.DriveScope;
 import com.serch.server.enums.shop.ShopStatus;
-import com.serch.server.services.shop.requests.CreateShopRequest;
-import com.serch.server.services.shop.requests.ShopWeekdayRequest;
-import com.serch.server.services.shop.requests.UpdateShopRequest;
+import com.serch.server.services.shop.requests.*;
 import com.serch.server.services.shop.responses.SearchShopResponse;
 import com.serch.server.services.shop.responses.ShopResponse;
 import com.serch.server.services.shop.services.ShopService;
@@ -23,14 +21,14 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/shop")
 public class ShopController {
-    private final ShopService shopService;
+    private final ShopService service;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<ShopResponse>>> fetchShops(
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size
     ) {
-        ApiResponse<List<ShopResponse>> response = shopService.fetch(page, size);
+        ApiResponse<List<ShopResponse>> response = service.fetch(page, size);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
@@ -45,39 +43,35 @@ public class ShopController {
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size
     ) {
-        ApiResponse<List<SearchShopResponse>> response = shopService.drive(query, category, lng, lat, radius, scope, page, size);
+        ApiResponse<List<SearchShopResponse>> response = service.drive(query, category, lng, lat, radius, scope, page, size);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @PostMapping("/create")
     @PreAuthorize("hasRole('BUSINESS') || hasRole('PROVIDER')")
     public ResponseEntity<ApiResponse<List<ShopResponse>>> createShop(@RequestBody CreateShopRequest request) {
-        ApiResponse<List<ShopResponse>> response = shopService.create(request);
+        ApiResponse<List<ShopResponse>> response = service.create(request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @PostMapping("/create/weekday")
+    @PostMapping("/create/weekday/{id}")
     @PreAuthorize("hasRole('BUSINESS') || hasRole('PROVIDER')")
-    public ResponseEntity<ApiResponse<ShopResponse>> createWeekday(
-            @RequestParam String shop, @RequestBody ShopWeekdayRequest request
-    ) {
-        ApiResponse<ShopResponse> response = shopService.create(shop, request);
+    public ResponseEntity<ApiResponse<ShopResponse>> createWeekday(@PathVariable String id, @RequestBody ShopWeekdayRequest request) {
+        ApiResponse<ShopResponse> response = service.create(id, request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @PostMapping("/create/service")
     @PreAuthorize("hasRole('BUSINESS') || hasRole('PROVIDER')")
-    public ResponseEntity<ApiResponse<ShopResponse>> createService(
-            @RequestParam String shop, @RequestBody String service
-    ) {
-        ApiResponse<ShopResponse> response = shopService.create(shop, service);
+    public ResponseEntity<ApiResponse<ShopResponse>> createService(@RequestBody CreateShopServiceRequest request) {
+        ApiResponse<ShopResponse> response = service.create(request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @PatchMapping("/update")
     @PreAuthorize("hasRole('BUSINESS') || hasRole('PROVIDER')")
     public ResponseEntity<ApiResponse<ShopResponse>> updateShop(@RequestBody UpdateShopRequest request) {
-        ApiResponse<ShopResponse> response = shopService.update(request);
+        ApiResponse<ShopResponse> response = service.update(request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
@@ -86,57 +80,49 @@ public class ShopController {
     public ResponseEntity<ApiResponse<ShopResponse>> updateWeekday(
             @RequestParam Long id, @RequestParam String shop, @RequestBody ShopWeekdayRequest request
     ) {
-        ApiResponse<ShopResponse> response = shopService.update(id, shop, request);
+        ApiResponse<ShopResponse> response = service.update(id, shop, request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @PatchMapping("/update/service")
     @PreAuthorize("hasRole('BUSINESS') || hasRole('PROVIDER')")
-    public ResponseEntity<ApiResponse<ShopResponse>> updateService(
-            @RequestParam Long id, @RequestParam String shop, @RequestBody String service
-    ) {
-        ApiResponse<ShopResponse> response = shopService.update(id, shop, service);
+    public ResponseEntity<ApiResponse<ShopResponse>> updateService(@RequestBody UpdateShopServiceRequest request) {
+        ApiResponse<ShopResponse> response = service.update(request);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @PatchMapping("/status")
     @PreAuthorize("hasRole('BUSINESS') || hasRole('PROVIDER')")
-    public ResponseEntity<ApiResponse<ShopResponse>> changeStatus(
-            @RequestParam String shop, @RequestParam ShopStatus status
-    ) {
-        ApiResponse<ShopResponse> response = shopService.changeStatus(shop, status);
+    public ResponseEntity<ApiResponse<ShopResponse>> changeStatus(@RequestParam String shop, @RequestParam ShopStatus status) {
+        ApiResponse<ShopResponse> response = service.changeStatus(shop, status);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @PatchMapping("/status/all")
     @PreAuthorize("hasRole('BUSINESS') || hasRole('PROVIDER')")
     public ResponseEntity<ApiResponse<List<ShopResponse>>> changeAllStatus() {
-        ApiResponse<List<ShopResponse>> response = shopService.changeAllStatus();
+        ApiResponse<List<ShopResponse>> response = service.changeAllStatus();
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @DeleteMapping("/remove")
     @PreAuthorize("hasRole('BUSINESS') || hasRole('PROVIDER')")
     public ResponseEntity<ApiResponse<List<ShopResponse>>> removeShop(@RequestParam String shop) {
-        ApiResponse<List<ShopResponse>> response = shopService.remove(shop);
+        ApiResponse<List<ShopResponse>> response = service.remove(shop);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @DeleteMapping("/remove/weekday")
     @PreAuthorize("hasRole('BUSINESS') || hasRole('PROVIDER')")
-    public ResponseEntity<ApiResponse<ShopResponse>> removeWeekday(
-            @RequestParam Long id, @RequestParam String shop
-    ) {
-        ApiResponse<ShopResponse> response = shopService.removeWeekday(id, shop);
+    public ResponseEntity<ApiResponse<ShopResponse>> removeWeekday(@RequestParam Long id, @RequestParam String shop) {
+        ApiResponse<ShopResponse> response = service.removeWeekday(id, shop);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
     @DeleteMapping("/remove/service")
     @PreAuthorize("hasRole('BUSINESS') || hasRole('PROVIDER')")
-    public ResponseEntity<ApiResponse<ShopResponse>> removeService(
-            @RequestParam Long id, @RequestParam String shop
-    ) {
-        ApiResponse<ShopResponse> response = shopService.removeService(id, shop);
+    public ResponseEntity<ApiResponse<ShopResponse>> removeService(@RequestParam Long id, @RequestParam String shop) {
+        ApiResponse<ShopResponse> response = service.removeService(id, shop);
         return new ResponseEntity<>(response, response.getStatus());
     }
 }

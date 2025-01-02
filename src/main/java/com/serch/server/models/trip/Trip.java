@@ -104,4 +104,12 @@ public class Trip extends BaseTrip {
     public boolean withUserShare() {
         return getMode() == TripMode.FROM_GUEST;
     }
+
+    public boolean isActive() {
+        return getStatus() == TripStatus.ACTIVE;
+    }
+
+    public boolean isRequested() {
+        return getStatus() == TripStatus.WAITING;
+    }
 }

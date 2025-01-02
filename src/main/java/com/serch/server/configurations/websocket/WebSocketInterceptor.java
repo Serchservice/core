@@ -1,6 +1,7 @@
-package com.serch.server.configurations;
+package com.serch.server.configurations.websocket;
 
 import com.serch.server.core.session.SessionService;
+import com.serch.server.core.socket.SocketService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
@@ -19,11 +20,13 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 @RequiredArgsConstructor
 public class WebSocketInterceptor implements ChannelInterceptor {
     private final SessionService sessionService;
+    private final SocketService socketService;
     private final UserDetailsService userDetailsService;
 
     @Override
     public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+        socketService.check(accessor);
 
         if (accessor != null) {
             if (StompCommand.CONNECT.equals(accessor.getCommand()) || StompCommand.SEND.equals(accessor.getCommand())) {
@@ -47,6 +50,7 @@ public class WebSocketInterceptor implements ChannelInterceptor {
                 }
             }
         }
+
         return message;
     }
 }

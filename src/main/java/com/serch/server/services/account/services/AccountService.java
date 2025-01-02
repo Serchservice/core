@@ -1,8 +1,8 @@
 package com.serch.server.services.account.services;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.services.account.requests.UpdateE2EKey;
 import com.serch.server.services.account.responses.AccountResponse;
-import com.serch.server.services.account.responses.DashboardResponse;
 
 import java.util.List;
 
@@ -30,20 +30,6 @@ public interface AccountService {
     ApiResponse<String> lastPasswordUpdateAt();
 
     /**
-     * Fetches the dashboard details for the logged-in user
-     *
-     * @return {@link ApiResponse} of {@link DashboardResponse}
-     */
-    ApiResponse<DashboardResponse> dashboard();
-
-    /**
-     * Fetches the dashboard response of all business associates
-     *
-     * @return {@link ApiResponse} of list {@link DashboardResponse}
-     */
-    ApiResponse<List<DashboardResponse>> dashboards();
-
-    /**
      * Update the FCM token of the logged-in user
      *
      * @param token The new fcm token
@@ -60,4 +46,13 @@ public interface AccountService {
      * @return {@link ApiResponse} of Success or failure
      */
     ApiResponse<String> updateTimezone(String timezone);
+
+    /**
+     * Update the public encryption key of the logged-in user
+     *
+     * @param key The new key data {@link UpdateE2EKey}
+     *
+     * @return {@link ApiResponse} of Success or failure
+     */
+    ApiResponse<String> updatePublicEncryptionKey(UpdateE2EKey key);
 }

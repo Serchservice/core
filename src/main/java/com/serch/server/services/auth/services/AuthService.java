@@ -6,7 +6,10 @@ import com.serch.server.models.auth.User;
 import com.serch.server.models.auth.incomplete.Incomplete;
 import com.serch.server.services.auth.requests.RequestEmailToken;
 import com.serch.server.services.auth.requests.RequestLogin;
+import com.serch.server.services.auth.requests.RequestProviderProfile;
+import com.serch.server.services.auth.requests.RequestSerchCategory;
 import com.serch.server.services.auth.responses.AuthResponse;
+import com.serch.server.services.auth.responses.PendingRegistrationResponse;
 import jakarta.validation.constraints.NotNull;
 
 /**
@@ -89,4 +92,38 @@ public interface AuthService {
      * @param otp The OTP
      */
     void sendEmail(String emailAddress, String otp);
+
+
+    /**
+     * Verifies the email address of the user to fetch the pending registration token for other registration actions.
+     *
+     * @param request The {@link RequestLogin} request.
+     * @return ApiResponse indicating the status of the profile saving operation with {@link PendingRegistrationResponse}.
+     *
+     * @see RequestProviderProfile
+     * @see ApiResponse
+     */
+    ApiResponse<PendingRegistrationResponse> verifyPendingRegistration(RequestLogin request);
+
+    /**
+     * Saves the profile of a provider.
+     *
+     * @param request The provider profile request.
+     * @return ApiResponse indicating the status of the profile saving operation with {@link PendingRegistrationResponse}.
+     *
+     * @see RequestProviderProfile
+     * @see ApiResponse
+     */
+    ApiResponse<PendingRegistrationResponse> saveProfile(RequestProviderProfile request);
+
+    /**
+     * Saves a category for the provider's services.
+     *
+     * @param category The request containing the category details.
+     * @return ApiResponse indicating the status of the category-saving operation with {@link PendingRegistrationResponse}.
+     *
+     * @see RequestSerchCategory
+     * @see ApiResponse
+     */
+    ApiResponse<PendingRegistrationResponse> saveCategory(RequestSerchCategory category);
 }

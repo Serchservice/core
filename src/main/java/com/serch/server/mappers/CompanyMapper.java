@@ -20,12 +20,16 @@ public interface CompanyMapper {
     CompanyMapper INSTANCE = Mappers.getMapper(CompanyMapper.class);
 
     Complaint complaint(ComplaintRequest request);
+
     @Mappings({
             @Mapping(target = "sentAt", source = "createdAt"),
             @Mapping(target = "message", source = "comment")
     })
     IssueResponse response(Issue issue);
+
     SpeakWithSerchResponse response(SpeakWithSerch speakWithSerch);
+
     SerchCategoryResponse response(SerchCategory category);
+
     ServiceSuggest response(ServiceSuggestRequest request);
 }

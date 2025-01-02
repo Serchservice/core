@@ -3,6 +3,7 @@ package com.serch.server.core;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.server.ServerHttpRequest;
 
 import java.util.Arrays;
 
@@ -28,6 +29,26 @@ public class Logging {
             log.info(String.format("%s Server Name::: %s", prefix,  request.getServerName()));
             log.info(String.format("%s Server Port::: %s", prefix,  request.getServerPort()));
             request.getParameterMap().forEach((a, b) -> log.info(String.format("%s Request Param = %s | Value = %s", prefix, a, Arrays.toString(b))));
+        }
+    }
+
+    static public void logRequest(ServerHttpRequest request, String from) {
+        String prefix = String.format("SERCH WEBSOCKET %s:::", from);
+
+        if(request != null) {
+            log.info(String.format("%s Method::: %s", prefix, request.getMethod()));
+            log.info(String.format("%s Uri::: %s", prefix, request.getURI()));
+            log.info(String.format("%s Uri Authority::: %s", prefix, request.getURI().getAuthority()));
+            log.info(String.format("%s Uri Fragment::: %s", prefix, request.getURI().getFragment()));
+            log.info(String.format("%s Uri host::: %s", prefix, request.getURI().getHost()));
+            log.info(String.format("%s Uri path::: %s", prefix, request.getURI().getPath()));
+            log.info(String.format("%s Uri port::: %s", prefix, request.getURI().getPort()));
+            log.info(String.format("%s Uri query::: %s", prefix, request.getURI().getQuery()));
+            log.info(String.format("%s Uri scheme::: %s", prefix, request.getURI().getScheme()));
+            log.info(String.format("%s Uri scheme specific part::: %s", prefix, request.getURI().getSchemeSpecificPart()));
+            log.info(String.format("%s Uri user info::: %s", prefix, request.getURI().getUserInfo()));
+            log.info(String.format("%s Local Address::: %s", prefix, request.getLocalAddress().getAddress()));
+            log.info(String.format("%s Remote Address::: %s", prefix, request.getRemoteAddress().getAddress()));
         }
     }
 }

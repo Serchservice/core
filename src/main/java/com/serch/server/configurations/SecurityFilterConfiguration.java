@@ -1,5 +1,6 @@
 package com.serch.server.configurations;
 
+import com.serch.server.configurations.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

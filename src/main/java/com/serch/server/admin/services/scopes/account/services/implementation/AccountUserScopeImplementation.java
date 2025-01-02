@@ -393,7 +393,7 @@ public class AccountUserScopeImplementation implements AccountUserScopeService {
 
     @Override
     public ApiResponse<List<AccountUserScopeTicketResponse>> tickets(UUID id, Integer page, Integer size) {
-        Page<SpeakWithSerch> tickets = speakWithSerchRepository.findByUser_Id(id, HelperUtil.getPageable(page, size));
+        Page<SpeakWithSerch> tickets = speakWithSerchRepository.findByUserId(id, HelperUtil.getPageable(page, size));
         if(tickets != null && tickets.hasContent()) {
             return new ApiResponse<>(
                     tickets.getContent().stream().map(ticket -> {

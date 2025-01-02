@@ -8,6 +8,7 @@ import com.serch.server.services.rating.responses.RatingResponse;
 import com.serch.server.services.rating.services.RatingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,7 +34,7 @@ public class RatingController {
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @GetMapping("/all/bad")
+    @GetMapping("/bad")
     public ResponseEntity<ApiResponse<List<RatingResponse>>> bad(
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size
@@ -42,7 +43,18 @@ public class RatingController {
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @GetMapping("/all/good")
+    @GetMapping("/bad/{id}")
+    @PreAuthorize(value = "hasRole('BUSINESS') || hasRole('USER')")
+    public ResponseEntity<ApiResponse<List<RatingResponse>>> getBadAssociateRatings(
+            @PathVariable String id,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
+    ) {
+        ApiResponse<List<RatingResponse>> response = service.bad(id, page, size);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @GetMapping("/good")
     public ResponseEntity<ApiResponse<List<RatingResponse>>> good(
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size
@@ -51,9 +63,27 @@ public class RatingController {
         return new ResponseEntity<>(response, response.getStatus());
     }
 
+    @GetMapping("/good/{id}")
+    @PreAuthorize(value = "hasRole('BUSINESS') || hasRole('USER')")
+    public ResponseEntity<ApiResponse<List<RatingResponse>>> getGoodAssociateRatings(
+            @PathVariable String id,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
+    ) {
+        ApiResponse<List<RatingResponse>> response = service.good(id, page, size);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
     @GetMapping("/chart")
     public ResponseEntity<ApiResponse<List<RatingChartResponse>>> chart() {
         ApiResponse<List<RatingChartResponse>> response = service.chart(null);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @GetMapping("/chart/{id}")
+    @PreAuthorize(value = "hasRole('BUSINESS') || hasRole('USER')")
+    public ResponseEntity<ApiResponse<List<RatingChartResponse>>> getAssociateRatingChart(@PathVariable String id) {
+        ApiResponse<List<RatingChartResponse>> response = service.chart(id);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

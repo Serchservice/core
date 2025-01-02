@@ -1,5 +1,6 @@
 package com.serch.server.core.validator.key;
 
+import com.serch.server.exceptions.auth.AuthException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -52,9 +53,14 @@ public class KeyValidator implements KeyValidatorService {
     @Override
     public boolean isSigned(String key) {
         if(key == null) {
-            return false;
+            throw new AuthException("Request is missing core authorization access.");
         } else {
-            return key.startsWith(ACCESS_IDENTITY) && ACCESS_SIGNATURE.equals(key);
+            boolean isSigned = key.startsWith(ACCESS_IDENTITY) && ACCESS_SIGNATURE.equals(key);
+            if(isSigned) {
+                return true;
+            } else {
+                throw new AuthException("Unauthorized request, access denied.");
+            }
         }
     }
 

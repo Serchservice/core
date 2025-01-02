@@ -1,4 +1,4 @@
-package com.serch.server.services.shop;
+package com.serch.server.services.shop.controllers;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.services.shop.requests.ShopDriveRequest;

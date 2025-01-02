@@ -153,7 +153,7 @@ public class ActiveImplementation implements ActiveService {
                     }
                     activeRepository.save(active);
                     messaging.convertAndSend(
-                            "/platform/%s".formatted(String.valueOf(active.getProfile().getId())),
+                            "/platform/%s/trip/status".formatted(String.valueOf(active.getProfile().getId())),
                             status
                     );
                 }, () -> profileRepository.findById(user.getId())
@@ -165,7 +165,7 @@ public class ActiveImplementation implements ActiveService {
                                 activeRepository.save(active);
 
                                 messaging.convertAndSend(
-                                        "/platform/%s".formatted(String.valueOf(profile.getId())),
+                                        "/platform/%s/trip/status".formatted(String.valueOf(profile.getId())),
                                         status
                                 );
                             }

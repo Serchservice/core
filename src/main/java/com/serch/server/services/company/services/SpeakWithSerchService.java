@@ -2,6 +2,7 @@ package com.serch.server.services.company.services;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.services.company.requests.IssueRequest;
+import com.serch.server.services.company.responses.IssueResponse;
 import com.serch.server.services.company.responses.SpeakWithSerchResponse;
 
 import java.util.List;
@@ -30,6 +31,19 @@ public interface SpeakWithSerchService {
      * @see SpeakWithSerchResponse
      */
     ApiResponse<List<SpeakWithSerchResponse>> messages(Integer page, Integer size);
+
+    /**
+     * Fetches all issues belonging to a ticket.
+     *
+     * @param ticket The ticket to fetch its issues.
+     * @param page The page number to retrieve (zero-based index).
+     * @param size The number of items per page.
+     * @return ApiResponse containing all messages.
+     *
+     * @see ApiResponse
+     * @see IssueResponse
+     */
+    ApiResponse<List<IssueResponse>> issues(String ticket, Integer page, Integer size);
 
     /**
      * Marks all the message in a SpeakWithSerch record read

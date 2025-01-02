@@ -7,7 +7,7 @@ info:
      1. **Signature Authentication**: Use the `X-Serch-Signed` header to verify that the connection is coming from an authorized Serch user. This is **compulsory** for any API request.
      2. **Bearer Authentication**: Optionally, use a JWT token in the `Authorization` header as `Bearer <token>`.
      3. **Drive Authentication**: Optionally, use the `X-Serch-Drive-Api-Key` and `X-Serch-Drive-Secret-Key` headers for Drive authentication.
-     4. **Guest Authentication**: Optionally, use the `X-Serch-Guest-Api-Key` and `X-Serch-Guest-Secret-Key` headers for Guest access.
+     4. **Guest Authentication**: Optionally, use the `X-Serch-Guest-Api-Key`, `X-Serch-Guest-Secret-Key` and `Guest-Authorization` headers for Guest access.
 
      Choose **Signature Authentication** for all requests, and optionally select one of the other methods for additional access control.
   termsOfService: https://www.serchservice.com/hub/legal/terms-and-conditions
@@ -18,7 +18,7 @@ info:
   license:
     name: Serch Server License
     url: https://www.serchservice.com/hub/legal
-  version: 1.1.3
+  version: 1.2.0
 servers:
 - url: https://sandbox.serchservice.com/api/v1
   description: Sandbox Server
@@ -295,14 +295,14 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseListShopResponse'
-  /shop/create/weekday:
+  /shop/create/weekday/{id}:
     post:
       tags:
       - shop-controller
       operationId: createWeekday
       parameters:
-      - name: shop
-        in: query
+      - name: id
+        in: path
         required: true
         schema:
           type: string
@@ -324,17 +324,11 @@ paths:
       tags:
       - shop-controller
       operationId: createService
-      parameters:
-      - name: shop
-        in: query
-        required: true
-        schema:
-          type: string
       requestBody:
         content:
           application/json:
             schema:
-              type: string
+              $ref: '#/components/schemas/CreateShopServiceRequest'
         required: true
       responses:
         "200":
@@ -708,7 +702,7 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: '#/components/schemas/ApiResponseString'
+                $ref: '#/components/schemas/ApiResponsePendingRegistrationResponse'
   /auth/provider/login:
     post:
       tags:
@@ -744,7 +738,7 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: '#/components/schemas/ApiResponseString'
+                $ref: '#/components/schemas/ApiResponsePendingRegistrationResponse'
   /auth/password/reset:
     post:
       tags:
@@ -961,6 +955,24 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseString'
+  /auth/email/verify/pending:
+    post:
+      tags:
+      - auth-controller
+      operationId: verifyPending
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestLogin'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponsePendingRegistrationResponse'
   /auth/business/signup:
     post:
       tags:
@@ -996,7 +1008,7 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: '#/components/schemas/ApiResponseString'
+                $ref: '#/components/schemas/ApiResponsePendingRegistrationResponse'
   /auth/business/login:
     post:
       tags:
@@ -1032,7 +1044,7 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: '#/components/schemas/ApiResponseString'
+                $ref: '#/components/schemas/ApiResponsePendingRegistrationResponse'
   /auth/associate:
     get:
       tags:
@@ -1486,23 +1498,11 @@ paths:
       tags:
       - shop-controller
       operationId: updateService
-      parameters:
-      - name: id
-        in: query
-        required: true
-        schema:
-          type: integer
-          format: int64
-      - name: shop
-        in: query
-        required: true
-        schema:
-          type: string
       requestBody:
         content:
           application/json:
             schema:
-              type: string
+              $ref: '#/components/schemas/UpdateShopServiceRequest'
         required: true
       responses:
         "200":
@@ -2075,13 +2075,13 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseListOrganizationResponse'
-  /guest/update:
+  /guest/update/timezone:
     patch:
       tags:
       - guest-controller
       operationId: updateTimezone
       parameters:
-      - name: timezone
+      - name: zone
         in: query
         required: true
         schema:
@@ -2098,7 +2098,7 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseString'
-  /guest/fcm/update:
+  /guest/update/fcm:
     patch:
       tags:
       - guest-controller
@@ -2402,17 +2402,53 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseProviderStatus'
-  /account/update:
+  /account/update/timezone:
     patch:
       tags:
       - account-controller
       operationId: updateTimezone_2
       parameters:
-      - name: timezone
+      - name: zone
         in: query
         required: true
         schema:
           type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseString'
+  /account/update/fcm:
+    patch:
+      tags:
+      - account-controller
+      operationId: updateFcmToken_1
+      parameters:
+      - name: token
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseString'
+  /account/update/e2ee:
+    patch:
+      tags:
+      - account-controller
+      operationId: updatePublicEncryptionKey
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateE2EKey'
+        required: true
       responses:
         "200":
           description: OK
@@ -2438,24 +2474,6 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseAccountSettingResponse'
-  /account/fcm/update:
-    patch:
-      tags:
-      - account-controller
-      operationId: updateFcmToken_1
-      parameters:
-      - name: token
-        in: query
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/ApiResponseString'
   /wallet:
     get:
       tags:
@@ -2473,6 +2491,19 @@ paths:
       tags:
       - wallet-controller
       operationId: transactions
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
       responses:
         "200":
           description: OK
@@ -2645,11 +2676,62 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseTripResponse'
-  /trip/invite:
+  /trip/history:
     get:
       tags:
-      - trip-request-controller
+      - trip-history-controller
       operationId: history
+      parameters:
+      - name: guest
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: link
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: shared
+        in: query
+        required: false
+        schema:
+          type: boolean
+      - name: category
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: date_time
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseListTripResponse'
+  /trip/history/shared:
+    get:
+      tags:
+      - trip-history-controller
+      operationId: shared
       parameters:
       - name: guest
         in: query
@@ -2680,11 +2762,46 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseListTripResponse'
-  /trip/history:
+  /trip/history/requested:
     get:
       tags:
-      - trip-controller
-      operationId: history_1
+      - trip-history-controller
+      operationId: requested
+      parameters:
+      - name: guest
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: link
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseListTripResponse'
+  /trip/history/active:
+    get:
+      tags:
+      - trip-history-controller
+      operationId: active
       parameters:
       - name: guest
         in: query
@@ -5129,11 +5246,40 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseAccountScopeAnalysisResponse'
-  /schedule/all:
+  /schedule/history:
     get:
       tags:
-      - schedule-controller
-      operationId: schedules_1
+      - schedule-history-controller
+      operationId: history_1
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: category
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: date_time
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
       responses:
         "200":
           description: OK
@@ -5141,6 +5287,56 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseListScheduleGroupResponse'
+  /schedule/history/requested:
+    get:
+      tags:
+      - schedule-history-controller
+      operationId: requested_1
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseListScheduleResponse'
+  /schedule/history/active:
+    get:
+      tags:
+      - schedule-history-controller
+      operationId: active_1
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseListScheduleResponse'
   /schedule/all/times/{provider}:
     get:
       tags:
@@ -5160,18 +5356,31 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseListScheduleTimeResponse'
-  /schedule/all/active:
+  /referral:
     get:
       tags:
-      - schedule-controller
-      operationId: today
+      - referral-controller
+      operationId: viewReferrals
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
       responses:
         "200":
           description: OK
           content:
             '*/*':
               schema:
-                $ref: '#/components/schemas/ApiResponseListScheduleResponse'
+                $ref: '#/components/schemas/ApiResponseListReferralResponse'
   /referral/program:
     get:
       tags:
@@ -5220,87 +5429,7 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseReferralProgramResponse'
-  /referral/all:
-    get:
-      tags:
-      - referral-controller
-      operationId: viewReferrals
-      parameters:
-      - name: page
-        in: query
-        required: false
-        schema:
-          type: integer
-          format: int32
-      - name: size
-        in: query
-        required: false
-        schema:
-          type: integer
-          format: int32
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/ApiResponseListReferralResponse'
-  /rating/chart:
-    get:
-      tags:
-      - rating-controller
-      operationId: chart_2
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/ApiResponseListRatingChartResponse'
-  /rating/app:
-    get:
-      tags:
-      - rating-controller
-      operationId: app
-      parameters:
-      - name: id
-        in: query
-        required: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/ApiResponseRatingResponse'
-  /rating/all:
-    get:
-      tags:
-      - rating-controller
-      operationId: view_1
-      parameters:
-      - name: page
-        in: query
-        required: false
-        schema:
-          type: integer
-          format: int32
-      - name: size
-        in: query
-        required: false
-        schema:
-          type: integer
-          format: int32
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/ApiResponseListRatingResponse'
-  /rating/all/good:
+  /rating/good:
     get:
       tags:
       - rating-controller
@@ -5325,11 +5454,144 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseListRatingResponse'
-  /rating/all/bad:
+  /rating/good/{id}:
+    get:
+      tags:
+      - rating-controller
+      operationId: getGoodAssociateRatings
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseListRatingResponse'
+  /rating/chart:
+    get:
+      tags:
+      - rating-controller
+      operationId: chart_2
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseListRatingChartResponse'
+  /rating/chart/{id}:
+    get:
+      tags:
+      - rating-controller
+      operationId: getAssociateRatingChart
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseListRatingChartResponse'
+  /rating/bad:
     get:
       tags:
       - rating-controller
       operationId: bad
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseListRatingResponse'
+  /rating/bad/{id}:
+    get:
+      tags:
+      - rating-controller
+      operationId: getBadAssociateRatings
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseListRatingResponse'
+  /rating/app:
+    get:
+      tags:
+      - rating-controller
+      operationId: app
+      parameters:
+      - name: id
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseRatingResponse'
+  /rating/all:
+    get:
+      tags:
+      - rating-controller
+      operationId: view_1
       parameters:
       - name: page
         in: query
@@ -5506,6 +5768,36 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseListAccountResponse'
+  /company/speak_with_serch/issues/{ticket}:
+    get:
+      tags:
+      - speak-with-serch-controller
+      operationId: issues
+      parameters:
+      - name: ticket
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseListIssueResponse'
   /company/newsletter/unsubscribe:
     get:
       tags:
@@ -5547,6 +5839,19 @@ paths:
       tags:
       - chat-controller
       operationId: rooms
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
       responses:
         "200":
           description: OK
@@ -5577,7 +5882,7 @@ paths:
     get:
       tags:
       - chat-controller
-      operationId: messages_1
+      operationId: room_1
       parameters:
       - name: room
         in: path
@@ -5591,6 +5896,36 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseChatRoomResponse'
+  /chat/room/{room}/messages:
+    get:
+      tags:
+      - chat-controller
+      operationId: messages_1
+      parameters:
+      - name: room
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseListChatGroupMessageResponse'
   /certificate:
     get:
       tags:
@@ -5730,31 +6065,17 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseString'
-  /business/associate/resend:
-    get:
-      tags:
-      - business-associate-controller
-      operationId: add_5
-      parameters:
-      - name: id
-        in: query
-        required: true
-        schema:
-          type: string
-          format: uuid
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/ApiResponseString'
-  /business/associate/all:
+  /business/associate:
     get:
       tags:
       - business-associate-controller
       operationId: all
       parameters:
+      - name: q
+        in: query
+        required: false
+        schema:
+          type: string
       - name: page
         in: query
         required: false
@@ -5774,7 +6095,26 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseListBusinessAssociateResponse'
-  /bookmark/all:
+  /business/associate/resend:
+    get:
+      tags:
+      - business-associate-controller
+      operationId: add_5
+      parameters:
+      - name: id
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseString'
+  /bookmark:
     get:
       tags:
       - bookmark-controller
@@ -6357,7 +6697,7 @@ paths:
   /account/dashboard:
     get:
       tags:
-      - account-controller
+      - account-dashboard-controller
       operationId: dashboard
       responses:
         "200":
@@ -6369,8 +6709,21 @@ paths:
   /account/dashboard/business:
     get:
       tags:
-      - account-controller
+      - account-dashboard-controller
       operationId: dashboardBusiness
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
       responses:
         "200":
           description: OK
@@ -7930,6 +8283,13 @@ components:
           type: string
         data:
           $ref: '#/components/schemas/ShopResponse'
+    CreateShopServiceRequest:
+      type: object
+      properties:
+        id:
+          type: string
+        service:
+          type: string
     IssueRequest:
       type: object
       properties:
@@ -8104,6 +8464,9 @@ components:
           - RESOLVED
           - CLOSED
           - WAITING
+        total:
+          type: integer
+          format: int32
         issues:
           type: array
           items:
@@ -8116,6 +8479,8 @@ components:
           $ref: '#/components/schemas/CommonProfileResponse'
         user:
           $ref: '#/components/schemas/CommonProfileResponse'
+        has_serch_message:
+          type: boolean
         updated_at:
           type: string
           format: date-time
@@ -8659,10 +9024,15 @@ components:
           - RESOLVED
           - CLOSED
           - WAITING
+        total:
+          type: integer
+          format: int32
         issues:
           type: array
           items:
             $ref: '#/components/schemas/IssueResponse'
+        has_serch_message:
+          type: boolean
         updated_at:
           type: string
           format: date-time
@@ -8962,18 +9332,6 @@ components:
       properties:
         profile:
           $ref: '#/components/schemas/ProfileResponse'
-        chart:
-          type: array
-          items:
-            $ref: '#/components/schemas/RatingChartResponse'
-        good:
-          type: array
-          items:
-            $ref: '#/components/schemas/RatingResponse'
-        bad:
-          type: array
-          items:
-            $ref: '#/components/schemas/RatingResponse'
         verified:
           type: boolean
         status:
@@ -9059,23 +9417,6 @@ components:
           - ERROR
         business_information:
           $ref: '#/components/schemas/BusinessInformationData'
-    RatingChartResponse:
-      type: object
-      properties:
-        month:
-          type: string
-        average:
-          type: number
-          format: double
-        total:
-          type: number
-          format: double
-        bad:
-          type: number
-          format: double
-        good:
-          type: number
-          format: double
     SpecialtyResponse:
       type: object
       properties:
@@ -9150,12 +9491,12 @@ components:
           type: string
         state:
           type: string
+        token:
+          type: string
         country:
           type: string
         device:
           $ref: '#/components/schemas/RequestDevice'
-        email_address:
-          type: string
         street_address:
           type: string
         land_mark:
@@ -9200,6 +9541,97 @@ components:
           type: string
         email_address:
           type: string
+    ApiResponsePendingRegistrationResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - 100 CONTINUE
+          - 101 SWITCHING_PROTOCOLS
+          - 102 PROCESSING
+          - 103 EARLY_HINTS
+          - 103 CHECKPOINT
+          - 200 OK
+          - 201 CREATED
+          - 202 ACCEPTED
+          - 203 NON_AUTHORITATIVE_INFORMATION
+          - 204 NO_CONTENT
+          - 205 RESET_CONTENT
+          - 206 PARTIAL_CONTENT
+          - 207 MULTI_STATUS
+          - 208 ALREADY_REPORTED
+          - 226 IM_USED
+          - 300 MULTIPLE_CHOICES
+          - 301 MOVED_PERMANENTLY
+          - 302 FOUND
+          - 302 MOVED_TEMPORARILY
+          - 303 SEE_OTHER
+          - 304 NOT_MODIFIED
+          - 305 USE_PROXY
+          - 307 TEMPORARY_REDIRECT
+          - 308 PERMANENT_REDIRECT
+          - 400 BAD_REQUEST
+          - 401 UNAUTHORIZED
+          - 402 PAYMENT_REQUIRED
+          - 403 FORBIDDEN
+          - 404 NOT_FOUND
+          - 405 METHOD_NOT_ALLOWED
+          - 406 NOT_ACCEPTABLE
+          - 407 PROXY_AUTHENTICATION_REQUIRED
+          - 408 REQUEST_TIMEOUT
+          - 409 CONFLICT
+          - 410 GONE
+          - 411 LENGTH_REQUIRED
+          - 412 PRECONDITION_FAILED
+          - 413 PAYLOAD_TOO_LARGE
+          - 413 REQUEST_ENTITY_TOO_LARGE
+          - 414 URI_TOO_LONG
+          - 414 REQUEST_URI_TOO_LONG
+          - 415 UNSUPPORTED_MEDIA_TYPE
+          - 416 REQUESTED_RANGE_NOT_SATISFIABLE
+          - 417 EXPECTATION_FAILED
+          - 418 I_AM_A_TEAPOT
+          - 419 INSUFFICIENT_SPACE_ON_RESOURCE
+          - 420 METHOD_FAILURE
+          - 421 DESTINATION_LOCKED
+          - 422 UNPROCESSABLE_ENTITY
+          - 423 LOCKED
+          - 424 FAILED_DEPENDENCY
+          - 425 TOO_EARLY
+          - 426 UPGRADE_REQUIRED
+          - 428 PRECONDITION_REQUIRED
+          - 429 TOO_MANY_REQUESTS
+          - 431 REQUEST_HEADER_FIELDS_TOO_LARGE
+          - 451 UNAVAILABLE_FOR_LEGAL_REASONS
+          - 500 INTERNAL_SERVER_ERROR
+          - 501 NOT_IMPLEMENTED
+          - 502 BAD_GATEWAY
+          - 503 SERVICE_UNAVAILABLE
+          - 504 GATEWAY_TIMEOUT
+          - 505 HTTP_VERSION_NOT_SUPPORTED
+          - 506 VARIANT_ALSO_NEGOTIATES
+          - 507 INSUFFICIENT_STORAGE
+          - 508 LOOP_DETECTED
+          - 509 BANDWIDTH_LIMIT_EXCEEDED
+          - 510 NOT_EXTENDED
+          - 511 NETWORK_AUTHENTICATION_REQUIRED
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PendingRegistrationResponse'
+    PendingRegistrationResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        message:
+          type: string
+        error_code:
+          type: string
     RequestSerchCategory:
       type: object
       properties:
@@ -9217,7 +9649,7 @@ components:
           - HOME_INSTALLER
           - GUEST
           - USER
-        emailAddress:
+        token:
           type: string
         specialties:
           type: array
@@ -9454,10 +9886,10 @@ components:
           type: string
         country:
           type: string
+        token:
+          type: string
         device:
           $ref: '#/components/schemas/RequestDevice'
-        email_address:
-          type: string
     AssociateInviteRequest:
       type: object
       properties:
@@ -9956,6 +10388,16 @@ components:
           type: number
           format: double
         phone_number:
+          type: string
+    UpdateShopServiceRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        shop:
+          type: string
+        service:
           type: string
     ApiResponseListComplaintScopeResponse:
       type: object
@@ -11978,6 +12420,11 @@ components:
           - BUSY
           - NONE
           - REQUESTSHARING
+    UpdateE2EKey:
+      type: object
+      properties:
+        public_key:
+          type: string
     AccountSettingResponse:
       type: object
       properties:
@@ -17340,6 +17787,12 @@ components:
           enum:
           - TRIP
           - CALL
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
         profile:
           $ref: '#/components/schemas/CommonProfileResponse'
     ApiResponseListAccountUserScopeRatingResponse:
@@ -17510,6 +17963,23 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/RatingChartResponse'
+    RatingChartResponse:
+      type: object
+      properties:
+        month:
+          type: string
+        average:
+          type: number
+          format: double
+        total:
+          type: number
+          format: double
+        bad:
+          type: number
+          format: double
+        good:
+          type: number
+          format: double
     AccountUserScopeChatRoomResponse:
       type: object
       properties:
@@ -19045,101 +19515,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ScheduleResponse'
-    ApiResponseReferralProgramResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          enum:
-          - 100 CONTINUE
-          - 101 SWITCHING_PROTOCOLS
-          - 102 PROCESSING
-          - 103 EARLY_HINTS
-          - 103 CHECKPOINT
-          - 200 OK
-          - 201 CREATED
-          - 202 ACCEPTED
-          - 203 NON_AUTHORITATIVE_INFORMATION
-          - 204 NO_CONTENT
-          - 205 RESET_CONTENT
-          - 206 PARTIAL_CONTENT
-          - 207 MULTI_STATUS
-          - 208 ALREADY_REPORTED
-          - 226 IM_USED
-          - 300 MULTIPLE_CHOICES
-          - 301 MOVED_PERMANENTLY
-          - 302 FOUND
-          - 302 MOVED_TEMPORARILY
-          - 303 SEE_OTHER
-          - 304 NOT_MODIFIED
-          - 305 USE_PROXY
-          - 307 TEMPORARY_REDIRECT
-          - 308 PERMANENT_REDIRECT
-          - 400 BAD_REQUEST
-          - 401 UNAUTHORIZED
-          - 402 PAYMENT_REQUIRED
-          - 403 FORBIDDEN
-          - 404 NOT_FOUND
-          - 405 METHOD_NOT_ALLOWED
-          - 406 NOT_ACCEPTABLE
-          - 407 PROXY_AUTHENTICATION_REQUIRED
-          - 408 REQUEST_TIMEOUT
-          - 409 CONFLICT
-          - 410 GONE
-          - 411 LENGTH_REQUIRED
-          - 412 PRECONDITION_FAILED
-          - 413 PAYLOAD_TOO_LARGE
-          - 413 REQUEST_ENTITY_TOO_LARGE
-          - 414 URI_TOO_LONG
-          - 414 REQUEST_URI_TOO_LONG
-          - 415 UNSUPPORTED_MEDIA_TYPE
-          - 416 REQUESTED_RANGE_NOT_SATISFIABLE
-          - 417 EXPECTATION_FAILED
-          - 418 I_AM_A_TEAPOT
-          - 419 INSUFFICIENT_SPACE_ON_RESOURCE
-          - 420 METHOD_FAILURE
-          - 421 DESTINATION_LOCKED
-          - 422 UNPROCESSABLE_ENTITY
-          - 423 LOCKED
-          - 424 FAILED_DEPENDENCY
-          - 425 TOO_EARLY
-          - 426 UPGRADE_REQUIRED
-          - 428 PRECONDITION_REQUIRED
-          - 429 TOO_MANY_REQUESTS
-          - 431 REQUEST_HEADER_FIELDS_TOO_LARGE
-          - 451 UNAVAILABLE_FOR_LEGAL_REASONS
-          - 500 INTERNAL_SERVER_ERROR
-          - 501 NOT_IMPLEMENTED
-          - 502 BAD_GATEWAY
-          - 503 SERVICE_UNAVAILABLE
-          - 504 GATEWAY_TIMEOUT
-          - 505 HTTP_VERSION_NOT_SUPPORTED
-          - 506 VARIANT_ALSO_NEGOTIATES
-          - 507 INSUFFICIENT_STORAGE
-          - 508 LOOP_DETECTED
-          - 509 BANDWIDTH_LIMIT_EXCEEDED
-          - 510 NOT_EXTENDED
-          - 511 NETWORK_AUTHENTICATION_REQUIRED
-        code:
-          type: integer
-          format: int32
-        message:
-          type: string
-        data:
-          $ref: '#/components/schemas/ReferralProgramResponse'
-    ReferralProgramResponse:
-      type: object
-      properties:
-        name:
-          type: string
-        avatar:
-          type: string
-        role:
-          type: string
-        referralCode:
-          type: string
-        referLink:
-          type: string
     ApiResponseListReferralResponse:
       type: object
       properties:
@@ -19236,6 +19611,101 @@ components:
         role:
           type: string
         info:
+          type: string
+    ApiResponseReferralProgramResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - 100 CONTINUE
+          - 101 SWITCHING_PROTOCOLS
+          - 102 PROCESSING
+          - 103 EARLY_HINTS
+          - 103 CHECKPOINT
+          - 200 OK
+          - 201 CREATED
+          - 202 ACCEPTED
+          - 203 NON_AUTHORITATIVE_INFORMATION
+          - 204 NO_CONTENT
+          - 205 RESET_CONTENT
+          - 206 PARTIAL_CONTENT
+          - 207 MULTI_STATUS
+          - 208 ALREADY_REPORTED
+          - 226 IM_USED
+          - 300 MULTIPLE_CHOICES
+          - 301 MOVED_PERMANENTLY
+          - 302 FOUND
+          - 302 MOVED_TEMPORARILY
+          - 303 SEE_OTHER
+          - 304 NOT_MODIFIED
+          - 305 USE_PROXY
+          - 307 TEMPORARY_REDIRECT
+          - 308 PERMANENT_REDIRECT
+          - 400 BAD_REQUEST
+          - 401 UNAUTHORIZED
+          - 402 PAYMENT_REQUIRED
+          - 403 FORBIDDEN
+          - 404 NOT_FOUND
+          - 405 METHOD_NOT_ALLOWED
+          - 406 NOT_ACCEPTABLE
+          - 407 PROXY_AUTHENTICATION_REQUIRED
+          - 408 REQUEST_TIMEOUT
+          - 409 CONFLICT
+          - 410 GONE
+          - 411 LENGTH_REQUIRED
+          - 412 PRECONDITION_FAILED
+          - 413 PAYLOAD_TOO_LARGE
+          - 413 REQUEST_ENTITY_TOO_LARGE
+          - 414 URI_TOO_LONG
+          - 414 REQUEST_URI_TOO_LONG
+          - 415 UNSUPPORTED_MEDIA_TYPE
+          - 416 REQUESTED_RANGE_NOT_SATISFIABLE
+          - 417 EXPECTATION_FAILED
+          - 418 I_AM_A_TEAPOT
+          - 419 INSUFFICIENT_SPACE_ON_RESOURCE
+          - 420 METHOD_FAILURE
+          - 421 DESTINATION_LOCKED
+          - 422 UNPROCESSABLE_ENTITY
+          - 423 LOCKED
+          - 424 FAILED_DEPENDENCY
+          - 425 TOO_EARLY
+          - 426 UPGRADE_REQUIRED
+          - 428 PRECONDITION_REQUIRED
+          - 429 TOO_MANY_REQUESTS
+          - 431 REQUEST_HEADER_FIELDS_TOO_LARGE
+          - 451 UNAVAILABLE_FOR_LEGAL_REASONS
+          - 500 INTERNAL_SERVER_ERROR
+          - 501 NOT_IMPLEMENTED
+          - 502 BAD_GATEWAY
+          - 503 SERVICE_UNAVAILABLE
+          - 504 GATEWAY_TIMEOUT
+          - 505 HTTP_VERSION_NOT_SUPPORTED
+          - 506 VARIANT_ALSO_NEGOTIATES
+          - 507 INSUFFICIENT_STORAGE
+          - 508 LOOP_DETECTED
+          - 509 BANDWIDTH_LIMIT_EXCEEDED
+          - 510 NOT_EXTENDED
+          - 511 NETWORK_AUTHENTICATION_REQUIRED
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ReferralProgramResponse'
+    ReferralProgramResponse:
+      type: object
+      properties:
+        name:
+          type: string
+        avatar:
+          type: string
+        role:
+          type: string
+        referralCode:
+          type: string
+        referLink:
           type: string
     ApiResponseListRatingResponse:
       type: object
@@ -19626,6 +20096,90 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AccountResponse'
+    ApiResponseListIssueResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - 100 CONTINUE
+          - 101 SWITCHING_PROTOCOLS
+          - 102 PROCESSING
+          - 103 EARLY_HINTS
+          - 103 CHECKPOINT
+          - 200 OK
+          - 201 CREATED
+          - 202 ACCEPTED
+          - 203 NON_AUTHORITATIVE_INFORMATION
+          - 204 NO_CONTENT
+          - 205 RESET_CONTENT
+          - 206 PARTIAL_CONTENT
+          - 207 MULTI_STATUS
+          - 208 ALREADY_REPORTED
+          - 226 IM_USED
+          - 300 MULTIPLE_CHOICES
+          - 301 MOVED_PERMANENTLY
+          - 302 FOUND
+          - 302 MOVED_TEMPORARILY
+          - 303 SEE_OTHER
+          - 304 NOT_MODIFIED
+          - 305 USE_PROXY
+          - 307 TEMPORARY_REDIRECT
+          - 308 PERMANENT_REDIRECT
+          - 400 BAD_REQUEST
+          - 401 UNAUTHORIZED
+          - 402 PAYMENT_REQUIRED
+          - 403 FORBIDDEN
+          - 404 NOT_FOUND
+          - 405 METHOD_NOT_ALLOWED
+          - 406 NOT_ACCEPTABLE
+          - 407 PROXY_AUTHENTICATION_REQUIRED
+          - 408 REQUEST_TIMEOUT
+          - 409 CONFLICT
+          - 410 GONE
+          - 411 LENGTH_REQUIRED
+          - 412 PRECONDITION_FAILED
+          - 413 PAYLOAD_TOO_LARGE
+          - 413 REQUEST_ENTITY_TOO_LARGE
+          - 414 URI_TOO_LONG
+          - 414 REQUEST_URI_TOO_LONG
+          - 415 UNSUPPORTED_MEDIA_TYPE
+          - 416 REQUESTED_RANGE_NOT_SATISFIABLE
+          - 417 EXPECTATION_FAILED
+          - 418 I_AM_A_TEAPOT
+          - 419 INSUFFICIENT_SPACE_ON_RESOURCE
+          - 420 METHOD_FAILURE
+          - 421 DESTINATION_LOCKED
+          - 422 UNPROCESSABLE_ENTITY
+          - 423 LOCKED
+          - 424 FAILED_DEPENDENCY
+          - 425 TOO_EARLY
+          - 426 UPGRADE_REQUIRED
+          - 428 PRECONDITION_REQUIRED
+          - 429 TOO_MANY_REQUESTS
+          - 431 REQUEST_HEADER_FIELDS_TOO_LARGE
+          - 451 UNAVAILABLE_FOR_LEGAL_REASONS
+          - 500 INTERNAL_SERVER_ERROR
+          - 501 NOT_IMPLEMENTED
+          - 502 BAD_GATEWAY
+          - 503 SERVICE_UNAVAILABLE
+          - 504 GATEWAY_TIMEOUT
+          - 505 HTTP_VERSION_NOT_SUPPORTED
+          - 506 VARIANT_ALSO_NEGOTIATES
+          - 507 INSUFFICIENT_STORAGE
+          - 508 LOOP_DETECTED
+          - 509 BANDWIDTH_LIMIT_EXCEEDED
+          - 510 NOT_EXTENDED
+          - 511 NETWORK_AUTHENTICATION_REQUIRED
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/IssueResponse'
     ApiResponseListChatRoomResponse:
       type: object
       properties:
@@ -19757,10 +20311,6 @@ components:
           type: string
         reply:
           $ref: '#/components/schemas/ChatReplyResponse'
-        has_only_emojis:
-          type: boolean
-        has_only_one_emoji:
-          type: boolean
         file_size:
           type: string
         is_sent_by_current_user:
@@ -19799,10 +20349,6 @@ components:
           - DELIVERED
           - NOT_SENT
           - READ
-        has_only_emojis:
-          type: boolean
-        has_only_one_emoji:
-          type: boolean
         file_size:
           type: string
         is_sent_by_current_user:
@@ -19838,16 +20384,31 @@ components:
         count:
           type: integer
           format: int64
+        total:
+          type: integer
+          format: int32
         bookmark:
           type: string
         trip:
           type: string
+        type:
+          type: string
+          enum:
+          - TEXT
+          - IMAGE
+          - VIDEO
+          - VOICE
+          - AUDIO
+          - EMOJI
+          - FILE
         schedule:
           $ref: '#/components/schemas/ScheduleResponse'
         groups:
           type: array
           items:
             $ref: '#/components/schemas/ChatGroupMessageResponse'
+        public_encryption_key:
+          type: string
         is_active:
           type: boolean
         message_id:
@@ -19941,6 +20502,90 @@ components:
           type: string
         data:
           $ref: '#/components/schemas/ChatRoomResponse'
+    ApiResponseListChatGroupMessageResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - 100 CONTINUE
+          - 101 SWITCHING_PROTOCOLS
+          - 102 PROCESSING
+          - 103 EARLY_HINTS
+          - 103 CHECKPOINT
+          - 200 OK
+          - 201 CREATED
+          - 202 ACCEPTED
+          - 203 NON_AUTHORITATIVE_INFORMATION
+          - 204 NO_CONTENT
+          - 205 RESET_CONTENT
+          - 206 PARTIAL_CONTENT
+          - 207 MULTI_STATUS
+          - 208 ALREADY_REPORTED
+          - 226 IM_USED
+          - 300 MULTIPLE_CHOICES
+          - 301 MOVED_PERMANENTLY
+          - 302 FOUND
+          - 302 MOVED_TEMPORARILY
+          - 303 SEE_OTHER
+          - 304 NOT_MODIFIED
+          - 305 USE_PROXY
+          - 307 TEMPORARY_REDIRECT
+          - 308 PERMANENT_REDIRECT
+          - 400 BAD_REQUEST
+          - 401 UNAUTHORIZED
+          - 402 PAYMENT_REQUIRED
+          - 403 FORBIDDEN
+          - 404 NOT_FOUND
+          - 405 METHOD_NOT_ALLOWED
+          - 406 NOT_ACCEPTABLE
+          - 407 PROXY_AUTHENTICATION_REQUIRED
+          - 408 REQUEST_TIMEOUT
+          - 409 CONFLICT
+          - 410 GONE
+          - 411 LENGTH_REQUIRED
+          - 412 PRECONDITION_FAILED
+          - 413 PAYLOAD_TOO_LARGE
+          - 413 REQUEST_ENTITY_TOO_LARGE
+          - 414 URI_TOO_LONG
+          - 414 REQUEST_URI_TOO_LONG
+          - 415 UNSUPPORTED_MEDIA_TYPE
+          - 416 REQUESTED_RANGE_NOT_SATISFIABLE
+          - 417 EXPECTATION_FAILED
+          - 418 I_AM_A_TEAPOT
+          - 419 INSUFFICIENT_SPACE_ON_RESOURCE
+          - 420 METHOD_FAILURE
+          - 421 DESTINATION_LOCKED
+          - 422 UNPROCESSABLE_ENTITY
+          - 423 LOCKED
+          - 424 FAILED_DEPENDENCY
+          - 425 TOO_EARLY
+          - 426 UPGRADE_REQUIRED
+          - 428 PRECONDITION_REQUIRED
+          - 429 TOO_MANY_REQUESTS
+          - 431 REQUEST_HEADER_FIELDS_TOO_LARGE
+          - 451 UNAVAILABLE_FOR_LEGAL_REASONS
+          - 500 INTERNAL_SERVER_ERROR
+          - 501 NOT_IMPLEMENTED
+          - 502 BAD_GATEWAY
+          - 503 SERVICE_UNAVAILABLE
+          - 504 GATEWAY_TIMEOUT
+          - 505 HTTP_VERSION_NOT_SUPPORTED
+          - 506 VARIANT_ALSO_NEGOTIATES
+          - 507 INSUFFICIENT_STORAGE
+          - 508 LOOP_DETECTED
+          - 509 BANDWIDTH_LIMIT_EXCEEDED
+          - 510 NOT_EXTENDED
+          - 511 NETWORK_AUTHENTICATION_REQUIRED
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatGroupMessageResponse'
     ApiResponseVerifyCertificateResponse:
       type: object
       properties:

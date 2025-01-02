@@ -29,8 +29,11 @@ public class WalletController {
     }
 
     @GetMapping("/transactions")
-    public ResponseEntity<ApiResponse<List<TransactionGroupResponse>>> transactions() {
-        ApiResponse<List<TransactionGroupResponse>> response = service.transactions();
+    public ResponseEntity<ApiResponse<List<TransactionGroupResponse>>> transactions(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
+    ) {
+        ApiResponse<List<TransactionGroupResponse>> response = service.transactions(page, size);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

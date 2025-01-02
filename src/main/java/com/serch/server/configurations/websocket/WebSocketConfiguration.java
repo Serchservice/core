@@ -1,6 +1,7 @@
-package com.serch.server.configurations;
+package com.serch.server.configurations.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.serch.server.exceptions.websocket.WebSocketErrorHandler;
 import com.serch.server.utils.ServerUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -34,6 +35,8 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
     private static final Logger log = LoggerFactory.getLogger(WebSocketConfiguration.class);
 
     private final WebSocketInterceptor interceptor;
+    private final WebSocketErrorHandler errorHandler;
+    private final WebSocketHandshakeInterceptor handshakeInterceptor;
     private final ObjectMapper objectMapper;
 
     /**
@@ -49,7 +52,9 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
         registry.addEndpoint("/ws:chat", "/ws:serch", "/ws:trip", "/ws", "/ws:call")
                 .setAllowedOrigins(origins)
                 .setAllowedOriginPatterns(patterns)
+                .addInterceptors(handshakeInterceptor)
                 .withSockJS();
+        registry.setErrorHandler(errorHandler);
 
         log.info(String.format("SERCH::: WEBSOCKET | Allowed Origins | %s", Arrays.toString(origins)));
         log.info(String.format("SERCH::: WEBSOCKET | Allowed Origin Patterns | %s", Arrays.toString(patterns)));
@@ -69,6 +74,7 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
         converter.setObjectMapper(objectMapper);
         converter.setContentTypeResolver(resolver);
         messageConverters.add(converter);
+
         return false;
     }
 

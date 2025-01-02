@@ -19,12 +19,13 @@ import java.util.UUID;
 public class BusinessAssociateController {
     private final BusinessAssociateService service;
 
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<ApiResponse<List<BusinessAssociateResponse>>> all(
+            @RequestParam(required = false) String q,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size
     ) {
-        ApiResponse<List<BusinessAssociateResponse>> response = service.all(page, size);
+        ApiResponse<List<BusinessAssociateResponse>> response = service.all(q, page, size);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

@@ -15,7 +15,7 @@ import java.util.List;
 public class BookmarkController {
     private final BookmarkService bookmarkService;
 
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<ApiResponse<List<BookmarkResponse>>> bookmarks(
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size

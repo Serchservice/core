@@ -1,6 +1,8 @@
 package com.serch.server.services.conversation.services;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.models.conversation.ChatRoom;
+import com.serch.server.services.conversation.responses.ChatGroupMessageResponse;
 import com.serch.server.services.conversation.responses.ChatRoomResponse;
 
 import java.util.List;
@@ -10,18 +12,48 @@ public interface ChatService {
     /**
      * This will get all the chat rooms the logged-in user belongs to
      *
+     * @param page The page number to retrieve (zero-based index).
+     * @param size The number of items per page.
      * @return {@link ApiResponse} list of {@link ChatRoomResponse}
      */
-    ApiResponse<List<ChatRoomResponse>> rooms();
+    ApiResponse<List<ChatRoomResponse>> rooms(Integer page, Integer size);
 
     /**
-     * This will get the room and chat messages for the given room id
+     * This will get all the chat rooms the tagged user belongs to
+     *
+     * @param id The user id to fetch its room list.
+     * @return {@link ApiResponse} list of {@link ChatRoomResponse}
+     */
+    List<ChatRoomResponse> rooms(UUID id);
+
+    /**
+     * This will get the chat messages for the given room id
+     *
+     * @param page The page number to retrieve (zero-based index).
+     * @param size The number of items per page.
+     * @param roomId The chat room id
+     *
+     * @return {@link ApiResponse} list of {@link ChatGroupMessageResponse}
+     */
+    ApiResponse<List<ChatGroupMessageResponse>> messages(String roomId, Integer page, Integer size);
+
+    /**
+     * Fetch the room data of a chat
+     *
+     * @param room The {@link ChatRoom} data
+     * @param user The user id who is attached to the room
+     * @return {@link ChatRoomResponse} data
+     */
+    ChatRoomResponse getChatRoomResponse(ChatRoom room, UUID user);
+
+    /**
+     * This will get the chat room details for the given room id
      *
      * @param roomId The chat room id
      *
-     * @return {@link ApiResponse} of {@link ChatRoomResponse}
+     * @return {@link ApiResponse} list of {@link ChatRoomResponse}
      */
-    ApiResponse<ChatRoomResponse> messages(String roomId);
+    ApiResponse<ChatRoomResponse> room(String roomId);
 
     /**
      * This will either create and get the chat room the roommate and the logged-in user belongs to,
@@ -31,5 +63,5 @@ public interface ChatService {
      *
      * @return {@link ApiResponse} of {@link ChatRoomResponse}
      */
-    ApiResponse<ChatRoomResponse> room(UUID roommate);
+    ApiResponse<ChatRoomResponse> getOrCreate(UUID roommate);
 }

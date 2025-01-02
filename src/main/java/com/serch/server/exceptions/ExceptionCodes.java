@@ -43,4 +43,5 @@ public class ExceptionCodes {
     public static final String CALL_ERROR = "S65";
     public static final String MFA_COMPULSORY = "S423";
     public static final String ON_TRIP = "S111";
+    public static final String INCOMPLETE_REGISTRATION = "S900";
 }

@@ -38,13 +38,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
+import static com.serch.server.enums.account.ProviderStatus.BUSY;
 import static com.serch.server.enums.auth.Role.USER;
 import static com.serch.server.enums.trip.TripMode.FROM_GUEST;
 import static com.serch.server.enums.trip.TripMode.FROM_USER;
-import static com.serch.server.enums.account.ProviderStatus.BUSY;
 import static com.serch.server.enums.trip.TripStatus.ACTIVE;
 import static com.serch.server.enums.trip.TripType.REQUEST;
 
@@ -79,14 +77,22 @@ public class TripRequestImplementation implements TripRequestService {
     @Override
     @Transactional
     public ApiResponse<TripResponse> invite(TripInviteRequest request) {
-        if(request.getCategory() != null) {
-            validateInviteRequest(request);
+        if(request.getProvider() == null && request.getCategory() == null) {
+            throw new TripException("You must select a category or pick a provider in order to create an invite");
+        } else {
+            validateInviteRequest(request, null);
 
             TripInvite trip = create(request, String.valueOf(userUtil.getUser().getId()), FROM_USER, null);
 
-            if(request.getCategory() == SerchCategory.PERSONAL_SHOPPER) {
+            SerchCategory category = request.getCategory();
+            if(request.getProvider() != null) {
+                category = profileRepository.findById(request.getProvider()).map(Profile::getCategory).orElse(request.getCategory());
+            }
+
+            if(category == SerchCategory.PERSONAL_SHOPPER) {
                 saveShoppingData(request, trip);
             }
+
             pingServiceProviders(request, trip, userUtil.getUser().getFullName(), String.valueOf(userUtil.getUser().getId()));
 
             return new ApiResponse<>(
@@ -94,16 +100,19 @@ public class TripRequestImplementation implements TripRequestService {
                     historyService.response(trip.getId(), String.valueOf(userUtil.getUser().getId())),
                     HttpStatus.OK
             );
-        } else {
-            throw new TripException("You must select a category in order to create an invite");
         }
     }
 
-    private void validateInviteRequest(TripInviteRequest request) {
+    private void validateInviteRequest(TripInviteRequest request, String guest) {
         boolean canShop = request.getShoppingItems() != null && request.getShoppingItems().isEmpty();
+
         if(request.getCategory() == SerchCategory.PERSONAL_SHOPPER && canShop) {
             throw new TripException("You must add items you want to buy in order to proceed");
-        } else {
+        } else if (request.getProvider() == null && guest == null) {
+            if(HelperUtil.isUploadEmpty(request.getAudio()) && request.getProblem().isEmpty()) {
+                throw new TripException("You must either describe your problem or send it as an audio file");
+            }
+        } else if (request.getProvider() != null && guest != null) {
             if(HelperUtil.isUploadEmpty(request.getAudio()) && request.getProblem().isEmpty()) {
                 throw new TripException("You must either describe your problem or send it as an audio file");
             }
@@ -113,6 +122,14 @@ public class TripRequestImplementation implements TripRequestService {
     @Transactional
     protected TripInvite create(TripInviteRequest request, String account, TripMode mode, String linkId) {
         TripInvite trip = TripMapper.INSTANCE.request(request);
+
+        if(request.getProvider() != null) {
+            trip.setCategory(profileRepository.findById(request.getProvider())
+                    .map(Profile::getCategory)
+                    .orElse(request.getCategory()));
+            trip.setSelected(request.getProvider());
+        }
+
         trip.setAccount(account);
         trip.setMode(mode);
         trip.setLinkId(linkId);
@@ -121,6 +138,7 @@ public class TripRequestImplementation implements TripRequestService {
             String url = storageService.upload(request.getAudio(), "trip");
             trip.setAudio(url);
         }
+
         return tripInviteRepository.save(trip);
     }
 
@@ -142,7 +160,20 @@ public class TripRequestImplementation implements TripRequestService {
 
     @Transactional
     protected void pingServiceProviders(TripInviteRequest request, TripInvite trip, String name, String account) {
-        CompletableFuture.runAsync(() -> {
+        if(request.getProvider() != null) {
+            messaging.convertAndSend(
+                    "/platform/%s/trip/requested".formatted(String.valueOf(request.getProvider())),
+                    historyService.response(trip.getId(), String.valueOf(request.getProvider()))
+            );
+
+            log.info(String.format("Sending notification trip invitation ping request to %s", request.getProvider()));
+            notificationService.send(
+                    String.valueOf(request.getProvider()),
+                    String.format("%s wants your service now", name),
+                    "You have a new trip request. Tap to view details",
+                    account, null, true
+            );
+        } else {
             List<Active> actives = activeRepository.sortAllWithinDistance(
                     request.getLatitude(), request.getLongitude(),
                     Double.parseDouble(MAP_SEARCH_RADIUS), request.getCategory().name()
@@ -151,9 +182,10 @@ public class TripRequestImplementation implements TripRequestService {
             if(actives != null && !actives.isEmpty()) {
                 actives.forEach(active -> {
                     messaging.convertAndSend(
-                            "/platform/%s".formatted(String.valueOf(active.getProfile().getId())),
+                            "/platform/%s/trip/requested".formatted(String.valueOf(active.getProfile().getId())),
                             historyService.response(trip.getId(), String.valueOf(active.getProfile().getId()))
                     );
+
                     log.info(String.format("Sending notification trip invitation ping request to %s", active.getProfile().getId()));
                     notificationService.send(
                             String.valueOf(active.getProfile().getId()),
@@ -163,13 +195,13 @@ public class TripRequestImplementation implements TripRequestService {
                     );
                 });
             }
-        });
+        }
     }
 
     @Override
     @Transactional
     public ApiResponse<TripResponse> invite(String guestId, String linkId, TripInviteRequest request) {
-        validateInviteRequest(request);
+        validateInviteRequest(request, guestId);
 
         SharedLogin login = sharedLoginRepository.findBySharedLink_IdAndGuest_Id(linkId, guestId)
                 .orElseThrow(() -> new TripException("Incorrect guest details."));
@@ -188,7 +220,7 @@ public class TripRequestImplementation implements TripRequestService {
         }
 
         messaging.convertAndSend(
-                "/platform/%s".formatted(String.valueOf(login.getSharedLink().getProvider().getId())),
+                "/platform/%s/trip/requested".formatted(String.valueOf(login.getSharedLink().getProvider().getId())),
                 historyService.response(trip.getId(), String.valueOf(login.getSharedLink().getProvider().getId()))
         );
         notificationService.send(
@@ -240,6 +272,7 @@ public class TripRequestImplementation implements TripRequestService {
                             quotation.setUpdatedAt(TimeUtil.now());
                             quotation.setProvider(profile);
                             quotation.setInvite(trip);
+
                             return tripInviteQuotationRepository.save(quotation);
                         });
 
@@ -250,13 +283,14 @@ public class TripRequestImplementation implements TripRequestService {
                 tripInviteQuotationRepository.save(quote);
 
                 messaging.convertAndSend(
-                        "/platform/%s".formatted(trip.getAccount()),
+                        "/platform/%s/trip/requested".formatted(trip.getAccount()),
                         historyService.response(trip.getId(), trip.getAccount())
                 );
                 messaging.convertAndSend(
-                        "/platform/%s/%s".formatted(trip.getId(), trip.getAccount()),
+                        "/platform/%s/trip/requested/%s".formatted(trip.getAccount(), trip.getId()),
                         historyService.response(trip.getId(), trip.getAccount())
                 );
+
                 notificationService.send(
                         String.valueOf(String.valueOf(trip.getAccount())),
                         String.format("%s sent in a quotation for your request", userUtil.getUser().getFullName()),
@@ -287,13 +321,14 @@ public class TripRequestImplementation implements TripRequestService {
         tripInviteQuotationRepository.save(quote);
 
         messaging.convertAndSend(
-                "/platform/%s".formatted(String.valueOf(quote.getProvider().getId())),
+                "/platform/%s/trip/requested".formatted(String.valueOf(quote.getProvider().getId())),
                 historyService.response(trip, String.valueOf(quote.getProvider().getId()))
         );
         messaging.convertAndSend(
-                "/platform/%s/%s".formatted(trip, String.valueOf(quote.getProvider().getId())),
+                "/platform/%s/trip/requested/%s".formatted(String.valueOf(quote.getProvider().getId()), trip),
                 historyService.response(trip, String.valueOf(quote.getProvider().getId()))
         );
+
         notificationService.send(
                 String.valueOf(quote.getProvider().getId()),
                 String.format("%s updated the quotation you gave", name),
@@ -331,9 +366,7 @@ public class TripRequestImplementation implements TripRequestService {
         tripInviteRepository.delete(quote.getInvite());
         tripInviteQuotationRepository.delete(quote);
 
-        MapView mapView = TripMapper.INSTANCE.view(activeService.getLocation(saved.getProvider().getUser()));
-        mapView.setTrip(saved);
-        mapViewRepository.save(mapView);
+        saveMapView(saved);
 
         sharedService.create(saved.getLinkId(), saved.getAccount(), saved);
         InitializePaymentData data = payService.pay(saved, saved.getProvider().getId());
@@ -341,17 +374,55 @@ public class TripRequestImplementation implements TripRequestService {
         activeService.toggle(saved.getProvider().getUser(), BUSY, null);
 
         tripService.updateOthers(saved);
+
+        messaging.convertAndSend(
+                "/platform/%s/trip/requested/history".formatted(String.valueOf(saved.getProvider().getId())),
+                historyService.requested(String.valueOf(saved.getProvider().getId()), null, null, null, true, saved.getId())
+        );
+        messaging.convertAndSend(
+                "/platform/%s/trip/active/history".formatted(String.valueOf(saved.getProvider().getId())),
+                historyService.active(String.valueOf(saved.getProvider().getId()), null, null, null, true, saved.getId())
+        );
+
+        messaging.convertAndSend(
+                "/platform/%s/trip/requested/history".formatted(saved.getAccount()),
+                historyService.requested(saved.getAccount(), null, null, null, true, saved.getId())
+        );
+        messaging.convertAndSend(
+                "/platform/%s/trip/active/history".formatted(saved.getAccount()),
+                historyService.active(saved.getAccount(), null, null, null, true, saved.getId())
+        );
+
+        if(saved.getProvider().isAssociate()) {
+            messaging.convertAndSend(
+                    "/platform/%s/trip/requested/history".formatted(String.valueOf(saved.getProvider().getBusiness().getId())),
+                    historyService.requested(String.valueOf(saved.getProvider().getBusiness().getId()), null, null, null, true, saved.getId())
+            );
+
+            messaging.convertAndSend(
+                    "/platform/%s/trip/active/history".formatted(String.valueOf(saved.getProvider().getBusiness().getId())),
+                    historyService.active(String.valueOf(saved.getProvider().getBusiness().getId()), null, null, null, true, saved.getId())
+            );
+        }
+
         return new ApiResponse<>(historyService.response(saved.getId(), account, data, true, requestedId));
+    }
+
+    private void saveMapView(Trip saved) {
+        MapView mapView = TripMapper.INSTANCE.view(activeService.getLocation(saved.getProvider().getUser()));
+        mapView.setTrip(saved);
+        mapViewRepository.save(mapView);
     }
 
     @Transactional
     protected Trip buildTripFromRequest(TripInviteQuotation quote) {
         Trip trip = TripMapper.INSTANCE.trip(quote.getInvite());
+
         trip.setType(REQUEST);
         trip.setStatus(ACTIVE);
-        System.out.println(quote.getInvite().getId());
         trip.setProvider(quote.getProvider());
         trip.setAmount(quote.getAmount());
+
         return tripRepository.save(trip);
     }
 
@@ -375,11 +446,27 @@ public class TripRequestImplementation implements TripRequestService {
     @Transactional
     protected ApiResponse<String> updateListWhenCancelled(TripInvite trip) {
         if(trip.getQuotes() != null && !trip.getQuotes().isEmpty()) {
-            trip.getQuotes().forEach(q -> messaging.convertAndSend(
-                    "/platform/%s".formatted(String.valueOf(q.getProvider().getId())),
-                    historyService.inviteHistory(null, q.getProvider().getId(), null, null, null)
-            ));
+            trip.getQuotes().forEach(q -> {
+                messaging.convertAndSend(
+                        "/platform/%s/trip/requested/history".formatted(String.valueOf(q.getProvider().getId())),
+                        historyService.requested(String.valueOf(q.getProvider().getId()), null, null, null, true, trip.getId())
+                );
+
+                messaging.convertAndSend(
+                        "/platform/%s/trip/history".formatted(String.valueOf(q.getProvider().getId())),
+                        historyService.history(String.valueOf(q.getProvider().getId()), null, null, null, true, trip.getId())
+                );
+            });
         }
+
+        messaging.convertAndSend(
+                "/platform/%s/trip/requested/history".formatted(trip.getAccount()),
+                historyService.requested(trip.getAccount(), null, null, null, true, trip.getId())
+        );
+        messaging.convertAndSend(
+                "/platform/%s/trip/history".formatted(trip.getAccount()),
+                historyService.history(trip.getAccount(), null, null, null, true, trip.getId())
+        );
 
         tripInviteRepository.delete(trip);
         return new ApiResponse<>("Request is cancelled", HttpStatus.OK);
@@ -392,28 +479,15 @@ public class TripRequestImplementation implements TripRequestService {
                 .orElseThrow(() -> new TripException("No trip found for quote " + quoteId));
 
         messaging.convertAndSend(
-                "/platform/%s/%s".formatted(quote.getInvite().getId(), quote.getAccount()),
+                "/platform/%s/trip/requested/%s".formatted(quote.getAccount(), quote.getInvite().getId()),
                 historyService.response(quote.getInvite().getId(), quote.getAccount())
         );
-        try {
-            messaging.convertAndSend(
-                    "/platform/%s".formatted(quote.getAccount()),
-                    historyService.inviteHistory(null, UUID.fromString(quote.getAccount()), null, null, null)
-            );
-        } catch (Exception ignored) {
-            messaging.convertAndSend(
-                    "/platform/%s".formatted(quote.getAccount()),
-                    historyService.inviteHistory(quote.getAccount(), null, request.getLinkId(), null, null)
-            );
-        }
+        messaging.convertAndSend(
+                "/platform/%s/trip/requested/history".formatted(quote.getAccount()),
+                historyService.requested(quote.getAccount(), request.getLinkId(), null, null, true, quote.getInvite().getId())
+        );
 
         tripInviteQuotationRepository.delete(quote);
         return new ApiResponse<>("Your quotation is cancelled", HttpStatus.OK);
-    }
-
-    @Override
-    @Transactional
-    public ApiResponse<List<TripResponse>> history(String guestId, String linkId, Integer page, Integer size) {
-        return new ApiResponse<>(historyService.inviteHistory(guestId, null, linkId, page, size));
     }
 }

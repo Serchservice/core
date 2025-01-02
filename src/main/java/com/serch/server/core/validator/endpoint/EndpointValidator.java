@@ -50,4 +50,9 @@ public class EndpointValidator implements EndpointValidatorService {
 
         return Arrays.stream(WEB_SOCKET_ENDPOINTS).anyMatch(path::startsWith);
     }
+
+    @Override
+    public boolean isApiKeyPermitted(String path) {
+        return false;
+    }
 }

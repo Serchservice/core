@@ -1,89 +1,74 @@
 package com.serch.server.services.conversation.services;
 
-import com.serch.server.models.conversation.ChatMessage;
-import com.serch.server.models.conversation.ChatRoom;
+import com.serch.server.services.conversation.requests.MessageTypingRequest;
 import com.serch.server.services.conversation.requests.SendMessageRequest;
 import com.serch.server.services.conversation.requests.UpdateMessageRequest;
-import com.serch.server.services.conversation.responses.ChatRoomResponse;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface ChattingService {
     /**
      * Sends a chat message to the receiver and also return the update to the sender
      *
+     * @param emailAddress The email address attached to the session
      * @param request The {@link SendMessageRequest} request data
      */
-    void send(SendMessageRequest request);
+    void send(SendMessageRequest request, String emailAddress);
 
     /**
      * Sends an update to the chat room to show latest update
      *
+     * @param emailAddress The email address attached to the session
      * @param roomId The room id
      */
-    void refresh(String roomId);
+    void refresh(String roomId, String emailAddress);
+
+    /**
+     * Mark all messages sent to the user as read
+     *
+     * @param emailAddress The email address attached to the session
+     * @param roomId The room id
+     */
+    void markAllAsRead(String roomId, String emailAddress);
+
+    /**
+     * Sends an update on whether the user is typing or not typing a message
+     *
+     * @param emailAddress The email address attached to the session
+     * @param request The {@link MessageTypingRequest} request data
+     */
+    void notifyTyping(MessageTypingRequest request, String emailAddress);
 
     /**
      * Update a particular message in the chat room. Can be to delete, mark as read or delivered
      *
+     * @param emailAddress The email address attached to the session
      * @param request The {@link UpdateMessageRequest} request data
      */
-    void update(UpdateMessageRequest request);
+    void update(UpdateMessageRequest request, String emailAddress);
 
     /**
      * Update a particular message in the chat room. Can be to delete, mark as read or delivered
      *
+     * @param emailAddress The email address attached to the session
      * @param request The {@link UpdateMessageRequest} request data
      */
-    void updateAll(UpdateMessageRequest request);
+    void updateAll(UpdateMessageRequest request, String emailAddress);
 
     /**
      * Announce the presence of a roommate
      *
+     * @param emailAddress The email address attached to the session
      * @param room The room id
      */
-    void announce(String room);
+    void announce(String room, String emailAddress);
 
     /**
-     * Update some fields in the Chat room response
+     * Notify the room members about the schedule update
      *
-     * @param room The {@link ChatRoom} data to complete response from.
-     * @param response The {@link ChatRoomResponse} to update its fields
-     * @param isProvider Checks if the response being prepared is for a provider or associate provider account
-     *
-     * @return Updated {@link ChatRoomResponse} data
+     * @param roommate The roommate id to send room update to
      */
-    ChatRoomResponse updateResponse(ChatRoom room, ChatRoomResponse response, boolean isProvider);
-
-    /**
-     * This will get the last message sent from the list of messages sent it.
-     * Fetches the data by the last <code>createdAt</code> date
-     *
-     * @param messages A list of {@link ChatMessage} messages
-     *
-     * @return The latest {@link ChatMessage}
-     */
-    ChatMessage getLastMessage(List<ChatMessage> messages);
-
-    /**
-     * This will prepare a chat room response with the given room data.
-     *
-     * @param room The {@link ChatRoom} to prepare the data from.
-     *
-     * @return A transformed {@link ChatRoomResponse} data
-     */
-    ChatRoomResponse response(ChatRoom room);
-
-    /**
-     * This will fetch the list of chat rooms the user has opened or is part of.
-     * It will return the list by current date and/or where the user (as a roommate or creator) was bookmarked
-     *
-     * @param id The id of the user whose chat history is being requested
-     *
-     * @return The List of {@link ChatRoomResponse}
-     */
-    List<ChatRoomResponse> response(UUID id);
+    void notifyAboutSchedule(UUID roommate);
 
     /**
      * This will clear old chats at the start of the new day, if the provider is not bookmarked

@@ -12,6 +12,6 @@ import java.util.List;
 @Setter
 public class RequestSerchCategory {
     private SerchCategory category;
-    private String emailAddress;
+    private String token;
     private List<String> specialties;
 }

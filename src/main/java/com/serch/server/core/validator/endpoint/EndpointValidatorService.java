@@ -44,4 +44,13 @@ public interface EndpointValidatorService {
      *         {@code false} otherwise
      */
     boolean isSocketPermitted(String path);
+
+    /**
+     * Checks if the specified path is permitted for common api key access.
+     *
+     * @param path the path to validate
+     * @return {@code true} if the path is permitted for common api key access;
+     *         {@code false} otherwise
+     */
+    boolean isApiKeyPermitted(String path);
 }

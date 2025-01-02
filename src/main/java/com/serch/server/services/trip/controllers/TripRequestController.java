@@ -12,24 +12,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/trip/invite")
 public class TripRequestController {
     private final TripRequestService service;
-
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<TripResponse>>> history(
-            @RequestParam(required = false) String guest,
-            @RequestParam(required = false) String link,
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer size
-    ) {
-        ApiResponse<List<TripResponse>> response = service.history(guest, link, page, size);
-        return new ResponseEntity<>(response, response.getStatus());
-    }
 
     @PostMapping("/request")
     @PreAuthorize("hasRole('USER')")

@@ -2,6 +2,7 @@ package com.serch.server.services.company.controllers;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.services.company.requests.IssueRequest;
+import com.serch.server.services.company.responses.IssueResponse;
 import com.serch.server.services.company.responses.SpeakWithSerchResponse;
 import com.serch.server.services.company.services.SpeakWithSerchService;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,16 @@ public class SpeakWithSerchController {
             @RequestParam(required = false) Integer size
     ) {
         ApiResponse<List<SpeakWithSerchResponse>> response = service.messages(page, size);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @GetMapping("/issues/{ticket}")
+    public ResponseEntity<ApiResponse<List<IssueResponse>>> issues(
+            @PathVariable("ticket") String ticket,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
+    ) {
+        ApiResponse<List<IssueResponse>> response = service.issues(ticket, page, size);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

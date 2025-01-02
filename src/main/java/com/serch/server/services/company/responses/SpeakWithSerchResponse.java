@@ -4,7 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.serch.server.enums.company.IssueStatus;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -13,11 +14,15 @@ public class SpeakWithSerchResponse {
     private String label;
     private String time;
     private IssueStatus status;
-    private List<IssueResponse> issues;
+    private Integer total;
+    private List<IssueResponse> issues = new ArrayList<>();
+
+    @JsonProperty("has_serch_message")
+    private Boolean hasSerchMessage;
 
     @JsonProperty("updated_at")
-    private LocalDateTime updatedAt;
+    private ZonedDateTime updatedAt;
 
     @JsonProperty("created_at")
-    private LocalDateTime createdAt;
+    private ZonedDateTime createdAt;
 }

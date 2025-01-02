@@ -111,6 +111,7 @@ public class WalletImplementation implements WalletService {
     public ApiResponse<InitializePaymentData> fund(FundWalletRequest request) {
         Wallet wallet = walletRepository.findByUser_Id(userUtil.getUser().getId())
                 .orElseThrow(() -> new WalletException("User wallet not found"));
+
         if(request.getAmount() >= FUND_LIMIT) {
             InitializePaymentData data = initializePayment(request, wallet);
             saveCreditTransaction(request, wallet, data);
@@ -214,6 +215,7 @@ public class WalletImplementation implements WalletService {
     public ApiResponse<String> withdraw(WithdrawRequest request) {
         Wallet wallet = walletRepository.findByUser_Id(userUtil.getUser().getId())
                 .orElseThrow(() -> new WalletException("User wallet not found"));
+
         if(request.getAmount() >= WITHDRAW_LIMIT) {
             /// Check if the money in the user's balance is sufficient for withdraws
             if(wallet.getBalance().compareTo(BigDecimal.valueOf(request.getAmount())) > 0) {
@@ -389,18 +391,21 @@ public class WalletImplementation implements WalletService {
     public void checkBalanceForTip2Fix(UUID caller) {
         Wallet wallet = walletRepository.findByUser_Id(caller)
                 .orElseThrow(() -> new WalletException("You need to have a Serch wallet to place T2F calls"));
+
         if(!(wallet.getDeposit().add(wallet.getBalance()).compareTo(BigDecimal.valueOf(TIP2FIX_AMOUNT)) >= 0)) {
             throw new WalletException("Insufficient balance to start tip2fix. Tip2Fix is charged at ₦%s".formatted(TIP2FIX_AMOUNT));
         }
     }
 
     @Override
-    public ApiResponse<List<TransactionGroupResponse>> transactions() {
-        List<Transaction> transactions = transactionRepository.findBySenderOrReceiver(String.valueOf(userUtil.getUser().getId()));
-        if(transactions == null || transactions.isEmpty()) {
+    public ApiResponse<List<TransactionGroupResponse>> transactions(Integer page, Integer size) {
+        Pageable pageable = PageRequest.of(page != null ? page : 0, size != null ? size : 20, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Transaction> transactions = transactionRepository.findBySenderOrReceiver(String.valueOf(userUtil.getUser().getId()), pageable);
+
+        if(transactions == null || transactions.getTotalElements() == 0) {
             return new ApiResponse<>(List.of());
         } else {
-            return response(transactions);
+            return response(transactions.getContent());
         }
     }
 
@@ -412,7 +417,7 @@ public class WalletImplementation implements WalletService {
         if(page == null || page.getTotalElements() == 0) {
             return new ApiResponse<>(List.of());
         } else {
-            return response(page.stream().toList());
+            return response(page.getContent());
         }
     }
 
@@ -424,6 +429,7 @@ public class WalletImplementation implements WalletService {
         map.forEach((date, transactionList) -> {
             TransactionGroupResponse group = new TransactionGroupResponse();
             group.setLabel(TimeUtil.formatChatLabel(LocalDateTime.of(date, transactionList.getFirst().getCreatedAt().toLocalTime()), userUtil.getUser().getTimezone()));
+
             List<TransactionResponse> response = transactionList.stream()
                     .sorted(Comparator.comparing(Transaction::getCreatedAt).reversed())
                     .map(this::response).toList();
@@ -448,6 +454,7 @@ public class WalletImplementation implements WalletService {
 
     protected TransactionResponse prepareFundingTransactionResponse(Transaction transaction) {
         TransactionResponse response = getResponse(transaction, true);
+
         response.setRecipient("Your %s".formatted(
                 walletRepository.findById(transaction.getAccount())
                         .map(wallet -> wallet(wallet.getId()))
@@ -463,6 +470,7 @@ public class WalletImplementation implements WalletService {
         data.setDate(TimeUtil.formatDay(transaction.getCreatedAt(), userUtil.getUser().getTimezone()));
         data.setUpdatedAt(TimeUtil.formatDay(transaction.getUpdatedAt(), userUtil.getUser().getTimezone()));
         response.setData(data);
+
         return response;
     }
 
@@ -718,6 +726,7 @@ public class WalletImplementation implements WalletService {
     @Transactional
     public void processPaydays() {
         List<Wallet> wallets = walletRepository.findAll();
+
         if(!wallets.isEmpty()) {
             wallets.forEach(wallet -> {
                 if(wallet.getPayoutOnPayday()) {
@@ -786,6 +795,7 @@ public class WalletImplementation implements WalletService {
     @Transactional
     public void processPendingVerifications() {
         List<Transaction> transactions = transactionRepository.findAllPending();
+
         transactions.forEach(transaction -> {
             if(transaction.getType() == TransactionType.FUNDING) {
                 try {

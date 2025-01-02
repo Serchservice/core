@@ -1,6 +1,7 @@
 package com.serch.server.services.auth.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.core.jwt.JwtService;
 import com.serch.server.enums.auth.AuthMethod;
 import com.serch.server.enums.auth.Role;
 import com.serch.server.exceptions.ExceptionCodes;
@@ -37,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class BusinessAuthImplementation implements BusinessAuthService {
     private final AuthService authService;
+    private final JwtService jwtService;
     private final AccountDeleteService deleteService;
     private final SessionService sessionService;
     private final BusinessService businessService;
@@ -47,6 +49,7 @@ public class BusinessAuthImplementation implements BusinessAuthService {
     public ApiResponse<AuthResponse> login(RequestLogin request) {
         var user = userRepository.findByEmailAddressIgnoreCase(request.getEmailAddress())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
         user.check();
         if(user.getRole() == Role.BUSINESS) {
             return authService.authenticate(request, user);
@@ -58,7 +61,7 @@ public class BusinessAuthImplementation implements BusinessAuthService {
     @Override
     @Transactional
     public ApiResponse<AuthResponse> signup(RequestBusinessProfile profile) {
-        var incomplete = incompleteRepository.findByEmailAddress(profile.getEmailAddress())
+        var incomplete = incompleteRepository.findByEmailAddress(jwtService.getEmailFromToken(profile.getToken()))
                 .orElseThrow(() -> new AuthException("User not found"));
 
         if(incomplete.isEmailConfirmed()) {

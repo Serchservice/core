@@ -3,6 +3,7 @@ package com.serch.server.services.referral.services;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.models.auth.User;
 import com.serch.server.services.referral.responses.ReferralProgramResponse;
+import com.serch.server.services.referral.services.implementations.ReferralProgramImplementation;
 
 /**
  * This is the wrapper class for the generation and creation of Referral Program in Serch

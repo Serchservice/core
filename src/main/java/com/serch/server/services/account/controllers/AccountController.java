@@ -1,8 +1,8 @@
 package com.serch.server.services.account.controllers;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.services.account.requests.UpdateE2EKey;
 import com.serch.server.services.account.responses.AccountResponse;
-import com.serch.server.services.account.responses.DashboardResponse;
 import com.serch.server.services.account.responses.AdditionalInformationResponse;
 import com.serch.server.services.account.services.AccountDeleteService;
 import com.serch.server.services.account.services.AccountService;
@@ -17,6 +17,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/account")
+@PreAuthorize(value = "hasRole('PROVIDER') || hasRole('USER') || hasRole('ASSOCIATE_PROVIDER') || hasRole('BUSINESS')")
 public class AccountController {
     private final AccountDeleteService deleteService;
     private final AdditionalService additionalService;
@@ -47,29 +48,21 @@ public class AccountController {
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @GetMapping("/dashboard")
-    @PreAuthorize(value = "hasRole('PROVIDER') || hasRole('USER') || hasRole('ASSOCIATE_PROVIDER')")
-    public ResponseEntity<ApiResponse<DashboardResponse>> dashboard() {
-        ApiResponse<DashboardResponse> response = service.dashboard();
+    @PatchMapping("/update/timezone")
+    public ResponseEntity<ApiResponse<String>> updateTimezone(@RequestParam String zone) {
+        ApiResponse<String> response = service.updateTimezone(zone);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @GetMapping("/dashboard/business")
-    @PreAuthorize(value = "hasRole('BUSINESS')")
-    public ResponseEntity<ApiResponse<List<DashboardResponse>>> dashboardBusiness() {
-        ApiResponse<List<DashboardResponse>> response = service.dashboards();
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
-    @PatchMapping("/fcm/update")
+    @PatchMapping("/update/fcm")
     public ResponseEntity<ApiResponse<String>> updateFcmToken(@RequestParam String token) {
         ApiResponse<String> response = service.updateFcmToken(token);
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @PatchMapping("/update")
-    public ResponseEntity<ApiResponse<String>> updateTimezone(@RequestParam String timezone) {
-        ApiResponse<String> response = service.updateTimezone(timezone);
+    @PatchMapping("/update/e2ee")
+    public ResponseEntity<ApiResponse<String>> updatePublicEncryptionKey(@RequestBody UpdateE2EKey update) {
+        ApiResponse<String> response = service.updatePublicEncryptionKey(update);
         return new ResponseEntity<>(response, response.getStatus());
     }
 }

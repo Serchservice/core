@@ -186,9 +186,29 @@
       "description": "The base url for the Serch admin platform."
     },
     {
-      "name": "application.link.associate.invite",
+      "name": "application.link.invite.associate",
       "type": "java.lang.String",
       "description": "The link prefix for inviting an associate provider."
+    },
+    {
+      "name": "application.link.invite.shared",
+      "type": "java.lang.String",
+      "description": "The link prefix for inviting an shared provider."
+    },
+    {
+      "name": "application.link.referral.user",
+      "type": "java.lang.String",
+      "description": "The link prefix for a user referral."
+    },
+    {
+      "name": "application.link.referral.business",
+      "type": "java.lang.String",
+      "description": "The link prefix for a business referral."
+    },
+    {
+      "name": "application.link.referral.provider",
+      "type": "java.lang.String",
+      "description": "The link prefix for a provider referral."
     },
     {
       "name": "application.link.admin.invite",

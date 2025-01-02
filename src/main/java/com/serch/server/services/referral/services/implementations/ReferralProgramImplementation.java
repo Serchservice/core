@@ -1,4 +1,4 @@
-package com.serch.server.services.referral.services;
+package com.serch.server.services.referral.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.auth.Role;
@@ -13,8 +13,11 @@ import com.serch.server.repositories.shared.SharedLinkRepository;
 import com.serch.server.repositories.trip.TripRepository;
 import com.serch.server.core.code.TokenService;
 import com.serch.server.services.referral.responses.ReferralProgramResponse;
+import com.serch.server.services.referral.services.ReferralProgramService;
+import com.serch.server.services.referral.services.ReferralService;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -42,20 +45,27 @@ public class ReferralProgramImplementation implements ReferralProgramService {
     private final ReferralProgramRepository referralProgramRepository;
     private final BusinessProfileRepository businessProfileRepository;
 
+    @Value("${application.link.referral.business}")
+    private String BUSINESS_REFERRAL_LINK;
+
+    @Value("${application.link.referral.provider}")
+    private String PROVIDER_REFERRAL_LINK;
+
+    @Value("${application.link.referral.user}")
+    private String USER_REFERRAL_LINK;
+
     /**
      * Generates a referral link based on the user's category.
      * @param category The category of the user (USER, BUSINESS, PROVIDER).
      * @return The generated referral link.
      */
     private String generateReferralLink(Role category) {
-        String BASE_URL = "https://www.serchservice.com/app/join";
-
         if(category == Role.USER) {
-            return "%s/user?ref=%s".formatted(BASE_URL, tokenService.generate(6));
+            return "%s?ref=%s".formatted(USER_REFERRAL_LINK, tokenService.generate(6));
         } else if(category == Role.BUSINESS) {
-            return "%s/business?ref=%s".formatted(BASE_URL, tokenService.generate(6));
+            return "%s?ref=%s".formatted(BUSINESS_REFERRAL_LINK, tokenService.generate(6));
         } else {
-            return "%s/provider?ref=%s".formatted(BASE_URL, tokenService.generate(6));
+            return "%s?ref=%s".formatted(PROVIDER_REFERRAL_LINK, tokenService.generate(6));
         }
     }
 
@@ -116,6 +126,7 @@ public class ReferralProgramImplementation implements ReferralProgramService {
         response.setRole(program.getUser().getRole().getType());
         response.setReferralCode(program.getReferralCode());
         response.setReferLink(program.getReferLink());
+
         return response;
     }
 

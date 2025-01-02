@@ -1,8 +1,8 @@
 package com.serch.server.services.conversation.responses;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.serch.server.enums.chat.MessageStatus;
+import com.serch.server.enums.chat.MessageType;
 import com.serch.server.services.schedule.responses.ScheduleResponse;
 import lombok.Data;
 
@@ -23,8 +23,13 @@ public class ChatRoomResponse {
     private String message = "";
     private MessageStatus status;
     private Long count;
+    private Integer total;
     private String bookmark = "";
     private String trip = "";
+    private MessageType type;
+
+    @JsonProperty("public_encryption_key")
+    private String publicKey;
 
     @JsonProperty("is_active")
     private Boolean isActive;
@@ -42,9 +47,6 @@ public class ChatRoomResponse {
 
     @JsonProperty("sent_at")
     private ZonedDateTime sentAt;
-
-    @JsonIgnore
-    private UUID user;
 
     private List<ChatGroupMessageResponse> groups = new ArrayList<>();
 }

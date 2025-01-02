@@ -9,9 +9,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class RequestAdditionalInformation {
-    @JsonProperty("email_address")
-    private String emailAddress;
-
     @JsonProperty("street_address")
     private String streetAddress;
 
@@ -20,6 +17,7 @@ public class RequestAdditionalInformation {
 
     private String city;
     private String state;
+    private String token;
     private String country;
 
     @JsonProperty("surety_status")

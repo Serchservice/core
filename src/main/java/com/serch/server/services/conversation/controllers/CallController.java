@@ -1,4 +1,4 @@
-package com.serch.server.services.conversation;
+package com.serch.server.services.conversation.controllers;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.services.conversation.requests.UpdateCallRequest;

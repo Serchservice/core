@@ -3,7 +3,7 @@ package com.serch.server.configurations.websocket;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.serch.server.core.Logging;
 import com.serch.server.core.session.SessionService;
-import com.serch.server.core.validator.key.KeyValidatorService;
+import com.serch.server.core.validator.KeyValidatorService;
 import com.serch.server.enums.ServerHeader;
 import com.serch.server.exceptions.ApiResponseExceptionHandler;
 import com.serch.server.exceptions.auth.AuthException;
@@ -25,9 +25,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.util.Map;
 
 @Configuration
@@ -43,17 +46,17 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
         System.out.printf("Socket Request from remote address: %s for local address: %s%n", request.getRemoteAddress(), request.getLocalAddress());
 
         try {
-            if(keyService.isSigned(request.getHeaders().getFirst(ServerHeader.SERCH_SIGNED.getValue()))) {
-                if(keyService.isDrive(request.getHeaders().getFirst(ServerHeader.DRIVE_API_KEY.getValue()), request.getHeaders().getFirst(ServerHeader.DRIVE_SECRET_KEY.getValue()))) {
+            if(keyService.isSigned(getKey(ServerHeader.SERCH_SIGNED.getValue(), request))) {
+                if(keyService.isDrive(getKey(ServerHeader.DRIVE_API_KEY.getValue(), request), getKey(ServerHeader.DRIVE_SECRET_KEY.getValue(), request))) {
                     Logging.logRequest(request, "SIGNED DRIVE HANDSHAKE");
 
                     return true;
-                } else if(keyService.isGuest(request.getHeaders().getFirst(ServerHeader.GUEST_API_KEY.getValue()), request.getHeaders().getFirst(ServerHeader.GUEST_SECRET_KEY.getValue()))) {
+                } else if(keyService.isGuest(getKey(ServerHeader.GUEST_API_KEY.getValue(), request), getKey(ServerHeader.GUEST_SECRET_KEY.getValue(), request))) {
                     Logging.logRequest(request, "SIGNED GUEST HANDSHAKE");
 
                     return true;
                 } else {
-                    String authHeader = request.getHeaders().getFirst("Authorization");
+                    String authHeader = getKey("Authorization", request);
 
                     if (authHeader != null && authHeader.startsWith("Bearer ")) {
                         Logging.logRequest(request, "AUTHORIZED HANDSHAKE");
@@ -89,6 +92,18 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
         }
 
         return false;
+    }
+
+    private String getKey(String key, ServerHttpRequest request) {
+        String response = request.getHeaders().getFirst(key);
+
+        if(response == null) {
+            URI uri = request.getURI();
+            MultiValueMap<String, String> queryParams = UriComponentsBuilder.fromUri(uri).build().getQueryParams();
+            response = queryParams.getFirst(key);
+        }
+
+        return response;
     }
 
     @SneakyThrows

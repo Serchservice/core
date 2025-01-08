@@ -111,7 +111,6 @@ public class SecurityFilterConfiguration {
                                 "/schedule/cancel",
                                 "/wallet/pay/trip/check",
                                 "/trip/request",
-                                "/trip/cancel",
                                 "/trip/sharing/permit"
                         ).hasAnyRole(USER.name())
                         .requestMatchers(

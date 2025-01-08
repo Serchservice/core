@@ -364,7 +364,9 @@ public class TripRequestImplementation implements TripRequestService {
         String requestedId = quote.getInvite().getId();
         Trip saved = buildTripFromRequest(quote);
         tripInviteRepository.delete(quote.getInvite());
+        tripInviteRepository.flush();
         tripInviteQuotationRepository.delete(quote);
+        tripInviteQuotationRepository.flush();
 
         saveMapView(saved);
 

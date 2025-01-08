@@ -1,5 +1,6 @@
-package com.serch.server.core.validator.key;
+package com.serch.server.core.validator.implementations;
 
+import com.serch.server.core.validator.KeyValidatorService;
 import com.serch.server.exceptions.auth.AuthException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,16 +9,16 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class KeyValidator implements KeyValidatorService {
-    @Value("${application.drive.key.api}")
+    @Value("${application.access.drive.apiKey}")
     private String DRIVE_API_KEY;
 
-    @Value("${application.drive.key.secret}")
+    @Value("${application.access.drive.secretKey}")
     private String DRIVE_SECRET_KEY;
 
-    @Value("${application.guest.key.api}")
+    @Value("${application.access.guest.apiKey}")
     private String GUEST_API_KEY;
 
-    @Value("${application.guest.key.secret}")
+    @Value("${application.access.guest.secretKey}")
     private String GUEST_SECRET_KEY;
 
     @Value("${application.access.signature}")

@@ -1,5 +1,6 @@
-package com.serch.server.core.validator.endpoint;
+package com.serch.server.core.validator.implementations;
 
+import com.serch.server.core.validator.EndpointValidatorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

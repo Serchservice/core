@@ -339,12 +339,12 @@ public class TripHistoryImplementation implements TripHistoryService {
                     messaging.convertAndSend("/platform/%s/trip/requested/%s".formatted(business, response.getId()), response);
                 }
             } else {
-                messaging.convertAndSend("/platform/%s/trip/history".formatted(userId), response);
-                messaging.convertAndSend("/platform/%s/trip/history/%s".formatted(userId, response.getId()), response);
+                messaging.convertAndSend("/platform/%s/trip/active".formatted(userId), response);
+                messaging.convertAndSend("/platform/%s/trip/active/%s".formatted(userId, response.getId()), response);
 
                 if(business != null) {
-                    messaging.convertAndSend("/platform/%s/trip/history".formatted(business), response);
-                    messaging.convertAndSend("/platform/%s/trip/history/%s".formatted(business, response.getId()), response);
+                    messaging.convertAndSend("/platform/%s/trip/active".formatted(business), response);
+                    messaging.convertAndSend("/platform/%s/trip/active/%s".formatted(business, response.getId()), response);
                 }
             }
         }

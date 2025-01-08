@@ -1,8 +1,8 @@
 package com.serch.server.configurations.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.serch.server.core.validator.AllowedOriginValidatorService;
 import com.serch.server.exceptions.websocket.WebSocketErrorHandler;
-import com.serch.server.utils.ServerUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +34,7 @@ import java.util.List;
 public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer {
     private static final Logger log = LoggerFactory.getLogger(WebSocketConfiguration.class);
 
+    private final AllowedOriginValidatorService originService;
     private final WebSocketInterceptor interceptor;
     private final WebSocketErrorHandler errorHandler;
     private final WebSocketHandshakeInterceptor handshakeInterceptor;
@@ -46,18 +47,15 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
      */
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        String[] origins = ServerUtil.ALLOWED_ORIGINS.toArray(new String[0]);
-        String[] patterns = ServerUtil.ALLOWED_ORIGIN_PATTERNS.toArray(new String[0]);
-
         registry.addEndpoint("/ws:chat", "/ws:serch", "/ws:trip", "/ws", "/ws:call")
-                .setAllowedOrigins(origins)
-                .setAllowedOriginPatterns(patterns)
+                .setAllowedOrigins(originService.getWebSocketOrigins())
+                .setAllowedOriginPatterns(originService.getWebSocketOriginPatterns())
                 .addInterceptors(handshakeInterceptor)
                 .withSockJS();
         registry.setErrorHandler(errorHandler);
 
-        log.info(String.format("SERCH::: WEBSOCKET | Allowed Origins | %s", Arrays.toString(origins)));
-        log.info(String.format("SERCH::: WEBSOCKET | Allowed Origin Patterns | %s", Arrays.toString(patterns)));
+        log.info(String.format("SERCH::: WEBSOCKET | Allowed Origins | %s", Arrays.toString(originService.getWebSocketOrigins())));
+        log.info(String.format("SERCH::: WEBSOCKET | Allowed Origin Patterns | %s", Arrays.toString(originService.getWebSocketOriginPatterns())));
     }
 
     /**
@@ -68,14 +66,24 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
      */
     @Override
     public boolean configureMessageConverters(List<MessageConverter> messageConverters) {
-        DefaultContentTypeResolver resolver = new DefaultContentTypeResolver();
-        resolver.setDefaultMimeType(MimeTypeUtils.APPLICATION_JSON);
-        MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
-        converter.setObjectMapper(objectMapper);
-        converter.setContentTypeResolver(resolver);
-        messageConverters.add(converter);
+        messageConverters.add(getMappingJackson2MessageConverter());
 
         return false;
+    }
+
+    private MappingJackson2MessageConverter getMappingJackson2MessageConverter() {
+        MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
+        converter.setObjectMapper(objectMapper);
+        converter.setContentTypeResolver(getDefaultContentTypeResolver());
+
+        return converter;
+    }
+
+    private DefaultContentTypeResolver getDefaultContentTypeResolver() {
+        DefaultContentTypeResolver resolver = new DefaultContentTypeResolver();
+        resolver.setDefaultMimeType(MimeTypeUtils.APPLICATION_JSON);
+
+        return resolver;
     }
 
     /**

@@ -286,22 +286,22 @@
       "description": "List of allowed ip addresses to remove authentication filter from separated by comma."
     },
     {
-      "name": "application.drive.key.api",
+      "name": "application.access.drive.apiKey",
       "type": "java.lang.String",
       "description": "This is the API Key for Drive to shop mobile application."
     },
     {
-      "name": "application.drive.key.secret",
+      "name": "application.access.drive.secretKey",
       "type": "java.lang.String",
       "description": "This is the Secret Key for Drive to shop mobile application."
     },
     {
-      "name": "application.guest.key.api",
+      "name": "application.access.guest.apiKey",
       "type": "java.lang.String",
       "description": "This is the API Key for Guest access in User mobile application."
     },
     {
-      "name": "application.guest.key.secret",
+      "name": "application.access.guest.secretKey",
       "type": "java.lang.String",
       "description": "This is the Secret Key for Guest access in User mobile application."
     },

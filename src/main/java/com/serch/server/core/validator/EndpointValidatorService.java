@@ -1,4 +1,4 @@
-package com.serch.server.core.validator.endpoint;
+package com.serch.server.core.validator;
 
 /**
  * The {@code EndpointValidatorService} interface defines methods for validating

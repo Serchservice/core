@@ -7,6 +7,7 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.resend.Resend;
 import com.serch.server.core.sms.SmsConfig;
+import com.serch.server.core.validator.AllowedOriginValidatorService;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.utils.ServerUtil;
 import com.twilio.Twilio;
@@ -52,6 +53,8 @@ import java.util.*;
 @RequiredArgsConstructor
 public class ServerConfiguration {
     private static final Logger log = LoggerFactory.getLogger(ServerConfiguration.class);
+    
+    private final AllowedOriginValidatorService originService;
     private final UserRepository userRepository;
 
     @Value("${spring.mail.password}")
@@ -139,9 +142,16 @@ public class ServerConfiguration {
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", getCorsConfiguration());
+
+        return source;
+    }
+
+    private CorsConfiguration getCorsConfiguration() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(ServerUtil.ALLOWED_ORIGINS);
-        configuration.setAllowedOriginPatterns(ServerUtil.ALLOWED_ORIGIN_PATTERNS);
+        configuration.setAllowedOrigins(originService.getServerOrigins());
+        configuration.setAllowedOriginPatterns(originService.getServerOriginPatterns());
         configuration.setAllowedMethods(ServerUtil.METHODS);
         configuration.setAllowedHeaders(ServerUtil.HEADERS);
         configuration.setAllowCredentials(true);
@@ -150,11 +160,8 @@ public class ServerConfiguration {
         log.info(String.format("SERCH::: SERVER CORS | Allowed Origin Patterns | %s", configuration.getAllowedOriginPatterns()));
         log.info(String.format("SERCH::: SERVER CORS | Allowed Headers | %s", configuration.getAllowedHeaders()));
         log.info(String.format("SERCH::: SERVER CORS | Allowed Methods | %s", configuration.getAllowedMethods()));
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-
-        return source;
+        
+        return configuration;
     }
 
     @Bean
@@ -196,24 +203,31 @@ public class ServerConfiguration {
 
     @Bean
     public FirebaseApp firebase() {
-        FirebaseOptions options = FirebaseOptions.builder().setCredentials(credentials()).build();
-        FirebaseApp app = FirebaseApp.initializeApp(options);
+        FirebaseApp app = FirebaseApp.initializeApp(getFirebaseOptions());
         log.info(String.format("SERCH::: Firebase Initialized with app - %s", app.getName()));
 
         return app;
     }
 
+    private FirebaseOptions getFirebaseOptions() {
+        return FirebaseOptions.builder().setCredentials(credentials()).build();
+    }
+
     @Bean
     public DefaultClient defaultClient() {
-        var properties = new Properties();
-        properties.put(DefaultClient.API_KEY_PROP_NAME, CALL_APP_ID);
-        properties.put(DefaultClient.API_SECRET_PROP_NAME, CALL_APP_SECRET);
-
-        var client = new DefaultClient(properties);
+        var client = new DefaultClient(getStreamProperties());
         DefaultClient.setInstance(client);
         log.info(String.format("SERCH::: (AGORA INITIALIZATION) Agora initialized with api key %s", client.getApiKey()));
 
         return client;
+    }
+
+    private Properties getStreamProperties() {
+        var properties = new Properties();
+        properties.put(DefaultClient.API_KEY_PROP_NAME, CALL_APP_ID);
+        properties.put(DefaultClient.API_SECRET_PROP_NAME, CALL_APP_SECRET);
+
+        return properties;
     }
 
     @Bean

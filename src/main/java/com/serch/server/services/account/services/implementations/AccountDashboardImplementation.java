@@ -33,7 +33,7 @@ import static com.serch.server.enums.auth.Role.USER;
 
 @Service
 @RequiredArgsConstructor
-public class AccountDatabaseImplementation implements AccountDashboardService {
+public class AccountDashboardImplementation implements AccountDashboardService {
     private final UserUtil userUtil;
     private final ScheduleRepository scheduleRepository;
     private final TransactionRepository transactionRepository;

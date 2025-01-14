@@ -95,12 +95,7 @@ public class ChatImplementation implements ChatService {
         if(message != null) {
             response.setLabel(TimeUtil.formatDay(message.getCreatedAt(), userRepository.findById(user).map(User::getTimezone).orElse("")));
             response.setStatus(message.getStatus());
-            response.setMessage(ChatUtil.formatRoomMessage(
-                    message.getSender().equals(user) ? message.getSenderMessage() : message.getMessage(),
-                    message.getType(),
-                    message.getSender().equals(user),
-                    response.getName()
-            ));
+            response.setMessage(ChatUtil.formatRoomMessage(getMessage(message, user), message.getType(), message.getSender().equals(user), response.getName()));
             response.setSentAt(message.getCreatedAt());
             response.setType(message.getType());
         }
@@ -109,6 +104,10 @@ public class ChatImplementation implements ChatService {
         response.setGroups(getGroupMessageList(room.getId(), null, null, user));
 
         return updateResponse(room, response, profileRepository.findById(user).map(profile -> profile.getUser().isProvider()).orElse(false));
+    }
+
+    private String getMessage(ChatMessage message, UUID id) {
+        return message.getSender().equals(id) && !message.getSenderMessage().isEmpty() ? message.getSenderMessage() : message.getMessage();
     }
 
     @Transactional
@@ -185,7 +184,7 @@ public class ChatImplementation implements ChatService {
     private ChatMessageResponse prepareMessageResponse(ChatMessage message, UUID id) {
         ChatMessageResponse response = ConversationMapper.INSTANCE.response(message);
 
-        response.setMessage(message.getSender().equals(id) ? message.getSenderMessage() : message.getMessage());
+        response.setMessage(getMessage(message, id));
         response.setLabel(TimeUtil.formatTime(message.getCreatedAt(), profileRepository.findById(id).map(p -> p.getUser().getTimezone()).orElse("")));
         response.setIsSentByCurrentUser(message.getSender().equals(id));
         response.setReply(prepareRepliedResponse(message.getReplied(), id));
@@ -199,11 +198,7 @@ public class ChatImplementation implements ChatService {
         if(message != null) {
             ChatReplyResponse response = ConversationMapper.INSTANCE.reply(message);
 
-            response.setMessage(ChatUtil.formatRepliedMessage(
-                    message.getSender().equals(id) ? message.getSenderMessage() : message.getMessage(),
-                    message.getDuration(),
-                    message.getType()
-            ));
+            response.setMessage(ChatUtil.formatRepliedMessage(getMessage(message, id), message.getDuration(), message.getType()));
             response.setLabel(TimeUtil.formatTime(message.getCreatedAt(), profileRepository.findById(id).map(p -> p.getUser().getTimezone()).orElse("")));
             response.setIsSentByCurrentUser(message.getSender().equals(id));
             response.setSender(profileRepository.findById(message.getSender()).map(Profile::getFullName).orElse(""));

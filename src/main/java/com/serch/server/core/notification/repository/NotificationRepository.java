@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -27,14 +28,21 @@ public class NotificationRepository implements INotificationRepository {
 
     @Override
     @Transactional
-    public String getToken(String id) {
+    public Optional<String> getToken(String id) {
         UUID uuid = HelperUtil.parseUUID(id);
+        String token;
+
         if (uuid != null) {
-            return getTokenFromId(uuid);
+            token = getTokenFromId(uuid);
+        } else {
+            token = guestRepository.findById(id).map(Guest::getFcmToken).orElse("");
         }
-        return guestRepository.findById(id)
-                .map(Guest::getFcmToken)
-                .orElse("");
+
+        if(token.isEmpty()) {
+            return Optional.empty();
+        } else {
+            return Optional.of(token);
+        }
     }
 
     private String getTokenFromId(UUID uuid) {
@@ -61,11 +69,17 @@ public class NotificationRepository implements INotificationRepository {
 
     @Override
     @Transactional
-    public String getBusinessToken(UUID id) {
-        return profileRepository.findById(id)
+    public Optional<String> getBusinessToken(UUID id) {
+        String token = profileRepository.findById(id)
                 .filter(Profile::isAssociate)
                 .map(profile -> profile.getBusiness().getFcmToken())
                 .orElse("");
+
+        if(token.isEmpty()) {
+            return Optional.empty();
+        } else {
+            return Optional.of(token);
+        }
     }
 
     @Override

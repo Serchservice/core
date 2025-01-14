@@ -1,5 +1,6 @@
 package com.serch.server.core.notification.repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -13,7 +14,7 @@ public interface INotificationRepository {
      * @param id The unique identifier of the user or entity.
      * @return The token associated with the given ID.
      */
-    String getToken(String id);
+    Optional<String> getToken(String id);
 
     /**
      * Retrieves the role associated with a specific user or entity by ID.
@@ -29,7 +30,7 @@ public interface INotificationRepository {
      * @param id The unique identifier (UUID) of the business.
      * @return The business token associated with the given UUID.
      */
-    String getBusinessToken(UUID id);
+    Optional<String> getBusinessToken(UUID id);
 
     /**
      * Retrieves the name associated with a specific user or entity by ID.

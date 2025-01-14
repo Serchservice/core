@@ -47,11 +47,15 @@ public class ChattingImplementation implements ChattingService {
     @Transactional
     public void send(SendMessageRequest request, String emailAddress) {
         userRepository.findByEmailAddressIgnoreCase(emailAddress).ifPresent(user -> chatRoomRepository.findById(request.getRoom()).ifPresent(room -> {
+            System.out.println("Chat Room ID: " + room.getId());
             ChatMessage message = new ChatMessage();
 
             message.setMessage(request.getMessage());
             message.setSenderMessage(request.getSenderMessage());
             message.setType(request.getType());
+
+            System.out.println("Chat Message: " + message.getMessage());
+            System.out.println("Chat Sender Message: " + message.getSenderMessage());
 
             if(request.getReplied() != null && !request.getReplied().isEmpty()) {
                 ChatMessage replied = chatMessageRepository.findById(request.getReplied()).orElse(null);
@@ -63,8 +67,12 @@ public class ChattingImplementation implements ChattingService {
             chatMessageRepository.save(message);
             chatMessageRepository.flush();
 
+            System.out.println("Chat Message Uploaded");
+
             room.setUpdatedAt(TimeUtil.now());
             chatRoomRepository.save(room);
+
+            System.out.println("Chat Room Timestamp Updated");
 
             sendMessage(room, user, true);
         }));
@@ -83,7 +91,6 @@ public class ChattingImplementation implements ChattingService {
     public void markAllAsRead(String roomId, String emailAddress) {
         userRepository.findByEmailAddressIgnoreCase(emailAddress).ifPresent(user -> {
             List<ChatMessage> messages = chatMessageRepository.findUnreadMessages(roomId, user.getId());
-            System.out.println(messages);
             if (messages != null && !messages.isEmpty()) {
                 messages.forEach(message -> {
                     message.setStatus(MessageStatus.READ);
@@ -161,22 +168,22 @@ public class ChattingImplementation implements ChattingService {
     }
 
     @Transactional
-    protected void sendMessage(ChatRoom room, User loggedInUser, boolean notify) {
-        sendToSender(room, loggedInUser);
-        sendToReceiver(room, loggedInUser, notify);
+    protected void sendMessage(ChatRoom room, User user, boolean notify) {
+        sendToSender(room, user);
+        sendToReceiver(room, user, notify);
     }
 
     @Transactional
-    protected void sendToSender(ChatRoom room, User loggedInUser) {
-        ChatRoomResponse response = chatService.getChatRoomResponse(room, loggedInUser.getId());
+    protected void sendToSender(ChatRoom room, User user) {
+        ChatRoomResponse response = chatService.getChatRoomResponse(room, user.getId());
 
-        template.convertAndSend("/platform/%s/chat/%s".formatted(String.valueOf(loggedInUser.getId()), room.getId()), response);
-        template.convertAndSend("/platform/%s/chat".formatted(String.valueOf(loggedInUser.getId())), chatService.rooms(loggedInUser.getId()));
+        template.convertAndSend("/platform/%s/chat/%s".formatted(String.valueOf(user.getId()), room.getId()), response);
+        template.convertAndSend("/platform/%s/chat".formatted(String.valueOf(user.getId())), chatService.rooms(user.getId()));
     }
 
     @Transactional
-    protected void sendToReceiver(ChatRoom room, User loggedInUser, boolean notify) {
-        UUID id = isCurrentUser(room.getCreator(), loggedInUser.getId()) ? room.getRoommate() : room.getCreator();
+    protected void sendToReceiver(ChatRoom room, User user, boolean notify) {
+        UUID id = isCurrentUser(room.getCreator(), user.getId()) ? room.getRoommate() : room.getCreator();
         ChatRoomResponse response =  chatService.getChatRoomResponse(room, id);
 
         template.convertAndSend("/platform/%s/chat/%s".formatted(String.valueOf(id), room.getId()), response);

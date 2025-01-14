@@ -48,7 +48,6 @@ public class ChatMessage extends BaseDateTime {
     private String message;
 
     @Column(name = "sender_message", columnDefinition = "TEXT DEFAULT ''", nullable = false)
-    @NotBlank(message = "Sender Message cannot be empty or null")
     private String senderMessage;
 
     @Column(name = "status", nullable = false)

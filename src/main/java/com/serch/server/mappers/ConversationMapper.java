@@ -1,8 +1,8 @@
 package com.serch.server.mappers;
 
 import com.serch.server.models.conversation.ChatMessage;
-import com.serch.server.services.conversation.responses.ChatMessageResponse;
-import com.serch.server.services.conversation.responses.ChatReplyResponse;
+import com.serch.server.domains.conversation.responses.ChatMessageResponse;
+import com.serch.server.domains.conversation.responses.ChatReplyResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;

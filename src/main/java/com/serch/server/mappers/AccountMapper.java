@@ -3,15 +3,13 @@ package com.serch.server.mappers;
 import com.serch.server.models.account.*;
 import com.serch.server.models.auth.incomplete.IncompletePhoneInformation;
 import com.serch.server.models.auth.incomplete.IncompleteProfile;
-import com.serch.server.services.account.responses.*;
-import com.serch.server.services.auth.requests.RequestPhoneInformation;
-import com.serch.server.services.auth.requests.RequestProfile;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Mappings;
+import com.serch.server.domains.account.responses.*;
+import com.serch.server.domains.auth.requests.RequestPhoneInformation;
+import com.serch.server.domains.auth.requests.RequestProfile;
+import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING)
 public interface AccountMapper {
     AccountMapper INSTANCE = Mappers.getMapper(AccountMapper.class);
 

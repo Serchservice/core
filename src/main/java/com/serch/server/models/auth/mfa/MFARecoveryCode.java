@@ -4,6 +4,8 @@ import com.serch.server.bases.BaseModel;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 /**
  * The MFARecoveryCode class represents a multi-factor authentication recovery code in the system.
@@ -36,5 +38,6 @@ public class MFARecoveryCode extends BaseModel {
             nullable = false,
             foreignKey = @ForeignKey(name = "factor_recovery_code_fkey")
     )
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private MFAFactor factor;
 }

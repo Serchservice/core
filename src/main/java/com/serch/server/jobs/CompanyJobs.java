@@ -1,7 +1,7 @@
 package com.serch.server.jobs;
 
-import com.serch.server.services.company.services.ComplaintService;
-import com.serch.server.services.company.services.SpeakWithSerchService;
+import com.serch.server.domains.company.services.ComplaintService;
+import com.serch.server.domains.company.services.SpeakWithSerchService;
 import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

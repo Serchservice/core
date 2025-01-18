@@ -10,6 +10,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 /**
  * The IncompleteProfile class represents incomplete user profiles in the system.
@@ -64,5 +66,6 @@ public class IncompleteProfile extends BaseModel {
             foreignKey = @ForeignKey(name = "profile_email_fkey")
     )
     @ToString.Exclude
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Incomplete incomplete;
 }

@@ -2,8 +2,8 @@ package com.serch.server.admin.services.auth;
 
 import com.serch.server.admin.services.auth.requests.*;
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.services.auth.responses.AuthResponse;
-import com.serch.server.services.auth.responses.MFADataResponse;
+import com.serch.server.domains.auth.responses.AuthResponse;
+import com.serch.server.domains.auth.responses.MFADataResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

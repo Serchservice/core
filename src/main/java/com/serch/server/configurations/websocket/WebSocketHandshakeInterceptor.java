@@ -15,7 +15,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.server.ServerHttpAsyncRequestControl;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpResponse;
@@ -30,7 +33,11 @@ import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.InetSocketAddress;
 import java.net.URI;
+import java.security.Principal;
 import java.util.Map;
 
 @Configuration
@@ -45,24 +52,26 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
     public boolean beforeHandshake(ServerHttpRequest request, @NonNull ServerHttpResponse response, @NonNull WebSocketHandler wsHandler, @NonNull Map<String, Object> attributes) {
         System.out.printf("Socket Request from remote address: %s for local address: %s%n", request.getRemoteAddress(), request.getLocalAddress());
 
+        request = normalize(request);
         try {
-            if(keyService.isSigned(getKey(ServerHeader.SERCH_SIGNED.getValue(), request))) {
-                if(keyService.isDrive(getKey(ServerHeader.DRIVE_API_KEY.getValue(), request), getKey(ServerHeader.DRIVE_SECRET_KEY.getValue(), request))) {
+            if(keyService.isSigned(request.getHeaders().getFirst(ServerHeader.SERCH_SIGNED.getValue()))) {
+                if(keyService.isDrive(request.getHeaders().getFirst(ServerHeader.DRIVE_API_KEY.getValue()), request.getHeaders().getFirst(ServerHeader.DRIVE_SECRET_KEY.getValue()))) {
                     Logging.logRequest(request, "SIGNED DRIVE HANDSHAKE");
 
                     return true;
-                } else if(keyService.isGuest(getKey(ServerHeader.GUEST_API_KEY.getValue(), request), getKey(ServerHeader.GUEST_SECRET_KEY.getValue(), request))) {
+                } else if(keyService.isGuest(request.getHeaders().getFirst(ServerHeader.GUEST_API_KEY.getValue()), request.getHeaders().getFirst(ServerHeader.GUEST_SECRET_KEY.getValue()))) {
                     Logging.logRequest(request, "SIGNED GUEST HANDSHAKE");
 
                     return true;
                 } else {
-                    String authHeader = getKey("Authorization", request);
+                    String authHeader = request.getHeaders().getFirst("Authorization");
 
                     if (authHeader != null && authHeader.startsWith("Bearer ")) {
                         Logging.logRequest(request, "AUTHORIZED HANDSHAKE");
 
                         String token = authHeader.substring(7);
                         var session = sessionService.validateSession(token, null, null);
+
                         if (session.getStatus().is2xxSuccessful()) {
                             UserDetails userDetails = userDetailsService.loadUserByUsername(session.getData());
                             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
@@ -74,6 +83,7 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
                             sessionService.updateLastSignedIn();
 
                             attributes.put("username", userDetails.getUsername());
+
                             return true;
                         }
                     } else {
@@ -94,16 +104,83 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
         return false;
     }
 
-    private String getKey(String key, ServerHttpRequest request) {
-        String response = request.getHeaders().getFirst(key);
+    private ServerHttpRequest normalize(ServerHttpRequest request) {
+        URI originalUri = request.getURI();
+        MultiValueMap<String, String> queryParams = UriComponentsBuilder.fromUri(originalUri).build().getQueryParams();
 
-        if(response == null) {
-            URI uri = request.getURI();
-            MultiValueMap<String, String> queryParams = UriComponentsBuilder.fromUri(uri).build().getQueryParams();
-            response = queryParams.getFirst(key);
-        }
+        // Create a new URI without query parameters
+        URI normalizedUri = UriComponentsBuilder.fromUri(originalUri)
+                .replaceQuery(null)
+                .build()
+                .toUri();
 
-        return response;
+        return new ServerHttpRequest() {
+            @Override
+            public Principal getPrincipal() {
+                return request.getPrincipal();
+            }
+
+            @Override
+            @NonNull
+            public InetSocketAddress getLocalAddress() {
+                return request.getLocalAddress();
+            }
+
+            @Override
+            @NonNull
+            public InetSocketAddress getRemoteAddress() {
+                return request.getRemoteAddress();
+            }
+
+            @Override
+            @NonNull
+            public ServerHttpAsyncRequestControl getAsyncRequestControl(@NonNull ServerHttpResponse response) {
+                return request.getAsyncRequestControl(response);
+            }
+
+            @Override
+            @NonNull
+            public InputStream getBody() throws IOException {
+                return request.getBody();
+            }
+
+            @Override
+            @NonNull
+            public HttpMethod getMethod() {
+                return request.getMethod();
+            }
+
+            @Override
+            @NonNull
+            public URI getURI() {
+                // Return the normalized URI
+                return normalizedUri;
+            }
+
+            @Override
+            @NonNull
+            public Map<String, Object> getAttributes() {
+                return request.getAttributes();
+            }
+
+            @Override
+            @NonNull
+            public HttpHeaders getHeaders() {
+                HttpHeaders headers = new HttpHeaders();
+                headers.addAll(request.getHeaders());
+
+                // Add query parameters to headers if they exist
+                if (!queryParams.isEmpty()) {
+                    queryParams.forEach((key, values) -> {
+                        if (values != null && !values.isEmpty()) {
+                            values.forEach(value -> headers.add(key, value));
+                        }
+                    });
+                }
+
+                return headers;
+            }
+        };
     }
 
     @SneakyThrows

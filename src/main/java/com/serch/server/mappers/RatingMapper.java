@@ -2,9 +2,9 @@ package com.serch.server.mappers;
 
 import com.serch.server.models.rating.AppRating;
 import com.serch.server.models.rating.Rating;
-import com.serch.server.services.rating.requests.RateAppRequest;
-import com.serch.server.services.rating.requests.RatingCalculation;
-import com.serch.server.services.rating.responses.RatingResponse;
+import com.serch.server.domains.rating.requests.RateAppRequest;
+import com.serch.server.domains.rating.requests.RatingCalculation;
+import com.serch.server.domains.rating.responses.RatingResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 

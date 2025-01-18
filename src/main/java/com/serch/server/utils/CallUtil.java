@@ -1,6 +1,6 @@
 package com.serch.server.utils;
 
-import com.serch.server.services.conversation.responses.CallPeriodResponse;
+import com.serch.server.domains.conversation.responses.CallPeriodResponse;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;

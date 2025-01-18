@@ -6,8 +6,8 @@ import com.serch.server.admin.services.responses.CommonProfileResponse;
 import com.serch.server.admin.services.responses.auth.AccountMFAChallengeResponse;
 import com.serch.server.admin.services.scopes.account.responses.user.*;
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.services.rating.responses.RatingChartResponse;
-import com.serch.server.services.schedule.responses.ScheduleTimeResponse;
+import com.serch.server.domains.rating.responses.RatingChartResponse;
+import com.serch.server.domains.schedule.responses.ScheduleTimeResponse;
 
 import java.util.List;
 import java.util.UUID;

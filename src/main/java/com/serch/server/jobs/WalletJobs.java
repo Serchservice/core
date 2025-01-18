@@ -1,6 +1,6 @@
 package com.serch.server.jobs;
 
-import com.serch.server.services.transaction.services.WalletService;
+import com.serch.server.domains.transaction.services.WalletService;
 import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

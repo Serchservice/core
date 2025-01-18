@@ -5,6 +5,8 @@ import com.serch.server.enums.account.AccountStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Getter
 @Setter
@@ -22,5 +24,6 @@ public class AccountStatusTracker extends BaseModel {
             nullable = false,
             foreignKey = @ForeignKey(name = "acc_user_id_fkey")
     )
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 }

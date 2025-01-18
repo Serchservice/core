@@ -2,8 +2,8 @@ package com.serch.server.mappers;
 
 import com.serch.server.models.transaction.Transaction;
 import com.serch.server.models.transaction.Wallet;
-import com.serch.server.services.transaction.responses.TransactionData;
-import com.serch.server.services.transaction.responses.WalletResponse;
+import com.serch.server.domains.transaction.responses.TransactionData;
+import com.serch.server.domains.transaction.responses.WalletResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;

@@ -4,7 +4,7 @@ import com.serch.server.admin.services.scopes.support.responses.SpeakWithSerchOv
 import com.serch.server.admin.services.scopes.support.responses.SpeakWithSerchScopeResponse;
 import com.serch.server.admin.services.scopes.support.services.SpeakWithSerchScopeService;
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.services.company.requests.IssueRequest;
+import com.serch.server.domains.company.requests.IssueRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

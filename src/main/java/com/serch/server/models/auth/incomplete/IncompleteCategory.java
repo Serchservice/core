@@ -7,6 +7,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 /**
  * The IncompleteCategory class represents incomplete category information in the system.
@@ -42,5 +44,6 @@ public class IncompleteCategory extends BaseModel {
             foreignKey = @ForeignKey(name = "category_email_fkey")
     )
     @ToString.Exclude
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Incomplete incomplete;
 }

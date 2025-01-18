@@ -1,6 +1,6 @@
 package com.serch.server.admin.services.auth.requests;
 
-import com.serch.server.services.auth.requests.RequestDevice;
+import com.serch.server.domains.auth.requests.RequestDevice;
 import lombok.Data;
 
 @Data

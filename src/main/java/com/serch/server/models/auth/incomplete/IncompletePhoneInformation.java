@@ -4,6 +4,8 @@ import com.serch.server.bases.BaseModel;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 /**
  * The IncompletePhoneInformation class represents incomplete phone information in the system.
@@ -36,5 +38,6 @@ public class IncompletePhoneInformation extends BaseModel {
             nullable = false,
             foreignKey = @ForeignKey(name = "additional_email_fkey")
     )
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Incomplete incomplete;
 }

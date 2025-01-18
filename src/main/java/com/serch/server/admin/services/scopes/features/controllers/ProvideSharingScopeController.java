@@ -4,7 +4,7 @@ import com.serch.server.admin.services.responses.ChartMetric;
 import com.serch.server.admin.services.scopes.features.responses.ProvideSharingScopeOverviewResponse;
 import com.serch.server.admin.services.scopes.features.services.ProvideSharingScopeService;
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.services.shared.responses.SharedLinkResponse;
+import com.serch.server.domains.shared.responses.SharedLinkResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

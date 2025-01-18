@@ -1,9 +1,9 @@
 package com.serch.server.mappers;
 
 import com.serch.server.models.schedule.Schedule;
-import com.serch.server.services.schedule.requests.ScheduleRequest;
-import com.serch.server.services.schedule.responses.ScheduleResponse;
-import com.serch.server.services.trip.requests.TripInviteRequest;
+import com.serch.server.domains.schedule.requests.ScheduleRequest;
+import com.serch.server.domains.schedule.responses.ScheduleResponse;
+import com.serch.server.domains.trip.requests.TripInviteRequest;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;

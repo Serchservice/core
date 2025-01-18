@@ -3,7 +3,7 @@ package com.serch.server.admin.services.scopes.support.services;
 import com.serch.server.admin.services.scopes.support.responses.SpeakWithSerchOverviewResponse;
 import com.serch.server.admin.services.scopes.support.responses.SpeakWithSerchScopeResponse;
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.services.company.requests.IssueRequest;
+import com.serch.server.domains.company.requests.IssueRequest;
 
 import java.util.UUID;
 

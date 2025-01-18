@@ -2,7 +2,7 @@ package com.serch.server.core.map.services;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.core.map.responses.Address;
-import com.serch.server.services.shop.responses.SearchShopResponse;
+import com.serch.server.domains.shop.responses.SearchShopResponse;
 
 import java.util.List;
 

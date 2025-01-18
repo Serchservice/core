@@ -1,6 +1,6 @@
 package com.serch.server.core.jwt;
 
-import com.serch.server.services.auth.requests.RequestSessionToken;
+import com.serch.server.domains.auth.requests.RequestSessionToken;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;

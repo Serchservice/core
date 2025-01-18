@@ -4,6 +4,8 @@ import com.serch.server.bases.BaseDevice;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.ZonedDateTime;
 
@@ -32,5 +34,6 @@ public class MFAChallenge extends BaseDevice {
                     name = "mfa_challenge_factor_fkey"
             )
     )
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private MFAFactor mfaFactor;
 }

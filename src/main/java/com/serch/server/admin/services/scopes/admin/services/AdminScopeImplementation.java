@@ -23,7 +23,7 @@ import com.serch.server.exceptions.auth.AuthException;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.core.storage.core.StorageService;
 import com.serch.server.core.storage.requests.FileUploadRequest;
-import com.serch.server.services.auth.services.AccountStatusTrackerService;
+import com.serch.server.domains.auth.services.AccountStatusTrackerService;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;

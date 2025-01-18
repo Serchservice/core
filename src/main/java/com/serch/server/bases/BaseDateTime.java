@@ -1,5 +1,6 @@
 package com.serch.server.bases;
 
+import com.serch.server.utils.TimeUtil;
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
@@ -11,7 +12,6 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
 /**
@@ -40,7 +40,7 @@ public class BaseDateTime {
     @CreatedDate
     @CreationTimestamp
     @Column(name = "created_at", updatable = false, nullable = false, columnDefinition = "timestamptz")
-    private ZonedDateTime createdAt = ZonedDateTime.now(ZoneOffset.UTC);
+    private ZonedDateTime createdAt = TimeUtil.now();
 
     /**
      * The timestamp indicating when the entity was last updated.
@@ -49,6 +49,6 @@ public class BaseDateTime {
     @UpdateTimestamp
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false, columnDefinition = "timestamptz")
-    private ZonedDateTime updatedAt = ZonedDateTime.now(ZoneOffset.UTC);
+    private ZonedDateTime updatedAt = TimeUtil.now();
 }
 

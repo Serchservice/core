@@ -1,8 +1,8 @@
 package com.serch.server.jobs;
 
-import com.serch.server.services.conversation.services.CallService;
-import com.serch.server.services.conversation.services.ChattingService;
-import com.serch.server.services.shop.services.ShopService;
+import com.serch.server.domains.conversation.services.CallService;
+import com.serch.server.domains.conversation.services.ChattingService;
+import com.serch.server.domains.shop.services.ShopService;
 import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

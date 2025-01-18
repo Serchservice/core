@@ -8,6 +8,8 @@ import com.serch.server.models.auth.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.UUID;
 
@@ -36,6 +38,7 @@ public class Verification extends BaseDateTime {
             referencedColumnName = "id",
             foreignKey = @ForeignKey(name = "user_id_verification_fkey")
     )
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
     @Column(name = "status", nullable = false)

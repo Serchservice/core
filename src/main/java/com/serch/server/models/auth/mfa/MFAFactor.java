@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.List;
 
@@ -36,6 +38,7 @@ public class MFAFactor extends BaseEntity {
             nullable = false,
             foreignKey = @ForeignKey(name = "mfa_factor_user_id_fkey")
     )
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
     @OneToMany(mappedBy = "factor", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)

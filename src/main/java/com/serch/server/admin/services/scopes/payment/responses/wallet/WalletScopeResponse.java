@@ -2,7 +2,7 @@ package com.serch.server.admin.services.scopes.payment.responses.wallet;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.serch.server.admin.services.responses.CommonProfileResponse;
-import com.serch.server.services.transaction.responses.WalletResponse;
+import com.serch.server.domains.transaction.responses.WalletResponse;
 import lombok.Data;
 
 import java.time.LocalDate;

@@ -7,8 +7,8 @@ import com.serch.server.admin.services.responses.auth.AccountMFAChallengeRespons
 import com.serch.server.admin.services.scopes.account.responses.user.*;
 import com.serch.server.admin.services.scopes.account.services.AccountUserScopeService;
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.services.rating.responses.RatingChartResponse;
-import com.serch.server.services.schedule.responses.ScheduleTimeResponse;
+import com.serch.server.domains.rating.responses.RatingChartResponse;
+import com.serch.server.domains.schedule.responses.ScheduleTimeResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

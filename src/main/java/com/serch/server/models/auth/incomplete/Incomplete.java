@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -66,15 +68,19 @@ public class Incomplete extends BaseModel {
     private ZonedDateTime tokenConfirmedAt = null;
 
     @OneToOne(mappedBy = "incomplete", cascade = CascadeType.ALL)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private IncompleteProfile profile;
 
     @OneToOne(mappedBy = "incomplete", cascade = CascadeType.ALL)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private IncompleteReferral referredBy;
 
     @OneToOne(mappedBy = "incomplete", cascade = CascadeType.ALL)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private IncompletePhoneInformation phoneInfo;
 
     @OneToOne(mappedBy = "incomplete", cascade = CascadeType.ALL)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private IncompleteCategory category;
 
     @OneToMany(mappedBy = "incomplete", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

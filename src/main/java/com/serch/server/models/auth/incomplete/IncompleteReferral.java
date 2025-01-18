@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 /**
  * The IncompleteReferral class represents incomplete referrals in the system.
@@ -33,6 +35,7 @@ public class IncompleteReferral extends BaseModel {
             nullable = false,
             foreignKey = @ForeignKey(name = "referred_by_user_id_fkey")
     )
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User referredBy;
 
     @OneToOne(cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
@@ -42,5 +45,6 @@ public class IncompleteReferral extends BaseModel {
             nullable = false,
             foreignKey = @ForeignKey(name = "incomplete_email_fkey")
     )
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Incomplete incomplete;
 }

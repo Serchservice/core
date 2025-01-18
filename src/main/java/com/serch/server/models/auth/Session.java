@@ -8,6 +8,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.List;
 
@@ -55,9 +57,11 @@ public class Session extends BaseDevice {
             foreignKey = @ForeignKey(name = "user_session_fkey")
     )
     @ToString.Exclude
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
     @OneToMany(mappedBy = "session", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @ToString.Exclude
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<RefreshToken> refreshTokens;
 }

@@ -1,7 +1,7 @@
 package com.serch.server.admin.services.scopes.account.responses.user;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.serch.server.services.transaction.responses.WalletResponse;
+import com.serch.server.domains.transaction.responses.WalletResponse;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

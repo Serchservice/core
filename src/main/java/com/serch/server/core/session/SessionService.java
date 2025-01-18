@@ -1,9 +1,9 @@
 package com.serch.server.core.session;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.services.auth.requests.RequestSession;
-import com.serch.server.services.auth.responses.AuthResponse;
-import com.serch.server.services.auth.responses.SessionResponse;
+import com.serch.server.domains.auth.requests.RequestSession;
+import com.serch.server.domains.auth.responses.AuthResponse;
+import com.serch.server.domains.auth.responses.SessionResponse;
 
 import java.util.UUID;
 

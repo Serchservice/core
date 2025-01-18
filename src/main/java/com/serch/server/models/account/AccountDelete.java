@@ -9,6 +9,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 /**
  * Represents an account deletion request entity, storing information about the user requesting account deletion.
@@ -56,5 +58,6 @@ public class AccountDelete extends BaseDateTime {
             nullable = false,
             foreignKey = @ForeignKey(name = "user_id_fkey")
     )
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 }

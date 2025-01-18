@@ -1,8 +1,8 @@
 package com.serch.server.jobs;
 
-import com.serch.server.services.removal.AccountRemovalService;
-import com.serch.server.services.removal.GuestRemovalService;
-import com.serch.server.services.removal.IncompleteRemovalService;
+import com.serch.server.domains.removal.AccountRemovalService;
+import com.serch.server.domains.removal.GuestRemovalService;
+import com.serch.server.domains.removal.IncompleteRemovalService;
 import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

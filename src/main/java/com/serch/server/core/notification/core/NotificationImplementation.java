@@ -1,11 +1,11 @@
 package com.serch.server.core.notification.core;
 
 import com.serch.server.core.notification.requests.SerchNotification;
-import com.serch.server.services.conversation.responses.ActiveCallResponse;
-import com.serch.server.services.conversation.responses.ChatRoomResponse;
+import com.serch.server.domains.conversation.responses.ActiveCallResponse;
+import com.serch.server.domains.conversation.responses.ChatRoomResponse;
 import com.serch.server.core.notification.repository.INotificationRepository;
 import com.serch.server.core.notification.requests.NotificationMessage;
-import com.serch.server.services.schedule.responses.ScheduleResponse;
+import com.serch.server.domains.schedule.responses.ScheduleResponse;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.MoneyUtil;
 import lombok.RequiredArgsConstructor;

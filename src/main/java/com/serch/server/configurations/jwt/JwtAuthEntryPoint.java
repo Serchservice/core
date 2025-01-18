@@ -52,6 +52,14 @@ public class JwtAuthEntryPoint implements AuthenticationEntryPoint {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
+        ApiResponse<Map<String, Object>> apiResponse = getApiResponse(request, authException);
+
+        // Serialize ApiResponse object to JSON and write to response output stream
+        final ObjectMapper mapper = new ObjectMapper();
+        mapper.writeValue(response.getOutputStream(), apiResponse);
+    }
+
+    private ApiResponse<Map<String, Object>> getApiResponse(HttpServletRequest request, AuthenticationException authException) {
         Map<String, Object> data = new HashMap<>();
         data.put("status", HttpServletResponse.SC_UNAUTHORIZED);
         data.put("error", "Unauthorized");
@@ -59,13 +67,6 @@ public class JwtAuthEntryPoint implements AuthenticationEntryPoint {
         data.put("path", request.getServletPath());
 
         // Create ApiResponse object with error details
-        ApiResponse<Map<String, Object>> apiResponse = new ApiResponse<>(
-                "Invalid token. Please login",
-                data, HttpStatus.FORBIDDEN
-        );
-
-        // Serialize ApiResponse object to JSON and write to response output stream
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.writeValue(response.getOutputStream(), apiResponse);
+        return new ApiResponse<>("Invalid token. Please login", data, HttpStatus.FORBIDDEN);
     }
 }

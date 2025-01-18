@@ -2,11 +2,11 @@ package com.serch.server.mappers;
 
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.trip.*;
-import com.serch.server.services.trip.requests.OnlineRequest;
-import com.serch.server.services.trip.requests.ShoppingItemRequest;
-import com.serch.server.services.trip.requests.TripInviteRequest;
-import com.serch.server.services.trip.requests.TripShareRequest;
-import com.serch.server.services.trip.responses.*;
+import com.serch.server.domains.trip.requests.OnlineRequest;
+import com.serch.server.domains.trip.requests.ShoppingItemRequest;
+import com.serch.server.domains.trip.requests.TripInviteRequest;
+import com.serch.server.domains.trip.requests.TripShareRequest;
+import com.serch.server.domains.trip.responses.*;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;

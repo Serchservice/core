@@ -15,7 +15,7 @@ import com.serch.server.models.shop.Shop;
 import com.serch.server.repositories.account.BusinessProfileRepository;
 import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.shop.ShopRepository;
-import com.serch.server.services.shop.services.ShopService;
+import com.serch.server.domains.shop.services.ShopService;
 import com.serch.server.utils.AdminUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

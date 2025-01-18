@@ -1,9 +1,9 @@
 package com.serch.server.admin.services.scopes.account.responses.user;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.serch.server.services.shop.responses.ShopOverviewResponse;
-import com.serch.server.services.shop.responses.ShopServiceResponse;
-import com.serch.server.services.shop.responses.ShopWeekdayResponse;
+import com.serch.server.domains.shop.responses.ShopOverviewResponse;
+import com.serch.server.domains.shop.responses.ShopServiceResponse;
+import com.serch.server.domains.shop.responses.ShopWeekdayResponse;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

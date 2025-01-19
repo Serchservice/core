@@ -157,11 +157,11 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
                 return normalizedUri;
             }
 
-            @Override
-            @NonNull
-            public Map<String, Object> getAttributes() {
-                return request.getAttributes();
-            }
+//            @Override
+//            @NonNull
+//            public Map<String, Object> getAttributes() {
+//                return request.getAttributes();
+//            }
 
             @Override
             @NonNull

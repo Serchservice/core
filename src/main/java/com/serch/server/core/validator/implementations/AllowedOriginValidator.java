@@ -14,11 +14,13 @@ public class AllowedOriginValidator implements AllowedOriginValidatorService {
     @Value("${application.access}")
     private String ACCESS;
 
-    private boolean isDevelopment() {
+    @Override
+    public boolean isDevelopment() {
         return ACCESS.equalsIgnoreCase("development") || ACCESS.equalsIgnoreCase("dev");
     }
 
-    private boolean isSandbox() {
+    @Override
+    public boolean isSandbox() {
         return ACCESS.equalsIgnoreCase("sandbox") || ACCESS.equalsIgnoreCase("sand");
     }
 

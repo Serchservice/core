@@ -33,10 +33,11 @@ public class EndpointValidator implements EndpointValidatorService {
         String[] SWAGGER_ENDPOINTS = new String[]{
                 "/swagger-ui",
                 "/webjars",
-                "configuration",
+                "/configuration",
                 "/swagger-resources",
                 "/v2/api-docs",
                 "/v3/api-docs",
+                "/server"
         };
 
         return Arrays.stream(SWAGGER_ENDPOINTS).anyMatch(path::startsWith);

@@ -72,6 +72,7 @@ public class SwitchImplementation implements SwitchService {
             } else {
                 checkRequest(request);
             }
+
             return new ApiResponse<>(guestService.response(login));
         }
     }
@@ -96,6 +97,7 @@ public class SwitchImplementation implements SwitchService {
         checkRequest(request);
         RequestProfile profile = new RequestProfile();
         profile.setDevice(request.getDevice());
+
         return userAuthService.getAuthResponse(profile, user);
     }
 

@@ -37,7 +37,7 @@ public interface CommonAuthService {
      * Retrieves a list of active and past sessions associated with a given user.
      * Each session entry provides details about the session's start time, last
      * activity, IP address, device information, and whether the session is still active.
-     * This data can help with monitoring the user's account activity.
+     * This response can help with monitoring the user's account activity.
      *
      * @param page The page number to retrieve (zero-based index).
      * @param size The number of items per page.
@@ -49,7 +49,7 @@ public interface CommonAuthService {
 
     /**
      * Retrieves a list of active and past devices associated with a given user.
-     * This data can help with monitoring the user's account activity.
+     * This response can help with monitoring the user's account activity.
      *
      * @param page The page number to retrieve (zero-based index).
      * @param size The number of items per page.

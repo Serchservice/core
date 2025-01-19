@@ -62,6 +62,7 @@ public class AccountImplementation implements AccountService {
     @Override
     public ApiResponse<String> lastPasswordUpdateAt() {
         String time = TimeUtil.formatDay(userUtil.getUser().getLastUpdatedAt(), userUtil.getUser().getTimezone());
+
         return new ApiResponse<>("Success", time, HttpStatus.OK);
     }
 

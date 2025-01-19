@@ -4,12 +4,10 @@ import com.serch.server.models.schedule.Schedule;
 import com.serch.server.domains.schedule.requests.ScheduleRequest;
 import com.serch.server.domains.schedule.responses.ScheduleResponse;
 import com.serch.server.domains.trip.requests.TripInviteRequest;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Mappings;
+import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING)
 public interface ScheduleMapper {
     ScheduleMapper INSTANCE = Mappers.getMapper(ScheduleMapper.class);
 

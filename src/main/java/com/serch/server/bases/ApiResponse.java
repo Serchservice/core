@@ -8,10 +8,10 @@ import org.springframework.http.HttpStatus;
 
 /**
  * The ApiResponse class represents a generic response model for API endpoints.
- * It encapsulates the HTTP status, response code, message, and optional data payload.
+ * It encapsulates the HTTP status, response code, message, and optional response payload.
  * This class is typically used to standardize the format of responses returned by API endpoints.
  *
- * @param <T> The type of data payload included in the response.
+ * @param <T> The type of response payload included in the response.
  */
 @Getter
 @Setter
@@ -34,7 +34,7 @@ public class ApiResponse<T> {
     private String message;
 
     /**
-     * The data payload included in the response.
+     * The response payload included in the response.
      */
     private T data;
 
@@ -51,9 +51,9 @@ public class ApiResponse<T> {
     }
 
     /**
-     * Constructs an ApiResponse object with data and sets default values for message, status, and code.
+     * Constructs an ApiResponse object with response and sets default values for message, status, and code.
      *
-     * @param data The data payload included in the response.
+     * @param data The response payload included in the response.
      */
     public ApiResponse(T data) {
         this.data = data;
@@ -76,10 +76,10 @@ public class ApiResponse<T> {
     }
 
     /**
-     * Constructs an ApiResponse object with a message, data, status, and sets code based on the status.
+     * Constructs an ApiResponse object with a message, response, status, and sets code based on the status.
      *
      * @param message The message associated with the response.
-     * @param data    The data payload included in the response.
+     * @param data    The response payload included in the response.
      * @param status  The HTTP status of the response.
      */
     public ApiResponse(String message, T data, HttpStatus status) {

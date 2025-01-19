@@ -1,6 +1,7 @@
 package com.serch.server.domains.referral.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.mappers.ReferralMapper;
 import com.serch.server.models.account.BusinessProfile;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.User;
@@ -62,13 +63,8 @@ public class ReferralImplementation implements ReferralService {
             list = referrals.getContent().stream()
                     .sorted(Comparator.comparing(Referral::getCreatedAt))
                     .map(referral -> {
-                        ReferralResponse response = new ReferralResponse();
-
-                        String avatar = getAvatar(referral.getReferral());
-                        response.setAvatar(avatar);
-                        response.setRole(referral.getReferral().getRole().getType());
-                        response.setName(referral.getReferral().getFullName());
-                        response.setReferId(referral.getReferId());
+                        ReferralResponse response = ReferralMapper.instance.response(referral);
+                        response.setAvatar(getAvatar(referral.getReferral()));
                         response.setInfo("Joined Serch Platform: " + TimeUtil.formatDay(referral.getReferral().getCreatedAt(), referral.getReferredBy().getUser().getTimezone()));
 
                         return response;

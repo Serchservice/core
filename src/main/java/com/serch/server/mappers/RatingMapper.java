@@ -6,9 +6,11 @@ import com.serch.server.domains.rating.requests.RateAppRequest;
 import com.serch.server.domains.rating.requests.RatingCalculation;
 import com.serch.server.domains.rating.responses.RatingResponse;
 import org.mapstruct.Mapper;
+import org.mapstruct.MappingConstants;
+import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING)
 public interface RatingMapper {
     RatingMapper INSTANCE = Mappers.getMapper(RatingMapper.class);
 

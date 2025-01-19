@@ -2,7 +2,7 @@ package com.serch.server.domains.referral.services;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.models.auth.User;
-import com.serch.server.domains.referral.ReferralController;
+import com.serch.server.domains.referral.controllers.ReferralController;
 import com.serch.server.domains.referral.responses.ReferralResponse;
 import com.serch.server.domains.referral.services.implementations.ReferralImplementation;
 

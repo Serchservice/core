@@ -18,10 +18,10 @@ public interface TripService {
      * Request a new trip.
      *
      * @param request the trip request details, encapsulated in a {@link TripInviteRequest}.
-     *                This includes information about the user, destination, and any additional trip-related data.
+     *                This includes information about the user, destination, and any additional trip-related response.
      *
      * @return an {@link ApiResponse} containing a {@link TripResponse} which represents the details of the active trip.
-     *         The response includes the status and data of the trip request.
+     *         The response includes the status and response of the trip request.
      *
      * @see TripInviteRequest
      * @see ApiResponse
@@ -30,13 +30,13 @@ public interface TripService {
     ApiResponse<TripResponse> request(TripInviteRequest request);
 
     /**
-     * Recreate an existing trip, effectively rebooking it with the same or modified data.
+     * Recreate an existing trip, effectively rebooking it with the same or modified response.
      *
      * @param withInvited whether to use the previously invited provider as the main provider in the newly created trip.
      *                    If true, the invited provider from the original trip becomes the main provider.
-     * @param id the unique identifier of the existing trip to be used for recreating the same trip data.
+     * @param id the unique identifier of the existing trip to be used for recreating the same trip response.
      *
-     * @return an {@link ApiResponse} containing the newly created {@link TripResponse} data.
+     * @return an {@link ApiResponse} containing the newly created {@link TripResponse} response.
      *         The response provides details of the rebooked trip, including any changes made.
      */
     ApiResponse<TripResponse> rebook(String id, Boolean withInvited);
@@ -174,9 +174,9 @@ public interface TripService {
     ApiResponse<TripResponse> update(TripUpdateRequest request);
 
     /**
-     * Update other related entities' data within the trip, such as linked bookings or notifications.
+     * Update other related entities' response within the trip, such as linked bookings or notifications.
      *
-     * @param trip the {@link Trip} instance containing the data to be updated.
+     * @param trip the {@link Trip} instance containing the response to be updated.
      *             This can include changes to trip metadata or associated records.
      */
     void updateOthers(Trip trip);
@@ -184,8 +184,8 @@ public interface TripService {
     /**
      * Update the location details of a provider within the trip context.
      *
-     * @param request the {@link MapViewRequest} containing the new location data.
-     *                This may involve updating the provider's latitude, longitude, or other map-related information.
+     * @param request the {@link MapViewRequest} containing the new location response.
+     *                This may involve updating the provider's latitude, longitude, or other location-related information.
      *
      * @see MapViewRequest
      */

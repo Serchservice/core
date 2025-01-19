@@ -60,6 +60,7 @@ public class NewsletterImplementation implements NewsletterService {
             return false;
         }
         Matcher matcher = LOCAL_PART_PATTERN.matcher( localPart );
+
         return matcher.matches();
     }
 
@@ -75,6 +76,7 @@ public class NewsletterImplementation implements NewsletterService {
                         newsletter.setEmailAddress(emailAddress);
                         newsletterRepository.save(newsletter);
                     });
+
             return new ApiResponse<>(message.get(), HttpStatus.OK);
         } else {
             return new ApiResponse<>("Invalid email address");
@@ -86,8 +88,7 @@ public class NewsletterImplementation implements NewsletterService {
         if(emailAddress == null || emailAddress.isEmpty()) {
             return new ApiResponse<>("Email address must not be empty");
         } else if(isValid(emailAddress)) {
-            newsletterRepository.findByEmailAddressIgnoreCase(emailAddress)
-                    .ifPresent(newsletterRepository::delete);
+            newsletterRepository.findByEmailAddressIgnoreCase(emailAddress).ifPresent(newsletterRepository::delete);
             return new ApiResponse<>("Unsubscribed", HttpStatus.OK);
         } else {
             return new ApiResponse<>("Invalid email address");

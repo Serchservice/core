@@ -13,7 +13,7 @@ import java.util.List;
  * Service interface for managing the active status of users.
  * <p>
  * This interface defines methods for managing the active or online status of users,
- * fetching the list of active providers, and retrieving user locations on the map.
+ * fetching the list of active providers, and retrieving user locations on the location.
  * </p>
  *
  * @see com.serch.server.domains.trip.services.implementations.ActiveImplementation
@@ -74,15 +74,15 @@ public interface ActiveService {
     void toggle(User user, ProviderStatus status, OnlineRequest request);
 
     /**
-     * Retrieves the map view location of the user.
+     * Retrieves the location view location of the user.
      * <p>
-     * This method provides the location data of the specified user for map visualization.
+     * This method provides the location response of the specified user for location visualization.
      * It returns a {@link MapViewResponse} that contains the user's geographic coordinates
      * and other location-related information.
      * </p>
      *
      * @param user The {@link User} whose location is to be retrieved.
-     * @return A {@link MapViewResponse} containing the user's location data for the map view.
+     * @return A {@link MapViewResponse} containing the user's location response for the location view.
      *
      * @see User
      * @see ProviderStatus

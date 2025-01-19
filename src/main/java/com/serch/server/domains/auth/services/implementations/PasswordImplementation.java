@@ -8,6 +8,7 @@ import com.serch.server.enums.auth.AuthMethod;
 import com.serch.server.enums.email.EmailType;
 import com.serch.server.exceptions.ExceptionCodes;
 import com.serch.server.exceptions.auth.AuthException;
+import com.serch.server.models.auth.User;
 import com.serch.server.models.email.SendEmail;
 import com.serch.server.repositories.account.AccountDeleteRepository;
 import com.serch.server.repositories.auth.UserRepository;
@@ -18,7 +19,7 @@ import com.serch.server.domains.auth.requests.RequestSession;
 import com.serch.server.domains.auth.responses.AuthResponse;
 import com.serch.server.domains.auth.services.PasswordService;
 import com.serch.server.core.session.SessionService;
-import com.serch.server.core.code.TokenService;
+import com.serch.server.core.token.TokenService;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
@@ -57,6 +58,7 @@ public class PasswordImplementation implements PasswordService {
     public ApiResponse<String> checkEmail(String emailAddress) {
         var user = userRepository.findByEmailAddressIgnoreCase(emailAddress)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
         user.check();
         if(TimeUtil.isOtpExpired(user.getPasswordRecoveryExpiresAt(), user.getTimezone(), OTP_EXPIRATION_TIME)) {
             String otp = tokenService.generateOtp();
@@ -64,18 +66,9 @@ public class PasswordImplementation implements PasswordService {
             user.setPasswordRecoveryExpiresAt(TimeUtil.now().plusMinutes(OTP_EXPIRATION_TIME));
             userRepository.save(user);
 
-            SendEmail email = new SendEmail();
-            email.setTo(user.getEmailAddress());
-            email.setType(EmailType.RESET_PASSWORD);
-            email.setFirstName(user.getFirstName());
-            email.setContent(otp);
-            emailService.send(email);
+            sendEmail(user, otp);
 
-            return new ApiResponse<>(
-                    "Check your email for verification token",
-                    user.getFirstName(),
-                    HttpStatus.OK
-            );
+            return new ApiResponse<>("Check your email for verification token", user.getFirstName(), HttpStatus.OK);
         } else {
             throw new AuthException(
                     "You can request a new token in %s".formatted(
@@ -86,10 +79,20 @@ public class PasswordImplementation implements PasswordService {
         }
     }
 
+    private void sendEmail(User user, String otp) {
+        SendEmail email = new SendEmail();
+        email.setTo(user.getEmailAddress());
+        email.setType(EmailType.RESET_PASSWORD);
+        email.setFirstName(user.getFirstName());
+        email.setContent(otp);
+        emailService.send(email);
+    }
+
     @Override
     public ApiResponse<String> verifyToken(RequestResetPasswordVerify verify) {
         var user = userRepository.findByEmailAddressIgnoreCase(verify.getEmailAddress())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
         if(user.getPasswordRecoveryToken() == null) {
             throw new AuthException("Invalid access. Request for password reset OTP", ExceptionCodes.ACCESS_DENIED);
         } else {
@@ -100,11 +103,8 @@ public class PasswordImplementation implements PasswordService {
                     user.setPasswordRecoveryConfirmedAt(TimeUtil.now());
                     user.setUpdatedAt(TimeUtil.now());
                     userRepository.save(user);
-                    return new ApiResponse<>(
-                            "OTP successfully confirmed",
-                            user.getFirstName(),
-                            HttpStatus.OK
-                    );
+
+                    return new ApiResponse<>("OTP successfully confirmed", user.getFirstName(), HttpStatus.OK);
                 } else {
                     throw new AuthException("Incorrect OTP");
                 }
@@ -116,6 +116,7 @@ public class PasswordImplementation implements PasswordService {
     public ApiResponse<String> resetPassword(RequestResetPassword resetPassword) {
         var user = userRepository.findByEmailAddressIgnoreCase(resetPassword.getEmailAddress())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
         if(user.getPasswordRecoveryToken() == null) {
             throw new AuthException("Invalid access. Request for password reset OTP", ExceptionCodes.ACCESS_DENIED);
         } else {
@@ -139,6 +140,7 @@ public class PasswordImplementation implements PasswordService {
                     user.setPasswordRecoveryConfirmedAt(null);
                     user.setLastUpdatedAt(TimeUtil.now());
                     userRepository.save(user);
+
                     return new ApiResponse<>("Password successfully changed", HttpStatus.OK);
                 }
             }

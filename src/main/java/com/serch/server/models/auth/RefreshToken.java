@@ -1,6 +1,8 @@
 package com.serch.server.models.auth;
 
 import com.serch.server.bases.BaseEntity;
+import com.serch.server.exceptions.ExceptionCodes;
+import com.serch.server.exceptions.auth.SessionException;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -67,4 +69,10 @@ public class RefreshToken extends BaseEntity {
     )
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Session session;
+
+    void validate() {
+        if(getRevoked()) {
+            throw new SessionException("Invalid refresh token. Please login", ExceptionCodes.INCORRECT_TOKEN);
+        }
+    }
 }

@@ -29,7 +29,7 @@ import com.serch.server.domains.account.services.SpecialtyService;
 import com.serch.server.domains.auth.requests.RequestPhoneInformation;
 import com.serch.server.domains.referral.services.ReferralService;
 import com.serch.server.domains.auth.requests.RequestProfile;
-import com.serch.server.core.storage.core.StorageService;
+import com.serch.server.core.storage.services.StorageService;
 import com.serch.server.domains.transaction.services.WalletService;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
@@ -82,15 +82,12 @@ public class ProfileImplementation implements ProfileService {
     @Override
     public ApiResponse<Profile> createProfile(RequestCreateProfile request) {
         var user = profileRepository.findById(request.getUser().getId());
+
         if(user.isPresent()) {
             throw new AccountException("User already have a profile");
         } else {
             Profile profile = getProfile(request);
-            PhoneInformation phoneInformation = AccountMapper.INSTANCE.phoneInformation(
-                    request.getProfile().getPhoneInformation()
-            );
-            phoneInformation.setUser(request.getUser());
-            phoneInformationRepository.save(phoneInformation);
+            savePhoneInformation(request.getProfile().getPhoneInformation(), request.getUser());
 
             if(request.getReferredBy() != null) {
                 referralService.create(request.getUser(), request.getReferredBy());
@@ -101,24 +98,33 @@ public class ProfileImplementation implements ProfileService {
         }
     }
 
+    private void savePhoneInformation(RequestPhoneInformation request, User user) {
+        PhoneInformation phoneInformation = AccountMapper.INSTANCE.phoneInformation(request);
+
+        phoneInformation.setUser(user);
+        phoneInformationRepository.save(phoneInformation);
+    }
+
     private Profile getProfile(RequestCreateProfile request) {
         Profile profile = AccountMapper.INSTANCE.profile(request.getProfile());
         profile.setUser(request.getUser());
         profile.setCategory(request.getCategory());
+
         return profileRepository.save(profile);
     }
 
     @Override
     public ApiResponse<Profile> createProviderProfile(Incomplete incomplete, User user) {
-        RequestCreateProfile createProfile = new RequestCreateProfile();
-        createProfile.setUser(user);
-        createProfile.setProfile(getRequestProfile(incomplete));
-        createProfile.setCategory(incomplete.getCategory().getCategory());
+        RequestCreateProfile profile = new RequestCreateProfile();
+        profile.setUser(user);
+        profile.setProfile(getRequestProfile(incomplete));
+        profile.setCategory(incomplete.getCategory().getCategory());
 
         if(incomplete.getReferredBy() != null) {
-            createProfile.setReferredBy(incomplete.getReferredBy().getReferredBy());
+            profile.setReferredBy(incomplete.getReferredBy().getReferredBy());
         }
-        return createProfile(createProfile);
+
+        return createProfile(profile);
     }
 
     private RequestProfile getRequestProfile(Incomplete incomplete) {
@@ -126,17 +132,19 @@ public class ProfileImplementation implements ProfileService {
         profile.setPassword(incomplete.getProfile().getPassword());
         profile.setEmailAddress(incomplete.getEmailAddress());
         profile.setPhoneInformation(AuthMapper.INSTANCE.phoneInformation(incomplete.getPhoneInfo()));
+
         return profile;
     }
 
     @Override
     public ApiResponse<Profile> createUserProfile(RequestProfile request, User user, User referral) {
-        RequestCreateProfile createProfile = new RequestCreateProfile();
-        createProfile.setUser(user);
-        createProfile.setProfile(request);
-        createProfile.setCategory(SerchCategory.USER);
-        createProfile.setReferredBy(referral);
-        return createProfile(createProfile);
+        RequestCreateProfile profile = new RequestCreateProfile();
+        profile.setUser(user);
+        profile.setProfile(request);
+        profile.setCategory(SerchCategory.USER);
+        profile.setReferredBy(referral);
+
+        return createProfile(profile);
     }
 
     @Override
@@ -161,9 +169,7 @@ public class ProfileImplementation implements ProfileService {
             response.setBusinessInformation(AccountMapper.INSTANCE.business(profile.getBusiness()));
         }
 
-        PhoneInformation phoneInformation = phoneInformationRepository.findByUser_Id(profile.getId())
-                .orElse(new PhoneInformation());
-        response.setPhoneInfo(AccountMapper.INSTANCE.phoneInformation(phoneInformation));
+        addPhoneInformation(profile, response);
         response.setMore(moreInformation(profile.getUser()));
 
         response.setSpecializations(
@@ -174,7 +180,14 @@ public class ProfileImplementation implements ProfileService {
         );
         response.setCategory(profile.getCategory().getType());
         response.setImage(profile.getCategory().getImage());
+
         return response;
+    }
+
+    private void addPhoneInformation(Profile profile, ProfileResponse response) {
+        PhoneInformation phoneInformation = phoneInformationRepository.findByUser_Id(profile.getId())
+                .orElse(new PhoneInformation());
+        response.setPhoneInfo(AccountMapper.INSTANCE.phoneInformation(phoneInformation));
     }
 
     @Override
@@ -190,6 +203,7 @@ public class ProfileImplementation implements ProfileService {
             more.setTotalServiceTrips(tripRepository.findByAccount(String.valueOf(user.getId())).size());
         }
         more.setLastSignedIn(TimeUtil.formatLastSignedIn(user.getLastSignedIn(), user.getTimezone(), false));
+
         return more;
     }
 
@@ -221,37 +235,36 @@ public class ProfileImplementation implements ProfileService {
         updateFirstName(request, profile);
         updatePhoneInformation(request.getPhone(), user);
         updateGender(request, profile);
+
         if(!HelperUtil.isUploadEmpty(request.getUpload())) {
             String url = supabase.upload(request.getUpload(), UserUtil.getBucket(user.getRole()));
             profile.setAvatar(url);
             updateTimeStamps(profile.getUser(), profile);
         }
+
         return profile();
     }
 
     @Override
     public void updatePhoneInformation(RequestPhoneInformation request, User user) {
         if(request != null) {
-            phoneInformationRepository.findByUser_Id(user.getId())
-                    .ifPresentOrElse(phone -> {
-                        if(!phone.getPhoneNumber().equalsIgnoreCase(request.getPhoneNumber())) {
-                            phone.setPhoneNumber(request.getPhoneNumber());
-                        }
-                        if(!phone.getCountry().equalsIgnoreCase(request.getCountry())) {
-                            phone.setCountry(request.getCountry());
-                        }
-                        if(!phone.getCountryCode().equalsIgnoreCase(request.getCountryCode())) {
-                            phone.setCountryCode(request.getCountryCode());
-                        }
-                        if(!phone.getIsoCode().equalsIgnoreCase(request.getIsoCode())) {
-                            phone.setIsoCode(request.getIsoCode());
-                        }
-                        phoneInformationRepository.save(phone);
-                    }, () -> {
-                        PhoneInformation phone = AccountMapper.INSTANCE.phoneInformation(request);
-                        phone.setUser(user);
-                        phoneInformationRepository.save(phone);
-                    });
+            phoneInformationRepository.findByUser_Id(user.getId()).ifPresentOrElse(phone -> {
+                if(!phone.getPhoneNumber().equalsIgnoreCase(request.getPhoneNumber())) {
+                    phone.setPhoneNumber(request.getPhoneNumber());
+                }
+                if(!phone.getCountry().equalsIgnoreCase(request.getCountry())) {
+                    phone.setCountry(request.getCountry());
+                }
+                if(!phone.getCountryCode().equalsIgnoreCase(request.getCountryCode())) {
+                    phone.setCountryCode(request.getCountryCode());
+                }
+                if(!phone.getIsoCode().equalsIgnoreCase(request.getIsoCode())) {
+                    phone.setIsoCode(request.getIsoCode());
+                }
+                phoneInformationRepository.save(phone);
+            }, () -> {
+                savePhoneInformation(request, user);
+            });
             user.setUpdatedAt(TimeUtil.now());
             user.setLastUpdatedAt(TimeUtil.now());
             userRepository.save(user);
@@ -262,6 +275,7 @@ public class ProfileImplementation implements ProfileService {
         boolean canUpdateFirstName = request.getFirstName() != null
                 && !request.getFirstName().isEmpty()
                 && !profile.getUser().getFirstName().equalsIgnoreCase(request.getFirstName());
+
         if(canUpdateFirstName) {
             profile.getUser().setFirstName(request.getFirstName());
             updateTimeStamps(profile.getUser(), profile);
@@ -272,6 +286,7 @@ public class ProfileImplementation implements ProfileService {
         boolean canUpdateLastName = request.getLastName() != null
                 && !request.getLastName().isEmpty()
                 && !profile.getUser().getLastName().equalsIgnoreCase(request.getLastName());
+
         if(canUpdateLastName) {
             profile.getUser().setLastName(request.getLastName());
             updateTimeStamps(profile.getUser(), profile);
@@ -279,9 +294,7 @@ public class ProfileImplementation implements ProfileService {
     }
 
     private void updateGender(UpdateProfileRequest request, Profile profile) {
-        boolean canUpdateGender = request.getGender() != null
-                && profile.getGender() != request.getGender();
-        if(canUpdateGender) {
+        if(request.getGender() != null && profile.getGender() != request.getGender()) {
             profile.setGender(request.getGender());
             profile.setUpdatedAt(TimeUtil.now());
             profileRepository.save(profile);

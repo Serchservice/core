@@ -11,7 +11,7 @@ public interface ChattingService {
      * Sends a chat message to the receiver and also return the update to the sender
      *
      * @param emailAddress The email address attached to the session
-     * @param request The {@link SendMessageRequest} request data
+     * @param request The {@link SendMessageRequest} request response
      */
     void send(SendMessageRequest request, String emailAddress);
 
@@ -35,7 +35,7 @@ public interface ChattingService {
      * Sends an update on whether the user is typing or not typing a message
      *
      * @param emailAddress The email address attached to the session
-     * @param request The {@link MessageTypingRequest} request data
+     * @param request The {@link MessageTypingRequest} request response
      */
     void notifyTyping(MessageTypingRequest request, String emailAddress);
 
@@ -43,7 +43,7 @@ public interface ChattingService {
      * Update a particular message in the chat room. Can be to delete, mark as read or delivered
      *
      * @param emailAddress The email address attached to the session
-     * @param request The {@link UpdateMessageRequest} request data
+     * @param request The {@link UpdateMessageRequest} request response
      */
     void update(UpdateMessageRequest request, String emailAddress);
 
@@ -51,7 +51,7 @@ public interface ChattingService {
      * Update a particular message in the chat room. Can be to delete, mark as read or delivered
      *
      * @param emailAddress The email address attached to the session
-     * @param request The {@link UpdateMessageRequest} request data
+     * @param request The {@link UpdateMessageRequest} request response
      */
     void updateAll(UpdateMessageRequest request, String emailAddress);
 

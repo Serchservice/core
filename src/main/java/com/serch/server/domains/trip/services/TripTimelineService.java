@@ -7,7 +7,7 @@ import com.serch.server.models.trip.TripShare;
 /**
  * TripTimelineService interface defines the operations related to managing
  * and processing trip timelines. This includes creating timeline entries for
- * trips, generating responses based on timeline data, and retrieving timelines
+ * trips, generating responses based on timeline response, and retrieving timelines
  * for specific trips.
  */
 public interface TripTimelineService {

@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
  * <ul>
  *     <li>{@link ProductType#ACCOUNT} - Represents an account-related product</li>
  *     <li>{@link ProductType#CALL} - Represents a product related to calls</li>
- *     <li>{@link ProductType#CORE} - Represents a core product</li>
+ *     <li>{@link ProductType#CORE} - Represents a services product</li>
  *     <li>{@link ProductType#GENERAL} - Represents a general product</li>
  * </ul>
  * This enum is annotated with Lombok's {@link Getter} and {@link RequiredArgsConstructor}

@@ -5,7 +5,7 @@ import com.serch.server.models.trip.Trip;
 import com.serch.server.models.trip.TripAuthentication;
 import com.serch.server.models.trip.TripShare;
 import com.serch.server.repositories.trip.TripAuthenticationRepository;
-import com.serch.server.core.code.TokenService;
+import com.serch.server.core.token.TokenService;
 import com.serch.server.domains.trip.requests.TripAuthRequest;
 import com.serch.server.domains.trip.services.TripAuthenticationService;
 import com.serch.server.utils.DatabaseUtil;

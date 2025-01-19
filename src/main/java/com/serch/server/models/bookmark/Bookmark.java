@@ -1,12 +1,11 @@
 package com.serch.server.models.bookmark;
 
+import com.serch.server.annotations.CoreID;
 import com.serch.server.bases.BaseDateTime;
-import com.serch.server.generators.BookmarkID;
 import com.serch.server.models.account.Profile;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.GenericGenerator;
 
 /**
  * The Bookmark class represents a bookmark entity in the system.
@@ -17,13 +16,6 @@ import org.hibernate.annotations.GenericGenerator;
  *     <li>{@link Profile} - The user associated with the bookmark.</li>
  *     <li>{@link Profile} - The provider associated with the bookmark.</li>
  * </ul>
- * Annotations:
- * <ul>
- *     <li>{@link Id}</li>
- *     <li>{@link Column}</li>
- *     <li>{@link ManyToOne}</li>
- *     <li>{@link JoinColumn}</li>
- * </ul>
  * @see BaseDateTime
  */
 @Getter
@@ -32,8 +24,8 @@ import org.hibernate.annotations.GenericGenerator;
 @Table(schema = "platform", name = "bookmarks")
 public class Bookmark extends BaseDateTime {
     @Id
+    @CoreID(name = "bookmark_generator", prefix = "SBKM")
     @Column(nullable = false, columnDefinition = "TEXT")
-    @GenericGenerator(name = "bookmark_seq", type = BookmarkID.class)
     @GeneratedValue(generator = "bookmark_seq")
     private String bookmarkId;
 

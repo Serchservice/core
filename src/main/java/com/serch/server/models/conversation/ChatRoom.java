@@ -1,14 +1,13 @@
 package com.serch.server.models.conversation;
 
+import com.serch.server.annotations.CoreID;
 import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.chat.MessageState;
-import com.serch.server.generators.chat.ChatRoomID;
 import com.serch.server.models.account.Profile;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.GenericGenerator;
 
 import java.util.List;
 import java.util.UUID;
@@ -32,8 +31,8 @@ import java.util.UUID;
 @Table(schema = "conversation", name = "chat_rooms")
 public class ChatRoom extends BaseDateTime {
     @Id
+    @CoreID(name = "chat_room_generator", prefix = "SCRM")
     @Column(name = "id", nullable = false, columnDefinition = "TEXT", updatable = false, unique = true)
-    @GenericGenerator(name = "room_id_gen", type = ChatRoomID.class)
     @GeneratedValue(generator = "room_id_gen")
     private String id;
 

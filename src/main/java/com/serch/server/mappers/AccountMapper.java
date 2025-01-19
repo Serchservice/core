@@ -1,11 +1,11 @@
 package com.serch.server.mappers;
 
-import com.serch.server.models.account.*;
-import com.serch.server.models.auth.incomplete.IncompletePhoneInformation;
-import com.serch.server.models.auth.incomplete.IncompleteProfile;
 import com.serch.server.domains.account.responses.*;
 import com.serch.server.domains.auth.requests.RequestPhoneInformation;
 import com.serch.server.domains.auth.requests.RequestProfile;
+import com.serch.server.models.account.*;
+import com.serch.server.models.auth.incomplete.IncompletePhoneInformation;
+import com.serch.server.models.auth.incomplete.IncompleteProfile;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
@@ -53,4 +53,7 @@ public interface AccountMapper {
     BusinessInformationData business(BusinessProfile profile);
 
     AccountSettingResponse response(AccountSetting setting);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updateAccountSetting(AccountSettingResponse response, @MappingTarget AccountSetting setting);
 }

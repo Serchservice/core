@@ -38,7 +38,7 @@ public class TripShare extends BaseModel {
     @Enumerated(value = EnumType.STRING)
     private TripStatus status;
 
-    @OneToMany(mappedBy = "sharing", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "sharing", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<TripTimeline> timelines;
 
     @OneToOne(mappedBy = "sharing", cascade = CascadeType.ALL)

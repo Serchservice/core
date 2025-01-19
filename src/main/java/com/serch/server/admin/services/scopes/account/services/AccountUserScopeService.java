@@ -69,10 +69,10 @@ public interface AccountUserScopeService {
     ApiResponse<AccountUserScopeCertificateResponse> certificate(UUID id);
 
     /**
-     * Fetches analysis data for a user based on ID.
+     * Fetches analysis response for a user based on ID.
      *
      * @param id   the unique identifier of the user
-     * @return {@link ApiResponse} containing {@link AnalysisResponse} with analysis data
+     * @return {@link ApiResponse} containing {@link AnalysisResponse} with analysis response
      */
     ApiResponse<AnalysisResponse> analysis(UUID id);
 
@@ -237,23 +237,23 @@ public interface AccountUserScopeService {
     ApiResponse<List<AccountUserScopeSharedAccountResponse>> sharedAccounts(String id, Integer page, Integer size);
 
     /**
-     * Fetches authentication chart data for a particular year
+     * Fetches authentication chart response for a particular year
      * for the specified user ID. This method provides insights
      * into the authentication patterns of the user over the
      * given year, such as successful logins, failed attempts, etc.
      *
      * @param id The unique identifier of the user in {@link UUID} format.
      *           This ID must correspond to an existing user in the system.
-     * @param year The year for which the authentication data is requested.
+     * @param year The year for which the authentication response is requested.
      *             This should be a valid year (e.g., 2023).
      * @return {@link ApiResponse} containing a list of {@link ChartMetric}
-     *         that represents the authentication data for the specified year.
+     *         that represents the authentication response for the specified year.
      *         If the year is invalid or the user ID does not exist, an error message is returned.
      */
     ApiResponse<List<ChartMetric>> fetchAuthChart(UUID id, Integer year);
 
     /**
-     * Fetches account status chart data for a particular year
+     * Fetches account status chart response for a particular year
      * related to the specified user ID. This method offers insights
      * into the status changes of the user account over the given year,
      * such as account activation, deactivation, or any other relevant
@@ -261,21 +261,21 @@ public interface AccountUserScopeService {
      *
      * @param id The unique identifier of the user in {@link UUID} format.
      *           This ID must correspond to an existing user in the system.
-     * @param year The year for which the account status data is requested.
+     * @param year The year for which the account status response is requested.
      *             This should be a valid year (e.g., 2023).
      * @return {@link ApiResponse} containing a list of {@link ChartMetric}
-     *         that represents the account status data for the specified year.
+     *         that represents the account status response for the specified year.
      *         If the year is invalid or the admin ID does not exist, an error message is returned.
      */
     ApiResponse<List<ChartMetric>> fetchAccountStatusChart(UUID id, Integer year);
 
     /**
-     * Fetches activity heatmap data for a particular year
+     * Fetches activity heatmap response for a particular year
      * related to the specified user ID. This method offers insights
      * into the activities of the user over series of Serchservice features.
      *
      * @param id The unique identifier of the user.
-     * @param year The year for which the account status data is requested.
+     * @param year The year for which the account status response is requested.
      *             This should be a valid year (e.g., 2023).
      * @return {@link ApiResponse} containing a list of {@link AccountUserScopeActivityResponse}.
      *         If the year is invalid or the admin ID does not exist, an error message is returned.

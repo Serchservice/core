@@ -33,6 +33,6 @@ class ScheduleControllerTest {
 //                .andExpect(MockMvcResultMatchers.content().contentType("application/json"))
 //                .andExpect(MockMvcResultMatchers.content()
 //                        .string(
-//                                "{\"status\":\"BAD_REQUEST\",\"code\":400,\"message\":\"Not all who wander are lost\",\"data\":null}"));
+//                                "{\"status\":\"BAD_REQUEST\",\"code\":400,\"message\":\"Not all who wander are lost\",\"response\":null}"));
 //    }
 }

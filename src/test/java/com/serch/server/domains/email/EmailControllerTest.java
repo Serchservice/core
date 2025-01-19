@@ -54,6 +54,6 @@
 //                .andExpect(MockMvcResultMatchers.status().isOk())
 //                .andExpect(MockMvcResultMatchers.content().contentType("application/json"))
 //                .andExpect(MockMvcResultMatchers.content()
-//                        .string("{\"status\":\"OK\",\"code\":200,\"message\":\"Successful\",\"data\":{\"id\":\"42\"}}"));
+//                        .string("{\"status\":\"OK\",\"code\":200,\"message\":\"Successful\",\"response\":{\"id\":\"42\"}}"));
 //    }
 //}

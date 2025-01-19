@@ -9,33 +9,33 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Service interface for fetching analysis data for platform accounts within a specified scope.
- * Provides methods to retrieve detailed analysis data based on user roles and, optionally, a specified year.
+ * Service interface for fetching analysis response for platform accounts within a specified scope.
+ * Provides methods to retrieve detailed analysis response based on user roles and, optionally, a specified year.
  * This interface supports fetching metrics related to demographics, business categories,
- * profile categories, and other analysis data relevant to platform accounts.
+ * profile categories, and other analysis response relevant to platform accounts.
  */
 public interface AccountScopeMoreAnalysisService {
 
     /**
-     * Fetches analysis data for a specified role.
+     * Fetches analysis response for a specified role.
      *
-     * @param role The {@link Role} for which analysis data is to be fetched.
-     *             This parameter determines the user category or account type whose analysis data
+     * @param role The {@link Role} for which analysis response is to be fetched.
+     *             This parameter determines the user category or account type whose analysis response
      *             is required, such as ADMIN, USER, or BUSINESS roles.
      * @return An {@link ApiResponse} containing a {@link AccountScopeMoreAnalysisResponse} object
-     *         with aggregated analysis data relevant to the specified role.
+     *         with aggregated analysis response relevant to the specified role.
      */
     ApiResponse<AccountScopeMoreAnalysisResponse> fetch(Role role);
 
     /**
-     * Fetches analysis data for a specified role and year.
+     * Fetches analysis response for a specified role and year.
      *
-     * @param role The {@link Role} for which analysis data is to be fetched.
+     * @param role The {@link Role} for which analysis response is to be fetched.
      *             The role determines the user category or account type to be analyzed.
-     * @param year The {@link Integer} representing the year for which the analysis data is to be fetched.
-     *             This parameter restricts the data to the specified year, allowing for time-based comparisons.
+     * @param year The {@link Integer} representing the year for which the analysis response is to be fetched.
+     *             This parameter restricts the response to the specified year, allowing for time-based comparisons.
      * @return An {@link ApiResponse} containing a list of {@link AccountScopeMoreAnalysisResponse}
-     *         objects, with each entry representing the analysis data for the specified role within the year.
+     *         objects, with each entry representing the analysis response for the specified role within the year.
      */
     ApiResponse<List<AccountScopeMoreAnalysisResponse>> fetch(Role role, Integer year);
 
@@ -55,7 +55,7 @@ public interface AccountScopeMoreAnalysisService {
      * @param id    A {@link String} identifier for the metric, typically representing a specific category.
      * @param info  A {@link String} providing additional details or context about the metric.
      * @return A {@link ChartMetric} object populated with the provided count, id, and info, representing
-     *         a single data point on an analysis chart.
+     *         a single response point on an analysis chart.
      */
     ChartMetric getMetric(Long count, String id, String info);
 

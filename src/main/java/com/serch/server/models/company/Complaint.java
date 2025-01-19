@@ -1,17 +1,16 @@
 package com.serch.server.models.company;
 
 import com.serch.server.admin.models.Admin;
+import com.serch.server.annotations.CoreID;
 import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.company.IssueStatus;
-import com.serch.server.generators.ComplaintID;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.GenericGenerator;
 
 /**
  * This class is the record for any complaints about Serch platform or website, even product.
@@ -24,8 +23,8 @@ import org.hibernate.annotations.GenericGenerator;
 @Table(schema = "company", name = "complaints")
 public class Complaint extends BaseDateTime {
     @Id
+    @CoreID(name = "complaint_generator", prefix = "SCIM", replaceSymbols = true, end = 6)
     @Column(nullable = false, columnDefinition = "TEXT")
-    @GenericGenerator(name = "complaint_seq", type = ComplaintID.class)
     @GeneratedValue(generator = "complaint_seq")
     private String id;
 

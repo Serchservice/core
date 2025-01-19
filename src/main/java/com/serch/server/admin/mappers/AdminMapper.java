@@ -1,18 +1,21 @@
 package com.serch.server.admin.mappers;
 
 import com.serch.server.admin.models.*;
+import com.serch.server.admin.models.permission.GrantedPermissionScope;
+import com.serch.server.admin.models.permission.RequestedPermission;
 import com.serch.server.admin.services.team.responses.AdminActivityResponse;
 import com.serch.server.admin.services.account.responses.AdminProfileResponse;
-import com.serch.server.admin.services.notification.AdminNotificationResponse;
+import com.serch.server.admin.services.notification.responses.AdminNotificationResponse;
 import com.serch.server.admin.services.organization.data.OrganizationDto;
 import com.serch.server.admin.services.organization.data.OrganizationResponse;
 import com.serch.server.admin.services.permission.responses.PermissionRequestResponse;
 import com.serch.server.admin.services.permission.responses.GrantedPermissionScopeResponse;
+import com.serch.server.admin.services.team.responses.CompanyStructure;
 import com.serch.server.models.auth.User;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING)
 public interface AdminMapper {
     AdminMapper instance = Mappers.getMapper(AdminMapper.class);
 
@@ -40,4 +43,12 @@ public interface AdminMapper {
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     Organization partialUpdate(OrganizationDto organizationDto, @MappingTarget Organization organization);
+
+    @Mappings({
+            @Mapping(target = "name", source = "user.fullName"),
+            @Mapping(target = "role", source = "user.role"),
+            @Mapping(target = "image", source = "avatar"),
+            @Mapping(target = "id", source = "user.id"),
+    })
+    CompanyStructure structure(Admin admin);
 }

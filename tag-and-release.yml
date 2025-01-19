@@ -92,7 +92,7 @@ jobs:
 #          aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
 #          aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
 #          application_name: 'Base'
-#          environment_name: 'core'
+#          environment_name: 'services'
 #          version_label: ${{ env.VERSION }}
 #          region: us-east-1
-#          deployment_package: target/core.jar
+#          deployment_package: target/services.jar

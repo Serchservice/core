@@ -1,17 +1,16 @@
 package com.serch.server.models.company;
 
 import com.serch.server.admin.models.Admin;
+import com.serch.server.annotations.CoreID;
 import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.company.IssueStatus;
-import com.serch.server.generators.IssueTicketID;
 import com.serch.server.models.auth.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.GenericGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,8 +35,8 @@ import java.util.List;
 @Table(schema = "company", name = "speak_with_serch")
 public class SpeakWithSerch extends BaseDateTime {
     @Id
+    @CoreID(name = "issue_generator", prefix = "SISS")
     @Column(nullable = false, columnDefinition = "TEXT")
-    @GenericGenerator(name = "issue_seq", type = IssueTicketID.class)
     @GeneratedValue(generator = "issue_seq")
     private String ticket;
 

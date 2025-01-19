@@ -11,7 +11,7 @@ public class SearchShopResponse {
     private Double distance;
 
     @JsonProperty("is_google")
-    private boolean isGoogle = false;
+    private Boolean isGoogle = false;
 
     @JsonProperty("distance_in_km")
     private String distanceInKm;

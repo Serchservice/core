@@ -1,15 +1,14 @@
 package com.serch.server.models.shared;
 
+import com.serch.server.annotations.CoreID;
 import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.shared.UseStatus;
 import com.serch.server.exceptions.others.SharedException;
-import com.serch.server.generators.shared.SharedLinkID;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.trip.TripTimeline;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.validator.constraints.URL;
 
 import java.math.BigDecimal;
@@ -33,7 +32,7 @@ import java.util.List;
 @Table(schema = "sharing", name = "links")
 public class SharedLink extends BaseDateTime {
     @Id
-    @GenericGenerator(name = "shared_link_seq", type = SharedLinkID.class)
+    @CoreID(name = "shared_link_generator", prefix = "SSLINK", toUpperCase = true)
     @GeneratedValue(generator = "shared_link_seq")
     @Column(nullable = false, columnDefinition = "TEXT")
     private String id;

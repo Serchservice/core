@@ -53,10 +53,10 @@ public interface WalletService {
      *<p>
      * This method processes a request to fund the user's wallet, typically by
      * charging a payment method associated with the user. It returns an
-     * ApiResponse that contains the initialization data needed to complete the payment.
+     * ApiResponse that contains the initialization response needed to complete the payment.
      *
      * @param request The fund request containing the amount to be funded and other details.
-     * @return An ApiResponse containing the payment initialization data.
+     * @return An ApiResponse containing the payment initialization response.
      */
     ApiResponse<InitializePaymentData> fund(FundWalletRequest request);
 

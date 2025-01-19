@@ -1,16 +1,15 @@
 package com.serch.server.models.conversation;
 
+import com.serch.server.annotations.CoreID;
 import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.call.CallStatus;
 import com.serch.server.enums.call.CallType;
 import com.serch.server.exceptions.conversation.CallException;
-import com.serch.server.generators.CallID;
 import com.serch.server.models.account.Profile;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.GenericGenerator;
 
 import java.math.BigDecimal;
 
@@ -36,8 +35,8 @@ import java.math.BigDecimal;
 @Table(schema = "conversation", name = "calls")
 public class Call extends BaseDateTime {
     @Id
+    @CoreID(name = "call_generator", prefix = "SCALL")
     @Column(nullable = false, columnDefinition = "TEXT", updatable = false)
-    @GenericGenerator(name = "call_gen", type = CallID.class)
     @GeneratedValue(generator = "call_gen")
     private String channel;
 

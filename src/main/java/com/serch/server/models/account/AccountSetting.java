@@ -17,7 +17,7 @@ import lombok.Setter;
  * </ol>
  *
  * @see com.serch.server.bases.BaseDateTime
- * @see com.serch.server.annotations.SerchEnum
+ * @see SerchEnum
  */
 @Getter
 @Setter

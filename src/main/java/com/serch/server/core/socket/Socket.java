@@ -8,14 +8,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -46,51 +42,36 @@ public class Socket implements SocketService {
                 .forEach((a, b) -> log.info(String.format("%s SESSION ATTRIBUTE::: Key=%s | Value=%s", prefix, a, b)));
     }
 
+    @SuppressWarnings("unchecked")
     private void registerBearerAuthorization(SimpMessageHeaderAccessor access) {
-        try {
-            String HEADER_KEY = "nativeHeaders";
+        Optional.ofNullable(access.getMessageHeaders().get("nativeHeaders"))
+                .filter(Map.class::isInstance)
+                .map(map -> (Map<String, List<Object>>) map)
+                .flatMap(map -> Optional.ofNullable(map.get(ServerHeader.AUTHORIZATION.getValue())))
+                .flatMap(list -> list.stream().findFirst())
+                .map(Object::toString)
+                .filter(bearer -> bearer.startsWith("Bearer "))
+                .map(bearer -> bearer.substring(7))
+                .flatMap(token -> Optional.ofNullable(sessionService.validateSession(token, null, null)))
+                .filter(session -> session.getStatus().is2xxSuccessful())
+                .map(session -> userDetailsService.loadUserByUsername(session.getData()))
+                .ifPresent(userDetails -> {
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities()
+                    );
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    sessionService.updateLastSignedIn();
 
-            if (access.getMessageHeaders().containsKey(HEADER_KEY) && access.getMessageHeaders().get(HEADER_KEY) instanceof Map) {
-                // Safely parse the nativeHeaders map
-                @SuppressWarnings("unchecked")
-                Map<String, List<Object>> nativeHeaders = (Map<String, List<Object>>) access.getMessageHeaders().get(HEADER_KEY);
-
-                // Extract the Authorization header
-                if (nativeHeaders != null && nativeHeaders.containsKey(ServerHeader.AUTHORIZATION.getValue())) {
-                    List<Object> authHeaders = nativeHeaders.get(ServerHeader.AUTHORIZATION.getValue());
-                    if (authHeaders != null && !authHeaders.isEmpty()) {
-                        String bearer = String.valueOf(authHeaders.getFirst());
-
-                        // Validate and process the Bearer token
-                        if (bearer.startsWith("Bearer ")) {
-                            String token = bearer.substring(7);
-
-                            // Validate the session and authenticate the user
-                            var session = sessionService.validateSession(token, null, null);
-                            if (session.getStatus().is2xxSuccessful()) {
-                                UserDetails userDetails = userDetailsService.loadUserByUsername(session.getData());
-                                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                                        userDetails,
-                                        null,
-                                        userDetails.getAuthorities()
-                                );
-                                SecurityContextHolder.getContext().setAuthentication(authentication);
-                                sessionService.updateLastSignedIn();
-
-                                // Manage session attributes
-                                Map<String, Object> attributes = access.getSessionAttributes();
-                                if (attributes != null) {
-                                    access.getSessionAttributes().computeIfAbsent("username", (value) -> userDetails.getUsername());
-                                } else {
-                                    attributes = new HashMap<>();
-                                    attributes.put("username", userDetails.getUsername());
-                                    access.setSessionAttributes(attributes);
-                                }
-                            }
-                        }
+                    Map<String, Object> attributes = access.getSessionAttributes();
+                    if (attributes != null) {
+                        access.getSessionAttributes().computeIfAbsent("username", (value) -> userDetails.getUsername());
+                    } else {
+                        attributes = new HashMap<>();
+                        attributes.put("username", userDetails.getUsername());
+                        access.setSessionAttributes(attributes);
                     }
-                }
-            }
-        } catch (Exception ignored) { }
+                });
     }
 }

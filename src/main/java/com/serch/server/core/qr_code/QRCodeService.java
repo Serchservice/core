@@ -30,7 +30,7 @@ public interface QRCodeService {
     String generateAdminDetails(String secret);
 
     /**
-     * Generates a QR Code image data in PNG format for the user.
+     * Generates a QR Code image response in PNG format for the user.
      * <p>
      * This method creates a QR code using the provided TOTP secret key, user's email address, and role.
      * The QR code can be scanned by an authenticator app for easy MFA setup.

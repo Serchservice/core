@@ -1,7 +1,8 @@
 package com.serch.server.domains.report.service;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.domains.report.AccountReportRequest;
+import com.serch.server.domains.report.requests.AccountReportRequest;
+import com.serch.server.domains.report.service.implementations.AccountReportImplementation;
 
 /**
  * This handles everything that has to do with reporting of a user, provider or shop.

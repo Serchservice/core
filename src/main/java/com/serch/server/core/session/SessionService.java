@@ -48,7 +48,7 @@ public interface SessionService {
     /**
      * Generates a new session based on the provided request.
      * <p>
-     * This method creates a new user session by processing the session request data.
+     * This method creates a new user session by processing the session request response.
      * It returns an API response containing the authentication details, such as access tokens
      * and user information, allowing the user to access protected resources.
      * </p>

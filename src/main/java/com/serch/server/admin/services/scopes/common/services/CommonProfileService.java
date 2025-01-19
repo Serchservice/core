@@ -15,7 +15,7 @@ public interface CommonProfileService {
      * Retrieves a common profile based on a transaction ID.
      *
      * @param id The transaction ID associated with the profile.
-     * @return A {@link CommonProfileResponse} containing the profile data.
+     * @return A {@link CommonProfileResponse} containing the profile response.
      */
     CommonProfileResponse fromTransaction(String id);
 
@@ -23,7 +23,7 @@ public interface CommonProfileService {
      * Retrieves a common profile based on a UUID.
      *
      * @param id The UUID associated with the profile.
-     * @return A {@link CommonProfileResponse} containing the profile data.
+     * @return A {@link CommonProfileResponse} containing the profile response.
      */
     CommonProfileResponse fromId(UUID id);
 
@@ -31,7 +31,7 @@ public interface CommonProfileService {
      * Retrieves a common profile based on user information.
      *
      * @param user The {@link User} object associated with the profile.
-     * @return A {@link CommonProfileResponse} containing the profile data.
+     * @return A {@link CommonProfileResponse} containing the profile response.
      */
     CommonProfileResponse fromUser(User user);
 
@@ -39,7 +39,7 @@ public interface CommonProfileService {
      * Retrieves a common profile based on a string representation of an ID.
      *
      * @param id The string representation of the ID associated with the profile.
-     * @return A {@link CommonProfileResponse} containing the profile data.
+     * @return A {@link CommonProfileResponse} containing the profile response.
      */
     CommonProfileResponse fromId(String id);
 }

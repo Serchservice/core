@@ -2,7 +2,7 @@ package com.serch.server.admin.services.projections;
 
 /**
  * Represents a projection for metrics in the system.
- * This interface defines the structure for metric data that includes a header
+ * This interface defines the structure for metric response that includes a header
  * and a count, allowing for the retrieval of summarized information related
  * to specific metrics.
  */

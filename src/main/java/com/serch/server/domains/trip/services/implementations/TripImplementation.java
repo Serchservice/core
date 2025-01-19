@@ -1,9 +1,9 @@
 package com.serch.server.domains.trip.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.core.notification.core.NotificationService;
+import com.serch.server.core.notification.services.NotificationService;
 import com.serch.server.core.payment.responses.InitializePaymentData;
-import com.serch.server.core.storage.core.StorageService;
+import com.serch.server.core.storage.services.StorageService;
 import com.serch.server.enums.account.ProviderStatus;
 import com.serch.server.exceptions.others.TripException;
 import com.serch.server.mappers.TripMapper;

@@ -38,11 +38,11 @@ public interface ChatService {
     ApiResponse<List<ChatGroupMessageResponse>> messages(String roomId, Integer page, Integer size);
 
     /**
-     * Fetch the room data of a chat
+     * Fetch the room response of a chat
      *
-     * @param room The {@link ChatRoom} data
+     * @param room The {@link ChatRoom} response
      * @param user The user id who is attached to the room
-     * @return {@link ChatRoomResponse} data
+     * @return {@link ChatRoomResponse} response
      */
     ChatRoomResponse getChatRoomResponse(ChatRoom room, UUID user);
 

@@ -2,11 +2,10 @@ package com.serch.server.models.trip;
 
 import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.transaction.TransactionStatus;
-import com.serch.server.generators.transaction.TransactionID;
+import com.serch.server.annotations.TransactionID;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.GenericGenerator;
 
 import java.math.BigDecimal;
 
@@ -16,8 +15,8 @@ import java.math.BigDecimal;
 @Table(schema = "trip", name = "payments")
 public class TripPayment extends BaseDateTime {
     @Id
+    @TransactionID(name = "trip_payment_generator")
     @Column(nullable = false, columnDefinition = "TEXT", updatable = false)
-    @GenericGenerator(name = "transaction_gen", type = TransactionID.class)
     @GeneratedValue(generator = "transaction_gen")
     private String id;
 

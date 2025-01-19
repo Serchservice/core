@@ -9,7 +9,7 @@ import java.util.List;
 
 /**
  * Service interface for managing requestSharing-related features on the Serch platform.
- * Provides methods for retrieving overviews, analyzing chart data, and fetching lists of shared trips,
+ * Provides methods for retrieving overviews, analyzing chart response, and fetching lists of shared trips,
  * both online and offline, associated with requestSharing activities.
  */
 public interface RequestSharingScopeService {
@@ -20,31 +20,31 @@ public interface RequestSharingScopeService {
      * such as the number of shared requests, user engagement, and performance indicators.
      *
      * @return an {@link ApiResponse} containing a {@link RequestSharingScopeOverviewResponse}
-     *         with aggregated data and insights related to the requestSharing feature.
+     *         with aggregated response and insights related to the requestSharing feature.
      */
     ApiResponse<RequestSharingScopeOverviewResponse> overview();
 
     /**
-     * Retrieves chart data for online requestShared trips on the Serch platform for a specified year.
+     * Retrieves chart response for online requestShared trips on the Serch platform for a specified year.
      * Provides insights into trends and metrics for online shared requests, such as growth, activity
      * patterns, and other performance indicators over the specified time period.
      *
-     * @param year the year for which to fetch the data, represented as an {@link Integer}.
-     *             If the year is null, data for the current year will be used.
+     * @param year the year for which to fetch the response, represented as an {@link Integer}.
+     *             If the year is null, response for the current year will be used.
      * @return an {@link ApiResponse} containing a list of {@link ChartMetric} objects
-     *         representing the online requestShared trips data, suitable for trend visualization.
+     *         representing the online requestShared trips response, suitable for trend visualization.
      */
     ApiResponse<List<ChartMetric>> fetchOnlineChart(Integer year);
 
     /**
-     * Retrieves chart data for offline requestShared trips on the Serch platform for a specified year.
+     * Retrieves chart response for offline requestShared trips on the Serch platform for a specified year.
      * Provides insights into trends and metrics for offline shared requests, such as growth, activity
      * patterns, and other performance indicators over the specified time period.
      *
-     * @param year the year for which to fetch the data, represented as an {@link Integer}.
-     *             If the year is null, data for the current year will be used.
+     * @param year the year for which to fetch the response, represented as an {@link Integer}.
+     *             If the year is null, response for the current year will be used.
      * @return an {@link ApiResponse} containing a list of {@link ChartMetric} objects
-     *         representing the offline requestShared trips data, suitable for trend visualization.
+     *         representing the offline requestShared trips response, suitable for trend visualization.
      */
     ApiResponse<List<ChartMetric>> fetchOfflineChart(Integer year);
 

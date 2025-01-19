@@ -24,8 +24,8 @@ import com.serch.server.domains.account.services.BusinessService;
 import com.serch.server.domains.account.services.ProfileService;
 import com.serch.server.domains.auth.requests.RequestBusinessProfile;
 import com.serch.server.domains.referral.services.ReferralService;
-import com.serch.server.core.code.TokenService;
-import com.serch.server.core.storage.core.StorageService;
+import com.serch.server.core.token.TokenService;
+import com.serch.server.core.storage.services.StorageService;
 import com.serch.server.domains.transaction.services.WalletService;
 import com.serch.server.utils.DatabaseUtil;
 import com.serch.server.utils.HelperUtil;
@@ -127,9 +127,9 @@ public class BusinessImplementation implements BusinessService {
         response.setLastName(profile.getUser().getLastName());
         response.setDefaultPassword(DatabaseUtil.decodeData(profile.getDefaultPassword()));
         response.setEmailAddress(profile.getUser().getEmailAddress());
-        PhoneInformation phoneInformation = phoneInformationRepository.findByUser_Id(profile.getId())
-                .orElse(new PhoneInformation());
-        response.setPhoneInfo(AccountMapper.INSTANCE.phoneInformation(phoneInformation));
+
+        addPhoneInformation(profile, response);
+
         response.setSpecializations(
                 specialtyRepository.findByProfile_Business_Id(profile.getId()) != null
                         ? specialtyRepository.findByProfile_Business_Id(profile.getId())
@@ -141,6 +141,17 @@ public class BusinessImplementation implements BusinessService {
         response.setCategory(profile.getCategory().getType());
         response.setImage(profile.getCategory().getImage());
 
+        addMoreProfileInformation(profile, response);
+        return new ApiResponse<>(response);
+    }
+
+    private void addPhoneInformation(BusinessProfile profile, BusinessProfileResponse response) {
+        PhoneInformation phoneInformation = phoneInformationRepository.findByUser_Id(profile.getId())
+                .orElse(new PhoneInformation());
+        response.setPhoneInfo(AccountMapper.INSTANCE.phoneInformation(phoneInformation));
+    }
+
+    private void addMoreProfileInformation(BusinessProfile profile, BusinessProfileResponse response) {
         MoreProfileData more = profileService.moreInformation(profile.getUser());
         more.setNumberOfRating(
                 profile.getAssociates() != null
@@ -166,7 +177,6 @@ public class BusinessImplementation implements BusinessService {
                         : 0
         );
         response.setMore(more);
-        return new ApiResponse<>(response);
     }
 
     @Override
@@ -174,6 +184,7 @@ public class BusinessImplementation implements BusinessService {
         User user = userUtil.getUser();
         BusinessProfile profile = businessProfileRepository.findById(user.getId())
                 .orElseThrow(() -> new AccountException("Profile not found"));
+
         if(user.isProfile()) {
             throw new AccountException("Access denied. Cannot perform action");
         } else if(user.getProfileLastUpdatedAt() == null) {
@@ -198,6 +209,7 @@ public class BusinessImplementation implements BusinessService {
         updateBusinessName(request, profile);
         updateBusinessDescription(request, profile);
         updateGender(request, profile);
+
         profileService.updatePhoneInformation(request.getPhone(), user);
         if(!HelperUtil.isUploadEmpty(request.getUpload())) {
             String url = supabase.upload(request.getUpload(), UserUtil.getBucket(user.getRole()));
@@ -216,6 +228,7 @@ public class BusinessImplementation implements BusinessService {
         boolean canUpdateFirstName = request.getFirstName() != null
                 && !request.getFirstName().isEmpty()
                 && !profile.getUser().getFirstName().equalsIgnoreCase(request.getFirstName());
+
         if(canUpdateFirstName) {
             profile.getUser().setFirstName(request.getFirstName());
             updateTimeStamps(profile.getUser(), profile);
@@ -226,6 +239,7 @@ public class BusinessImplementation implements BusinessService {
         boolean canUpdateLastName = request.getLastName() != null
                 && !request.getLastName().isEmpty()
                 && !profile.getUser().getLastName().equalsIgnoreCase(request.getLastName());
+
         if(canUpdateLastName) {
             profile.getUser().setLastName(request.getLastName());
             updateTimeStamps(profile.getUser(), profile);
@@ -233,9 +247,7 @@ public class BusinessImplementation implements BusinessService {
     }
 
     private void updateGender(UpdateBusinessRequest request, BusinessProfile profile) {
-        boolean canUpdateGender = request.getGender() != null
-                && profile.getGender() != request.getGender();
-        if(canUpdateGender) {
+        if(request.getGender() != null && profile.getGender() != request.getGender()) {
             profile.setGender(request.getGender());
             profile.setUpdatedAt(TimeUtil.now());
             businessProfileRepository.save(profile);
@@ -246,6 +258,7 @@ public class BusinessImplementation implements BusinessService {
         boolean canUpdateBusinessName = request.getBusinessName() != null
                 && !request.getBusinessName().isEmpty()
                 && !profile.getBusinessName().equalsIgnoreCase(request.getBusinessName());
+
         if(canUpdateBusinessName) {
             profile.setBusinessName(request.getBusinessName());
             profile.setUpdatedAt(TimeUtil.now());
@@ -257,6 +270,7 @@ public class BusinessImplementation implements BusinessService {
         boolean canUpdateBusinessAddress = request.getBusinessAddress() != null
                 && !request.getBusinessAddress().isEmpty()
                 && !profile.getBusinessAddress().equalsIgnoreCase(request.getBusinessAddress());
+
         if(canUpdateBusinessAddress) {
             profile.setBusinessAddress(request.getBusinessAddress());
             profile.setUpdatedAt(TimeUtil.now());
@@ -268,6 +282,7 @@ public class BusinessImplementation implements BusinessService {
         boolean canUpdateBusinessContact = request.getBusinessContact() != null
                 && !request.getBusinessContact().isEmpty()
                 && !profile.getContact().equalsIgnoreCase(request.getBusinessContact());
+
         if(canUpdateBusinessContact) {
             profile.setContact(request.getBusinessContact());
             profile.setUpdatedAt(TimeUtil.now());
@@ -279,6 +294,7 @@ public class BusinessImplementation implements BusinessService {
         boolean canUpdateBusinessDescription = request.getBusinessDescription() != null
                 && !request.getBusinessDescription().isEmpty()
                 && !profile.getBusinessDescription().equalsIgnoreCase(request.getBusinessDescription());
+
         if(canUpdateBusinessDescription) {
             profile.setBusinessDescription(request.getBusinessDescription());
             profile.setUpdatedAt(TimeUtil.now());

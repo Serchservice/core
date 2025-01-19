@@ -19,6 +19,7 @@ public class TimeUtil {
      */
     public static String formatTimeDifference(long diff) {
         long absDiff = Math.abs(diff);
+
         if (diff < 0) {
             if (absDiff < 60) {
                 return absDiff + " minutes before";
@@ -95,6 +96,7 @@ public class TimeUtil {
     private static String formatDurationFuture(Duration duration) {
         long seconds = duration.toSeconds() % 60;
         long minutes = duration.toMinutes() % 60;
+
         StringBuilder result = new StringBuilder();
         if (minutes > 0) {
             result.append(minutes).append(" ")
@@ -106,6 +108,7 @@ public class TimeUtil {
             result.append(seconds).append(" ")
                     .append(seconds == 1 ? "second" : "seconds");
         }
+
         return result.toString();
     }
 
@@ -125,10 +128,7 @@ public class TimeUtil {
      */
     public static String formatDay(LocalDateTime date, String timezone) {
         if (date != null) {
-            ZonedDateTime currentDateTime = now(zoneId(timezone));
-            ZonedDateTime dateTime = ZonedDateTime.of(date, zoneId(timezone));
-
-            return getDateString(timezone, currentDateTime, dateTime);
+            return getDateString(timezone, now(zoneId(timezone)), ZonedDateTime.of(date, zoneId(timezone)));
         } else {
             return "";
         }
@@ -140,8 +140,7 @@ public class TimeUtil {
         } else if (dateTime.toLocalDate().equals(currentDateTime.minusDays(1).toLocalDate())) {
             return "Yesterday, %s".formatted(formatTime(dateTime, timezone));
         } else {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy");
-            return dateTime.format(formatter);
+            return dateTime.format(DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy"));
         }
     }
 
@@ -169,8 +168,7 @@ public class TimeUtil {
         } else if (date.isAfter(today.minusDays(7))) {
             return date.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.getDefault());
         } else {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE MMMM d, yyyy");
-            return date.format(formatter);
+            return date.format(DateTimeFormatter.ofPattern("EEEE MMMM d, yyyy"));
         }
     }
 

@@ -9,13 +9,13 @@ import com.serch.server.bases.ApiResponse;
  * Service interface for managing team-related operations within the Serch organization.
  * This interface provides methods to retrieve team overviews, company structures,
  * and lists of admins. Implementations of this interface handle the business logic
- * for accessing and manipulating team-related data.
+ * for accessing and manipulating team-related response.
  */
 public interface TeamService {
 
     /**
      * Retrieves an overview of the Serch teams, which includes relevant information
-     * such as team names, members, performance metrics, and any other pertinent data
+     * such as team names, members, performance metrics, and any other pertinent response
      * that provides insights into team operations and structure.
      *
      * @return {@link ApiResponse} containing a {@link TeamOverviewResponse} object
@@ -41,7 +41,7 @@ public interface TeamService {
      * and ensuring appropriate resource allocation.
      *
      * @return {@link ApiResponse} containing an {@link AdminListResponse} object
-     * that holds a list of admins and their associated data.
+     * that holds a list of admins and their associated response.
      */
     ApiResponse<AdminListResponse> admins();
 }

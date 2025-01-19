@@ -5,17 +5,15 @@ import com.serch.server.models.company.Complaint;
 import com.serch.server.models.company.Issue;
 import com.serch.server.models.company.ServiceSuggest;
 import com.serch.server.models.company.SpeakWithSerch;
-import com.serch.server.domains.category.SerchCategoryResponse;
+import com.serch.server.domains.category.response.SerchCategoryResponse;
 import com.serch.server.domains.company.requests.ComplaintRequest;
 import com.serch.server.domains.company.requests.ServiceSuggestRequest;
 import com.serch.server.domains.company.responses.IssueResponse;
 import com.serch.server.domains.company.responses.SpeakWithSerchResponse;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Mappings;
+import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING)
 public interface CompanyMapper {
     CompanyMapper INSTANCE = Mappers.getMapper(CompanyMapper.class);
 

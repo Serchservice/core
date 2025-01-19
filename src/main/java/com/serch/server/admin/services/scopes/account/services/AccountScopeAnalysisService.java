@@ -14,7 +14,7 @@ public interface AccountScopeAnalysisService {
      * @param year     the year for the analysis
      * @param role     the role to filter the analysis by
      * @param forGuest indicates if the analysis is for guest access
-     * @return an {@link ApiResponse} containing a {@link AccountScopeAnalysisResponse} with the account analysis data
+     * @return an {@link ApiResponse} containing a {@link AccountScopeAnalysisResponse} with the account analysis response
      */
     ApiResponse<AccountScopeAnalysisResponse> fetchAccountAnalysis(Integer year, Role role, Boolean forGuest);
 

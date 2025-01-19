@@ -23,6 +23,7 @@ public class ComplaintImplementation implements ComplaintService {
     public ApiResponse<String> complain(ComplaintRequest request) {
         Complaint complaint = CompanyMapper.INSTANCE.complaint(request);
         complaintRepository.save(complaint);
+
         return new ApiResponse<>("Complaint received", HttpStatus.CREATED);
     }
 

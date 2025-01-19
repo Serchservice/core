@@ -9,7 +9,7 @@ import java.util.List;
 
 /**
  * Service interface for managing shop-related features on the Serch platform.
- * Provides methods to retrieve overviews, chart data, and shop details, as well as search for individual shops by ID.
+ * Provides methods to retrieve overviews, chart response, and shop details, as well as search for individual shops by ID.
  */
 public interface ShopScopeService {
 
@@ -19,19 +19,19 @@ public interface ShopScopeService {
      * activity levels, and other key performance indicators.
      *
      * @return an {@link ApiResponse} containing a {@link ShopScopeOverviewResponse}
-     *         with aggregated data and insights related to shops on the platform.
+     *         with aggregated response and insights related to shops on the platform.
      */
     ApiResponse<ShopScopeOverviewResponse> overview();
 
     /**
-     * Retrieves chart data for shops on the Serch platform for a specified year.
+     * Retrieves chart response for shops on the Serch platform for a specified year.
      * Provides insights into trends and metrics for shops, such as sales growth, user engagement,
      * and other performance indicators over the specified time period.
      *
-     * @param year the year for which to fetch the data, represented as an {@link Integer}.
-     *             If the year is null, data for the current year will be used.
+     * @param year the year for which to fetch the response, represented as an {@link Integer}.
+     *             If the year is null, response for the current year will be used.
      * @return an {@link ApiResponse} containing a list of {@link ChartMetric} objects
-     *         representing the shop-related data, suitable for trend visualization.
+     *         representing the shop-related response, suitable for trend visualization.
      */
     ApiResponse<List<ChartMetric>> chart(Integer year);
 

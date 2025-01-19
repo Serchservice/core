@@ -37,16 +37,16 @@ public interface CallService {
     ApiResponse<String> auth(String channel);
 
     /**
-     * Updates the call with the given data request and sends the update to the user {@link ActiveCallResponse}
+     * Updates the call with the given response request and sends the update to the user {@link ActiveCallResponse}
      *
-     * @param request The call data {@link UpdateCallRequest}
+     * @param request The call response {@link UpdateCallRequest}
      */
     ApiResponse<ActiveCallResponse> update(UpdateCallRequest request);
 
     /**
      * Checks the call session and sends the update to the user {@link ActiveCallResponse} or throw an exception
      *
-     * @param request The call data {@link UpdateCallRequest}
+     * @param request The call response {@link UpdateCallRequest}
      */
     ApiResponse<ActiveCallResponse> checkSession(UpdateCallRequest request);
 

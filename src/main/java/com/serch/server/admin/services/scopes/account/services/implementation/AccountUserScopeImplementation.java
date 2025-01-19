@@ -15,7 +15,7 @@ import com.serch.server.admin.services.scopes.common.services.CommonAccountAnaly
 import com.serch.server.admin.services.scopes.common.services.CommonAuthService;
 import com.serch.server.admin.services.scopes.common.services.CommonProfileService;
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.core.storage.core.StorageService;
+import com.serch.server.core.storage.services.StorageService;
 import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.call.CallType;
 import com.serch.server.enums.shop.Weekday;

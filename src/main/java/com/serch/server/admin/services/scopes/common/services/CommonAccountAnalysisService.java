@@ -18,7 +18,7 @@ public interface CommonAccountAnalysisService {
      * This method provides metrics that show the account's activity level, such as
      * login frequency, profile updates, and status changes.
      *
-     * @param user The {@link User} whose account data is being requested.
+     * @param user The {@link User} whose account response is being requested.
      * @param year The year for which the analysis is requested, represented as an {@link Integer}.
      *             If null, the analysis defaults to the current year.
      * @return a list of {@link ChartMetric} objects representing the user's account status metrics for the specified year.
@@ -28,7 +28,7 @@ public interface CommonAccountAnalysisService {
     /**
      * Retrieves the list of years the user has been active on the platform.
      * This can be used to determine the duration of the user's participation and
-     * fetch data relevant to each active year.
+     * fetch response relevant to each active year.
      *
      * @param user The {@link User} whose active years are being requested.
      * @return a list of {@link Integer} values representing the years the user has been active on the platform.
@@ -38,7 +38,7 @@ public interface CommonAccountAnalysisService {
     /**
      * Retrieves the list of years the user has been active on the platform.
      * This can be used to determine the duration of the user's participation and
-     * fetch data relevant to each active year.
+     * fetch response relevant to each active year.
      *
      * @param user The {@link Guest} whose active years are being requested.
      * @return a list of {@link Integer} values representing the years the user has been active on the platform.
@@ -50,7 +50,7 @@ public interface CommonAccountAnalysisService {
      * This includes tracking the user's payments, credits, and other wallet-related activities,
      * providing insights into financial engagement on the platform.
      *
-     * @param user The {@link User} whose wallet data is being requested.
+     * @param user The {@link User} whose wallet response is being requested.
      * @param year The year for which the wallet analysis is requested, represented as an {@link Integer}.
      *             If null, the analysis defaults to the current year.
      * @return a list of {@link ChartMetric} objects representing the user's wallet transaction metrics for the specified year.
@@ -61,7 +61,7 @@ public interface CommonAccountAnalysisService {
      * Analyzes the user's transactions to evaluate performance across various transaction types and statuses.
      * The analysis provides insights into transaction volumes, success rates, and types (e.g., payment, refund).
      *
-     * @param user The {@link User} whose transaction data is being requested.
+     * @param user The {@link User} whose transaction response is being requested.
      * @param year The year for which the transaction analysis is requested, represented as an {@link Integer}.
      *             If null, the analysis defaults to the current year.
      * @return a list of {@link ChartMetric} objects representing the user's transaction metrics for the specified year.
@@ -74,7 +74,7 @@ public interface CommonAccountAnalysisService {
      * Analyzes the user's platform activity, such as product usage, scheduling, trips, and communication.
      * This metric aggregation helps to understand user engagement trends with various platform features.
      *
-     * @param user The {@link User} whose activity data is being requested.
+     * @param user The {@link User} whose activity response is being requested.
      * @param year The year for which the activity analysis is requested, represented as an {@link Integer}.
      *             If null, the analysis defaults to the current year.
      * @return a list of {@link ChartMetric} objects representing the user's activity metrics for the specified year.
@@ -87,10 +87,10 @@ public interface CommonAccountAnalysisService {
     List<ChartMetric> activity(User user, Integer year);
 
     /**
-     * Analyzes user authentication data to observe login methods, device usage, and multi-factor authentication (MFA).
+     * Analyzes user authentication response to observe login methods, device usage, and multi-factor authentication (MFA).
      * This analysis provides metrics related to user security and authentication patterns on the platform.
      *
-     * @param user The {@link User} whose authentication data is being requested.
+     * @param user The {@link User} whose authentication response is being requested.
      * @param year The year for which the authentication analysis is requested, represented as an {@link Integer}.
      *             If null, the analysis defaults to the current year.
      * @return a list of {@link ChartMetric} objects representing the user's authentication metrics for the specified year.
@@ -122,7 +122,7 @@ public interface CommonAccountAnalysisService {
      * This analysis helps track the expansion or contraction of the user's network, business affiliations,
      * or role-based relationships on the platform.
      *
-     * @param user The {@link User} whose associate growth data is being requested.
+     * @param user The {@link User} whose associate growth response is being requested.
      * @param year The year for which the associate analysis is requested, represented as an {@link Integer}.
      *             If null, the analysis defaults to the current year.
      * @return a list of {@link ChartMetric} objects representing the user's associate-related metrics for the specified year.

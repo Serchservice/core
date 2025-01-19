@@ -1,8 +1,8 @@
 package com.serch.server.domains.bookmark.services;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.domains.bookmark.AddBookmarkRequest;
-import com.serch.server.domains.bookmark.BookmarkResponse;
+import com.serch.server.domains.bookmark.request.AddBookmarkRequest;
+import com.serch.server.domains.bookmark.response.BookmarkResponse;
 
 import java.util.List;
 

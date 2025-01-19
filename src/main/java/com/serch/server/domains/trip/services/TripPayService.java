@@ -31,7 +31,7 @@ public interface TripPayService {
     /**
      * Initializes payment for special trip categories, such as shopping trips.
      * <p>
-     * This method prepares the payment initialization data required for web-based
+     * This method prepares the payment initialization response required for web-based
      * payment processing.
      * </p>
      *

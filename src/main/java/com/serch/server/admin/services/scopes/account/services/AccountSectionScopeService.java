@@ -7,7 +7,7 @@ import com.serch.server.enums.auth.Role;
 
 /**
  * Service interface for handling platform account section-related operations,
- * such as fetching metrics and paginated account data filtered by criteria.
+ * such as fetching metrics and paginated account response filtered by criteria.
  */
 public interface AccountSectionScopeService {
     /**
@@ -27,7 +27,7 @@ public interface AccountSectionScopeService {
      * @param alphabet An optional alphabet character to filter accounts by the starting letter
      *                 of their names (based on the "lastname" field in the database).
      * @return An {@link ApiResponse} containing a {@link AccountSectionResponse}
-     *         with the requested accounts' data.
+     *         with the requested accounts' response.
      */
     ApiResponse<AccountSectionResponse> fetchAccounts(Role role, Integer page, Integer size, String alphabet);
 
@@ -39,7 +39,7 @@ public interface AccountSectionScopeService {
      * @param size The number of items per page.
      * @param query Query string to search for.
      * @return An {@link ApiResponse} containing a {@link AccountSectionResponse}
-     *         with the requested accounts' data.
+     *         with the requested accounts' response.
      */
     ApiResponse<AccountSectionResponse> search(Role role, Integer page, Integer size, String query);
 }

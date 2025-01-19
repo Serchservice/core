@@ -1,14 +1,13 @@
 package com.serch.server.models.account;
 
+import com.serch.server.annotations.CoreID;
 import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.company.IssueStatus;
-import com.serch.server.generators.account.AccountReportID;
 import com.serch.server.models.auth.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.GenericGenerator;
 
 /**
  * Represents an account report entity, storing information about reported accounts.
@@ -33,7 +32,7 @@ public class AccountReport extends BaseDateTime {
      * The unique ticket identifier for the report.
      */
     @Id
-    @GenericGenerator(name = "report_ticket", type = AccountReportID.class)
+    @CoreID(name = "report_generator", prefix = "SREP")
     @GeneratedValue(generator = "report_ticket")
     @Column(name = "ticket", nullable = false, columnDefinition = "TEXT")
     private String ticket;

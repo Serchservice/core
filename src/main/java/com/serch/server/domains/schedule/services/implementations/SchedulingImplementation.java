@@ -35,6 +35,7 @@ public class SchedulingImplementation implements SchedulingService {
         } else {
             response.setClosedBy("From Serch");
         }
+
         return response;
     }
 

@@ -1,6 +1,7 @@
 package com.serch.server.core.email;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.core.email.implementations.EmailSender;
 import com.serch.server.models.email.SendEmail;
 
 /**
@@ -27,7 +28,7 @@ public interface EmailService {
      * may occur during the sending process.
      * </p>
      *
-     * @param email {@link SendEmail} data payload that contains all necessary
+     * @param email {@link SendEmail} response payload that contains all necessary
      *              information for sending the email, including recipient
      *              address, subject line, and body content.
      *

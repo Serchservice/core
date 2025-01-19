@@ -1,7 +1,7 @@
 package com.serch.server.domains.schedule.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.core.notification.core.NotificationService;
+import com.serch.server.core.notification.services.NotificationService;
 import com.serch.server.enums.schedule.ScheduleStatus;
 import com.serch.server.exceptions.others.ScheduleException;
 import com.serch.server.exceptions.others.SharedException;
@@ -83,15 +83,13 @@ public class ScheduleImplementation implements ScheduleService {
         Profile user = profileRepository.findById(userUtil.getUser().getId())
                 .orElseThrow(() -> new ScheduleException("User not found"));
 
-        List<Schedule> schedules = getSchedules(provider.getId());
         validateTime(request);
 
         // Check if the requested time is already booked
-        if (schedules.stream().anyMatch(schedule -> schedule.getTime().equalsIgnoreCase(request.getTime()))) {
+        if (getSchedules(provider.getId()).stream().anyMatch(schedule -> schedule.getTime().equalsIgnoreCase(request.getTime()))) {
             throw new ScheduleException("Provider is already booked for %s today".formatted(request.getTime()));
         } else {
             Schedule schedule = createNewSchedule(request, provider, user);
-            ScheduleResponse response = schedulingService.response(schedule, false, true);
 
             sendPendingNotification(schedule);
             chattingService.notifyAboutSchedule(provider.getId());
@@ -100,7 +98,7 @@ public class ScheduleImplementation implements ScheduleService {
             return new ApiResponse<>(
                     "Schedule placed for %s. ".formatted(request.getTime()) +
                             "%s will be notified".formatted(schedule.getProvider().getFullName()),
-                    response,
+                    schedulingService.response(schedule, false, true),
                     HttpStatus.CREATED
             );
         }
@@ -117,12 +115,10 @@ public class ScheduleImplementation implements ScheduleService {
     }
 
     private void validateTime(ScheduleRequest request) {
-        LocalDate today = LocalDate.now();
-        LocalDateTime currentTime = LocalDateTime.now();
-        LocalDateTime requestedTime = LocalDateTime.of(today, LocalTime.parse(request.getTime().toUpperCase(), formatter));
+        LocalDateTime requestedTime = LocalDateTime.of(LocalDate.now(), LocalTime.parse(request.getTime().toUpperCase(), formatter));
 
         // Check if the requested time has already passed
-        if (requestedTime.isBefore(currentTime)) {
+        if (requestedTime.isBefore(LocalDateTime.now())) {
             throw new ScheduleException("The requested time %s has already passed.".formatted(request.getTime()));
         }
     }
@@ -323,10 +319,7 @@ public class ScheduleImplementation implements ScheduleService {
     }
 
     private long getDiff(Schedule schedule) {
-        LocalTime currentTime = LocalTime.now();
-        LocalTime scheduleTime = LocalTime.parse(schedule.getTime(), formatter);
-
-        return ChronoUnit.MINUTES.between(currentTime, scheduleTime);
+        return ChronoUnit.MINUTES.between(LocalTime.now(), LocalTime.parse(schedule.getTime(), formatter));
     }
 
     @Override
@@ -343,8 +336,7 @@ public class ScheduleImplementation implements ScheduleService {
                     throw new SharedException("Provider not active");
                 }
 
-                long diff = getDiff(schedule);
-                schedule.setClosedAt(TimeUtil.formatTimeDifference(diff));
+                schedule.setClosedAt(TimeUtil.formatTimeDifference(getDiff(schedule)));
                 schedule.setStatus(ScheduleStatus.ATTENDED);
                 scheduleRepository.save(schedule);
 
@@ -398,12 +390,9 @@ public class ScheduleImplementation implements ScheduleService {
 
     @Override
     public ApiResponse<List<ScheduleTimeResponse>> times(UUID id) {
-        LocalDateTime currentTime = LocalDateTime.now();
-        List<Schedule> schedules = getSchedules(id);
-
         List<ScheduleTimeResponse> list = generateListFromTimes();
-        updateCurrentAndPastHours(currentTime, list);
-        checkUnavailableTimeInSchedules(schedules, list);
+        updateCurrentAndPastHours(LocalDateTime.now(), list);
+        checkUnavailableTimeInSchedules(getSchedules(id), list);
         // Sorting the list based on time (12-hour format, 12:00 to 11:00)
         list.sort((a, b) -> {
             int hourA = Integer.parseInt(a.getTime().split(":")[0]);
@@ -440,11 +429,8 @@ public class ScheduleImplementation implements ScheduleService {
             boolean isPm = i >= 12;
 
             ScheduleTimeResponse response = list.get(hourIndex);
-            if (isPm) {
-                response.setIsPmTaken(true);
-            } else {
-                response.setIsAmTaken(true);
-            }
+            response.setIsPmTaken(isPm);
+            response.setIsAmTaken(!isPm);
         }
     }
 
@@ -455,11 +441,8 @@ public class ScheduleImplementation implements ScheduleService {
             boolean isScheduledPm = scheduleTime.getHour() >= 12;
 
             ScheduleTimeResponse response = list.get(scheduledHour % 12 == 0 ? 0 : scheduledHour % 12);
-            if (isScheduledPm) {
-                response.setIsPmTaken(true);
-            } else {
-                response.setIsAmTaken(true);
-            }
+            response.setIsPmTaken(isScheduledPm);
+            response.setIsAmTaken(!isScheduledPm);
         }
     }
 
@@ -469,10 +452,9 @@ public class ScheduleImplementation implements ScheduleService {
         LocalDate today = LocalDate.now();
         scheduleRepository.findByCreatedAtBetween(ZonedDateTime.of(today.atStartOfDay(), ZoneOffset.UTC), ZonedDateTime.of(today.atTime(23, 59, 59), ZoneOffset.UTC))
                 .forEach(schedule -> {
-                    LocalTime currentTime = LocalTime.now();
                     LocalTime time = LocalTime.parse(schedule.getTime(), DateTimeFormatter.ofPattern("h:mma"));
 
-                    if(time.equals(currentTime)) {
+                    if(time.equals(LocalTime.now())) {
                         notificationService.send(
                                 schedule.getProvider().getId(),
                                 schedulingService.response(schedule, true, true)

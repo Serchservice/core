@@ -1,14 +1,13 @@
 package com.serch.server.models.account;
 
+import com.serch.server.annotations.CoreID;
 import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.company.IssueStatus;
-import com.serch.server.generators.account.AccountDeleteID;
 import com.serch.server.models.auth.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -36,7 +35,7 @@ public class AccountDelete extends BaseDateTime {
      * The unique identifier for the delete request.
      */
     @Id
-    @GenericGenerator(type = AccountDeleteID.class, name = "acct_del_seq")
+    @CoreID(name = "acct_delete_generator", prefix = "SDEL")
     @GeneratedValue(generator = "acct_del_seq")
     @Column(nullable = false, columnDefinition = "TEXT")
     private String id;

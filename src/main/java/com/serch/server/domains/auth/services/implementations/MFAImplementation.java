@@ -3,8 +3,18 @@ package com.serch.server.domains.auth.services.implementations;
 import com.serch.server.admin.enums.ActivityMode;
 import com.serch.server.admin.services.account.services.AdminActivityService;
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.core.token.TokenService;
 import com.serch.server.core.qr_code.QRCodeService;
+import com.serch.server.core.session.SessionService;
 import com.serch.server.core.totp.MFAAuthenticatorService;
+import com.serch.server.domains.auth.requests.RequestDevice;
+import com.serch.server.domains.auth.requests.RequestMFAChallenge;
+import com.serch.server.domains.auth.requests.RequestSession;
+import com.serch.server.domains.auth.responses.AuthResponse;
+import com.serch.server.domains.auth.responses.MFADataResponse;
+import com.serch.server.domains.auth.responses.MFARecoveryCodeResponse;
+import com.serch.server.domains.auth.responses.MFAUsageResponse;
+import com.serch.server.domains.auth.services.MFAService;
 import com.serch.server.enums.auth.AuthMethod;
 import com.serch.server.exceptions.ExceptionCodes;
 import com.serch.server.exceptions.auth.AuthException;
@@ -17,16 +27,6 @@ import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.auth.mfa.MFAChallengeRepository;
 import com.serch.server.repositories.auth.mfa.MFAFactorRepository;
 import com.serch.server.repositories.auth.mfa.MFARecoveryCodeRepository;
-import com.serch.server.domains.auth.requests.RequestDevice;
-import com.serch.server.domains.auth.requests.RequestMFAChallenge;
-import com.serch.server.domains.auth.requests.RequestSession;
-import com.serch.server.domains.auth.responses.AuthResponse;
-import com.serch.server.domains.auth.responses.MFADataResponse;
-import com.serch.server.domains.auth.responses.MFARecoveryCodeResponse;
-import com.serch.server.domains.auth.responses.MFAUsageResponse;
-import com.serch.server.domains.auth.services.MFAService;
-import com.serch.server.core.session.SessionService;
-import com.serch.server.core.code.TokenService;
 import com.serch.server.utils.DatabaseUtil;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
@@ -35,8 +35,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Service implementation for managing Multi-Factor Authentication (MFA) operations.
@@ -80,23 +82,31 @@ public class MFAImplementation implements MFAService {
         if(user.getMfaFactor() != null) {
             String secret = DatabaseUtil.decodeData(user.getMfaFactor().getSecret());
             String qrCode = qrCodeService.generateMFA(secret, user.getEmailAddress(), user.getRole());
-            return new MFADataResponse(secret, String.format("data:image/png;base64,%s", qrCode));
+
+            return new MFADataResponse(secret, String.format("response:image/png;base64,%s", qrCode));
         } else {
             String secret = authenticatorService.getRandomSecretKey();
             String qrCode = qrCodeService.generateMFA(secret, user.getEmailAddress(), user.getRole());
 
-            MFAFactor factor = new MFAFactor();
-            factor.setUser(user);
-            factor.setSecret(DatabaseUtil.encodeData(secret));
-            mFAFactorRepository.save(factor);
-            return new MFADataResponse(secret, String.format("data:image/png;base64,%s", qrCode));
+            createMFAFactor(user, secret);
+
+            return new MFADataResponse(secret, String.format("response:image/png;base64,%s", qrCode));
         }
+    }
+
+    private void createMFAFactor(User user, String secret) {
+        MFAFactor factor = new MFAFactor();
+        factor.setUser(user);
+        factor.setSecret(DatabaseUtil.encodeData(secret));
+
+        mFAFactorRepository.save(factor);
     }
 
     @Override
     public ApiResponse<AuthResponse> validateCode(RequestMFAChallenge request) {
         var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
         if(user.getMfaFactor() == null) {
             throw new AuthException("You have not enabled MFA", ExceptionCodes.ACCESS_DENIED);
         } else {
@@ -124,6 +134,7 @@ public class MFAImplementation implements MFAService {
     private MFAChallenge saveMFAChallenge(RequestMFAChallenge request, MFAFactor factor) {
         MFAChallenge challenge = AuthMapper.INSTANCE.challenge(request.getDevice());
         challenge.setMfaFactor(factor);
+
         return mFAChallengeRepository.save(challenge);
     }
 
@@ -140,38 +151,51 @@ public class MFAImplementation implements MFAService {
     public ApiResponse<AuthResponse> validateRecoveryCode(RequestMFAChallenge request) {
         var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
         if(user.getMfaEnabled()) {
             var factor = user.getMfaFactor();
-            for(var code : factor.getRecoveryCodes()) {
-                if(passwordEncoder.matches(request.getCode(), code.getCode())) {
-                    if(code.getIsUsed()) {
-                        throw new AuthException("Token is already used. Get another");
-                    } else {
-                        code.setIsUsed(true);
-                        code.setUpdatedAt(TimeUtil.now());
-                        mFARecoveryCodeRepository.save(code);
-                        MFAChallenge challenge = saveMFAChallenge(request, factor);
-                        challenge.setVerifiedAt(TimeUtil.now());
-                        mFAChallengeRepository.save(challenge);
+            Optional<MFARecoveryCode> matchingCode = factor.getRecoveryCodes().stream()
+                    .filter(code -> passwordEncoder.matches(request.getCode(), code.getCode()))
+                    .findFirst();
 
-                        if(user.isAdmin()) {
-                            activityService.create(ActivityMode.MFA_LOGIN, null, null, user);
-                        }
-                        return sessionResponse(request, user);
+            if (matchingCode.isPresent()) {
+                MFARecoveryCode code = matchingCode.get();
+                if (code.getIsUsed()) {
+                    throw new AuthException("Token is already used. Get another");
+                } else {
+                    code.setIsUsed(true);
+                    code.setUpdatedAt(TimeUtil.now());
+                    mFARecoveryCodeRepository.save(code);
+                    markVerifiedChallenge(request, factor);
+
+                    if (user.isAdmin()) {
+                        activityService.create(ActivityMode.MFA_LOGIN, null, null, user);
                     }
+
+                    return sessionResponse(request, user);
                 }
+            } else {
+                throw new AuthException("Incorrect two-factor authentication code.", ExceptionCodes.INCORRECT_TOKEN);
             }
         }
+
         throw new AuthException(
                 "Multi-factor authentication is not enabled for user",
                 ExceptionCodes.INCORRECT_TOKEN
         );
     }
 
+    private void markVerifiedChallenge(RequestMFAChallenge request, MFAFactor factor) {
+        MFAChallenge challenge = saveMFAChallenge(request, factor);
+        challenge.setVerifiedAt(TimeUtil.now());
+        mFAChallengeRepository.save(challenge);
+    }
+
     @Override
     public ApiResponse<List<MFARecoveryCodeResponse>> getRecoveryCodes() {
         var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
         if(user.getMfaEnabled()) {
             if(user.getMfaFactor().getRecoveryCodes() == null || user.getMfaFactor().getRecoveryCodes().isEmpty()) {
                 return saveRecoveryCodes(user);
@@ -179,16 +203,11 @@ public class MFAImplementation implements MFAService {
                 mFARecoveryCodeRepository.deleteAll(user.getMfaFactor().getRecoveryCodes());
                 return saveRecoveryCodes(user);
             } else {
-                return new ApiResponse<>(
-                        user.getMfaFactor().getRecoveryCodes()
-                                .stream()
-                                .map(code -> {
-                                    MFARecoveryCodeResponse response = AuthMapper.INSTANCE.response(code);
-                                    response.setCode(DatabaseUtil.decodeData(code.getRecovery()));
-                                    return response;
-                                })
-                                .toList()
-                );
+                return new ApiResponse<>(user.getMfaFactor().getRecoveryCodes().stream().map(code -> {
+                    MFARecoveryCodeResponse response = AuthMapper.INSTANCE.response(code);
+                    response.setCode(DatabaseUtil.decodeData(code.getRecovery()));
+                    return response;
+                }).toList());
             }
         } else {
             throw new AuthException("MFA is not enabled");
@@ -196,17 +215,13 @@ public class MFAImplementation implements MFAService {
     }
 
     private List<String> generateRecoveryCodes() {
-        List<String> referralCodes = new ArrayList<>();
+        Set<String> uniqueCodes = new HashSet<>();
 
-        for (int i = 0; i < 16; i++) {
-            String code;
-            do {
-                code = tokenService.generateCode(6).toUpperCase();
-            } while (referralCodes.contains(code)); // Ensure uniqueness
-
-            referralCodes.add(code);
+        while (uniqueCodes.size() < 16) {
+            uniqueCodes.add(tokenService.generateCode(6).toUpperCase());
         }
-        return referralCodes;
+
+        return uniqueCodes.stream().toList();
     }
 
     /**
@@ -218,6 +233,7 @@ public class MFAImplementation implements MFAService {
     private ApiResponse<List<MFARecoveryCodeResponse>> saveRecoveryCodes(User user) {
         List<String> codes = generateRecoveryCodes();
         codes.forEach(code -> saveRecoveryCode(user, code));
+
         user.setRecoveryCodeEnabled(true);
         user.setUpdatedAt(TimeUtil.now());
 
@@ -252,6 +268,7 @@ public class MFAImplementation implements MFAService {
     public ApiResponse<AuthResponse> disable(RequestDevice device) {
         var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
         if(user.getMfaEnabled()) {
             MFAFactor factor = user.getMfaFactor();
             mFAFactorRepository.delete(factor);

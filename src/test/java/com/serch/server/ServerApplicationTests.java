@@ -26,7 +26,7 @@
 //		"spring.jpa.show-sql=true",
 //		"## ANOTHER SPRING SETTING",
 //		"spring.sql.init.mode=always",
-//		"spring.data.jpa.repositories.enabled=true",
+//		"spring.response.jpa.repositories.enabled=true",
 //		"spring.devtools.add-properties=true",
 //		"### MULTIPART CONFIGURATION",
 //		"spring.servlet.multipart.max-file-size=10MB",

@@ -44,10 +44,10 @@ public interface AdminActivityService {
     /**
      * Creates a new activity log entry associated with a specific admin.
      * This method records an action performed by an admin, capturing the
-     * activity mode, associated data, and the admin's details for auditing purposes.
+     * activity mode, associated response, and the admin's details for auditing purposes.
      *
      * @param mode The {@link ActivityMode} indicating the type of activity being logged.
-     * @param associated A string representing any associated data relevant to the activity.
+     * @param associated A string representing any associated response relevant to the activity.
      * @param account A string representing the account related to the activity.
      * @param admin The {@link Admin} instance representing the admin who performed the activity.
      */
@@ -56,10 +56,10 @@ public interface AdminActivityService {
     /**
      * Creates a new activity log entry associated with a specific user.
      * This method records an action performed by a user, capturing the
-     * activity mode, associated data, and the user's details for auditing purposes.
+     * activity mode, associated response, and the user's details for auditing purposes.
      *
      * @param mode The {@link ActivityMode} indicating the type of activity being logged.
-     * @param associated A string representing any associated data relevant to the activity.
+     * @param associated A string representing any associated response relevant to the activity.
      * @param account A string representing the account related to the activity.
      * @param user The {@link User} instance representing the user who performed the activity.
      */

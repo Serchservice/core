@@ -21,7 +21,7 @@ import com.serch.server.enums.account.AccountStatus;
 import com.serch.server.enums.auth.Role;
 import com.serch.server.exceptions.auth.AuthException;
 import com.serch.server.repositories.auth.UserRepository;
-import com.serch.server.core.storage.core.StorageService;
+import com.serch.server.core.storage.services.StorageService;
 import com.serch.server.core.storage.requests.FileUploadRequest;
 import com.serch.server.domains.auth.services.AccountStatusTrackerService;
 import com.serch.server.utils.HelperUtil;
@@ -103,7 +103,7 @@ public class AdminScopeImplementation implements AdminScopeService {
 
         Admin user = adminRepository.findById(id).orElseThrow(() -> new AuthException("Admin not found"));
         if(HelperUtil.isUploadEmpty(request)) {
-            throw new AdminException("There is no upload data");
+            throw new AdminException("There is no upload response");
         } else {
             String url = supabase.upload(request, "user");
             user.setAvatar(url);

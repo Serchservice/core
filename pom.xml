@@ -5,13 +5,14 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.4.1</version>
+		<version>3.2.8</version>
+<!--		<version>3.4.1</version>-->
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 
 	<groupId>com.serch</groupId>
 	<artifactId>server</artifactId>
-	<version>1.2.8</version>
+	<version>1.2.9</version>
 	<name>server</name>
 	<description>Backend server for Serch platform</description>
 	<url>https://www.serchservice.com</url>
@@ -20,6 +21,7 @@
 		<java.version>21</java.version>
 		<firebase.version>9.2.0</firebase.version>
 		<springdoc.version>2.3.0</springdoc.version>
+<!--		<springdoc.version>2.8.3</springdoc.version> Works with 3.4.1-->
 	</properties>
 
 	<developers>

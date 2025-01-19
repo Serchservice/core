@@ -4,12 +4,10 @@ import com.serch.server.nearby.models.Nearby;
 import com.serch.server.nearby.models.NearbyShop;
 import com.serch.server.nearby.services.auth.requests.NearbyDeviceRequest;
 import com.serch.server.nearby.services.drive.requests.NearbyDriveRequest;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
+import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING)
 public interface NearbyMapper {
     NearbyMapper instance = Mappers.getMapper(NearbyMapper.class);
 

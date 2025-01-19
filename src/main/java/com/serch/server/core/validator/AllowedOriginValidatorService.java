@@ -7,6 +7,19 @@ import java.util.List;
  * Provides methods to retrieve allowed origins and origin patterns.
  */
 public interface AllowedOriginValidatorService {
+    /**
+     * Checks if the current environment is a dev environment.
+     *
+     * @return true or false.
+     */
+    boolean isDevelopment();
+
+    /**
+     * Checks if the current environment is a sandbox environment.
+     *
+     * @return true or false.
+     */
+    boolean isSandbox();
 
     /**
      * Retrieves the list of allowed WebSocket origins.

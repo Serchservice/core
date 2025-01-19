@@ -1,5 +1,6 @@
 package com.serch.server.configurations;
 
+import com.serch.server.core.validator.AllowedOriginValidatorService;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
@@ -9,6 +10,7 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,7 +26,10 @@ import java.util.List;
  * @see org.springframework.context.annotation.Configuration
  */
 @Configuration
+@RequiredArgsConstructor
 public class SwaggerConfiguration {
+    private final AllowedOriginValidatorService service;
+
     @Value("${server.servlet.context-path}")
     private String CONTEXT_PATH;
 
@@ -137,18 +142,23 @@ public class SwaggerConfiguration {
     private List<Server> getServers() {
         List<ApiServer> servers = new ArrayList<>();
 
-        ApiServer server = new ApiServer();
-
-        server.setName("Production Server");
-        server.setUrl("https://api.serchservice.com");
-        servers.add(server);
-
-        server.setName("Sandbox Server");
-        server.setUrl("https://sandbox.serchservice.com");
-        servers.add(server);
+        if(service.isDevelopment()) {
+            servers.add(getServer("Development Server", "http://localhost:8080"));
+        } else {
+            servers.add(getServer("Production Server", "https://api.serchservice.com"));
+            servers.add(getServer("Sandbox Server", "https://sandbox.serchservice.com"));
+        }
 
         return servers.stream()
                 .map(serve -> new Server().description(serve.name).url(String.format("%s%s", serve.url, CONTEXT_PATH)))
                 .toList();
+    }
+
+    private ApiServer getServer(String name, String url) {
+        ApiServer server = new ApiServer();
+        server.setName(name);
+        server.setUrl(url);
+
+        return server;
     }
 }

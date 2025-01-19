@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * Interface defining methods for managing ratings, including rating providers,
  * sharing ratings, rating the application, viewing ratings, and retrieving
- * statistical data about ratings.
+ * statistical response about ratings.
  */
 public interface RatingService {
     /**
@@ -82,17 +82,17 @@ public interface RatingService {
 
     /**
      * Builds a list of rating chart responses for a specific user or entity.
-     * The chart provides visual data points for ratings, typically used
+     * The chart provides visual response points for ratings, typically used
      * for analysis or reporting purposes.
      *
      * @param id The unique identifier of the user or entity for whom the chart
      *           is being generated. This ID should correspond to a valid user or entity.
-     * @return A list of {@link RatingChartResponse} objects representing the rating chart data.
+     * @return A list of {@link RatingChartResponse} objects representing the rating chart response.
      */
     List<RatingChartResponse> buildChart(String id);
 
     /**
-     * Retrieves statistical data about ratings for the current user.
+     * Retrieves statistical response about ratings for the current user.
      *
      * @param id The id of the user to find its rating
      * @return A response containing a list of rating chart responses.

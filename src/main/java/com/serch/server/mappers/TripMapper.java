@@ -7,12 +7,10 @@ import com.serch.server.domains.trip.requests.ShoppingItemRequest;
 import com.serch.server.domains.trip.requests.TripInviteRequest;
 import com.serch.server.domains.trip.requests.TripShareRequest;
 import com.serch.server.domains.trip.responses.*;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Mappings;
+import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING)
 public interface TripMapper {
     TripMapper INSTANCE = Mappers.getMapper(TripMapper.class);
 

@@ -95,27 +95,25 @@ public class SharedImplementation implements SharedService {
             if(trip.getInvited() != null && trip.getInvited().getProvider() != null) {
                 verifyShareEligibility(trip.getInvited().getProvider());
 
-                SharedLink link = new SharedLink();
-                link.setLink(generateSharingLink(profile.getUser().getFirstName(), trip.getInvited().getProvider().getCategory().name()));
-                link.setAmount(trip.getAmount());
-                link.setUser(profile);
-                link.setProvider(trip.getInvited().getProvider());
-                sharedLinkRepository.save(link);
+                saveSharedLInk(profile, trip, trip.getInvited().getProvider(), trip.getInvited().getProvider().getCategory().name());
             } else {
                 throw new TripException("There is no invited provider in this trip");
             }
         } else {
             verifyShareEligibility(trip.getProvider());
-
-            SharedLink link = new SharedLink();
-            link.setLink(generateSharingLink(profile.getUser().getFirstName(), trip.getProvider().getCategory().getType()));
-            link.setAmount(trip.getAmount());
-            link.setUser(profile);
-            link.setProvider(trip.getProvider());
-            sharedLinkRepository.save(link);
+            saveSharedLInk(profile, trip, trip.getProvider(), trip.getProvider().getCategory().getType());
         }
 
         return links(null, null);
+    }
+
+    private void saveSharedLInk(Profile profile, Trip trip, Profile provider, String type) {
+        SharedLink shared = new SharedLink();
+        shared.setLink(generateSharingLink(profile.getUser().getFirstName(), type));
+        shared.setAmount(trip.getAmount());
+        shared.setUser(profile);
+        shared.setProvider(provider);
+        sharedLinkRepository.save(shared);
     }
 
     protected void verifyShareEligibility(Profile profile) {
@@ -232,6 +230,7 @@ public class SharedImplementation implements SharedService {
         data.setRating(ratingRepository.getByRated(status.getTrip().getId()).map(Rating::getRating).orElse(0.0));
         data.setAmount(MoneyUtil.formatToNaira(status.getTrip().getAmount()));
         data.setUser(MoneyUtil.formatToNaira(status.getTrip().getUserShare()));
+
         if(status.getTrip() != null) {
             data.setTrip(status.getTrip().getId());
             data.setRating(ratingRepository.getByRated(status.getTrip().getId()).map(Rating::getRating).orElse(0.0));
@@ -239,6 +238,7 @@ public class SharedImplementation implements SharedService {
             data.setRating(0.0);
         }
         data.setMore(status.getTrip().getStatus().name());
+
         return data;
     }
 

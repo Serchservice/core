@@ -14,7 +14,7 @@ import com.serch.server.repositories.shared.GuestRepository;
 import com.serch.server.repositories.shared.SharedLinkRepository;
 import com.serch.server.repositories.shared.SharedLoginRepository;
 import com.serch.server.domains.auth.services.AuthService;
-import com.serch.server.core.code.TokenService;
+import com.serch.server.core.token.TokenService;
 import com.serch.server.domains.shared.requests.CreateGuestFromUserRequest;
 import com.serch.server.domains.shared.requests.CreateGuestRequest;
 import com.serch.server.domains.shared.requests.VerifyEmailRequest;
@@ -23,7 +23,7 @@ import com.serch.server.domains.shared.responses.SharedLinkData;
 import com.serch.server.domains.shared.services.GuestAuthService;
 import com.serch.server.domains.shared.services.GuestService;
 import com.serch.server.domains.shared.services.SharedService;
-import com.serch.server.core.storage.core.StorageService;
+import com.serch.server.core.storage.services.StorageService;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
@@ -69,6 +69,7 @@ public class GuestAuthImplementation implements GuestAuthService {
     public ApiResponse<SharedLinkData> verifyLink(String link) {
         SharedLink sharedLink = sharedLinkRepository.findByLink(link.trim())
                 .orElseThrow(() -> new SharedException("Link not found"));
+
         return new ApiResponse<>(sharedService.data(sharedLink, sharedService.getCurrentStatus(sharedLink)));
     }
 
@@ -76,6 +77,7 @@ public class GuestAuthImplementation implements GuestAuthService {
     public ApiResponse<String> askToVerifyEmail(VerifyEmailRequest request) {
         Guest guest = guestRepository.findByEmailAddressIgnoreCase(request.getEmailAddress())
                 .orElseThrow(() -> new SharedException("Guest not found"));
+
         if(guest.isEmailConfirmed()) {
             throw new SharedException("Email address is already verified");
         } else {
@@ -85,6 +87,7 @@ public class GuestAuthImplementation implements GuestAuthService {
             guest.setEmailAddress(guest.getEmailAddress());
             guestRepository.save(guest);
             authService.sendEmail(guest.getEmailAddress(), otp);
+
             return new ApiResponse<>("OTP Sent", guest.getFirstName(), HttpStatus.OK);
         }
     }
@@ -105,6 +108,7 @@ public class GuestAuthImplementation implements GuestAuthService {
                 guest.setToken(null);
                 guest.setExpiresAt(null);
                 guestRepository.save(guest);
+
                 return new ApiResponse<>("Email confirmed", HttpStatus.OK);
             } else {
                 throw new SharedException("Incorrect token");
@@ -136,13 +140,13 @@ public class GuestAuthImplementation implements GuestAuthService {
             guest.setState(request.getState());
             guest.setCountry(request.getCountry());
             guestRepository.save(guest);
+
             return new ApiResponse<>(guestService.response(login));
         }
     }
 
     @Override
     public ApiResponse<GuestResponse> create(CreateGuestRequest request) {
-        Optional<User> user = userRepository.findByEmailAddressIgnoreCase(request.getEmailAddress());
         SharedLink sharedLink = sharedLinkRepository.findByLink(request.getLink())
                 .orElseThrow(() -> new SharedException("Link not found"));
 
@@ -150,7 +154,7 @@ public class GuestAuthImplementation implements GuestAuthService {
 
         if(sharedLink.cannotLogin()) {
             throw new SharedException("This link has run out of its usage, so you cannot access it.");
-        } else if(user.isPresent()) {
+        } else if(userRepository.findByEmailAddressIgnoreCase(request.getEmailAddress()).isPresent()) {
             throw new SharedException(
                     "Email address exists as a user in the Serch platform. If this is your email address, " +
                             "you need to sign into your user account to use your email as a guest"
@@ -169,6 +173,7 @@ public class GuestAuthImplementation implements GuestAuthService {
                 if(HelperUtil.isUploadEmpty(request.getUpload())) {
                     throw new SharedException("A picture is needed to facilitate your trips. Upload one");
                 }
+
                 Guest guest = getNewGuest(request, null);
                 SharedLogin login = getNewLogin(sharedLink, guest);
 
@@ -178,23 +183,9 @@ public class GuestAuthImplementation implements GuestAuthService {
     }
 
     protected Guest getNewGuest(CreateGuestRequest request, String image) {
-        String avatar;
-        if(image != null) {
-            avatar = image;
-        } else {
-            avatar = supabase.upload(request.getUpload(), UserUtil.getBucket(null));
-        }
-
         Guest guest = SharedMapper.INSTANCE.guest(request);
-        guest.setAvatar(avatar);
-        guest.setName(request.getDevice().getName());
-        guest.setDevice(request.getDevice().getDevice());
-        guest.setPlatform(request.getDevice().getPlatform());
-        guest.setHost(request.getDevice().getHost());
-        guest.setIpAddress(request.getDevice().getIpAddress());
-        guest.setLocalHost(request.getDevice().getLocalHost());
-        guest.setOperatingSystem(request.getDevice().getOperatingSystem());
-        guest.setOperatingSystemVersion(request.getDevice().getOperatingSystemVersion());
+        guest.setAvatar(image != null ? image : supabase.upload(request.getUpload(), UserUtil.getBucket(null)));
+
         return guestRepository.save(guest);
     }
 
@@ -203,6 +194,7 @@ public class GuestAuthImplementation implements GuestAuthService {
         newLogin.setGuest(guest);
         newLogin.setSharedLink(sharedLink);
         newLogin.setStatus(sharedLink.nextLoginStatus());
+
         return sharedLoginRepository.save(newLogin);
     }
 
@@ -214,36 +206,36 @@ public class GuestAuthImplementation implements GuestAuthService {
                 .orElseThrow(() -> new SharedException("User has not profile"));
         SharedLink sharedLink = sharedLinkRepository.findByLink(request.getLink())
                 .orElseThrow(() -> new SharedException("Link not found"));
-        Optional<Guest> existing = guestRepository.findByEmailAddressIgnoreCase(profile.getUser().getEmailAddress());
 
         sharedLink.validate(request.getEmailAddress());
 
         if(sharedLink.cannotLogin()) {
             throw new SharedException("This link has run out of its usage, so you cannot access it.");
-        } else if(existing.isPresent()) {
+        } else if(guestRepository.findByEmailAddressIgnoreCase(profile.getUser().getEmailAddress()).isPresent()) {
             throw new SharedException("Email address already exists as a guest");
         } else if((profile.getAvatar() == null || profile.getAvatar().isEmpty()) && HelperUtil.isUploadEmpty(request.getUpload())) {
             throw new SharedException("A picture is needed to facilitate your trips. Upload one");
         } else {
             if(passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-                String avatar = getProfileImage(request, profile);
-                CreateGuestRequest guestRequest = SharedMapper.INSTANCE.request(profile);
-                guestRequest.setPhoneNumber(phoneInformationRepository.findByUser_Id(profile.getId()).map(PhoneInformation::getPhoneNumber).orElse(""));
-                guestRequest.setDevice(request.getDevice());
-                guestRequest.setCountry(request.getCountry());
-                guestRequest.setState(request.getState());
-
-                Guest guest = getNewGuest(guestRequest, avatar);
+                Guest guest = getNewGuest(getCreateGuestRequest(request, profile), getProfileImage(request, profile));
                 guest.setConfirmedAt(profile.getUser().getEmailConfirmedAt());
                 guestRepository.save(guest);
 
-                SharedLogin login = getNewLogin(sharedLink, guest);
-
-                return new ApiResponse<>(guestService.response(login));
+                return new ApiResponse<>(guestService.response(getNewLogin(sharedLink, guest)));
             } else {
                 throw new SharedException("Incorrect password or email address");
             }
         }
+    }
+
+    private CreateGuestRequest getCreateGuestRequest(CreateGuestFromUserRequest request, Profile profile) {
+        CreateGuestRequest response = SharedMapper.INSTANCE.request(profile);
+        response.setPhoneNumber(phoneInformationRepository.findByUser_Id(profile.getId()).map(PhoneInformation::getPhoneNumber).orElse(""));
+        response.setDevice(request.getDevice());
+        response.setCountry(request.getCountry());
+        response.setState(request.getState());
+
+        return response;
     }
 
     protected String getProfileImage(CreateGuestFromUserRequest request, Profile profile) {
@@ -254,6 +246,7 @@ public class GuestAuthImplementation implements GuestAuthService {
             profile.setAvatar(image);
             profile.setUpdatedAt(TimeUtil.now());
             profileRepository.save(profile);
+
             return image;
         }
     }

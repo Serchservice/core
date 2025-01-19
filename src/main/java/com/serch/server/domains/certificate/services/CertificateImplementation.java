@@ -2,9 +2,9 @@ package com.serch.server.domains.certificate.services;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.bases.BaseProfile;
-import com.serch.server.core.jwt.JwtService;
+import com.serch.server.core.token.JwtService;
 import com.serch.server.core.qr_code.QRCodeService;
-import com.serch.server.core.storage.core.StorageService;
+import com.serch.server.core.storage.services.StorageService;
 import com.serch.server.core.storage.requests.FileUploadRequest;
 import com.serch.server.enums.account.Gender;
 import com.serch.server.enums.account.SerchCategory;
@@ -70,6 +70,7 @@ public class CertificateImplementation implements CertificateService {
     public ApiResponse<CertificateData> generate() {
         User user = userUtil.getUser();
         Optional<Certificate> cert = certificateRepository.findByUser(user.getId());
+
         if(cert.isPresent()) {
             if(instruction(user, cert.get()).values().stream().allMatch(val -> val)) {
                 String secret = secret(user);
@@ -148,6 +149,7 @@ public class CertificateImplementation implements CertificateService {
 
     private Map<String, Boolean> instruction(User user, Certificate certificate) {
         Map<String, Boolean> instruction = new HashMap<>();
+
         if(certificate != null) {
             instruction.put(
                     String.format("Generate a new certificate after %s days of current generated certificate", CERTIFICATE_MIN_DAYS),
@@ -173,6 +175,7 @@ public class CertificateImplementation implements CertificateService {
                     && accountReportRepository.findByAccount(String.valueOf(user.getId())).stream().noneMatch(report -> report.getStatus() == IssueStatus.RESOLVED)
             );
         }
+
         return instruction;
     }
 
@@ -288,57 +291,67 @@ public class CertificateImplementation implements CertificateService {
 
     @Override
     public ApiResponse<VerifyCertificateResponse> verify(String token) {
-        Certificate certificate = null;
         List<Certificate> certificates = certificateRepository.findAll();
 
-        for (Certificate cert : certificates) {
-            if (encoder.matches(token, cert.getSecret()) && jwtService.isTokenIssuedBySerch(token)) {
-                certificate = cert;
-                break;
-            }
-        }
+        Certificate certificate = certificates.stream()
+                .filter(cert -> encoder.matches(token, cert.getSecret()) && jwtService.isTokenIssuedBySerch(token))
+                .findFirst()
+                .orElse(null);
 
         if(certificate != null) {
-            String avatar = profileRepository.findById(certificate.getUser())
-                    .map(BaseProfile::getAvatar)
-                    .orElse(
-                            businessProfileRepository.findById(certificate.getUser())
-                                    .map(BaseProfile::getAvatar)
-                                    .orElse("")
-                    );
-            String name = profileRepository.findById(certificate.getUser())
-                    .map(Profile::getFullName)
-                    .orElse(
-                            businessProfileRepository.findById(certificate.getUser())
-                                    .map(BusinessProfile::getBusinessName)
-                                    .orElse("")
-                    );
-            SerchCategory category = profileRepository.findById(certificate.getUser())
-                    .map(Profile::getCategory)
-                    .orElse(
-                            businessProfileRepository.findById(certificate.getUser())
-                                    .map(BusinessProfile::getCategory)
-                                    .orElse(SerchCategory.BUSINESS)
-                    );
-
             VerifyCertificateResponse response = new VerifyCertificateResponse();
-            response.setPicture(avatar);
+            response.setPicture(getUserAvatar(certificate));
             response.setDocument(certificate.getDocument());
             response.setRatings(ratingService.good(String.valueOf(certificate.getUser()), null, null).getData());
 
-            CertificateData data = new CertificateData();
-            data.setQrCode(certificate.getCode());
-            data.setId(certificate.getId());
-            data.setName(name);
-            data.setCategory(category.getType());
-            data.setImage(category.getImage());
-            data.setSignature(storageService.buildUrl("/storage/v1/object/public/certificate/ceo-sign.png"));
-            data.setIssueDate(date(certificate.getUpdatedAt()));
-            response.setData(data);
+            addVerifyData(certificate, getUsername(certificate), getUserCategory(certificate), response);
 
             return new ApiResponse<>(response);
         } else {
             throw new CertificateException("Certificate does not exist");
         }
+    }
+
+    private String getUserAvatar(Certificate certificate) {
+        return profileRepository.findById(certificate.getUser())
+                .map(BaseProfile::getAvatar)
+                .orElse(
+                        businessProfileRepository.findById(certificate.getUser())
+                                .map(BaseProfile::getAvatar)
+                                .orElse("")
+                );
+    }
+
+    private SerchCategory getUserCategory(Certificate certificate) {
+        return profileRepository.findById(certificate.getUser())
+                .map(Profile::getCategory)
+                .orElse(
+                        businessProfileRepository.findById(certificate.getUser())
+                                .map(BusinessProfile::getCategory)
+                                .orElse(SerchCategory.BUSINESS)
+                );
+    }
+
+    private String getUsername(Certificate certificate) {
+        return profileRepository.findById(certificate.getUser())
+                .map(Profile::getFullName)
+                .orElse(
+                        businessProfileRepository.findById(certificate.getUser())
+                                .map(BusinessProfile::getBusinessName)
+                                .orElse("")
+                );
+    }
+
+    private void addVerifyData(Certificate certificate, String name, SerchCategory category, VerifyCertificateResponse response) {
+        CertificateData data = new CertificateData();
+        data.setQrCode(certificate.getCode());
+        data.setId(certificate.getId());
+        data.setName(name);
+        data.setCategory(category.getType());
+        data.setImage(category.getImage());
+        data.setSignature(storageService.buildUrl("/storage/v1/object/public/certificate/ceo-sign.png"));
+        data.setIssueDate(date(certificate.getUpdatedAt()));
+
+        response.setData(data);
     }
 }

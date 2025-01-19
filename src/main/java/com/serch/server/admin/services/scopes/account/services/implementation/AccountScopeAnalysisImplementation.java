@@ -83,7 +83,7 @@ public class AccountScopeAnalysisImplementation implements AccountScopeAnalysisS
 
     void validate(Role role, Boolean forGuest) {
         if(role == null && (forGuest == null || !forGuest)) {
-            throw new SerchException("You need to specify the account you're trying to fetch its analysis data");
+            throw new SerchException("You need to specify the account you're trying to fetch its analysis response");
         }
     }
 

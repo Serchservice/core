@@ -63,6 +63,7 @@ public class UserAuthImplementation implements UserAuthService {
     public ApiResponse<AuthResponse> login(RequestLogin request) {
         var user = userRepository.findByEmailAddressIgnoreCase(request.getEmailAddress())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
         user.check();
         if(user.getRole() == Role.USER) {
             return authService.authenticate(request, user);
@@ -75,6 +76,7 @@ public class UserAuthImplementation implements UserAuthService {
     @Transactional
     public ApiResponse<AuthResponse> signup(RequestProfile request) {
         var user = userRepository.findByEmailAddressIgnoreCase(request.getEmailAddress());
+
         if(user.isPresent()) {
             throw new AuthException("User already exists", ExceptionCodes.EXISTING_USER);
         } else {
@@ -135,6 +137,7 @@ public class UserAuthImplementation implements UserAuthService {
         trackerService.create(saved);
         referralProgramService.create(saved);
         accountSettingService.create(saved);
+
         return saved;
     }
 
@@ -148,6 +151,7 @@ public class UserAuthImplementation implements UserAuthService {
         user.setLastName(profile.getLastName());
         user.setCountry(profile.getCountry());
         user.setState(profile.getState());
+
         return userRepository.save(user);
     }
 
@@ -156,6 +160,7 @@ public class UserAuthImplementation implements UserAuthService {
     public ApiResponse<AuthResponse> becomeAUser(RequestLogin login) {
         var incomplete = incompleteRepository.findByEmailAddress(login.getEmailAddress())
                 .orElseThrow(() -> new AuthException("User does not exist", ExceptionCodes.USER_NOT_FOUND));
+
         if(!incomplete.isEmailConfirmed()) {
             authService.sendOtp(login.getEmailAddress());
             throw new AuthException("Email is not verified", ExceptionCodes.EMAIL_NOT_VERIFIED);

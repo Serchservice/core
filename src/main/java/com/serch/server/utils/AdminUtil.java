@@ -57,12 +57,12 @@ public class AdminUtil {
     /**
      * Formats a numeric value into a human-readable string with appropriate
      * suffixes for large numbers (thousand, million, billion) or as-is for smaller values.
-     *
+     * <p>
      * - Numbers in the billions are suffixed with "billion" and rounded to one decimal place.
      * - Numbers in the millions are suffixed with "million" and rounded to one decimal place.
      * - Numbers in the thousands include commas for readability.
      * - Numbers below a thousand are returned as-is.
-     *
+     * <p>
      * Examples:
      * - Input: 1500 -> Output: "1,500"
      * - Input: 1_200_000 -> Output: "1.2 million"

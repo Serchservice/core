@@ -8,12 +8,10 @@ import com.serch.server.domains.auth.requests.RequestProfile;
 import com.serch.server.domains.shared.requests.CreateGuestRequest;
 import com.serch.server.domains.shared.requests.GuestToUserRequest;
 import com.serch.server.domains.shared.responses.*;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Mappings;
+import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING)
 public interface SharedMapper {
     SharedMapper INSTANCE = Mappers.getMapper(SharedMapper.class);
 
@@ -22,7 +20,16 @@ public interface SharedMapper {
     @Mapping(target = "id", source = "id")
     SharedProfileData response(Profile profile);
 
-    @Mapping(target = "device", source = "device", ignore = true)
+    @Mappings({
+            @Mapping(target = "device", source = "device.device"),
+            @Mapping(target = "name", source = "device.name"),
+            @Mapping(target = "platform", source = "device.platform"),
+            @Mapping(target = "host", source = "device.host"),
+            @Mapping(target = "ipAddress", source = "device.ipAddress"),
+            @Mapping(target = "localHost", source = "device.localHost"),
+            @Mapping(target = "operatingSystem", source = "device.operatingSystem"),
+            @Mapping(target = "operatingSystemVersion", source = "device.operatingSystemVersion"),
+    })
     Guest guest(CreateGuestRequest request);
 
     Guest guest(Profile profile);

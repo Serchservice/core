@@ -1,7 +1,7 @@
 package com.serch.server.domains.trip.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.core.notification.core.NotificationService;
+import com.serch.server.core.notification.services.NotificationService;
 import com.serch.server.exceptions.others.TripException;
 import com.serch.server.mappers.TripMapper;
 import com.serch.server.models.account.Profile;

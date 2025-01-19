@@ -10,12 +10,12 @@ import java.util.List;
 /**
  * Service interface for managing call-related features in the Serch platform.
  * Provides methods for fetching call overviews, analyzing performance metrics,
- * and retrieving data on specific call types, such as Tip2Fix and voice calls.
+ * and retrieving response on specific call types, such as Tip2Fix and voice calls.
  */
 public interface CallScopeService {
 
     /**
-     * Retrieves an overview of call-related data on the Serch platform.
+     * Retrieves an overview of call-related response on the Serch platform.
      * This overview may include aggregated statistics such as the total number
      * of calls, the distribution of call types, average call duration, and other
      * relevant metrics that provide a summary of call activity.
@@ -26,36 +26,36 @@ public interface CallScopeService {
     ApiResponse<CallScopeOverviewResponse> overview();
 
     /**
-     * Retrieves chart data for the Tip2Fix feature on the Serch platform for the specified year.
+     * Retrieves chart response for the Tip2Fix feature on the Serch platform for the specified year.
      * This method provides insights into call trends and metrics related to Tip2Fix, such as
      * the number of calls per month, resolution times, and other performance indicators.
      *
-     * @param year the year for which to retrieve data, represented as an {@link Integer}.
-     *             If the year is null, the current year's data is used by default.
+     * @param year the year for which to retrieve response, represented as an {@link Integer}.
+     *             If the year is null, the current year's response is used by default.
      * @return an {@link ApiResponse} containing a list of {@link ChartMetric} objects
-     *         that represent the call data metrics for Tip2Fix, providing a year-over-year comparison.
+     *         that represent the call response metrics for Tip2Fix, providing a year-over-year comparison.
      */
     ApiResponse<List<ChartMetric>> fetchTip2FixChart(Integer year);
 
     /**
-     * Retrieves chart data for the voice call feature on the Serch platform for the specified year.
+     * Retrieves chart response for the voice call feature on the Serch platform for the specified year.
      * This method provides insights into voice call trends and metrics, such as call frequency,
      * average call duration, and other performance indicators.
      *
-     * @param year the year for which to retrieve data, represented as an {@link Integer}.
-     *             If the year is null, the current year's data is used by default.
+     * @param year the year for which to retrieve response, represented as an {@link Integer}.
+     *             If the year is null, the current year's response is used by default.
      * @return an {@link ApiResponse} containing a list of {@link ChartMetric} objects
-     *         that represent the call data metrics for voice calls, providing insights into call patterns.
+     *         that represent the call response metrics for voice calls, providing insights into call patterns.
      */
     ApiResponse<List<ChartMetric>> fetchVoiceChart(Integer year);
 
     /**
-     * Retrieves performance chart data for the Tip2Fix call feature on the Serch platform for the specified year.
+     * Retrieves performance chart response for the Tip2Fix call feature on the Serch platform for the specified year.
      * This method offers insights into the efficiency and effectiveness of the Tip2Fix service, highlighting
      * metrics such as call resolution times, success rates, and user satisfaction scores.
      *
-     * @param year the year for which to retrieve data, represented as an {@link Integer}.
-     *             If the year is null, the current year's data is used by default.
+     * @param year the year for which to retrieve response, represented as an {@link Integer}.
+     *             If the year is null, the current year's response is used by default.
      * @return an {@link ApiResponse} containing a list of {@link ChartMetric} objects
      *         that represent the performance metrics for Tip2Fix calls, aiding in performance analysis.
      */

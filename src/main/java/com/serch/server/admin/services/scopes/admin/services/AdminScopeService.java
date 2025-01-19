@@ -13,7 +13,7 @@ import java.util.UUID;
 
 public interface AdminScopeService {
     /**
-     * Fetches the admin response data for the specified admin ID.
+     * Fetches the admin response response for the specified admin ID.
      * This method retrieves all relevant information related to the admin,
      * including their profile details, permissions, and roles within the system.
      *
@@ -28,23 +28,23 @@ public interface AdminScopeService {
     ApiResponse<AdminScopeResponse> fetch(UUID id, Integer page, Integer size);
 
     /**
-     * Fetches authentication chart data for a particular year
+     * Fetches authentication chart response for a particular year
      * for the specified admin ID. This method provides insights
      * into the authentication patterns of the admin over the
      * given year, such as successful logins, failed attempts, etc.
      *
      * @param id The unique identifier of the admin in {@link UUID} format.
      *           This ID must correspond to an existing admin in the system.
-     * @param year The year for which the authentication data is requested.
+     * @param year The year for which the authentication response is requested.
      *             This should be a valid year (e.g., 2023).
      * @return {@link ApiResponse} containing a list of {@link ChartMetric}
-     *         that represents the authentication data for the specified year.
+     *         that represents the authentication response for the specified year.
      *         If the year is invalid or the admin ID does not exist, an error message is returned.
      */
     ApiResponse<List<ChartMetric>> fetchAuthChart(UUID id, Integer year);
 
     /**
-     * Fetches account status chart data for a particular year
+     * Fetches account status chart response for a particular year
      * related to the specified admin ID. This method offers insights
      * into the status changes of the admin account over the given year,
      * such as account activation, deactivation, or any other relevant
@@ -52,10 +52,10 @@ public interface AdminScopeService {
      *
      * @param id The unique identifier of the admin in {@link UUID} format.
      *           This ID must correspond to an existing admin in the system.
-     * @param year The year for which the account status data is requested.
+     * @param year The year for which the account status response is requested.
      *             This should be a valid year (e.g., 2023).
      * @return {@link ApiResponse} containing a list of {@link ChartMetric}
-     *         that represents the account status data for the specified year.
+     *         that represents the account status response for the specified year.
      *         If the year is invalid or the admin ID does not exist, an error message is returned.
      */
     ApiResponse<List<ChartMetric>> fetchAccountStatusChart(UUID id, Integer year);
@@ -65,7 +65,7 @@ public interface AdminScopeService {
      * to upload a new avatar image, which will be associated with their profile.
      *
      * @param request The {@link FileUploadRequest} containing the image file
-     *                and any additional data required for the upload.
+     *                and any additional response required for the upload.
      * @param id The unique identifier of the admin in {@link UUID} format.
      *           This ID must correspond to an existing admin in the system.
      * @return {@link ApiResponse} indicating the success or failure of the avatar change operation.
@@ -117,7 +117,7 @@ public interface AdminScopeService {
      * profile attributes.
      *
      * @param request The {@link AdminProfileUpdateRequest} containing the updated
-     *                profile information and any other necessary data.
+     *                profile information and any other necessary response.
      * @param id The unique identifier of the admin in {@link UUID} format.
      *           This ID must correspond to an existing admin in the system.
      * @return {@link ApiResponse} indicating the success or failure of the profile update operation.
@@ -128,7 +128,7 @@ public interface AdminScopeService {
 
     /**
      * Deletes the admin account identified by the specified admin ID.
-     * This action will remove all associated data and permissions for the admin.
+     * This action will remove all associated response and permissions for the admin.
      *
      * @param id The unique identifier of the admin in {@link UUID} format.
      *           This ID must correspond to an existing admin in the system.

@@ -67,6 +67,7 @@ public class QRCodeImplementation implements QRCodeService {
                 }
             }
         }
+
         return trimmedMatrix;
     }
 
@@ -112,6 +113,7 @@ public class QRCodeImplementation implements QRCodeService {
             }
         }
         graphics.dispose();
+
         return image;
     }
 

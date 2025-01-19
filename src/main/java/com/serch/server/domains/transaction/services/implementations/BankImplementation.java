@@ -1,7 +1,7 @@
 package com.serch.server.domains.transaction.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.core.payment.core.PaymentService;
+import com.serch.server.core.payment.services.PaymentService;
 import com.serch.server.core.payment.responses.Bank;
 import com.serch.server.core.payment.responses.BankAccount;
 import com.serch.server.domains.transaction.services.BankService;

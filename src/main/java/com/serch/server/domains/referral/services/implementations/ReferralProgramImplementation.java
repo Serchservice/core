@@ -3,6 +3,7 @@ package com.serch.server.domains.referral.services.implementations;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.enums.auth.Role;
 import com.serch.server.exceptions.others.ReferralException;
+import com.serch.server.mappers.ReferralMapper;
 import com.serch.server.models.account.BusinessProfile;
 import com.serch.server.models.auth.User;
 import com.serch.server.models.referral.ReferralProgram;
@@ -11,7 +12,7 @@ import com.serch.server.repositories.referral.ReferralProgramRepository;
 import com.serch.server.repositories.referral.ReferralRepository;
 import com.serch.server.repositories.shared.SharedLinkRepository;
 import com.serch.server.repositories.trip.TripRepository;
-import com.serch.server.core.code.TokenService;
+import com.serch.server.core.token.TokenService;
 import com.serch.server.domains.referral.responses.ReferralProgramResponse;
 import com.serch.server.domains.referral.services.ReferralProgramService;
 import com.serch.server.domains.referral.services.ReferralService;
@@ -113,21 +114,23 @@ public class ReferralProgramImplementation implements ReferralProgramService {
     }
 
     private ReferralProgramResponse getResponse(ReferralProgram program) {
-        String firstName = businessProfileRepository.findById(program.getUser().getId())
-                .map(BusinessProfile::getBusinessName)
-                .orElse(program.getUser().getFirstName());
-        String lastName = businessProfileRepository.findById(program.getUser().getId())
-                .map(business -> "")
-                .orElse(program.getUser().getLastName());
-
-        ReferralProgramResponse response = new ReferralProgramResponse();
+        ReferralProgramResponse response = ReferralMapper.instance.response(program);
         response.setAvatar(referralService.getAvatar(program.getUser()));
-        response.setName(String.format("%s %s", firstName, lastName));
-        response.setRole(program.getUser().getRole().getType());
-        response.setReferralCode(program.getReferralCode());
-        response.setReferLink(program.getReferLink());
+        response.setName(String.format("%s %s", getFirstName(program), getLastName(program)));
 
         return response;
+    }
+
+    private String getLastName(ReferralProgram program) {
+        return businessProfileRepository.findById(program.getUser().getId())
+                .map(business -> "")
+                .orElse(program.getUser().getLastName());
+    }
+
+    private String getFirstName(ReferralProgram program) {
+        return businessProfileRepository.findById(program.getUser().getId())
+                .map(BusinessProfile::getBusinessName)
+                .orElse(program.getUser().getFirstName());
     }
 
     @Override

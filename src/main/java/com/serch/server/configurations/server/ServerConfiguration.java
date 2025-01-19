@@ -21,7 +21,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -36,7 +35,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * The ServerConfiguration class configured various beans and settings related to server operations.
@@ -101,6 +102,20 @@ public class ServerConfiguration {
     }
 
     /**
+     * Configures an AuthenticationProvider bean for authentication.
+     *
+     * @return An AuthenticationProvider instance.
+     */
+    @Bean
+    public DaoAuthenticationProvider daoAuthenticationProvider() {
+        DaoAuthenticationProvider auth = new DaoAuthenticationProvider();
+        auth.setUserDetailsService(userDetailsService());
+        auth.setPasswordEncoder(passwordEncoder());
+
+        return auth;
+    }
+
+    /**
      * Configures a UserDetailsService bean for retrieving user details during authentication.
      *
      * @return A UserDetailsService instance.
@@ -109,20 +124,6 @@ public class ServerConfiguration {
     public UserDetailsService userDetailsService() {
         return username -> userRepository.findByEmailAddressIgnoreCase(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-    }
-
-    /**
-     * Configures an AuthenticationProvider bean for authentication.
-     *
-     * @return An AuthenticationProvider instance.
-     */
-    @Bean
-    public AuthenticationProvider authProvider() {
-        var daoProvider = new DaoAuthenticationProvider();
-        daoProvider.setUserDetailsService(userDetailsService());
-        daoProvider.setPasswordEncoder(passwordEncoder());
-
-        return daoProvider;
     }
 
     /**
@@ -181,13 +182,13 @@ public class ServerConfiguration {
 
         if(NOTIFICATION_SERVICE_KEY.startsWith("https")) {
             NotificationKey key = restTemplate().getForObject(NOTIFICATION_SERVICE_KEY, NotificationKey.class);
-            // Convert the map back to a JSON string
+            // Convert the location back to a JSON string
             json = objectMapper.writeValueAsString(key);
         } else {
             // Parse the JSON string into a Map
             var account = objectMapper.readValue(NOTIFICATION_SERVICE_KEY, HashMap.class);
 
-            // Convert the map back to a JSON string
+            // Convert the location back to a JSON string
             json = objectMapper.writeValueAsString(account);
         }
 

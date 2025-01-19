@@ -137,6 +137,7 @@ public class AccountDashboardImplementation implements AccountDashboardService {
             buildSchedule(accumulator, current);
             buildAccumulator(accumulator, current);
             buildTrip(accumulator, current);
+
             return accumulator;
         });
 
@@ -146,31 +147,19 @@ public class AccountDashboardImplementation implements AccountDashboardService {
     }
 
     private void buildTrip(DashboardResponse accumulator, DashboardResponse current) {
-        int accumulatorTrip = parseInt(accumulator.getTrip());
-        int currentTrip = parseInt(current.getTrip());
-
-        accumulator.setTrip(Integer.toString(accumulatorTrip + currentTrip));
+        accumulator.setTrip(Integer.toString(parseInt(accumulator.getTrip()) + parseInt(current.getTrip())));
     }
 
     private void buildAccumulator(DashboardResponse accumulator, DashboardResponse current) {
-        int accumulatorShared = parseInt(accumulator.getShared());
-        int currentShared = parseInt(current.getShared());
-
-        accumulator.setShared(Integer.toString(accumulatorShared + currentShared));
+        accumulator.setShared(Integer.toString(parseInt(accumulator.getShared()) + parseInt(current.getShared())));
     }
 
     private void buildSchedule(DashboardResponse accumulator, DashboardResponse current) {
-        int accumulatorSchedule = parseInt(accumulator.getSchedule());
-        int currentSchedule = parseInt(current.getSchedule());
-
-        accumulator.setSchedule(Integer.toString(accumulatorSchedule + currentSchedule));
+        accumulator.setSchedule(Integer.toString(parseInt(accumulator.getSchedule()) + parseInt(current.getSchedule())));
     }
 
     private void buildRating(DashboardResponse accumulator, DashboardResponse current) {
-        double accumulatorRating = parseDouble(accumulator.getRating());
-        double currentRating = parseDouble(current.getRating());
-
-        accumulator.setRating(Double.toString(accumulatorRating + currentRating));
+        accumulator.setRating(Double.toString(parseDouble(accumulator.getRating()) + parseDouble(current.getRating())));
     }
 
     private void buildEarning(DashboardResponse accumulator, DashboardResponse current) {

@@ -15,7 +15,7 @@ import java.time.ZonedDateTime;
 /**
  * Service interface for managing admin profile operations within the Serch organization.
  * This interface provides methods to retrieve and update admin profile information,
- * handle avatar uploads, manage team data, and adjust user timezones.
+ * handle avatar uploads, manage team response, and adjust user timezones.
  * Implementations of this interface encapsulate the business logic associated with
  * admin profile management.
  */
@@ -33,17 +33,17 @@ public interface AdminProfileService {
 
     /**
      * Prepares an {@link AdminResponse} object based on the provided
-     * {@link Admin} data. This method formats the admin's information for
+     * {@link Admin} response. This method formats the admin's information for
      * presentation, ensuring it adheres to the required structure for responses.
      *
-     * @param admin The {@link Admin} data to be prepared and formatted.
+     * @param admin The {@link Admin} response to be prepared and formatted.
      * @return {@link AdminResponse} containing the formatted admin information.
      */
     AdminResponse prepare(Admin admin);
 
     /**
      * Updates the profile information of the currently logged-in admin based
-     * on the provided update request data. This method ensures that the
+     * on the provided update request response. This method ensures that the
      * admin's profile is current and accurately reflects their information.
      *
      * @param request The {@link AdminProfileUpdateRequest} containing the
@@ -66,12 +66,12 @@ public interface AdminProfileService {
     ApiResponse<AdminResponse> uploadAvatar(FileUploadRequest request);
 
     /**
-     * Constructs the admin profile data based on the provided {@link Admin}
+     * Constructs the admin profile response based on the provided {@link Admin}
      * object. This method aggregates the relevant details into an
      * {@link AdminProfileResponse} for easy access and management.
      *
      * @param admin The {@link Admin} whose profile information is to be fetched.
-     * @return {@link AdminProfileResponse} containing the compiled profile data
+     * @return {@link AdminProfileResponse} containing the compiled profile response
      * for the specified admin.
      */
     AdminProfileResponse profile(Admin admin);
@@ -91,12 +91,12 @@ public interface AdminProfileService {
     <T extends AccountScopeDetailResponse> T updateProfile(ZonedDateTime updatedAt, ZonedDateTime createdAt, User user, T response);
 
     /**
-     * Constructs the team data associated with the specified {@link Admin}.
+     * Constructs the team response associated with the specified {@link Admin}.
      * This method provides insights into the admin's team, including team
      * members and roles within the team structure.
      *
      * @param admin The {@link Admin} whose team information is to be fetched.
-     * @return {@link AdminTeamResponse} containing the team data associated
+     * @return {@link AdminTeamResponse} containing the team response associated
      * with the specified admin.
      */
     AdminTeamResponse team(Admin admin);

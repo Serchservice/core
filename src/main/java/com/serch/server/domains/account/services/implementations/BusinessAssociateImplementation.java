@@ -2,7 +2,7 @@ package com.serch.server.domains.account.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.core.email.EmailService;
-import com.serch.server.core.jwt.JwtService;
+import com.serch.server.core.token.JwtService;
 import com.serch.server.enums.account.AccountStatus;
 import com.serch.server.enums.auth.Role;
 import com.serch.server.enums.email.EmailType;
@@ -127,6 +127,7 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
                     incomplete.ifPresent(incompleteRepository::delete);
                     User user = saveAssociateUser(request, business);
                     trackerService.create(user);
+
                     Profile profile = saveAssociateProfile(request, business, user);
                     saveAssociateSpecialties(request, profile);
                     saveAssociatePhoneInformation(request, user);
@@ -148,10 +149,10 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
 
     @Override
     public ApiResponse<String> resendInvite(UUID id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new AccountException("User does not exist"));
+        User user = userRepository.findById(id).orElseThrow(() -> new AccountException("User does not exist"));
         BusinessProfile business = businessProfileRepository.findById(util.getUser().getId())
                 .orElseThrow(() -> new AccountException("Business not found"));
+
         if(!user.getIsEmailConfirmed() && business.getAssociates() != null && !business.getAssociates().isEmpty() && business.getAssociates().stream().anyMatch(profile -> profile.isSameAs(user.getId()))) {
             sendEmailInvite(user.getEmailAddress(), business, user);
 
@@ -166,7 +167,9 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
         claims.put("business", business.getId());
         claims.put("user", user.getId());
         claims.put("role", user.getRole());
+
         String secret = jwtService.generateToken(claims, emailAddress);
+
         pendingRepository.findByUser_Id(user.getId())
                 .ifPresentOrElse(pending -> {
                     pending.setSecret(passwordEncoder.encode(secret));
@@ -178,6 +181,10 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
                     pendingRepository.save(pending);
                 });
 
+        sendEmailPayload(emailAddress, business, user, secret);
+    }
+
+    private void sendEmailPayload(String emailAddress, BusinessProfile business, User user, String secret) {
         SendEmail email = new SendEmail();
         email.setTo(emailAddress);
         email.setFirstName(user.getFirstName());
@@ -188,6 +195,7 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
         email.setBusinessDescription(business.getBusinessDescription());
         email.setType(EmailType.ASSOCIATE_INVITE);
         email.setContent(String.format("%s?invite=%s&role=%s&platform=%s", ASSOCIATE_INVITE_LINK, secret, user.getRole(), "provider"));
+
         emailService.send(email);
     }
 
@@ -231,6 +239,7 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
         profile.setBusiness(business);
         profile.setCategory(request.getCategory());
         profile.setUser(saved);
+
         return profileRepository.save(profile);
     }
 
@@ -287,21 +296,20 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
     public ApiResponse<BusinessAssociateResponse> activate(UUID id) {
         BusinessProfile business = businessProfileRepository.findById(util.getUser().getId())
                 .orElseThrow(() -> new AccountException("Business not found"));
-        Profile provider = profileRepository.findById(id)
-                .orElseThrow(() -> new AccountException("Provider not found"));
+        Profile profile = profileRepository.findById(id).orElseThrow(() -> new AccountException("Provider not found"));
 
-        if(provider.belongsToBusiness(business.getId())) {
-            if(provider.getUser().getIsEmailConfirmed()) {
-                if(provider.getUser().getStatus() == AccountStatus.BUSINESS_DEACTIVATED) {
-                    provider.getUser().setStatus(AccountStatus.ACTIVE);
-                    provider.getUser().setUpdatedAt(TimeUtil.now());
+        if(profile.belongsToBusiness(business.getId())) {
+            if(profile.getUser().getIsEmailConfirmed()) {
+                if(profile.getUser().getStatus() == AccountStatus.BUSINESS_DEACTIVATED) {
+                    profile.getUser().setStatus(AccountStatus.ACTIVE);
+                    profile.getUser().setUpdatedAt(TimeUtil.now());
 
-                    userRepository.save(provider.getUser());
-                    trackerService.create(provider.getUser());
+                    userRepository.save(profile.getUser());
+                    trackerService.create(profile.getUser());
 
                     return new ApiResponse<>(
                             "Account activated. Provider can log in to this account.",
-                            response(provider),
+                            response(profile),
                             HttpStatus.OK
                     );
                 } else {

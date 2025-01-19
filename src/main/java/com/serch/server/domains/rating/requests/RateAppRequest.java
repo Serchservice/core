@@ -1,5 +1,6 @@
 package com.serch.server.domains.rating.requests;
 
+import com.serch.server.domains.rating.services.implementations.RatingImplementation;
 import lombok.Data;
 
 
@@ -10,9 +11,9 @@ import lombok.Data;
  * @field rating - The value of the rating in double 5.0-0.0
  * @field comment - The optional comment for the rating
  * <p></p>
- * The data from this class is sent and stored in the {@link com.serch.server.models.rating.AppRating} table
+ * The response from this class is sent and stored in the {@link com.serch.server.models.rating.AppRating} table
  *
- * @see com.serch.server.domains.rating.services.RatingImplementation
+ * @see RatingImplementation
  * @see com.serch.server.domains.rating.services.RatingService
  */
 @Data

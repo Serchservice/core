@@ -10,12 +10,10 @@ import com.serch.server.domains.shop.requests.ShopDriveRequest;
 import com.serch.server.domains.shop.responses.ShopResponse;
 import com.serch.server.domains.shop.responses.ShopServiceResponse;
 import com.serch.server.domains.shop.responses.ShopWeekdayResponse;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Mappings;
+import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING)
 public interface ShopMapper {
     ShopMapper INSTANCE = Mappers.getMapper(ShopMapper.class);
 

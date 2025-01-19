@@ -1,5 +1,6 @@
 package com.serch.server.admin.models;
 
+import com.serch.server.admin.models.permission.GrantedPermissionScope;
 import com.serch.server.bases.BaseUser;
 import com.serch.server.enums.auth.Role;
 import jakarta.persistence.*;

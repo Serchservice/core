@@ -24,8 +24,8 @@ import com.serch.server.domains.auth.requests.RequestSession;
 import com.serch.server.domains.auth.requests.RequestSessionToken;
 import com.serch.server.domains.auth.responses.AuthResponse;
 import com.serch.server.domains.auth.responses.SessionResponse;
-import com.serch.server.core.jwt.JwtService;
-import com.serch.server.core.code.TokenService;
+import com.serch.server.core.token.JwtService;
+import com.serch.server.core.token.TokenService;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -136,14 +136,47 @@ public class SessionImplementation implements SessionService {
     }
 
     private AuthResponse auth(RequestSession request, String accessToken, String token) {
-        SerchCategory category = profileRepository.findById(request.getUser().getId())
-                .map(Profile::getCategory)
+        SerchCategory category = getUserCategory(request);
+
+        return AuthResponse.builder()
+                .mfaEnabled(request.getUser().getMfaEnabled())
+                .session(new SessionResponse(accessToken, token))
+                .firstName(getUserFirstName(request))
+                .lastName(getUserLastName(request))
+                .role(request.getUser().getRole().name())
+                .category(category.getType())
+                .image(category.getImage())
+                .rating(getUserRating(request))
+                .avatar(getUserAvatar(request))
+                .id(request.getUser().getId())
+                .recoveryCodesEnabled(request.getUser().getRecoveryCodeEnabled())
+                .build();
+    }
+
+    private String getUserLastName(RequestSession request) {
+        return businessProfileRepository.findById(request.getUser().getId())
+                .map(business -> "")
+                .orElse(request.getUser().getLastName());
+    }
+
+    private String getUserFirstName(RequestSession request) {
+        return businessProfileRepository.findById(request.getUser().getId())
+                .map(BusinessProfile::getBusinessName)
+                .orElse(request.getUser().getFirstName());
+    }
+
+    private Double getUserRating(RequestSession request) {
+        return profileRepository.findById(request.getUser().getId())
+                .map(Profile::getRating)
                 .orElse(
                         businessProfileRepository.findById(request.getUser().getId())
-                                .map(BusinessProfile::getCategory)
-                                .orElse(SerchCategory.USER)
+                                .map(BusinessProfile::getRating)
+                                .orElse(5.0)
                 );
-        String avatar = profileRepository.findById(request.getUser().getId())
+    }
+
+    private String getUserAvatar(RequestSession request) {
+        return profileRepository.findById(request.getUser().getId())
                 .map(Profile::getAvatar)
                 .orElse(
                         businessProfileRepository.findById(request.getUser().getId())
@@ -154,33 +187,16 @@ public class SessionImplementation implements SessionService {
                                                 .orElse("")
                                 )
                 );
-        Double rating = profileRepository.findById(request.getUser().getId())
-                .map(Profile::getRating)
+    }
+
+    private SerchCategory getUserCategory(RequestSession request) {
+        return profileRepository.findById(request.getUser().getId())
+                .map(Profile::getCategory)
                 .orElse(
                         businessProfileRepository.findById(request.getUser().getId())
-                                .map(BusinessProfile::getRating)
-                                .orElse(5.0)
+                                .map(BusinessProfile::getCategory)
+                                .orElse(SerchCategory.USER)
                 );
-        String firstName = businessProfileRepository.findById(request.getUser().getId())
-                .map(BusinessProfile::getBusinessName)
-                .orElse(request.getUser().getFirstName());
-        String lastName = businessProfileRepository.findById(request.getUser().getId())
-                .map(business -> "")
-                .orElse(request.getUser().getLastName());
-
-        return AuthResponse.builder()
-                .mfaEnabled(request.getUser().getMfaEnabled())
-                .session(new SessionResponse(accessToken, token))
-                .firstName(firstName)
-                .lastName(lastName)
-                .role(request.getUser().getRole().name())
-                .category(category.getType())
-                .image(category.getImage())
-                .rating(rating)
-                .avatar(avatar)
-                .id(request.getUser().getId())
-                .recoveryCodesEnabled(request.getUser().getRecoveryCodeEnabled())
-                .build();
     }
 
     @Override
@@ -227,13 +243,13 @@ public class SessionImplementation implements SessionService {
     }
 
     private RefreshToken getNewRefreshToken(Session session, User user, String newToken, RefreshToken refreshToken) {
-        RefreshToken newRefreshToken = new RefreshToken();
-        newRefreshToken.setSession(session);
-        newRefreshToken.setUser(user);
-        newRefreshToken.setToken(newToken);
-        newRefreshToken.setParent(refreshToken);
+        RefreshToken token = new RefreshToken();
+        token.setSession(session);
+        token.setUser(user);
+        token.setToken(newToken);
+        token.setParent(refreshToken);
 
-        return refreshTokenRepository.save(newRefreshToken);
+        return refreshTokenRepository.save(token);
     }
 
     @Override
@@ -245,19 +261,15 @@ public class SessionImplementation implements SessionService {
 
             String email = jwtService.getEmailFromToken(token);
             try {
-                var userId = UUID.fromString(jwtService.getItemFromToken(token, "serch_id"));
-                var sessionId = UUID.fromString(jwtService.getItemFromToken(token, "session_id"));
-                var refreshId = UUID.fromString(jwtService.getItemFromToken(token, "refresh_id"));
-
                 var user = userRepository.findByEmailAddressIgnoreCase(email)
                         .orElseThrow(() -> new SessionException("Invalid token"))
                         .check();
-                var session = sessionRepository.findById(sessionId)
+                var session = sessionRepository.findById(UUID.fromString(jwtService.getItemFromToken(token, "session_id")))
                         .orElseThrow(() -> new SessionException("Invalid token"));
-                var refreshToken = refreshTokenRepository.findById(refreshId)
+                var refreshToken = refreshTokenRepository.findById(UUID.fromString(jwtService.getItemFromToken(token, "refresh_id")))
                         .orElseThrow(() -> new SessionException("Invalid token"));
 
-                if(user.getId().equals(userId) && jwtService.isTokenIssuedBySerch(token) && (!session.getRevoked() && !refreshToken.getRevoked())) {
+                if(user.getId().equals(UUID.fromString(jwtService.getItemFromToken(token, "serch_id"))) && jwtService.isTokenIssuedBySerch(token) && (!session.getRevoked() && !refreshToken.getRevoked())) {
                     if(user.isAdmin()) {
                         Admin admin = adminRepository.findById(user.getId()).orElseThrow(() -> new AuthException("Admin not found"));
                         if(admin.mfaEnforced()) {
@@ -293,14 +305,11 @@ public class SessionImplementation implements SessionService {
     @Override
     public void signOut(String jwt) {
         try {
-            var sessionId = UUID.fromString(jwtService.getItemFromToken(jwt, "session_id"));
-            var refreshId = UUID.fromString(jwtService.getItemFromToken(jwt, "refresh_id"));
-
             var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
                     .orElseThrow(() -> new AuthException("User not found", ExceptionCodes.USER_NOT_FOUND));
 
-            revokeSession(user.getId(), sessionId);
-            revokeRefreshToken(user.getId(), refreshId);
+            revokeSession(user.getId(), UUID.fromString(jwtService.getItemFromToken(jwt, "session_id")));
+            revokeRefreshToken(user.getId(), UUID.fromString(jwtService.getItemFromToken(jwt, "refresh_id")));
         } catch (IllegalArgumentException e) {
             throw new SessionException("Invalid session. Please login", ExceptionCodes.IMPROPER_USER_ID_FORMAT);
         }

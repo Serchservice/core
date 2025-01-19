@@ -84,34 +84,37 @@ public class ScheduleHistoryImplementation implements ScheduleHistoryService {
         Page<Schedule> schedules = scheduleRepository.schedules(id, status, category, dateTime, HelperUtil.getPageable(page, size));
 
         if(schedules != null && !schedules.isEmpty() && schedules.hasContent()) {
-            List<ScheduleGroupResponse> list = new ArrayList<>();
-
-            Map<LocalDate, List<Schedule>> groups = schedules
-                    .getContent()
+            List<ScheduleGroupResponse> list = new ArrayList<>(
+                    schedules.getContent()
                     .stream()
-                    .collect(Collectors.groupingBy(schedule -> schedule.getCreatedAt().toLocalDate()));
-
-            groups.forEach((date, scheduleList) -> {
-                ScheduleGroupResponse response = new ScheduleGroupResponse();
-
-                response.setTime(LocalDateTime.of(date, scheduleList.getFirst().getCreatedAt().toLocalTime()));
-                response.setLabel(TimeUtil.formatChatLabel(LocalDateTime.of(date, scheduleList.getFirst().getCreatedAt().toLocalTime()), userUtil.getUser().getTimezone()));
-                response.setSchedules(scheduleList.stream()
-                        .sorted(Comparator.comparing(Schedule::getUpdatedAt).reversed())
-                        .map(schedule -> schedulingService.response(
-                                schedule,
-                                schedule.getProvider().getId().equals(id),
-                                userRepository.findById(id).map(User::isProfile).orElse(false)
-                        ))
-                        .toList()
-                );
-
-                list.add(response);
-            });
+                    .collect(Collectors.groupingBy(schedule -> schedule.getCreatedAt().toLocalDate()))
+                    .entrySet()
+                    .stream()
+                    .map((data) -> buildGroupResponse(id, data.getKey(), data.getValue()))
+                    .toList()
+            );
 
             list.sort(Comparator.comparing(ScheduleGroupResponse::getTime).reversed());
             return list;
         }
         return List.of();
+    }
+
+    private ScheduleGroupResponse buildGroupResponse(UUID id, LocalDate date, List<Schedule> scheduleList) {
+        ScheduleGroupResponse response = new ScheduleGroupResponse();
+
+        response.setTime(LocalDateTime.of(date, scheduleList.getFirst().getCreatedAt().toLocalTime()));
+        response.setLabel(TimeUtil.formatChatLabel(LocalDateTime.of(date, scheduleList.getFirst().getCreatedAt().toLocalTime()), userUtil.getUser().getTimezone()));
+        response.setSchedules(scheduleList.stream()
+                .sorted(Comparator.comparing(Schedule::getUpdatedAt).reversed())
+                .map(schedule -> schedulingService.response(
+                        schedule,
+                        schedule.getProvider().getId().equals(id),
+                        userRepository.findById(id).map(User::isProfile).orElse(false)
+                ))
+                .toList()
+        );
+
+        return response;
     }
 }

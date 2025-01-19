@@ -18,7 +18,7 @@ public interface TripAuthenticationService {
      * Creates an authentication link for a trip or shared trip.
      * <p>
      * This method is used to set up authentication for a trip, enabling
-     * secure access to the trip details or shared trip data. The
+     * secure access to the trip details or shared trip response. The
      * authentication is associated with both the given {@link Trip} and
      * {@link TripShare} instances.
      * </p>
@@ -33,12 +33,12 @@ public interface TripAuthenticationService {
     /**
      * Verifies a trip authentication code.
      * <p>
-     * This method checks the provided authentication code against the data
+     * This method checks the provided authentication code against the response
      * contained in the {@link TripAuthRequest}. If the code matches the
      * expected value, the authentication is considered valid.
      * </p>
      *
-     * @param request The {@link TripAuthRequest} containing data needed for
+     * @param request The {@link TripAuthRequest} containing response needed for
      *                authentication verification, such as trip details and user information.
      * @param code    The authentication code to be checked.
      * @return {@code true} if the authentication code is verified successfully,

@@ -2,7 +2,7 @@
 //
 //import com.resend.services.emails.model.SendEmailResponse;
 //import com.serch.server.bases.ApiResponse;
-//import com.serch.server.core.email.EmailService;
+//import com.serch.server.services.email.EmailService;
 //import org.junit.jupiter.api.Test;
 //import org.junit.jupiter.api.extension.ExtendWith;
 //import org.mockito.Mockito;

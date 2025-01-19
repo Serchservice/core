@@ -19,9 +19,9 @@ import java.util.List;
 public interface MFAService {
 
     /**
-     * Retrieves MFA data for the current user.
+     * Retrieves MFA response for the current user.
      *
-     * @return An API response containing MFA data.
+     * @return An API response containing MFA response.
      *
      * @see ApiResponse
      * @see MFADataResponse
@@ -29,10 +29,10 @@ public interface MFAService {
     ApiResponse<MFADataResponse> getMFAData();
 
     /**
-     * Retrieves MFA data for the current user.
+     * Retrieves MFA response for the current user.
      *
-     * @param user The {@link User} data
-     * @return An MFA data.
+     * @param user The {@link User} response
+     * @return An MFA response.
      *
      * @see MFADataResponse
      */

@@ -1,7 +1,7 @@
 package com.serch.server.domains.trip.services.implementations;
 
-import com.serch.server.core.notification.core.NotificationService;
-import com.serch.server.core.payment.core.PaymentService;
+import com.serch.server.core.notification.services.NotificationService;
+import com.serch.server.core.payment.services.PaymentService;
 import com.serch.server.core.payment.requests.InitializePaymentRequest;
 import com.serch.server.core.payment.responses.InitializePaymentData;
 import com.serch.server.enums.account.SerchCategory;

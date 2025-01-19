@@ -41,7 +41,7 @@ public class Organization extends BaseModel {
     private String phoneNumber;
 
     @Column(nullable = false, columnDefinition = "TEXT")
-    @URL(message = "Avatar data must be a link")
+    @URL(message = "Avatar response must be a link")
     @NotBlank(message = "Avatar cannot be empty")
     private String avatar;
 

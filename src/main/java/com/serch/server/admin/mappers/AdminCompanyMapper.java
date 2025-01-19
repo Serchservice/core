@@ -7,9 +7,11 @@ import com.serch.server.models.company.Complaint;
 import com.serch.server.models.company.Newsletter;
 import com.serch.server.models.company.SpeakWithSerch;
 import org.mapstruct.Mapper;
+import org.mapstruct.MappingConstants;
+import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING)
 public interface AdminCompanyMapper {
     AdminCompanyMapper instance = Mappers.getMapper(AdminCompanyMapper.class);
 

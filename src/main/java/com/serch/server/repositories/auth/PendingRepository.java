@@ -9,5 +9,6 @@ import java.util.UUID;
 
 public interface PendingRepository extends JpaRepository<Pending, Long> {
   Optional<Pending> findByUser_Id(@NonNull UUID id);
-    Optional<Pending> findByUser_EmailAddressIgnoreCase(@NonNull String emailAddress);
+
+  Optional<Pending> findByUser_EmailAddressIgnoreCase(@NonNull String emailAddress);
 }

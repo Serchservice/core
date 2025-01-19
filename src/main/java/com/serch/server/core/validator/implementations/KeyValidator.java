@@ -54,7 +54,7 @@ public class KeyValidator implements KeyValidatorService {
     @Override
     public boolean isSigned(String key) {
         if(key == null) {
-            throw new AuthException("Request is missing core authorization access.");
+            throw new AuthException("Request is missing services authorization access.");
         } else {
             boolean isSigned = key.startsWith(ACCESS_IDENTITY) && ACCESS_SIGNATURE.equals(key);
             if(isSigned) {

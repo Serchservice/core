@@ -1,12 +1,11 @@
 package com.serch.server.models.transaction;
 
+import com.serch.server.annotations.CoreID;
 import com.serch.server.bases.BaseDateTime;
-import com.serch.server.generators.transaction.WalletID;
 import com.serch.server.models.auth.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.GenericGenerator;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -27,8 +26,8 @@ import java.time.LocalDate;
 @Table(schema = "account", name = "wallets")
 public class Wallet extends BaseDateTime {
     @Id
+    @CoreID(name = "wallet_generator", prefix = "SWLT", replaceSymbols = true, end = 10, toUpperCase = true)
     @Column(nullable = false, columnDefinition = "TEXT")
-    @GenericGenerator(name = "wallet_id_gen", type = WalletID.class)
     @GeneratedValue(generator = "wallet_id_gen")
     private String id;
 

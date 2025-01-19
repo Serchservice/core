@@ -1,6 +1,7 @@
 package com.serch.server.domains.shop.services;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.domains.shop.services.implementations.ShopImplementation;
 import com.serch.server.enums.shop.DriveScope;
 import com.serch.server.enums.shop.ShopStatus;
 import com.serch.server.models.shop.Shop;
@@ -19,9 +20,9 @@ import java.util.List;
  */
 public interface ShopService {
     /**
-     * Prepares and transforms the provided shop data into a response format.
+     * Prepares and transforms the provided shop response into a response format.
      *
-     * @param shop The {@link Shop} data to be formatted into a response.
+     * @param shop The {@link Shop} response to be formatted into a response.
      * @return A {@link ShopResponse} object containing the formatted shop information.
      */
     ShopResponse response(Shop shop);
@@ -111,7 +112,7 @@ public interface ShopService {
 
     /**
      * Removes a shop from the system.
-     * This operation effectively deletes the shop and its associated data from the database,
+     * This operation effectively deletes the shop and its associated response from the database,
      * which is crucial for maintaining an accurate representation of available shops.
      *
      * @param shopId The ID of the shop to be removed.
@@ -170,7 +171,7 @@ public interface ShopService {
 
     /**
      * Searches for shops based on a query or category within a specified radius.
-     * This method provides an alternative way to retrieve shop data directly,
+     * This method provides an alternative way to retrieve shop response directly,
      * without the wrapper of an {@link ApiResponse}, suitable for internal operations.
      *
      * @param scope The drive scope to return the result with

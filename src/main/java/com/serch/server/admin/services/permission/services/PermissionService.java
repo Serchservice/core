@@ -3,6 +3,8 @@ package com.serch.server.admin.services.permission.services;
 import com.serch.server.admin.enums.Permission;
 import com.serch.server.admin.enums.PermissionScope;
 import com.serch.server.admin.models.*;
+import com.serch.server.admin.models.permission.GrantedPermission;
+import com.serch.server.admin.models.permission.GrantedPermissionScope;
 import com.serch.server.admin.services.team.responses.AdminTeamResponse;
 import com.serch.server.admin.services.permission.requests.PermissionRequest;
 import com.serch.server.admin.services.permission.requests.PermissionScopeRequest;
@@ -65,11 +67,11 @@ public interface PermissionService {
     void create(List<PermissionScopeRequest> scopes, Admin admin);
 
     /**
-     * Submits a permission request based on the specified data.
+     * Submits a permission request based on the specified response.
      * This method allows admins to request specific permissions, which can be granted
      * or denied based on the organization's policies.
      *
-     * @param request The {@link PermissionRequest} containing the necessary data for the request.
+     * @param request The {@link PermissionRequest} containing the necessary response for the request.
      * @return {@link ApiResponse} indicating the success or failure of the permission request.
      */
     ApiResponse<String> request(PermissionRequest request);
@@ -126,9 +128,9 @@ public interface PermissionService {
 
     /**
      * Updates the permissions assigned to an admin by adding, removing, or modifying
-     * the permissions based on the provided request data.
+     * the permissions based on the provided request response.
      *
-     * @param request The {@link UpdatePermissionRequest} containing the necessary data for the update.
+     * @param request The {@link UpdatePermissionRequest} containing the necessary response for the update.
      * @return {@link ApiResponse} containing the updated {@link AdminTeamResponse} with the current permissions.
      */
     ApiResponse<AdminTeamResponse> updatePermissions(UpdatePermissionRequest request);

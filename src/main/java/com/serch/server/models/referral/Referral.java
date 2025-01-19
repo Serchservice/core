@@ -1,15 +1,14 @@
 package com.serch.server.models.referral;
 
+import com.serch.server.annotations.CoreID;
 import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.shared.UseStatus;
-import com.serch.server.generators.account.ReferralID;
 import com.serch.server.models.auth.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.GenericGenerator;
 
 /**
  * Represents a referral entity, storing information about referrals made by users.
@@ -37,7 +36,7 @@ public class Referral extends BaseDateTime {
      * The unique identifier for the referral.
      */
     @Id
-    @GenericGenerator(name = "referral_seq", type = ReferralID.class)
+    @CoreID(name = "referral_generator", prefix = "SREF")
     @GeneratedValue(generator = "referral_seq")
     @Column(name = "referral_id", nullable = false, columnDefinition = "TEXT")
     private String referId;

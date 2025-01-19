@@ -1,8 +1,9 @@
 package com.serch.server.domains.conversation.services.implementations;
 
-import com.serch.server.core.notification.core.NotificationService;
+import com.serch.server.core.notification.services.NotificationService;
 import com.serch.server.enums.chat.MessageState;
 import com.serch.server.enums.chat.MessageStatus;
+import com.serch.server.mappers.ConversationMapper;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.auth.User;
 import com.serch.server.models.conversation.ChatMessage;
@@ -47,11 +48,7 @@ public class ChattingImplementation implements ChattingService {
     @Transactional
     public void send(SendMessageRequest request, String emailAddress) {
         userRepository.findByEmailAddressIgnoreCase(emailAddress).ifPresent(user -> chatRoomRepository.findById(request.getRoom()).ifPresent(room -> {
-            ChatMessage message = new ChatMessage();
-
-            message.setMessage(request.getMessage());
-            message.setSenderMessage(request.getSenderMessage());
-            message.setType(request.getType());
+            ChatMessage message = ConversationMapper.INSTANCE.message(request);
 
             if(request.getReplied() != null && !request.getReplied().isEmpty()) {
                 ChatMessage replied = chatMessageRepository.findById(request.getReplied()).orElse(null);

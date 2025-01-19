@@ -1,14 +1,13 @@
 package com.serch.server.bases;
 
+import com.serch.server.annotations.CoreID;
 import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.trip.TripMode;
-import com.serch.server.generators.TripID;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Getter
@@ -19,7 +18,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @EntityListeners(AuditingEntityListener.class)
 public class BaseTrip extends BaseDateTime {
     @Id
-    @GenericGenerator(name = "trip_gen", type = TripID.class)
+    @CoreID(name = "trip_generator", prefix = "STRIP")
     @GeneratedValue(generator = "trip_gen")
     @Column(name = "id", nullable = false, columnDefinition = "TEXT", updatable = false)
     private String id;

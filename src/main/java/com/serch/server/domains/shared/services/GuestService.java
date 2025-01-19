@@ -24,16 +24,16 @@ public interface GuestService {
     ApiResponse<AuthResponse> becomeAUser(GuestToUserRequest request);
 
     /**
-     * Refresh guest data intermittently
+     * Refresh guest response intermittently
      *
-     * @param request The {@link SwitchRequest} data containing core values needed to update guest data
+     * @param request The {@link SwitchRequest} response containing services values needed to update guest response
      */
     void refresh(SwitchRequest request);
 
     /**
-     * Prepares the guest data
+     * Prepares the guest response
      *
-     * @param login The SharedLink for data preparation {@link SharedLogin}
+     * @param login The SharedLink for response preparation {@link SharedLogin}
      *
      * @return {@link GuestResponse}
      */

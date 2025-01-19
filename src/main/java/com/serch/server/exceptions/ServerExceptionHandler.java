@@ -173,7 +173,7 @@ import java.util.stream.Collectors;
  *     Handles exception related to unexpected types. {@link UnexpectedTypeException}
  *     </li>
  *     <li>{@link ServerExceptionHandler#handleDataIntegrityViolationException(DataIntegrityViolationException)} -
- *     Handles exception related to data integrity violation. {@link DataIntegrityViolationException}
+ *     Handles exception related to response integrity violation. {@link DataIntegrityViolationException}
  *     </li>
  *     <li>{@link ServerExceptionHandler#handleHttpServerErrorException(HttpServerErrorException)} -
  *     Handles exception related to server errors.
@@ -727,14 +727,14 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     public ApiResponse<String> handleJDBCException(JDBCException exception){
         log.error(exception.getSQLException().getMessage());
 
-        return new ApiResponse<>("An error happened while fetching data, try again.", HttpStatus.BAD_REQUEST);
+        return new ApiResponse<>("An error happened while fetching response, try again.", HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(JDBCConnectionException.class)
     public ApiResponse<String> handleJDBCConnectionException(JDBCConnectionException exception){
         log.error(exception.getSQLException().getMessage());
 
-        return new ApiResponse<>("Couldn't complete connection while fetching data, try again", HttpStatus.BAD_REQUEST);
+        return new ApiResponse<>("Couldn't complete connection while fetching response, try again", HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(IOException.class)
@@ -883,7 +883,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
         log.error(exception.getMessage());
 
         return new ApiResponse<>(
-                "Invalid data format",
+                "Invalid response format",
                 ExceptionCodes.IMPROPER_USER_ID_FORMAT,
                 HttpStatus.NOT_ACCEPTABLE
         );
@@ -905,7 +905,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
         log.error(exception.getMessage());
 
         return new ApiResponse<>(
-                "An error occurred while fetching data, please try again",
+                "An error occurred while fetching response, please try again",
                 ExceptionCodes.IMPROPER_USER_ID_FORMAT,
                 HttpStatus.NOT_ACCEPTABLE
         );
@@ -916,7 +916,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
         log.error(exception.getMessage());
 
         return new ApiResponse<>(
-                "An error occurred while fetching data, please try again",
+                "An error occurred while fetching response, please try again",
                 ExceptionCodes.IMPROPER_USER_ID_FORMAT,
                 HttpStatus.NOT_ACCEPTABLE
         );
@@ -927,7 +927,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
         log.error(exception.getMessage());
 
         return new ApiResponse<>(
-                "An error occurred while fetching data, please try again",
+                "An error occurred while fetching response, please try again",
                 ExceptionCodes.IMPROPER_USER_ID_FORMAT,
                 HttpStatus.NOT_ACCEPTABLE
         );
@@ -938,7 +938,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
         log.error(exception.getMessage());
 
         return new ApiResponse<>(
-                "An error occurred while fetching data, please try again",
+                "An error occurred while fetching response, please try again",
                 ExceptionCodes.IMPROPER_USER_ID_FORMAT,
                 HttpStatus.NOT_ACCEPTABLE
         );
@@ -949,7 +949,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
         log.error(exception.getMessage());
 
         return new ApiResponse<>(
-                "An error occurred while fetching data, please try again",
+                "An error occurred while fetching response, please try again",
                 ExceptionCodes.IMPROPER_USER_ID_FORMAT,
                 HttpStatus.NOT_ACCEPTABLE
         );
@@ -960,7 +960,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
         log.error(exception.getMessage());
 
         return new ApiResponse<>(
-                "An error occurred while fetching data, please try again",
+                "An error occurred while fetching response, please try again",
                 ExceptionCodes.IMPROPER_USER_ID_FORMAT,
                 HttpStatus.NOT_ACCEPTABLE
         );
@@ -982,7 +982,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
         log.error(exception.getMessage());
 
         return new ApiResponse<>(
-                "Timeout. Error while fetching data",
+                "Timeout. Error while fetching response",
                 ExceptionCodes.IMPROPER_USER_ID_FORMAT,
                 HttpStatus.NOT_ACCEPTABLE
         );
@@ -992,7 +992,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     public ApiResponse<String> handleTransactionSystemException(TransactionSystemException exception){
         log.error(exception.getMessage());
 
-        return new ApiResponse<>("An error occurred while saving your data. Try again", HttpStatus.BAD_REQUEST);
+        return new ApiResponse<>("An error occurred while saving your response. Try again", HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(MessageDeliveryException.class)

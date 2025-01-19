@@ -1,13 +1,12 @@
 package com.serch.server.models.certificate;
 
+import com.serch.server.annotations.CoreID;
 import com.serch.server.bases.BaseDateTime;
-import com.serch.server.generators.CertificateID;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.GenericGenerator;
 
 import java.util.UUID;
 
@@ -19,8 +18,8 @@ import java.util.UUID;
 @Table(schema = "platform", name = "certificates")
 public class Certificate extends BaseDateTime {
     @Id
+    @CoreID(name = "cert_generator", prefix = "SCERT", replaceSymbols = true, end = 10)
     @Column(nullable = false, columnDefinition = "TEXT")
-    @GenericGenerator(type = CertificateID.class, name = "cert_seq_key")
     @GeneratedValue(generator = "cert_seq_key")
     private String id;
 

@@ -9,22 +9,22 @@ import lombok.RequiredArgsConstructor;
  * <p></p>
  * The permissions are categorized based on their target entities:
  * <ul>
- *     <li>{@link AuthPermission#USER_READ} - Permission to read user data</li>
- *     <li>{@link AuthPermission#USER_WRITE} - Permission to write user data</li>
- *     <li>{@link AuthPermission#USER_DELETE} - Permission to delete user data</li>
- *     <li>{@link AuthPermission#USER_UPDATE} - Permission to update user data</li>
- *     <li>{@link AuthPermission#PROVIDER_READ} - Permission to read provider data</li>
- *     <li>{@link AuthPermission#PROVIDER_WRITE} - Permission to write provider data</li>
- *     <li>{@link AuthPermission#PROVIDER_DELETE} - Permission to delete provider data</li>
- *     <li>{@link AuthPermission#PROVIDER_UPDATE} - Permission to update provider data</li>
- *     <li>{@link AuthPermission#BUSINESS_READ} - Permission to read business data</li>
- *     <li>{@link AuthPermission#BUSINESS_WRITE} - Permission to write business data</li>
- *     <li>{@link AuthPermission#BUSINESS_DELETE} - Permission to delete business data</li>
- *     <li>{@link AuthPermission#BUSINESS_UPDATE} - Permission to update business data</li>
- *     <li>{@link AuthPermission#ASSOCIATE_PROVIDER_READ} - Permission to read associate provider data</li>
- *     <li>{@link AuthPermission#ASSOCIATE_PROVIDER_WRITE} - Permission to write associate provider data</li>
- *     <li>{@link AuthPermission#ASSOCIATE_PROVIDER_DELETE} - Permission to delete associate provider data</li>
- *     <li>{@link AuthPermission#ASSOCIATE_PROVIDER_UPDATE} - Permission to update associate provider data</li>
+ *     <li>{@link AuthPermission#USER_READ} - Permission to read user response</li>
+ *     <li>{@link AuthPermission#USER_WRITE} - Permission to write user response</li>
+ *     <li>{@link AuthPermission#USER_DELETE} - Permission to delete user response</li>
+ *     <li>{@link AuthPermission#USER_UPDATE} - Permission to update user response</li>
+ *     <li>{@link AuthPermission#PROVIDER_READ} - Permission to read provider response</li>
+ *     <li>{@link AuthPermission#PROVIDER_WRITE} - Permission to write provider response</li>
+ *     <li>{@link AuthPermission#PROVIDER_DELETE} - Permission to delete provider response</li>
+ *     <li>{@link AuthPermission#PROVIDER_UPDATE} - Permission to update provider response</li>
+ *     <li>{@link AuthPermission#BUSINESS_READ} - Permission to read business response</li>
+ *     <li>{@link AuthPermission#BUSINESS_WRITE} - Permission to write business response</li>
+ *     <li>{@link AuthPermission#BUSINESS_DELETE} - Permission to delete business response</li>
+ *     <li>{@link AuthPermission#BUSINESS_UPDATE} - Permission to update business response</li>
+ *     <li>{@link AuthPermission#ASSOCIATE_PROVIDER_READ} - Permission to read associate provider response</li>
+ *     <li>{@link AuthPermission#ASSOCIATE_PROVIDER_WRITE} - Permission to write associate provider response</li>
+ *     <li>{@link AuthPermission#ASSOCIATE_PROVIDER_DELETE} - Permission to delete associate provider response</li>
+ *     <li>{@link AuthPermission#ASSOCIATE_PROVIDER_UPDATE} - Permission to update associate provider response</li>
  * </ul>
  * This enum is annotated with Lombok's {@link Getter} and {@link RequiredArgsConstructor} to generate
  * getter methods and a constructor with required arguments automatically.

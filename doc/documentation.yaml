@@ -35,7 +35,7 @@ paths:
   /wallet/withdraw:
     post:
       tags:
-      - wallet-controller
+      - wallet-controllers
       operationId: requestWithdraw
       requestBody:
         content:
@@ -53,7 +53,7 @@ paths:
   /wallet/update:
     post:
       tags:
-      - wallet-controller
+      - wallet-controllers
       operationId: updateWallet
       requestBody:
         content:
@@ -71,7 +71,7 @@ paths:
   /wallet/fund:
     post:
       tags:
-      - wallet-controller
+      - wallet-controllers
       operationId: fundWallet
       requestBody:
         content:
@@ -89,7 +89,7 @@ paths:
   /trip/shared/share:
     post:
       tags:
-      - trip-share-controller
+      - trip-share-controllers
       operationId: share
       requestBody:
         content:
@@ -107,7 +107,7 @@ paths:
   /trip/request:
     post:
       tags:
-      - trip-controller
+      - trip-controllers
       operationId: request
       requestBody:
         content:
@@ -125,7 +125,7 @@ paths:
   /trip/invite/request:
     post:
       tags:
-      - trip-request-controller
+      - trip-request-controllers
       operationId: request_1
       requestBody:
         content:
@@ -143,7 +143,7 @@ paths:
   /trip/invite/request/{guest}/{link}:
     post:
       tags:
-      - trip-request-controller
+      - trip-request-controllers
       operationId: request_2
       parameters:
       - name: guest
@@ -172,7 +172,7 @@ paths:
   /trip/invite/quote:
     post:
       tags:
-      - trip-request-controller
+      - trip-request-controllers
       operationId: quote
       requestBody:
         content:
@@ -190,7 +190,7 @@ paths:
   /trip/invite/accept:
     post:
       tags:
-      - trip-request-controller
+      - trip-request-controllers
       operationId: accept
       requestBody:
         content:
@@ -208,7 +208,7 @@ paths:
   /trip/accept:
     post:
       tags:
-      - trip-controller
+      - trip-controllers
       operationId: accept_1
       requestBody:
         content:
@@ -226,7 +226,7 @@ paths:
   /switch:
     post:
       tags:
-      - switch-controller
+      - switch-controllers
       operationId: switchToGuest
       requestBody:
         content:
@@ -244,7 +244,7 @@ paths:
   /switch/user:
     post:
       tags:
-      - switch-controller
+      - switch-controllers
       operationId: switchToUser
       requestBody:
         content:
@@ -262,7 +262,7 @@ paths:
   /shop/drive:
     post:
       tags:
-      - shop-drive-controller
+      - shop-drive-controllers
       operationId: drive
       requestBody:
         content:
@@ -280,7 +280,7 @@ paths:
   /shop/create:
     post:
       tags:
-      - shop-controller
+      - shop-controllers
       operationId: createShop
       requestBody:
         content:
@@ -298,7 +298,7 @@ paths:
   /shop/create/weekday/{id}:
     post:
       tags:
-      - shop-controller
+      - shop-controllers
       operationId: createWeekday
       parameters:
       - name: id
@@ -322,7 +322,7 @@ paths:
   /shop/create/service:
     post:
       tags:
-      - shop-controller
+      - shop-controllers
       operationId: createService
       requestBody:
         content:
@@ -340,7 +340,7 @@ paths:
   /scope/support/speak-with-serch/reply:
     post:
       tags:
-      - speak-with-serch-scope-controller
+      - speak-with-serch-scope-controllers
       operationId: reply
       requestBody:
         content:
@@ -358,7 +358,7 @@ paths:
   /schedule:
     post:
       tags:
-      - schedule-controller
+      - schedule-controllers
       operationId: request_3
       requestBody:
         content:
@@ -376,7 +376,7 @@ paths:
   /schedule/decline:
     post:
       tags:
-      - schedule-controller
+      - schedule-controllers
       operationId: decline
       requestBody:
         content:
@@ -394,7 +394,7 @@ paths:
   /rating/rate:
     post:
       tags:
-      - rating-controller
+      - rating-controllers
       operationId: rate
       requestBody:
         content:
@@ -412,7 +412,7 @@ paths:
   /rating/rate/app:
     post:
       tags:
-      - rating-controller
+      - rating-controllers
       operationId: rate_1
       requestBody:
         content:
@@ -430,7 +430,7 @@ paths:
   /organization/add:
     post:
       tags:
-      - organization-controller
+      - organization-controllers
       operationId: add
       requestBody:
         content:
@@ -448,7 +448,7 @@ paths:
   /nearby/drive:
     post:
       tags:
-      - nearby-drive-controller
+      - nearby-drive-controllers
       operationId: drive_1
       requestBody:
         content:
@@ -466,7 +466,7 @@ paths:
   /nearby/drive/search:
     post:
       tags:
-      - nearby-drive-controller
+      - nearby-drive-controllers
       operationId: search
       requestBody:
         content:
@@ -484,7 +484,7 @@ paths:
   /company/suggest:
     post:
       tags:
-      - suggest-controller
+      - suggest-controllers
       operationId: suggest
       requestBody:
         content:
@@ -502,7 +502,7 @@ paths:
   /company/speak_with_serch:
     get:
       tags:
-      - speak-with-serch-controller
+      - speak-with-serch-controllers
       operationId: messages
       parameters:
       - name: page
@@ -526,7 +526,7 @@ paths:
                 $ref: '#/components/schemas/ApiResponseListSpeakWithSerchResponse'
     post:
       tags:
-      - speak-with-serch-controller
+      - speak-with-serch-controllers
       operationId: lodge
       requestBody:
         content:
@@ -544,7 +544,7 @@ paths:
   /company/complaint/complain:
     post:
       tags:
-      - complaint-controller
+      - complaint-controllers
       operationId: complain
       requestBody:
         content:
@@ -562,7 +562,7 @@ paths:
   /call/start:
     post:
       tags:
-      - call-controller
+      - call-controllers
       operationId: start
       requestBody:
         content:
@@ -580,7 +580,7 @@ paths:
   /business/associate/add:
     post:
       tags:
-      - business-associate-controller
+      - business-associate-controllers
       operationId: add_1
       requestBody:
         content:
@@ -598,7 +598,7 @@ paths:
   /bookmark/add:
     post:
       tags:
-      - bookmark-controller
+      - bookmark-controllers
       operationId: add_2
       requestBody:
         content:
@@ -616,7 +616,7 @@ paths:
   /auth/user/signup:
     post:
       tags:
-      - user-auth-controller
+      - user-auth-controllers
       operationId: signup
       requestBody:
         content:
@@ -634,7 +634,7 @@ paths:
   /auth/user/login:
     post:
       tags:
-      - user-auth-controller
+      - user-auth-controllers
       operationId: login
       requestBody:
         content:
@@ -652,7 +652,7 @@ paths:
   /auth/user/become:
     post:
       tags:
-      - user-auth-controller
+      - user-auth-controllers
       operationId: become
       requestBody:
         content:
@@ -670,7 +670,7 @@ paths:
   /auth/provider/signup:
     post:
       tags:
-      - provider-auth-controller
+      - provider-auth-controllers
       operationId: savePlan
       requestBody:
         content:
@@ -688,7 +688,7 @@ paths:
   /auth/provider/profile:
     post:
       tags:
-      - provider-auth-controller
+      - provider-auth-controllers
       operationId: saveProfile
       requestBody:
         content:
@@ -706,7 +706,7 @@ paths:
   /auth/provider/login:
     post:
       tags:
-      - provider-auth-controller
+      - provider-auth-controllers
       operationId: login_1
       requestBody:
         content:
@@ -724,7 +724,7 @@ paths:
   /auth/provider/category:
     post:
       tags:
-      - provider-auth-controller
+      - provider-auth-controllers
       operationId: saveCategory
       requestBody:
         content:
@@ -742,7 +742,7 @@ paths:
   /auth/password/reset:
     post:
       tags:
-      - password-controller
+      - password-controllers
       operationId: resetPassword
       requestBody:
         content:
@@ -760,7 +760,7 @@ paths:
   /auth/password/reset/verify:
     post:
       tags:
-      - password-controller
+      - password-controllers
       operationId: verifyOTP
       requestBody:
         content:
@@ -778,7 +778,7 @@ paths:
   /auth/password/change:
     post:
       tags:
-      - password-controller
+      - password-controllers
       operationId: changePassword
       requestBody:
         content:
@@ -796,7 +796,7 @@ paths:
   /auth/nearby/register:
     post:
       tags:
-      - nearby-auth-controller
+      - nearby-auth-controllers
       operationId: register
       requestBody:
         content:
@@ -814,7 +814,7 @@ paths:
   /auth/mfa/verify/code:
     post:
       tags:
-      - mfa-controller
+      - mfa-controllers
       operationId: verifyCode
       requestBody:
         content:
@@ -832,7 +832,7 @@ paths:
   /auth/mfa/recovery/code/verify:
     post:
       tags:
-      - mfa-controller
+      - mfa-controllers
       operationId: verifyRecovery
       requestBody:
         content:
@@ -850,7 +850,7 @@ paths:
   /auth/guest/login:
     post:
       tags:
-      - guest-auth-controller
+      - guest-auth-controllers
       operationId: login_2
       requestBody:
         content:
@@ -868,7 +868,7 @@ paths:
   /auth/guest/email/verify:
     post:
       tags:
-      - guest-auth-controller
+      - guest-auth-controllers
       operationId: verifyEmailWithToken
       requestBody:
         content:
@@ -886,7 +886,7 @@ paths:
   /auth/guest/email/ask:
     post:
       tags:
-      - guest-auth-controller
+      - guest-auth-controllers
       operationId: askToVerifyEmail
       requestBody:
         content:
@@ -904,7 +904,7 @@ paths:
   /auth/guest/create:
     post:
       tags:
-      - guest-auth-controller
+      - guest-auth-controllers
       operationId: create
       requestBody:
         content:
@@ -922,7 +922,7 @@ paths:
   /auth/guest/create/existing:
     post:
       tags:
-      - guest-auth-controller
+      - guest-auth-controllers
       operationId: createFromExistingUser
       requestBody:
         content:
@@ -940,7 +940,7 @@ paths:
   /auth/email/verify:
     post:
       tags:
-      - auth-controller
+      - auth-controllers
       operationId: verifyEmailAndToken
       requestBody:
         content:
@@ -958,7 +958,7 @@ paths:
   /auth/email/verify/pending:
     post:
       tags:
-      - auth-controller
+      - auth-controllers
       operationId: verifyPending
       requestBody:
         content:
@@ -976,7 +976,7 @@ paths:
   /auth/business/signup:
     post:
       tags:
-      - business-auth-controller
+      - business-auth-controllers
       operationId: signup_1
       requestBody:
         content:
@@ -994,7 +994,7 @@ paths:
   /auth/business/profile:
     post:
       tags:
-      - business-auth-controller
+      - business-auth-controllers
       operationId: saveProfile_1
       requestBody:
         content:
@@ -1012,7 +1012,7 @@ paths:
   /auth/business/login:
     post:
       tags:
-      - business-auth-controller
+      - business-auth-controllers
       operationId: login_3
       requestBody:
         content:
@@ -1030,7 +1030,7 @@ paths:
   /auth/business/category:
     post:
       tags:
-      - business-auth-controller
+      - business-auth-controllers
       operationId: saveCategory_1
       requestBody:
         content:
@@ -1048,7 +1048,7 @@ paths:
   /auth/associate:
     get:
       tags:
-      - business-associate-auth-controller
+      - business-associate-auth-controllers
       operationId: verifyLink_2
       parameters:
       - name: token
@@ -1065,7 +1065,7 @@ paths:
                 $ref: '#/components/schemas/ApiResponseVerifiedInviteResponse'
     post:
       tags:
-      - business-associate-auth-controller
+      - business-associate-auth-controllers
       operationId: changePassword_1
       requestBody:
         content:
@@ -1083,7 +1083,7 @@ paths:
   /auth/admin/super/signup:
     post:
       tags:
-      - admin-auth-controller
+      - admin-auth-controllers
       operationId: signup_2
       requestBody:
         content:
@@ -1101,7 +1101,7 @@ paths:
   /auth/admin/password/reset:
     get:
       tags:
-      - admin-auth-controller
+      - admin-auth-controllers
       operationId: resetPassword_2
       parameters:
       - name: id
@@ -1119,7 +1119,7 @@ paths:
                 $ref: '#/components/schemas/ApiResponseString'
     post:
       tags:
-      - admin-auth-controller
+      - admin-auth-controllers
       operationId: resetPassword_1
       requestBody:
         content:
@@ -1137,7 +1137,7 @@ paths:
   /auth/admin/login:
     post:
       tags:
-      - admin-auth-controller
+      - admin-auth-controllers
       operationId: login_4
       requestBody:
         content:
@@ -1155,7 +1155,7 @@ paths:
   /auth/admin/invite:
     post:
       tags:
-      - admin-auth-controller
+      - admin-auth-controllers
       operationId: add_3
       requestBody:
         content:
@@ -1173,7 +1173,7 @@ paths:
   /auth/admin/invite/setup:
     post:
       tags:
-      - admin-auth-controller
+      - admin-auth-controllers
       operationId: finishSignup
       requestBody:
         content:
@@ -1191,7 +1191,7 @@ paths:
   /auth/admin/confirm:
     post:
       tags:
-      - admin-auth-controller
+      - admin-auth-controllers
       operationId: confirm
       requestBody:
         content:
@@ -1209,7 +1209,7 @@ paths:
   /admin/permission/request:
     post:
       tags:
-      - permission-controller
+      - permission-controllers
       operationId: request_4
       requestBody:
         content:
@@ -1227,7 +1227,7 @@ paths:
   /account/report:
     post:
       tags:
-      - account-report-controller
+      - account-report-controllers
       operationId: report
       requestBody:
         content:
@@ -1245,7 +1245,7 @@ paths:
   /trip/update:
     patch:
       tags:
-      - trip-controller
+      - trip-controllers
       operationId: update
       requestBody:
         content:
@@ -1263,7 +1263,7 @@ paths:
   /trip/shared/leave:
     patch:
       tags:
-      - trip-share-controller
+      - trip-share-controllers
       operationId: leave
       parameters:
       - name: id
@@ -1281,7 +1281,7 @@ paths:
   /trip/shared/end:
     patch:
       tags:
-      - trip-share-controller
+      - trip-share-controllers
       operationId: end
       parameters:
       - name: id
@@ -1299,7 +1299,7 @@ paths:
   /trip/shared/auth:
     patch:
       tags:
-      - trip-share-controller
+      - trip-share-controllers
       operationId: auth
       requestBody:
         content:
@@ -1317,7 +1317,7 @@ paths:
   /trip/shared/access:
     patch:
       tags:
-      - trip-share-controller
+      - trip-share-controllers
       operationId: access
       parameters:
       - name: guest
@@ -1340,7 +1340,7 @@ paths:
   /trip/shared/accept:
     patch:
       tags:
-      - trip-share-controller
+      - trip-share-controllers
       operationId: accept_2
       requestBody:
         content:
@@ -1358,7 +1358,7 @@ paths:
   /trip/leave:
     patch:
       tags:
-      - trip-controller
+      - trip-controllers
       operationId: leave_1
       parameters:
       - name: id
@@ -1376,7 +1376,7 @@ paths:
   /trip/end:
     patch:
       tags:
-      - trip-controller
+      - trip-controllers
       operationId: end_1
       requestBody:
         content:
@@ -1394,7 +1394,7 @@ paths:
   /trip/cancel:
     patch:
       tags:
-      - trip-controller
+      - trip-controllers
       operationId: cancel
       requestBody:
         content:
@@ -1412,7 +1412,7 @@ paths:
   /trip/auth:
     patch:
       tags:
-      - trip-controller
+      - trip-controllers
       operationId: auth_1
       requestBody:
         content:
@@ -1430,7 +1430,7 @@ paths:
   /specialty/add:
     patch:
       tags:
-      - specialty-controller
+      - specialty-controllers
       operationId: add_4
       parameters:
       - name: specialty
@@ -1448,7 +1448,7 @@ paths:
   /shop/update:
     patch:
       tags:
-      - shop-controller
+      - shop-controllers
       operationId: updateShop
       requestBody:
         content:
@@ -1466,7 +1466,7 @@ paths:
   /shop/update/weekday:
     patch:
       tags:
-      - shop-controller
+      - shop-controllers
       operationId: updateWeekday
       parameters:
       - name: id
@@ -1496,7 +1496,7 @@ paths:
   /shop/update/service:
     patch:
       tags:
-      - shop-controller
+      - shop-controllers
       operationId: updateService
       requestBody:
         content:
@@ -1514,7 +1514,7 @@ paths:
   /shop/status:
     patch:
       tags:
-      - shop-controller
+      - shop-controllers
       operationId: changeStatus
       parameters:
       - name: shop
@@ -1541,7 +1541,7 @@ paths:
   /shop/status/all:
     patch:
       tags:
-      - shop-controller
+      - shop-controllers
       operationId: changeAllStatus
       responses:
         "200":
@@ -1553,7 +1553,7 @@ paths:
   /shop/drive/rate:
     patch:
       tags:
-      - shop-drive-controller
+      - shop-drive-controllers
       operationId: rate_2
       parameters:
       - name: id
@@ -1578,7 +1578,7 @@ paths:
   /scope/support/speak-with-serch/resolve:
     patch:
       tags:
-      - speak-with-serch-scope-controller
+      - speak-with-serch-scope-controllers
       operationId: resolve
       parameters:
       - name: ticket
@@ -1596,7 +1596,7 @@ paths:
   /scope/support/speak-with-serch/close:
     patch:
       tags:
-      - speak-with-serch-scope-controller
+      - speak-with-serch-scope-controllers
       operationId: close
       parameters:
       - name: ticket
@@ -1614,7 +1614,7 @@ paths:
   /scope/support/speak-with-serch/assign:
     patch:
       tags:
-      - speak-with-serch-scope-controller
+      - speak-with-serch-scope-controllers
       operationId: assign
       parameters:
       - name: id
@@ -1638,7 +1638,7 @@ paths:
   /scope/support/complaint/resolve:
     patch:
       tags:
-      - complaint-scope-controller
+      - complaint-scope-controllers
       operationId: resolve_1
       parameters:
       - name: id
@@ -1656,7 +1656,7 @@ paths:
   /scope/payment/transaction/resolve:
     patch:
       tags:
-      - transaction-scope-controller
+      - transaction-scope-controllers
       operationId: resolve_2
       parameters:
       - name: id
@@ -1683,7 +1683,7 @@ paths:
   /scope/payment/payout/pay:
     patch:
       tags:
-      - payout-scope-controller
+      - payout-scope-controllers
       operationId: payout
       parameters:
       - name: page
@@ -1715,7 +1715,7 @@ paths:
   /scope/payment/payout/pay/batch:
     patch:
       tags:
-      - payout-scope-controller
+      - payout-scope-controllers
       operationId: payout_1
       parameters:
       - name: id
@@ -1733,7 +1733,7 @@ paths:
   /scope/payment/payout/cancel:
     patch:
       tags:
-      - payout-scope-controller
+      - payout-scope-controllers
       operationId: cancel_1
       parameters:
       - name: page
@@ -1765,7 +1765,7 @@ paths:
   /scope/payment/payout/cancel/batch:
     patch:
       tags:
-      - payout-scope-controller
+      - payout-scope-controllers
       operationId: cancel_2
       parameters:
       - name: id
@@ -1783,7 +1783,7 @@ paths:
   /scope/marketing/newsletter:
     patch:
       tags:
-      - marketing-scope-controller
+      - marketing-scope-controllers
       operationId: update_1
       parameters:
       - name: id
@@ -1802,7 +1802,7 @@ paths:
   /scope/auth/session/revoke:
     patch:
       tags:
-      - auth-scope-controller
+      - auth-scope-controllers
       operationId: revokeSession
       parameters:
       - name: id
@@ -1821,7 +1821,7 @@ paths:
   /scope/auth/session/refresh/revoke:
     patch:
       tags:
-      - auth-scope-controller
+      - auth-scope-controllers
       operationId: revokeRefreshToken
       parameters:
       - name: id
@@ -1840,7 +1840,7 @@ paths:
   /scope/admin/profile/update:
     patch:
       tags:
-      - admin-scope-controller
+      - admin-scope-controllers
       operationId: update_2
       parameters:
       - name: id
@@ -1865,7 +1865,7 @@ paths:
   /scope/admin/profile/avatar:
     patch:
       tags:
-      - admin-scope-controller
+      - admin-scope-controllers
       operationId: changeAvatar
       parameters:
       - name: id
@@ -1890,7 +1890,7 @@ paths:
   /scope/admin/auth/mfa:
     patch:
       tags:
-      - admin-scope-controller
+      - admin-scope-controllers
       operationId: toggle
       parameters:
       - name: id
@@ -1909,7 +1909,7 @@ paths:
   /scope/admin/account/status:
     patch:
       tags:
-      - admin-scope-controller
+      - admin-scope-controllers
       operationId: changeStatus_1
       requestBody:
         content:
@@ -1927,7 +1927,7 @@ paths:
   /scope/admin/account/role:
     patch:
       tags:
-      - admin-scope-controller
+      - admin-scope-controllers
       operationId: changeRole
       requestBody:
         content:
@@ -1945,7 +1945,7 @@ paths:
   /schedule/start/{id}:
     patch:
       tags:
-      - schedule-controller
+      - schedule-controllers
       operationId: start_1
       parameters:
       - name: id
@@ -1963,7 +1963,7 @@ paths:
   /schedule/close/{id}:
     patch:
       tags:
-      - schedule-controller
+      - schedule-controllers
       operationId: close_1
       parameters:
       - name: id
@@ -1981,7 +1981,7 @@ paths:
   /schedule/cancel/{id}:
     patch:
       tags:
-      - schedule-controller
+      - schedule-controllers
       operationId: cancel_3
       parameters:
       - name: id
@@ -1999,7 +1999,7 @@ paths:
   /schedule/accept/{id}:
     patch:
       tags:
-      - schedule-controller
+      - schedule-controllers
       operationId: accept_3
       parameters:
       - name: id
@@ -2017,7 +2017,7 @@ paths:
   /profile/update:
     patch:
       tags:
-      - profile-controller
+      - profile-controllers
       operationId: update_3
       requestBody:
         content:
@@ -2035,7 +2035,7 @@ paths:
   /profile/business/update:
     patch:
       tags:
-      - business-controller
+      - business-controllers
       operationId: update_4
       requestBody:
         content:
@@ -2053,7 +2053,7 @@ paths:
   /organization/update:
     patch:
       tags:
-      - organization-controller
+      - organization-controllers
       operationId: update_5
       parameters:
       - name: id
@@ -2078,7 +2078,7 @@ paths:
   /guest/update/timezone:
     patch:
       tags:
-      - guest-controller
+      - guest-controllers
       operationId: updateTimezone
       parameters:
       - name: zone
@@ -2101,7 +2101,7 @@ paths:
   /guest/update/fcm:
     patch:
       tags:
-      - guest-controller
+      - guest-controllers
       operationId: updateFcmToken
       parameters:
       - name: token
@@ -2124,7 +2124,7 @@ paths:
   /company/speak_with_serch/{ticket}:
     patch:
       tags:
-      - speak-with-serch-controller
+      - speak-with-serch-controllers
       operationId: markRead
       parameters:
       - name: ticket
@@ -2142,7 +2142,7 @@ paths:
   /certificate/upload:
     patch:
       tags:
-      - certificate-controller
+      - certificate-controllers
       operationId: upload
       requestBody:
         content:
@@ -2160,7 +2160,7 @@ paths:
   /call/update:
     patch:
       tags:
-      - call-controller
+      - call-controllers
       operationId: update_6
       requestBody:
         content:
@@ -2178,7 +2178,7 @@ paths:
   /call/session:
     patch:
       tags:
-      - call-controller
+      - call-controllers
       operationId: checkSession
       requestBody:
         content:
@@ -2196,7 +2196,7 @@ paths:
   /business/associate/deactivate:
     patch:
       tags:
-      - business-associate-controller
+      - business-associate-controllers
       operationId: deactivate
       parameters:
       - name: id
@@ -2215,7 +2215,7 @@ paths:
   /business/associate/activate:
     patch:
       tags:
-      - business-associate-controller
+      - business-associate-controllers
       operationId: activate
       parameters:
       - name: id
@@ -2234,7 +2234,7 @@ paths:
   /admin/profile/upload:
     patch:
       tags:
-      - admin-profile-controller
+      - admin-profile-controllers
       operationId: uploadAvatar
       requestBody:
         content:
@@ -2252,7 +2252,7 @@ paths:
   /admin/profile/update:
     patch:
       tags:
-      - admin-profile-controller
+      - admin-profile-controllers
       operationId: update_7
       requestBody:
         content:
@@ -2270,7 +2270,7 @@ paths:
   /admin/profile/update/timezone:
     patch:
       tags:
-      - admin-profile-controller
+      - admin-profile-controllers
       operationId: updateTimezone_1
       parameters:
       - name: timezone
@@ -2288,7 +2288,7 @@ paths:
   /admin/permission/update:
     patch:
       tags:
-      - permission-controller
+      - permission-controllers
       operationId: updatePermissions
       requestBody:
         content:
@@ -2306,7 +2306,7 @@ paths:
   /admin/permission/revoke:
     patch:
       tags:
-      - permission-controller
+      - permission-controllers
       operationId: revoke
       parameters:
       - name: id
@@ -2325,7 +2325,7 @@ paths:
   /admin/permission/grant:
     patch:
       tags:
-      - permission-controller
+      - permission-controllers
       operationId: grant
       parameters:
       - name: id
@@ -2349,7 +2349,7 @@ paths:
   /admin/permission/decline:
     patch:
       tags:
-      - permission-controller
+      - permission-controllers
       operationId: decline_1
       parameters:
       - name: id
@@ -2368,7 +2368,7 @@ paths:
   /admin/permission/cancel:
     patch:
       tags:
-      - permission-controller
+      - permission-controllers
       operationId: cancel_4
       parameters:
       - name: id
@@ -2387,7 +2387,7 @@ paths:
   /active/toggle:
     patch:
       tags:
-      - active-controller
+      - active-controllers
       operationId: toggle_1
       requestBody:
         content:
@@ -2405,7 +2405,7 @@ paths:
   /account/update/timezone:
     patch:
       tags:
-      - account-controller
+      - account-controllers
       operationId: updateTimezone_2
       parameters:
       - name: zone
@@ -2423,7 +2423,7 @@ paths:
   /account/update/fcm:
     patch:
       tags:
-      - account-controller
+      - account-controllers
       operationId: updateFcmToken_1
       parameters:
       - name: token
@@ -2441,7 +2441,7 @@ paths:
   /account/update/e2ee:
     patch:
       tags:
-      - account-controller
+      - account-controllers
       operationId: updatePublicEncryptionKey
       requestBody:
         content:
@@ -2459,7 +2459,7 @@ paths:
   /account/settings/update:
     patch:
       tags:
-      - account-setting-controller
+      - account-setting-controllers
       operationId: update_8
       requestBody:
         content:
@@ -2477,7 +2477,7 @@ paths:
   /wallet:
     get:
       tags:
-      - wallet-controller
+      - wallet-controllers
       operationId: view
       responses:
         "200":
@@ -2489,7 +2489,7 @@ paths:
   /wallet/transactions:
     get:
       tags:
-      - wallet-controller
+      - wallet-controllers
       operationId: transactions
       parameters:
       - name: page
@@ -2514,7 +2514,7 @@ paths:
   /wallet/recent:
     get:
       tags:
-      - wallet-controller
+      - wallet-controllers
       operationId: recent
       responses:
         "200":
@@ -2526,7 +2526,7 @@ paths:
   /wallet/fund/verify:
     get:
       tags:
-      - wallet-controller
+      - wallet-controllers
       operationId: verify
       parameters:
       - name: reference
@@ -2544,7 +2544,7 @@ paths:
   /verification:
     get:
       tags:
-      - verification-controller
+      - verification-controllers
       operationId: verification
       responses:
         "200":
@@ -2556,7 +2556,7 @@ paths:
   /verification/consent:
     get:
       tags:
-      - verification-controller
+      - verification-controllers
       operationId: consent
       responses:
         "200":
@@ -2568,7 +2568,7 @@ paths:
   /trip/search:
     get:
       tags:
-      - trip-controller
+      - trip-controllers
       operationId: search_1
       parameters:
       - name: phone
@@ -2610,7 +2610,7 @@ paths:
   /trip/rebook:
     get:
       tags:
-      - trip-controller
+      - trip-controllers
       operationId: rebook
       parameters:
       - name: id
@@ -2633,7 +2633,7 @@ paths:
   /trip/pay/verify:
     get:
       tags:
-      - trip-controller
+      - trip-controllers
       operationId: verify_1
       parameters:
       - name: id
@@ -2661,7 +2661,7 @@ paths:
   /trip/pay/service_fee:
     get:
       tags:
-      - trip-controller
+      - trip-controllers
       operationId: payServiceFee
       parameters:
       - name: id
@@ -2679,7 +2679,7 @@ paths:
   /trip/history:
     get:
       tags:
-      - trip-history-controller
+      - trip-history-controllers
       operationId: history
       parameters:
       - name: guest
@@ -2730,7 +2730,7 @@ paths:
   /trip/history/shared:
     get:
       tags:
-      - trip-history-controller
+      - trip-history-controllers
       operationId: shared
       parameters:
       - name: guest
@@ -2765,7 +2765,7 @@ paths:
   /trip/history/requested:
     get:
       tags:
-      - trip-history-controller
+      - trip-history-controllers
       operationId: requested
       parameters:
       - name: guest
@@ -2800,7 +2800,7 @@ paths:
   /trip/history/active:
     get:
       tags:
-      - trip-history-controller
+      - trip-history-controllers
       operationId: active
       parameters:
       - name: guest
@@ -2835,7 +2835,7 @@ paths:
   /specialty/search:
     get:
       tags:
-      - specialty-controller
+      - specialty-controllers
       operationId: search_2
       parameters:
       - name: query
@@ -2865,7 +2865,7 @@ paths:
   /specialty/all:
     get:
       tags:
-      - specialty-controller
+      - specialty-controllers
       operationId: specialties
       parameters:
       - name: page
@@ -2890,7 +2890,7 @@ paths:
   /shop:
     get:
       tags:
-      - shop-controller
+      - shop-controllers
       operationId: fetchShops
       parameters:
       - name: page
@@ -2915,7 +2915,7 @@ paths:
   /shop/search:
     get:
       tags:
-      - shop-controller
+      - shop-controllers
       operationId: drive_2
       parameters:
       - name: c
@@ -2977,7 +2977,7 @@ paths:
   /server/openapi/save:
     get:
       tags:
-      - server-controller
+      - server-controllers
       operationId: saveOpenApiJson
       responses:
         "200":
@@ -2990,7 +2990,7 @@ paths:
   /server/openapi/generate:
     get:
       tags:
-      - server-controller
+      - server-controllers
       operationId: saveOpenApi
       parameters:
       - name: format
@@ -3011,7 +3011,7 @@ paths:
   /server/memory/status:
     get:
       tags:
-      - server-controller
+      - server-controllers
       operationId: getMemoryStatistics
       responses:
         "200":
@@ -3023,7 +3023,7 @@ paths:
   /scope/support:
     get:
       tags:
-      - support-scope-controller
+      - support-scope-controllers
       operationId: overview
       responses:
         "200":
@@ -3035,7 +3035,7 @@ paths:
   /scope/support/speak-with-serch:
     get:
       tags:
-      - speak-with-serch-scope-controller
+      - speak-with-serch-scope-controllers
       operationId: overview_1
       responses:
         "200":
@@ -3047,7 +3047,7 @@ paths:
   /scope/support/speak-with-serch/find:
     get:
       tags:
-      - speak-with-serch-scope-controller
+      - speak-with-serch-scope-controllers
       operationId: find
       parameters:
       - name: ticket
@@ -3065,7 +3065,7 @@ paths:
   /scope/support/complaint:
     get:
       tags:
-      - complaint-scope-controller
+      - complaint-scope-controllers
       operationId: complaint
       parameters:
       - name: emailAddress
@@ -3083,7 +3083,7 @@ paths:
   /scope/support/complaint/all:
     get:
       tags:
-      - complaint-scope-controller
+      - complaint-scope-controllers
       operationId: complaints
       responses:
         "200":
@@ -3095,7 +3095,7 @@ paths:
   /scope/support/chart/speak-with-serch:
     get:
       tags:
-      - support-scope-controller
+      - support-scope-controllers
       operationId: speakWithSerch
       parameters:
       - name: year
@@ -3114,7 +3114,7 @@ paths:
   /scope/support/chart/complaint:
     get:
       tags:
-      - support-scope-controller
+      - support-scope-controllers
       operationId: complaint_1
       parameters:
       - name: year
@@ -3133,7 +3133,7 @@ paths:
   /scope/shop:
     get:
       tags:
-      - shop-scope-controller
+      - shop-scope-controllers
       operationId: overview_2
       responses:
         "200":
@@ -3145,7 +3145,7 @@ paths:
   /scope/shop/find:
     get:
       tags:
-      - shop-scope-controller
+      - shop-scope-controllers
       operationId: find_1
       parameters:
       - name: id
@@ -3163,7 +3163,7 @@ paths:
   /scope/shop/chart:
     get:
       tags:
-      - shop-scope-controller
+      - shop-scope-controllers
       operationId: chart
       parameters:
       - name: year
@@ -3182,7 +3182,7 @@ paths:
   /scope/shop/all:
     get:
       tags:
-      - shop-scope-controller
+      - shop-scope-controllers
       operationId: list
       responses:
         "200":
@@ -3194,7 +3194,7 @@ paths:
   /scope/sharing/request/overview:
     get:
       tags:
-      - request-sharing-scope-controller
+      - request-sharing-scope-controllers
       operationId: overview_3
       responses:
         "200":
@@ -3206,7 +3206,7 @@ paths:
   /scope/sharing/request/chart/online:
     get:
       tags:
-      - request-sharing-scope-controller
+      - request-sharing-scope-controllers
       operationId: fetchOnlineChart
       parameters:
       - name: year
@@ -3225,7 +3225,7 @@ paths:
   /scope/sharing/request/chart/offline:
     get:
       tags:
-      - request-sharing-scope-controller
+      - request-sharing-scope-controllers
       operationId: fetchOfflineChart
       parameters:
       - name: year
@@ -3244,7 +3244,7 @@ paths:
   /scope/sharing/request/all/online:
     get:
       tags:
-      - request-sharing-scope-controller
+      - request-sharing-scope-controllers
       operationId: onlineList
       responses:
         "200":
@@ -3256,7 +3256,7 @@ paths:
   /scope/sharing/request/all/offline:
     get:
       tags:
-      - request-sharing-scope-controller
+      - request-sharing-scope-controllers
       operationId: offlineList
       responses:
         "200":
@@ -3268,7 +3268,7 @@ paths:
   /scope/sharing/provide/overview:
     get:
       tags:
-      - provide-sharing-scope-controller
+      - provide-sharing-scope-controllers
       operationId: overview_4
       responses:
         "200":
@@ -3280,7 +3280,7 @@ paths:
   /scope/sharing/provide/chart:
     get:
       tags:
-      - provide-sharing-scope-controller
+      - provide-sharing-scope-controllers
       operationId: chart_1
       parameters:
       - name: year
@@ -3299,7 +3299,7 @@ paths:
   /scope/sharing/provide/all:
     get:
       tags:
-      - provide-sharing-scope-controller
+      - provide-sharing-scope-controllers
       operationId: list_1
       responses:
         "200":
@@ -3311,7 +3311,7 @@ paths:
   /scope/payment/wallet:
     get:
       tags:
-      - wallet-scope-controller
+      - wallet-scope-controllers
       operationId: wallet
       parameters:
       - name: id
@@ -3329,7 +3329,7 @@ paths:
   /scope/payment/wallet/all:
     get:
       tags:
-      - wallet-scope-controller
+      - wallet-scope-controllers
       operationId: wallets
       parameters:
       - name: page
@@ -3354,7 +3354,7 @@ paths:
   /scope/payment/transaction:
     get:
       tags:
-      - transaction-scope-controller
+      - transaction-scope-controllers
       operationId: transaction
       parameters:
       - name: id
@@ -3372,7 +3372,7 @@ paths:
   /scope/payment/transaction/types:
     get:
       tags:
-      - transaction-scope-controller
+      - transaction-scope-controllers
       operationId: fetchTypes
       responses:
         "200":
@@ -3384,7 +3384,7 @@ paths:
   /scope/payment/transaction/search:
     get:
       tags:
-      - transaction-scope-controller
+      - transaction-scope-controllers
       operationId: search_3
       parameters:
       - name: page
@@ -3414,7 +3414,7 @@ paths:
   /scope/payment/transaction/resolved:
     get:
       tags:
-      - transaction-scope-controller
+      - transaction-scope-controllers
       operationId: resolvedTransactions
       parameters:
       - name: page
@@ -3439,7 +3439,7 @@ paths:
   /scope/payment/transaction/resolved/search:
     get:
       tags:
-      - transaction-scope-controller
+      - transaction-scope-controllers
       operationId: searchResolved
       parameters:
       - name: page
@@ -3469,7 +3469,7 @@ paths:
   /scope/payment/transaction/resolved/range:
     get:
       tags:
-      - transaction-scope-controller
+      - transaction-scope-controllers
       operationId: filterResolved
       parameters:
       - name: page
@@ -3528,7 +3528,7 @@ paths:
   /scope/payment/transaction/resolved/find:
     get:
       tags:
-      - transaction-scope-controller
+      - transaction-scope-controllers
       operationId: resolved
       parameters:
       - name: id
@@ -3547,7 +3547,7 @@ paths:
   /scope/payment/transaction/filter:
     get:
       tags:
-      - transaction-scope-controller
+      - transaction-scope-controllers
       operationId: filter
       parameters:
       - name: status
@@ -3606,7 +3606,7 @@ paths:
   /scope/payment/transaction/all:
     get:
       tags:
-      - transaction-scope-controller
+      - transaction-scope-controllers
       operationId: transactions_1
       parameters:
       - name: page
@@ -3631,7 +3631,7 @@ paths:
   /scope/payment/payout:
     get:
       tags:
-      - payout-scope-controller
+      - payout-scope-controllers
       operationId: find_2
       parameters:
       - name: id
@@ -3649,7 +3649,7 @@ paths:
   /scope/payment/payout/all:
     get:
       tags:
-      - payout-scope-controller
+      - payout-scope-controllers
       operationId: payouts
       parameters:
       - name: page
@@ -3683,7 +3683,7 @@ paths:
   /scope/marketing:
     get:
       tags:
-      - marketing-scope-controller
+      - marketing-scope-controllers
       operationId: overview_5
       responses:
         "200":
@@ -3695,7 +3695,7 @@ paths:
   /scope/marketing/newsletters:
     get:
       tags:
-      - marketing-scope-controller
+      - marketing-scope-controllers
       operationId: newsletters
       responses:
         "200":
@@ -3707,7 +3707,7 @@ paths:
   /scope/common/years:
     get:
       tags:
-      - common-scope-controller
+      - common-scope-controllers
       operationId: fetchYears
       responses:
         "200":
@@ -3719,7 +3719,7 @@ paths:
   /scope/call/overview:
     get:
       tags:
-      - call-scope-controller
+      - call-scope-controllers
       operationId: overview_6
       responses:
         "200":
@@ -3731,7 +3731,7 @@ paths:
   /scope/call/chart/voice:
     get:
       tags:
-      - call-scope-controller
+      - call-scope-controllers
       operationId: fetchVoiceChart
       parameters:
       - name: year
@@ -3750,7 +3750,7 @@ paths:
   /scope/call/chart/tip2fix:
     get:
       tags:
-      - call-scope-controller
+      - call-scope-controllers
       operationId: fetchTip2FixChart
       parameters:
       - name: year
@@ -3769,7 +3769,7 @@ paths:
   /scope/call/chart/performance:
     get:
       tags:
-      - call-scope-controller
+      - call-scope-controllers
       operationId: fetchTip2FixPerformance
       parameters:
       - name: year
@@ -3788,7 +3788,7 @@ paths:
   /scope/call/all/voice:
     get:
       tags:
-      - call-scope-controller
+      - call-scope-controllers
       operationId: voiceCalls
       responses:
         "200":
@@ -3800,7 +3800,7 @@ paths:
   /scope/call/all/tip2fix:
     get:
       tags:
-      - call-scope-controller
+      - call-scope-controllers
       operationId: tip2fixCalls
       responses:
         "200":
@@ -3812,7 +3812,7 @@ paths:
   /scope/auth/sessions:
     get:
       tags:
-      - auth-scope-controller
+      - auth-scope-controllers
       operationId: sessions
       parameters:
       - name: id
@@ -3843,7 +3843,7 @@ paths:
   /scope/auth/devices:
     get:
       tags:
-      - auth-scope-controller
+      - auth-scope-controllers
       operationId: devices
       parameters:
       - name: id
@@ -3874,7 +3874,7 @@ paths:
   /scope/admin:
     get:
       tags:
-      - admin-scope-controller
+      - admin-scope-controllers
       operationId: fetch
       parameters:
       - name: id
@@ -3904,7 +3904,7 @@ paths:
                 $ref: '#/components/schemas/ApiResponseAdminScopeResponse'
     delete:
       tags:
-      - admin-scope-controller
+      - admin-scope-controllers
       operationId: delete_2
       parameters:
       - name: id
@@ -3923,7 +3923,7 @@ paths:
   /scope/admin/chart/auth:
     get:
       tags:
-      - admin-scope-controller
+      - admin-scope-controllers
       operationId: fetchAuthChart
       parameters:
       - name: id
@@ -3948,7 +3948,7 @@ paths:
   /scope/admin/chart/account/status:
     get:
       tags:
-      - admin-scope-controller
+      - admin-scope-controllers
       operationId: fetchAccountStatusChart
       parameters:
       - name: id
@@ -3973,7 +3973,7 @@ paths:
   /scope/admin/activities:
     get:
       tags:
-      - admin-scope-controller
+      - admin-scope-controllers
       operationId: activities
       parameters:
       - name: id
@@ -4004,7 +4004,7 @@ paths:
   /scope/account/user:
     get:
       tags:
-      - account-user-scope-controller
+      - account-user-scope-controllers
       operationId: profile
       parameters:
       - name: id
@@ -4022,7 +4022,7 @@ paths:
   /scope/account/user/wallet:
     get:
       tags:
-      - account-user-scope-controller
+      - account-user-scope-controllers
       operationId: wallet_1
       parameters:
       - name: id
@@ -4041,7 +4041,7 @@ paths:
   /scope/account/user/trips:
     get:
       tags:
-      - account-user-scope-controller
+      - account-user-scope-controllers
       operationId: trips
       parameters:
       - name: id
@@ -4071,7 +4071,7 @@ paths:
   /scope/account/user/transactions:
     get:
       tags:
-      - account-user-scope-controller
+      - account-user-scope-controllers
       operationId: transactions_2
       parameters:
       - name: id
@@ -4102,7 +4102,7 @@ paths:
   /scope/account/user/tickets:
     get:
       tags:
-      - account-user-scope-controller
+      - account-user-scope-controllers
       operationId: tickets
       parameters:
       - name: id
@@ -4133,7 +4133,7 @@ paths:
   /scope/account/user/shops:
     get:
       tags:
-      - account-user-scope-controller
+      - account-user-scope-controllers
       operationId: shops
       parameters:
       - name: id
@@ -4164,7 +4164,7 @@ paths:
   /scope/account/user/shared/links:
     get:
       tags:
-      - account-user-scope-controller
+      - account-user-scope-controllers
       operationId: sharedLinks
       parameters:
       - name: id
@@ -4195,7 +4195,7 @@ paths:
   /scope/account/user/shared/accounts:
     get:
       tags:
-      - account-user-scope-controller
+      - account-user-scope-controllers
       operationId: sharedAccounts
       parameters:
       - name: id
@@ -4225,7 +4225,7 @@ paths:
   /scope/account/user/schedules:
     get:
       tags:
-      - account-user-scope-controller
+      - account-user-scope-controllers
       operationId: schedules
       parameters:
       - name: id
@@ -4256,7 +4256,7 @@ paths:
   /scope/account/user/schedule/times:
     get:
       tags:
-      - account-user-scope-controller
+      - account-user-scope-controllers
       operationId: times
       parameters:
       - name: id
@@ -4275,7 +4275,7 @@ paths:
   /scope/account/user/reports:
     get:
       tags:
-      - account-user-scope-controller
+      - account-user-scope-controllers
       operationId: reports
       parameters:
       - name: id
@@ -4306,7 +4306,7 @@ paths:
   /scope/account/user/referrals:
     get:
       tags:
-      - account-user-scope-controller
+      - account-user-scope-controllers
       operationId: referrals
       parameters:
       - name: id
@@ -4337,7 +4337,7 @@ paths:
   /scope/account/user/referral:
     get:
       tags:
-      - account-user-scope-controller
+      - account-user-scope-controllers
       operationId: referral
       parameters:
       - name: id
@@ -4368,7 +4368,7 @@ paths:
   /scope/account/user/rating:
     get:
       tags:
-      - account-user-scope-controller
+      - account-user-scope-controllers
       operationId: rating
       parameters:
       - name: id
@@ -4398,7 +4398,7 @@ paths:
   /scope/account/user/rating/chart:
     get:
       tags:
-      - account-user-scope-controller
+      - account-user-scope-controllers
       operationId: rating_1
       parameters:
       - name: id
@@ -4416,7 +4416,7 @@ paths:
   /scope/account/user/chat/rooms:
     get:
       tags:
-      - account-user-scope-controller
+      - account-user-scope-controllers
       operationId: chatRooms
       parameters:
       - name: id
@@ -4447,7 +4447,7 @@ paths:
   /scope/account/user/chart/auth:
     get:
       tags:
-      - account-user-scope-controller
+      - account-user-scope-controllers
       operationId: fetchAuthChart_1
       parameters:
       - name: id
@@ -4472,7 +4472,7 @@ paths:
   /scope/account/user/chart/account/status:
     get:
       tags:
-      - account-user-scope-controller
+      - account-user-scope-controllers
       operationId: fetchAccountStatusChart_1
       parameters:
       - name: id
@@ -4497,7 +4497,7 @@ paths:
   /scope/account/user/challenges:
     get:
       tags:
-      - account-user-scope-controller
+      - account-user-scope-controllers
       operationId: challenges
       parameters:
       - name: id
@@ -4528,7 +4528,7 @@ paths:
   /scope/account/user/certificate:
     get:
       tags:
-      - account-user-scope-controller
+      - account-user-scope-controllers
       operationId: certificate
       parameters:
       - name: id
@@ -4547,7 +4547,7 @@ paths:
   /scope/account/user/calls:
     get:
       tags:
-      - account-user-scope-controller
+      - account-user-scope-controllers
       operationId: calls
       parameters:
       - name: id
@@ -4578,7 +4578,7 @@ paths:
   /scope/account/user/bookmarks:
     get:
       tags:
-      - account-user-scope-controller
+      - account-user-scope-controllers
       operationId: bookmarks
       parameters:
       - name: id
@@ -4609,7 +4609,7 @@ paths:
   /scope/account/user/auth:
     get:
       tags:
-      - account-user-scope-controller
+      - account-user-scope-controllers
       operationId: auth_2
       parameters:
       - name: id
@@ -4640,7 +4640,7 @@ paths:
   /scope/account/user/associates:
     get:
       tags:
-      - account-user-scope-controller
+      - account-user-scope-controllers
       operationId: associates
       parameters:
       - name: id
@@ -4671,7 +4671,7 @@ paths:
   /scope/account/user/analysis:
     get:
       tags:
-      - account-user-scope-controller
+      - account-user-scope-controllers
       operationId: analysis
       parameters:
       - name: id
@@ -4690,7 +4690,7 @@ paths:
   /scope/account/user/activities:
     get:
       tags:
-      - account-user-scope-controller
+      - account-user-scope-controllers
       operationId: fetchActivity
       parameters:
       - name: id
@@ -4714,7 +4714,7 @@ paths:
   /scope/account/section:
     get:
       tags:
-      - account-section-scope-controller
+      - account-section-scope-controllers
       operationId: fetchAccounts
       parameters:
       - name: role
@@ -4758,7 +4758,7 @@ paths:
   /scope/account/section/search:
     get:
       tags:
-      - account-section-scope-controller
+      - account-section-scope-controllers
       operationId: search_4
       parameters:
       - name: role
@@ -4802,7 +4802,7 @@ paths:
   /scope/account/section/metric:
     get:
       tags:
-      - account-section-scope-controller
+      - account-section-scope-controllers
       operationId: fetch_1
       parameters:
       - name: role
@@ -4829,7 +4829,7 @@ paths:
   /scope/account/analysis:
     get:
       tags:
-      - account-scope-analysis-controller
+      - account-scope-analysis-controllers
       operationId: fetchAccountAnalysis
       parameters:
       - name: year
@@ -4867,7 +4867,7 @@ paths:
   /scope/account/analysis/trip:
     get:
       tags:
-      - account-scope-analysis-controller
+      - account-scope-analysis-controllers
       operationId: fetchGroupedAccountAnalysisByTripStatus
       parameters:
       - name: year
@@ -4900,7 +4900,7 @@ paths:
   /scope/account/analysis/timezone:
     get:
       tags:
-      - account-scope-analysis-controller
+      - account-scope-analysis-controllers
       operationId: fetchGroupedAccountAnalysisByTimezone
       parameters:
       - name: year
@@ -4938,7 +4938,7 @@ paths:
   /scope/account/analysis/status:
     get:
       tags:
-      - account-scope-analysis-controller
+      - account-scope-analysis-controllers
       operationId: fetchGroupedAccountAnalysisByAccountStatus
       parameters:
       - name: year
@@ -4971,7 +4971,7 @@ paths:
   /scope/account/analysis/state:
     get:
       tags:
-      - account-scope-analysis-controller
+      - account-scope-analysis-controllers
       operationId: fetchGroupedAccountAnalysisByState
       parameters:
       - name: year
@@ -5009,7 +5009,7 @@ paths:
   /scope/account/analysis/rating:
     get:
       tags:
-      - account-scope-analysis-controller
+      - account-scope-analysis-controllers
       operationId: fetchGroupedAccountAnalysisByRating
       parameters:
       - name: year
@@ -5047,7 +5047,7 @@ paths:
   /scope/account/analysis/more:
     get:
       tags:
-      - account-scope-analysis-controller
+      - account-scope-analysis-controllers
       operationId: fetch_2
       parameters:
       - name: role
@@ -5074,7 +5074,7 @@ paths:
   /scope/account/analysis/more/{year}:
     get:
       tags:
-      - account-scope-analysis-controller
+      - account-scope-analysis-controllers
       operationId: fetch_3
       parameters:
       - name: role
@@ -5107,7 +5107,7 @@ paths:
   /scope/account/analysis/gender:
     get:
       tags:
-      - account-scope-analysis-controller
+      - account-scope-analysis-controllers
       operationId: fetchGroupedAccountAnalysisByGender
       parameters:
       - name: year
@@ -5145,7 +5145,7 @@ paths:
   /scope/account/analysis/country:
     get:
       tags:
-      - account-scope-analysis-controller
+      - account-scope-analysis-controllers
       operationId: fetchGroupedAccountAnalysisByCountry
       parameters:
       - name: year
@@ -5183,7 +5183,7 @@ paths:
   /scope/account/analysis/certification:
     get:
       tags:
-      - account-scope-analysis-controller
+      - account-scope-analysis-controllers
       operationId: fetchGroupedAccountAnalysisByCertified
       parameters:
       - name: year
@@ -5216,7 +5216,7 @@ paths:
   /scope/account/analysis/category:
     get:
       tags:
-      - account-scope-analysis-controller
+      - account-scope-analysis-controllers
       operationId: fetchGroupedAccountAnalysisByCategory
       parameters:
       - name: year
@@ -5249,7 +5249,7 @@ paths:
   /schedule/history:
     get:
       tags:
-      - schedule-history-controller
+      - schedule-history-controllers
       operationId: history_1
       parameters:
       - name: page
@@ -5290,7 +5290,7 @@ paths:
   /schedule/history/requested:
     get:
       tags:
-      - schedule-history-controller
+      - schedule-history-controllers
       operationId: requested_1
       parameters:
       - name: page
@@ -5315,7 +5315,7 @@ paths:
   /schedule/history/active:
     get:
       tags:
-      - schedule-history-controller
+      - schedule-history-controllers
       operationId: active_1
       parameters:
       - name: page
@@ -5340,7 +5340,7 @@ paths:
   /schedule/all/times/{provider}:
     get:
       tags:
-      - schedule-controller
+      - schedule-controllers
       operationId: times_1
       parameters:
       - name: provider
@@ -5359,7 +5359,7 @@ paths:
   /referral:
     get:
       tags:
-      - referral-controller
+      - referral-controllers
       operationId: viewReferrals
       parameters:
       - name: page
@@ -5384,7 +5384,7 @@ paths:
   /referral/program:
     get:
       tags:
-      - referral-controller
+      - referral-controllers
       operationId: program
       responses:
         "200":
@@ -5396,7 +5396,7 @@ paths:
   /referral/program/verify/link:
     get:
       tags:
-      - referral-controller
+      - referral-controllers
       operationId: verifyLink
       parameters:
       - name: link
@@ -5414,7 +5414,7 @@ paths:
   /referral/program/verify/code:
     get:
       tags:
-      - referral-controller
+      - referral-controllers
       operationId: verifyCode_1
       parameters:
       - name: code
@@ -5432,7 +5432,7 @@ paths:
   /rating/good:
     get:
       tags:
-      - rating-controller
+      - rating-controllers
       operationId: good
       parameters:
       - name: page
@@ -5457,7 +5457,7 @@ paths:
   /rating/good/{id}:
     get:
       tags:
-      - rating-controller
+      - rating-controllers
       operationId: getGoodAssociateRatings
       parameters:
       - name: id
@@ -5487,7 +5487,7 @@ paths:
   /rating/chart:
     get:
       tags:
-      - rating-controller
+      - rating-controllers
       operationId: chart_2
       responses:
         "200":
@@ -5499,7 +5499,7 @@ paths:
   /rating/chart/{id}:
     get:
       tags:
-      - rating-controller
+      - rating-controllers
       operationId: getAssociateRatingChart
       parameters:
       - name: id
@@ -5517,7 +5517,7 @@ paths:
   /rating/bad:
     get:
       tags:
-      - rating-controller
+      - rating-controllers
       operationId: bad
       parameters:
       - name: page
@@ -5542,7 +5542,7 @@ paths:
   /rating/bad/{id}:
     get:
       tags:
-      - rating-controller
+      - rating-controllers
       operationId: getBadAssociateRatings
       parameters:
       - name: id
@@ -5572,7 +5572,7 @@ paths:
   /rating/app:
     get:
       tags:
-      - rating-controller
+      - rating-controllers
       operationId: app
       parameters:
       - name: id
@@ -5590,7 +5590,7 @@ paths:
   /rating/all:
     get:
       tags:
-      - rating-controller
+      - rating-controllers
       operationId: view_1
       parameters:
       - name: page
@@ -5615,7 +5615,7 @@ paths:
   /profile:
     get:
       tags:
-      - profile-controller
+      - profile-controllers
       operationId: profile_1
       responses:
         "200":
@@ -5627,7 +5627,7 @@ paths:
   /profile/business:
     get:
       tags:
-      - business-controller
+      - business-controllers
       operationId: profile_2
       responses:
         "200":
@@ -5639,7 +5639,7 @@ paths:
   /organization:
     get:
       tags:
-      - organization-controller
+      - organization-controllers
       operationId: find_3
       parameters:
       - name: secret
@@ -5657,7 +5657,7 @@ paths:
   /organization/all:
     get:
       tags:
-      - organization-controller
+      - organization-controllers
       operationId: getAll
       responses:
         "200":
@@ -5669,7 +5669,7 @@ paths:
   /location/search:
     get:
       tags:
-      - location-controller
+      - location-controllers
       operationId: predictions
       parameters:
       - name: q
@@ -5687,7 +5687,7 @@ paths:
   /guest/user/become:
     get:
       tags:
-      - guest-controller
+      - guest-controllers
       operationId: becomeAUser
       parameters:
       - name: request
@@ -5705,7 +5705,7 @@ paths:
   /guest/shared/links:
     get:
       tags:
-      - shared-controller
+      - shared-controllers
       operationId: links
       parameters:
       - name: page
@@ -5730,7 +5730,7 @@ paths:
   /guest/shared/create:
     get:
       tags:
-      - shared-controller
+      - shared-controllers
       operationId: create_1
       parameters:
       - name: id
@@ -5753,7 +5753,7 @@ paths:
   /guest/shared/accounts:
     get:
       tags:
-      - shared-controller
+      - shared-controllers
       operationId: accounts
       parameters:
       - name: id
@@ -5771,7 +5771,7 @@ paths:
   /company/speak_with_serch/issues/{ticket}:
     get:
       tags:
-      - speak-with-serch-controller
+      - speak-with-serch-controllers
       operationId: issues
       parameters:
       - name: ticket
@@ -5801,7 +5801,7 @@ paths:
   /company/newsletter/unsubscribe:
     get:
       tags:
-      - newsletter-controller
+      - newsletter-controllers
       operationId: unsubscribe
       parameters:
       - name: email_address
@@ -5819,7 +5819,7 @@ paths:
   /company/newsletter/subscribe:
     get:
       tags:
-      - newsletter-controller
+      - newsletter-controllers
       operationId: subscribe
       parameters:
       - name: email_address
@@ -5837,7 +5837,7 @@ paths:
   /chat/rooms:
     get:
       tags:
-      - chat-controller
+      - chat-controllers
       operationId: rooms
       parameters:
       - name: page
@@ -5862,7 +5862,7 @@ paths:
   /chat/room:
     get:
       tags:
-      - chat-controller
+      - chat-controllers
       operationId: room
       parameters:
       - name: roommate
@@ -5881,7 +5881,7 @@ paths:
   /chat/room/{room}:
     get:
       tags:
-      - chat-controller
+      - chat-controllers
       operationId: room_1
       parameters:
       - name: room
@@ -5899,7 +5899,7 @@ paths:
   /chat/room/{room}/messages:
     get:
       tags:
-      - chat-controller
+      - chat-controllers
       operationId: messages_1
       parameters:
       - name: room
@@ -5929,7 +5929,7 @@ paths:
   /certificate:
     get:
       tags:
-      - certificate-controller
+      - certificate-controllers
       operationId: fetch_4
       responses:
         "200":
@@ -5941,7 +5941,7 @@ paths:
   /certificate/verify:
     get:
       tags:
-      - certificate-controller
+      - certificate-controllers
       operationId: verify_2
       parameters:
       - name: token
@@ -5959,7 +5959,7 @@ paths:
   /certificate/generate:
     get:
       tags:
-      - certificate-controller
+      - certificate-controllers
       operationId: generate
       responses:
         "200":
@@ -5971,7 +5971,7 @@ paths:
   /category/popular:
     get:
       tags:
-      - category-controller
+      - category-controllers
       operationId: popular
       responses:
         "200":
@@ -5983,7 +5983,7 @@ paths:
   /category/all:
     get:
       tags:
-      - category-controller
+      - category-controllers
       operationId: categories
       responses:
         "200":
@@ -5995,7 +5995,7 @@ paths:
   /call:
     get:
       tags:
-      - call-controller
+      - call-controllers
       operationId: fetch_5
       parameters:
       - name: channel
@@ -6013,7 +6013,7 @@ paths:
   /call/history:
     get:
       tags:
-      - call-controller
+      - call-controllers
       operationId: logs
       parameters:
       - name: page
@@ -6038,7 +6038,7 @@ paths:
   /call/authentication:
     get:
       tags:
-      - call-controller
+      - call-controllers
       operationId: auth_3
       responses:
         "200":
@@ -6050,7 +6050,7 @@ paths:
   /call/auth:
     get:
       tags:
-      - call-controller
+      - call-controllers
       operationId: auth_4
       parameters:
       - name: channel
@@ -6068,7 +6068,7 @@ paths:
   /business/associate:
     get:
       tags:
-      - business-associate-controller
+      - business-associate-controllers
       operationId: all
       parameters:
       - name: q
@@ -6098,7 +6098,7 @@ paths:
   /business/associate/resend:
     get:
       tags:
-      - business-associate-controller
+      - business-associate-controllers
       operationId: add_5
       parameters:
       - name: id
@@ -6117,7 +6117,7 @@ paths:
   /bookmark:
     get:
       tags:
-      - bookmark-controller
+      - bookmark-controllers
       operationId: bookmarks_1
       parameters:
       - name: page
@@ -6142,7 +6142,7 @@ paths:
   /banking/verify:
     get:
       tags:
-      - bank-controller
+      - bank-controllers
       operationId: verify_3
       parameters:
       - name: number
@@ -6165,7 +6165,7 @@ paths:
   /banking/banks:
     get:
       tags:
-      - bank-controller
+      - bank-controllers
       operationId: banks
       responses:
         "200":
@@ -6177,7 +6177,7 @@ paths:
   /auth/session/validate:
     get:
       tags:
-      - session-controller
+      - session-controllers
       operationId: validateSession
       parameters:
       - name: token
@@ -6205,7 +6205,7 @@ paths:
   /auth/session/refresh:
     get:
       tags:
-      - session-controller
+      - session-controllers
       operationId: refreshSession
       parameters:
       - name: token
@@ -6223,7 +6223,7 @@ paths:
   /auth/password/reset/check:
     get:
       tags:
-      - password-controller
+      - password-controllers
       operationId: checkEmail
       parameters:
       - name: emailAddress
@@ -6241,7 +6241,7 @@ paths:
   /auth/mfa/usage:
     get:
       tags:
-      - mfa-controller
+      - mfa-controllers
       operationId: usage
       responses:
         "200":
@@ -6253,7 +6253,7 @@ paths:
   /auth/mfa/recovery/codes:
     get:
       tags:
-      - mfa-controller
+      - mfa-controllers
       operationId: getRecoveryCodes
       responses:
         "200":
@@ -6265,7 +6265,7 @@ paths:
   /auth/mfa/init:
     get:
       tags:
-      - mfa-controller
+      - mfa-controllers
       operationId: initialize
       responses:
         "200":
@@ -6277,7 +6277,7 @@ paths:
   /auth/guest/link/verify:
     get:
       tags:
-      - guest-auth-controller
+      - guest-auth-controllers
       operationId: verifyLink_1
       parameters:
       - name: link
@@ -6300,7 +6300,7 @@ paths:
   /auth/email/check:
     get:
       tags:
-      - auth-controller
+      - auth-controllers
       operationId: checkIfEmailExists
       parameters:
       - name: email
@@ -6318,7 +6318,7 @@ paths:
   /auth/admin/resend:
     get:
       tags:
-      - admin-auth-controller
+      - admin-auth-controllers
       operationId: resend
       parameters:
       - name: emailAddress
@@ -6336,7 +6336,7 @@ paths:
   /auth/admin/password/reset/verify:
     get:
       tags:
-      - admin-auth-controller
+      - admin-auth-controllers
       operationId: verifyResetLink
       parameters:
       - name: secret
@@ -6354,7 +6354,7 @@ paths:
   /auth/admin/invite/verify:
     get:
       tags:
-      - admin-auth-controller
+      - admin-auth-controllers
       operationId: verifyLink_3
       parameters:
       - name: secret
@@ -6372,7 +6372,7 @@ paths:
   /auth/admin/invite/resend:
     get:
       tags:
-      - admin-auth-controller
+      - admin-auth-controllers
       operationId: resendInvite
       parameters:
       - name: id
@@ -6391,7 +6391,7 @@ paths:
   /admin/team/overview:
     get:
       tags:
-      - team-controller
+      - team-controllers
       operationId: overview_7
       responses:
         "200":
@@ -6403,7 +6403,7 @@ paths:
   /admin/team/all:
     get:
       tags:
-      - team-controller
+      - team-controllers
       operationId: admins
       responses:
         "200":
@@ -6415,7 +6415,7 @@ paths:
   /admin/profile:
     get:
       tags:
-      - admin-profile-controller
+      - admin-profile-controllers
       operationId: get
       responses:
         "200":
@@ -6427,7 +6427,7 @@ paths:
   /admin/profile/activities:
     get:
       tags:
-      - admin-profile-controller
+      - admin-profile-controllers
       operationId: activities_1
       parameters:
       - name: page
@@ -6452,7 +6452,7 @@ paths:
   /admin/permission/search:
     get:
       tags:
-      - permission-controller
+      - permission-controllers
       operationId: search_5
       parameters:
       - name: id
@@ -6470,7 +6470,7 @@ paths:
   /admin/permission/scopes:
     get:
       tags:
-      - permission-controller
+      - permission-controllers
       operationId: getAllScopes
       responses:
         "200":
@@ -6482,7 +6482,7 @@ paths:
   /admin/permission/requests:
     get:
       tags:
-      - permission-controller
+      - permission-controllers
       operationId: requests
       responses:
         "200":
@@ -6494,7 +6494,7 @@ paths:
   /active/status:
     get:
       tags:
-      - active-controller
+      - active-controllers
       operationId: status
       responses:
         "200":
@@ -6506,7 +6506,7 @@ paths:
   /active/status/all:
     get:
       tags:
-      - active-controller
+      - active-controllers
       operationId: statusAll
       parameters:
       - name: page
@@ -6531,7 +6531,7 @@ paths:
   /active/search:
     get:
       tags:
-      - active-search-controller
+      - active-search-controllers
       operationId: autoConnect
       parameters:
       - name: q
@@ -6584,7 +6584,7 @@ paths:
   /active/search/category:
     get:
       tags:
-      - active-search-controller
+      - active-search-controllers
       operationId: searchProviders
       parameters:
       - name: c
@@ -6649,7 +6649,7 @@ paths:
   /account:
     get:
       tags:
-      - account-controller
+      - account-controllers
       operationId: accounts_1
       responses:
         "200":
@@ -6661,7 +6661,7 @@ paths:
   /account/settings:
     get:
       tags:
-      - account-setting-controller
+      - account-setting-controllers
       operationId: settings
       responses:
         "200":
@@ -6673,7 +6673,7 @@ paths:
   /account/password:
     get:
       tags:
-      - account-controller
+      - account-controllers
       operationId: lastPasswordUpdateAt
       responses:
         "200":
@@ -6685,7 +6685,7 @@ paths:
   /account/delete:
     get:
       tags:
-      - account-controller
+      - account-controllers
       operationId: delete
       responses:
         "200":
@@ -6697,7 +6697,7 @@ paths:
   /account/dashboard:
     get:
       tags:
-      - account-dashboard-controller
+      - account-dashboard-controllers
       operationId: dashboard
       responses:
         "200":
@@ -6709,7 +6709,7 @@ paths:
   /account/dashboard/business:
     get:
       tags:
-      - account-dashboard-controller
+      - account-dashboard-controllers
       operationId: dashboardBusiness
       parameters:
       - name: page
@@ -6734,7 +6734,7 @@ paths:
   /account/additional:
     get:
       tags:
-      - account-controller
+      - account-controllers
       operationId: additional
       responses:
         "200":
@@ -6746,7 +6746,7 @@ paths:
   /trip/shared/cancel:
     delete:
       tags:
-      - trip-share-controller
+      - trip-share-controllers
       operationId: cancel_5
       requestBody:
         content:
@@ -6764,7 +6764,7 @@ paths:
   /trip/invite/cancel:
     delete:
       tags:
-      - trip-request-controller
+      - trip-request-controllers
       operationId: cancel_6
       requestBody:
         content:
@@ -6782,7 +6782,7 @@ paths:
   /trip/invite/cancel/quote-{id}:
     delete:
       tags:
-      - trip-request-controller
+      - trip-request-controllers
       operationId: cancel_7
       parameters:
       - name: id
@@ -6807,7 +6807,7 @@ paths:
   /specialty/delete:
     delete:
       tags:
-      - specialty-controller
+      - specialty-controllers
       operationId: delete_1
       parameters:
       - name: id
@@ -6826,7 +6826,7 @@ paths:
   /shop/remove:
     delete:
       tags:
-      - shop-controller
+      - shop-controllers
       operationId: removeShop
       parameters:
       - name: shop
@@ -6844,7 +6844,7 @@ paths:
   /shop/remove/weekday:
     delete:
       tags:
-      - shop-controller
+      - shop-controllers
       operationId: removeWeekday
       parameters:
       - name: id
@@ -6868,7 +6868,7 @@ paths:
   /shop/remove/service:
     delete:
       tags:
-      - shop-controller
+      - shop-controllers
       operationId: removeService
       parameters:
       - name: id
@@ -6892,7 +6892,7 @@ paths:
   /organization/{id}:
     delete:
       tags:
-      - organization-controller
+      - organization-controllers
       operationId: delete_3
       parameters:
       - name: id
@@ -6911,7 +6911,7 @@ paths:
   /business/associate/delete:
     delete:
       tags:
-      - business-associate-controller
+      - business-associate-controllers
       operationId: delete_4
       parameters:
       - name: id
@@ -6930,7 +6930,7 @@ paths:
   /bookmark/remove:
     delete:
       tags:
-      - bookmark-controller
+      - bookmark-controllers
       operationId: remove
       parameters:
       - name: id
@@ -6948,7 +6948,7 @@ paths:
   /auth/mfa/disable:
     delete:
       tags:
-      - mfa-controller
+      - mfa-controllers
       operationId: disable
       requestBody:
         content:

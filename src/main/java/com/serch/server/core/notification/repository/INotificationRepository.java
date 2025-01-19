@@ -4,7 +4,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Interface for accessing notification-related data, such as tokens, names, and avatars.
+ * Interface for accessing notification-related response, such as tokens, names, and avatars.
  */
 public interface INotificationRepository {
 

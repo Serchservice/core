@@ -1,10 +1,10 @@
 package com.serch.server.models.shop;
 
+import com.serch.server.annotations.CoreID;
 import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.shop.ShopStatus;
-import com.serch.server.generators.ShopID;
 import com.serch.server.models.auth.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -12,7 +12,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.GenericGenerator;
 
 import java.util.List;
 
@@ -34,8 +33,8 @@ import java.util.List;
 @Table(schema = "platform", name = "shops")
 public class Shop extends BaseDateTime {
     @Id
+    @CoreID(name = "shop_generator", prefix = "SSP")
     @Column(nullable = false, columnDefinition = "TEXT")
-    @GenericGenerator(name = "shop_gen", type = ShopID.class)
     @GeneratedValue(generator = "shop_gen")
     private String id;
 

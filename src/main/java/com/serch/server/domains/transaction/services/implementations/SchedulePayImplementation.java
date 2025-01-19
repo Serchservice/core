@@ -1,6 +1,6 @@
 package com.serch.server.domains.transaction.services.implementations;
 
-import com.serch.server.core.notification.core.NotificationService;
+import com.serch.server.core.notification.services.NotificationService;
 import com.serch.server.enums.transaction.TransactionStatus;
 import com.serch.server.enums.transaction.TransactionType;
 import com.serch.server.models.account.Profile;
@@ -41,23 +41,30 @@ public class SchedulePayImplementation implements SchedulePayService {
     public boolean charge(Schedule schedule) {
         Wallet wallet = wallet(schedule.getClosedBy());
         if(wallet != null) {
-            Transaction transaction = new Transaction();
-            transaction.setSender(String.valueOf(schedule.getClosedBy()));
-            transaction.setType(TransactionType.SCHEDULE);
-            transaction.setAccount(String.valueOf(receiver(schedule)));
-            transaction.setAmount(BigDecimal.valueOf(ACCOUNT_SCHEDULE_CLOSE_CHARGE));
-            transaction.setReference(HelperUtil.generateReference("SCHED"));
-            transaction.setStatus(TransactionStatus.PENDING);
-            transaction.setVerified(false);
-            transaction.setEvent(schedule.getId());
-            transactionRepository.save(transaction);
+            Transaction transaction = getTransaction(schedule);
 
             wallet.setUncleared(wallet.getUncleared().add(transaction.getAmount()));
             wallet.setUpdatedAt(TimeUtil.now());
             walletRepository.save(wallet);
+
             return hasSufficientAmount(wallet, transaction.getAmount());
         }
+
         return false;
+    }
+
+    private Transaction getTransaction(Schedule schedule) {
+        Transaction transaction = new Transaction();
+        transaction.setSender(String.valueOf(schedule.getClosedBy()));
+        transaction.setType(TransactionType.SCHEDULE);
+        transaction.setAccount(String.valueOf(receiver(schedule)));
+        transaction.setAmount(BigDecimal.valueOf(ACCOUNT_SCHEDULE_CLOSE_CHARGE));
+        transaction.setReference(HelperUtil.generateReference("SCHED"));
+        transaction.setStatus(TransactionStatus.PENDING);
+        transaction.setVerified(false);
+        transaction.setEvent(schedule.getId());
+
+        return transactionRepository.save(transaction);
     }
 
     private UUID receiver(Schedule schedule) {
@@ -67,6 +74,7 @@ public class SchedulePayImplementation implements SchedulePayService {
             }
             return schedule.getProvider().getId();
         }
+
         return schedule.getUser().getId();
     }
 
@@ -89,6 +97,7 @@ public class SchedulePayImplementation implements SchedulePayService {
                 return wallet.get();
             }
         }
+
         return null;
     }
 

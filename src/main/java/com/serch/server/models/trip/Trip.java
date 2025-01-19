@@ -68,10 +68,10 @@ public class Trip extends BaseTrip {
     @Column(name = "cancel_reason", columnDefinition = "TEXT")
     private String cancelReason = null;
 
-    @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<TripTimeline> timelines;
 
-    @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ShoppingItem> shoppingItems;
 
     @OneToOne(mappedBy = "trip", cascade = CascadeType.ALL)

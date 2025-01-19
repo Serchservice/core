@@ -1,16 +1,15 @@
 package com.serch.server.models.shared;
 
+import com.serch.server.annotations.CoreID;
 import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.account.Gender;
-import com.serch.server.generators.shared.GuestID;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.GenericGenerator;
 
 import java.time.ZonedDateTime;
 
@@ -34,7 +33,7 @@ import java.time.ZonedDateTime;
 @Table(schema = "sharing", name = "guests")
 public class Guest extends BaseDateTime {
     @Id
-    @GenericGenerator(name = "guest_id_seq", type = GuestID.class)
+    @CoreID(name = "guest_generator", prefix = "SGST", toUpperCase = true)
     @GeneratedValue(generator = "guest_id_seq")
     @Column(nullable = false, columnDefinition = "TEXT")
     private String id;

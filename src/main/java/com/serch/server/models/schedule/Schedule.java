@@ -1,14 +1,13 @@
 package com.serch.server.models.schedule;
 
+import com.serch.server.annotations.CoreID;
 import com.serch.server.annotations.SerchEnum;
 import com.serch.server.bases.BaseDateTime;
 import com.serch.server.enums.schedule.ScheduleStatus;
-import com.serch.server.generators.schedule.ScheduleID;
 import com.serch.server.models.account.Profile;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.GenericGenerator;
 
 import java.util.UUID;
 
@@ -32,8 +31,8 @@ import java.util.UUID;
 @Table(schema = "platform", name = "schedules")
 public class Schedule extends BaseDateTime {
     @Id
+    @CoreID(name = "schedule_generator", prefix = "SSCH")
     @Column(nullable = false, columnDefinition = "TEXT")
-    @GenericGenerator(name = "schedule_seq", type = ScheduleID.class)
     @GeneratedValue(generator = "schedule_seq")
     private String id;
 

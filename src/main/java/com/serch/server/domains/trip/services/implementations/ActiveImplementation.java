@@ -72,7 +72,7 @@ public class ActiveImplementation implements ActiveService {
                     throw new TripException("Can't update your trip status");
                 }
             } else if(request.getLatitude() == null || request.getLongitude() == null) {
-                throw new TripException("There is a missing detail in your location data. Please check your permission settings");
+                throw new TripException("There is a missing detail in your location response. Please check your permission settings");
             } else if(request.getAddress() == null || request.getAddress().isEmpty()) {
                 throw new TripException("Your address is needed for your online activity. Please try again");
             } else {

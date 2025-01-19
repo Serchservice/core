@@ -49,11 +49,13 @@ public class SpeakWithSerchImplementation implements SpeakWithSerchService {
                 saveNewIssue(request, user, existing.get());
                 existing.get().setUpdatedAt(TimeUtil.now());
                 speakWithSerchRepository.save(existing.get());
+
                 return new ApiResponse<>(prepareSpeakWithSerchResponse(existing.get()));
             }
         } else {
             SpeakWithSerch saved = getSpeakWithSerch(user);
             saved.setIssues(List.of(saveNewIssue(request, user, saved)));
+
             return new ApiResponse<>(prepareSpeakWithSerchResponse(saved));
         }
     }

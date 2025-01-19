@@ -14,9 +14,9 @@ import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.account.BusinessProfileRepository;
 import com.serch.server.domains.auth.requests.RequestSession;
 import com.serch.server.domains.auth.responses.AuthResponse;
-import com.serch.server.core.jwt.JwtService;
+import com.serch.server.core.token.JwtService;
 import com.serch.server.core.session.SessionService;
-import com.serch.server.core.code.TokenService;
+import com.serch.server.core.token.TokenService;
 import com.serch.server.domains.account.requests.AssociateInviteRequest;
 import com.serch.server.domains.account.responses.VerifiedInviteResponse;
 import com.serch.server.domains.account.services.BusinessAssociateAuthService;
@@ -43,29 +43,33 @@ public class BusinessAssociateAuthImplementation implements BusinessAssociateAut
 
     @Override
     public ApiResponse<VerifiedInviteResponse> verifyLink(String token) {
-        UUID businessId = UUID.fromString(jwtService.getItemFromToken(token, "business"));
         UUID userId = UUID.fromString(jwtService.getItemFromToken(token, "user"));
-        Role role = Role.valueOf(jwtService.getItemFromToken(token, "role"));
 
-        businessProfileRepository.findById(businessId).orElseThrow(() -> new AccountException("Business not found"));
+        businessProfileRepository.findById(UUID.fromString(jwtService.getItemFromToken(token, "business")))
+                .orElseThrow(() -> new AccountException("Business not found"));
         User user = userRepository.findById(userId).orElseThrow(() -> new AccountException("User not found"));
 
         Pending pending = pendingRepository.findByUser_Id(userId)
                 .orElseThrow(() -> new AccountException("Account not found"));
 
-        if(jwtService.isTokenIssuedBySerch(token) && role == Role.ASSOCIATE_PROVIDER) {
+        if(jwtService.isTokenIssuedBySerch(token) && Role.valueOf(jwtService.getItemFromToken(token, "role")) == Role.ASSOCIATE_PROVIDER) {
             String scope = tokenService.generate(30);
             pending.setScope(DatabaseUtil.encodeData(scope));
             pendingRepository.save(pending);
 
-            VerifiedInviteResponse response = new VerifiedInviteResponse();
-            response.setScope(scope);
-            response.setName(user.getFirstName());
-            response.setEmailAddress(user.getEmailAddress());
-            return new ApiResponse<>(response);
+            return new ApiResponse<>(getVerifiedInviteResponse(scope, user));
         } else {
             throw new AccountException("Access denied. Incorrect or corrupt link");
         }
+    }
+
+    private VerifiedInviteResponse getVerifiedInviteResponse(String scope, User user) {
+        VerifiedInviteResponse response = new VerifiedInviteResponse();
+        response.setScope(scope);
+        response.setName(user.getFirstName());
+        response.setEmailAddress(user.getEmailAddress());
+
+        return response;
     }
 
     @Override
@@ -73,16 +77,12 @@ public class BusinessAssociateAuthImplementation implements BusinessAssociateAut
     public ApiResponse<AuthResponse> acceptInvite(AssociateInviteRequest request) {
         Pending pending = pendingRepository.findByUser_EmailAddressIgnoreCase(request.getEmailAddress())
                 .orElseThrow(() -> new AccountException("Account not found"));
+
         if(DatabaseUtil.decodeData(pending.getScope()).equals(request.getScope())) {
             if(HelperUtil.validatePassword(request.getPassword())) {
                 updatePendingUser(request, pending);
 
-                RequestSession session = new RequestSession();
-                session.setUser(pending.getUser());
-                session.setMethod(AuthMethod.PASSWORD_CHANGE);
-                session.setDevice(request.getDevice());
-
-                ApiResponse<AuthResponse> response = sessionService.generateSession(session);
+                ApiResponse<AuthResponse> response = sessionService.generateSession(getRequestSession(request, pending));
                 if(response.getStatus().is2xxSuccessful()) {
                     pendingRepository.delete(pending);
                     pendingRepository.flush();
@@ -102,6 +102,15 @@ public class BusinessAssociateAuthImplementation implements BusinessAssociateAut
         }
     }
 
+    private RequestSession getRequestSession(AssociateInviteRequest request, Pending pending) {
+        RequestSession session = new RequestSession();
+        session.setUser(pending.getUser());
+        session.setMethod(AuthMethod.PASSWORD_CHANGE);
+        session.setDevice(request.getDevice());
+
+        return session;
+    }
+
     private void updatePendingUser(AssociateInviteRequest request, Pending pending) {
         pending.getUser().setPassword(passwordEncoder.encode(request.getPassword()));
         pending.getUser().setIsEmailConfirmed(true);
@@ -109,6 +118,7 @@ public class BusinessAssociateAuthImplementation implements BusinessAssociateAut
         pending.getUser().setLastSignedIn(TimeUtil.now());
         pending.getUser().setCountry(request.getCountry());
         pending.getUser().setState(request.getState());
+
         userRepository.save(pending.getUser());
     }
 }

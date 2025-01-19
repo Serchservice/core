@@ -26,6 +26,7 @@ public class HelperUtil {
                 "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{8,}$"
         );
         Matcher matcher = pattern.matcher(password);
+
         return matcher.matches();
     }
 

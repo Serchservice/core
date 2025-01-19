@@ -20,7 +20,7 @@ public interface AccountSettingService {
     /**
      * This updates preference for trip service for the user
      *
-     * @param request The {@link AccountSettingResponse} update data
+     * @param request The {@link AccountSettingResponse} update response
      *
      * @return ApiResponse of {@link AccountSettingResponse}
      *

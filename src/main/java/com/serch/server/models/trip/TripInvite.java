@@ -15,10 +15,10 @@ import java.util.UUID;
 public class TripInvite extends BaseTrip {
     private UUID selected;
 
-    @OneToMany(mappedBy = "invite", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "invite", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<TripInviteQuotation> quotes;
 
-    @OneToMany(mappedBy = "invite", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "invite", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ShoppingItem> shoppingItems;
 
     @OneToOne(mappedBy = "invite", cascade = CascadeType.ALL)

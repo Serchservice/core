@@ -28,7 +28,7 @@ public interface TripHistoryService {
      * invitation ID and the requesting user ID.
      * </p>
      *
-     * @param userId The ID of the user requesting the data.
+     * @param userId The ID of the user requesting the response.
      * @param id     The ID of the {@link com.serch.server.models.trip.TripInvite}
      *               associated with the trip invitation.
      * @return The {@link TripResponse} containing details of the invited trip.
@@ -36,19 +36,19 @@ public interface TripHistoryService {
     TripResponse response(String id, String userId);
 
     /**
-     * Prepares the response based on trip data.
+     * Prepares the response based on trip response.
      * <p>
      * This method generates a {@link TripResponse} for the specified trip,
-     * incorporating optional payment data and socket update configurations.
+     * incorporating optional payment response and socket update configurations.
      * </p>
      *
-     * @param userId       The ID of the user requesting the data.
+     * @param userId       The ID of the user requesting the response.
      * @param id           The ID of the {@link Trip}.
      * @param payment      The {@link InitializePaymentData} containing payment
      *                     information (can be {@code null}).
      * @param sendUpdate   Specifies whether to send a socket update to all accounts
      *                     associated with the trip.
-     * @param requestedId  An optional ID representing the requested data (can be used
+     * @param requestedId  An optional ID representing the requested response (can be used
      *                     for further identification).
      * @return The {@link TripResponse} containing the trip's details.
      */

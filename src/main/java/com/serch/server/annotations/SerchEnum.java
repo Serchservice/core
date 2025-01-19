@@ -1,5 +1,6 @@
 package com.serch.server.annotations;
 
+import com.serch.server.annotations.implementations.EnumValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
@@ -34,7 +35,7 @@ public @interface SerchEnum {
     Class<?>[] groups() default {};
 
     /**
-     * Payload for validator-specific data.
+     * Payload for validator-specific response.
      *
      * @return The payload.
      */

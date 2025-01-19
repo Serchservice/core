@@ -15,7 +15,7 @@ public interface BankService {
     /**
      * Retrieves a list of available banks.
      * <p>
-     * This method queries the underlying data source to obtain a comprehensive
+     * This method queries the underlying response source to obtain a comprehensive
      * list of banks. The response includes essential information about each bank,
      * such as its name, NUBAN code, and other relevant details.
      * </p>

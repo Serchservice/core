@@ -22,12 +22,10 @@ import com.serch.server.models.transaction.Transaction;
 import com.serch.server.models.transaction.Wallet;
 import com.serch.server.models.trip.Active;
 import com.serch.server.models.trip.Trip;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Mappings;
+import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING)
 public interface AccountUserScopeMapper {
     AccountUserScopeMapper instance = Mappers.getMapper(AccountUserScopeMapper.class);
 

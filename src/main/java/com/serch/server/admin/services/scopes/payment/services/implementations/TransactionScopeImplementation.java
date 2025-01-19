@@ -58,7 +58,7 @@ public class TransactionScopeImplementation implements TransactionScopeService {
                 .collect(Collectors.groupingBy(Transaction::getStatus, Collectors.groupingBy(t -> t.getCreatedAt().toLocalDate())));
 
         List<PaymentApiResponse<TransactionGroupScopeResponse>> responses = createEmptyApiResponse();
-        // Update the responses with actual data where available
+        // Update the responses with actual response where available
         responses.forEach(response -> getResult(transactionRepository.countByStatus(response.getStatus()), response, groups));
 
         return new ApiResponse<>(responses);
@@ -149,7 +149,7 @@ public class TransactionScopeImplementation implements TransactionScopeService {
                 .collect(Collectors.groupingBy(Transaction::getStatus, Collectors.groupingBy(t -> t.getCreatedAt().toLocalDate())));
 
         List<PaymentApiResponse<TransactionGroupScopeResponse>> responses = createEmptyApiResponse();
-        // Update the responses with actual data where available
+        // Update the responses with actual response where available
         responses.forEach(response -> getResult(transactionRepository.countByStatus(query, response.getStatus()), response, groups));
 
         return new ApiResponse<>(responses);

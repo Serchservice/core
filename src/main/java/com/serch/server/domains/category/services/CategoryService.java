@@ -1,7 +1,7 @@
 package com.serch.server.domains.category.services;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.domains.category.SerchCategoryResponse;
+import com.serch.server.domains.category.response.SerchCategoryResponse;
 
 import java.util.List;
 

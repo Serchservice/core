@@ -1,7 +1,7 @@
 package com.serch.server.domains.auth.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.core.jwt.JwtService;
+import com.serch.server.core.token.JwtService;
 import com.serch.server.enums.auth.AuthMethod;
 import com.serch.server.enums.auth.Role;
 import com.serch.server.exceptions.ExceptionCodes;

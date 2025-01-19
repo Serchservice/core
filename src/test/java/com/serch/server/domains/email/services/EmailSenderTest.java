@@ -1,6 +1,6 @@
 //package com.serch.server.services.email.services;
 //
-//import com.serch.server.core.email.EmailSender;
+//import com.serch.server.services.email.implementations.EmailSender;
 //import org.junit.jupiter.api.Disabled;
 //import org.junit.jupiter.api.Test;
 //import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,9 +1,9 @@
 package com.serch.server.domains.auth.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.core.code.TokenService;
+import com.serch.server.core.token.TokenService;
 import com.serch.server.core.email.EmailService;
-import com.serch.server.core.jwt.JwtService;
+import com.serch.server.core.token.JwtService;
 import com.serch.server.core.session.SessionService;
 import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.auth.AuthMethod;
@@ -243,13 +243,8 @@ public class AuthImplementation implements AuthService {
     }
 
     private User createNewUser(Incomplete incomplete, Role role) {
-        User user = new User();
-        user.setEmailAddress(incomplete.getEmailAddress());
-        user.setPassword(incomplete.getProfile().getPassword());
-        user.setEmailConfirmedAt(incomplete.getTokenConfirmedAt());
+        User user = AuthMapper.INSTANCE.user(incomplete);
         user.setRole(role);
-        user.setFirstName(incomplete.getProfile().getFirstName());
-        user.setLastName(incomplete.getProfile().getLastName());
 
         return userRepository.save(user);
     }
@@ -271,7 +266,7 @@ public class AuthImplementation implements AuthService {
                     return new ApiResponse<>(getRegistration(incomplete, true));
                 }
             } else {
-                throw new AuthException("Incorrect user data. Check your password credentials.");
+                throw new AuthException("Incorrect user response. Check your password credentials.");
             }
         } else {
             throw new AuthException("You have not confirmed your email", ExceptionCodes.EMAIL_NOT_VERIFIED);
@@ -364,14 +359,22 @@ public class AuthImplementation implements AuthService {
             saveReferral(request.getReferral(), incomplete);
         }
 
-        IncompleteProfile incompleteProfile = AuthMapper.INSTANCE.profile(request);
-        incompleteProfile.setIncomplete(incomplete);
-        incompleteProfile.setPassword(passwordEncoder.encode(request.getPassword()));
-        incompleteProfileRepository.save(incompleteProfile);
+        insertProfile(request, incomplete);
+        insertPhoneInformation(request, incomplete);
+    }
 
+    private void insertPhoneInformation(RequestProviderProfile request, Incomplete incomplete) {
         IncompletePhoneInformation phone = AuthMapper.INSTANCE.phoneInformation(request.getPhoneInformation());
         phone.setIncomplete(incomplete);
         incompletePhoneInformationRepository.save(phone);
+    }
+
+    private void insertProfile(RequestProviderProfile request, Incomplete incomplete) {
+        IncompleteProfile profile = AuthMapper.INSTANCE.profile(request);
+        profile.setIncomplete(incomplete);
+        profile.setPassword(passwordEncoder.encode(request.getPassword()));
+
+        incompleteProfileRepository.save(profile);
     }
 
     private void saveReferral(String code, Incomplete incomplete) {

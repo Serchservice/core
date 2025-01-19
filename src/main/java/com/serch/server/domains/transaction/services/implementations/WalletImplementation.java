@@ -1,7 +1,7 @@
 package com.serch.server.domains.transaction.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.core.notification.core.NotificationService;
+import com.serch.server.core.notification.services.NotificationService;
 import com.serch.server.enums.auth.Role;
 import com.serch.server.enums.transaction.TransactionStatus;
 import com.serch.server.enums.transaction.TransactionType;
@@ -19,7 +19,7 @@ import com.serch.server.repositories.conversation.CallRepository;
 import com.serch.server.repositories.schedule.ScheduleRepository;
 import com.serch.server.repositories.transaction.TransactionRepository;
 import com.serch.server.repositories.transaction.WalletRepository;
-import com.serch.server.core.payment.core.PaymentService;
+import com.serch.server.core.payment.services.PaymentService;
 import com.serch.server.core.payment.requests.InitializePaymentRequest;
 import com.serch.server.core.payment.responses.InitializePaymentData;
 import com.serch.server.repositories.trip.TripRepository;

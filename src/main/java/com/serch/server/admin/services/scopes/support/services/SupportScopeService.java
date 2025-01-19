@@ -8,7 +8,7 @@ import java.util.List;
 
 /**
  * Service interface for support-related operations in the Serch platform.
- * Provides methods to retrieve overviews of support activity and analyze data for complaints
+ * Provides methods to retrieve overviews of support activity and analyze response for complaints
  * and SpeakWithSerch interactions across specified time periods.
  */
 public interface SupportScopeService {
@@ -20,7 +20,7 @@ public interface SupportScopeService {
      * into the overall performance and workload of the support team.
      *
      * @return an {@link ApiResponse} containing a {@link SupportScopeResponse}, which provides
-     *         a comprehensive summary of support-related data, including counts and status metrics.
+     *         a comprehensive summary of support-related response, including counts and status metrics.
      */
     ApiResponse<SupportScopeResponse> overview();
 
@@ -30,8 +30,8 @@ public interface SupportScopeService {
      * response times, and ticket handling. It helps to track complaint circulation and understand trends
      * in user feedback over time.
      *
-     * @param year an optional parameter representing the year to retrieve data for.
-     *             If null, the data for the current year is returned.
+     * @param year an optional parameter representing the year to retrieve response for.
+     *             If null, the response for the current year is returned.
      * @return an {@link ApiResponse} containing a list of {@link ChartMetric} objects that represent various
      *         metrics related to complaints, such as the number of complaints per month,
      *         response times, and statuses.
@@ -41,11 +41,11 @@ public interface SupportScopeService {
     /**
      * Provides an analysis of SpeakWithSerch interactions on the Serch platform for a specified year or the current year if no year is provided.
      * This method gives insights into the trends and circulation of SpeakWithSerch tickets, focusing on aspects such as
-     * response status, frequency of interactions, and the effectiveness of ticket resolutions. The data can help
+     * response status, frequency of interactions, and the effectiveness of ticket resolutions. The response can help
      * identify periods of high activity or areas where the support process can be improved.
      *
-     * @param year an optional parameter representing the year to retrieve data for.
-     *             If null, the data for the current year is returned.
+     * @param year an optional parameter representing the year to retrieve response for.
+     *             If null, the response for the current year is returned.
      * @return an {@link ApiResponse} containing a list of {@link ChartMetric} objects that provide metrics
      *         related to SpeakWithSerch interactions, such as the number of interactions per month,
      *         response success rates, and unresolved cases.

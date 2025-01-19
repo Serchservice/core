@@ -32,8 +32,8 @@ public interface SharedService {
     /**
      * Create provide sharing link
      *
-     * @param withInvited Whether to create the data from the invited provider
-     * @param id The trip id to create a {@link SharedLink} data from
+     * @param withInvited Whether to create the response from the invited provider
+     * @param id The trip id to create a {@link SharedLink} response from
      *
      * @return {@link ApiResponse} list of {@link SharedLinkResponse}
      */
@@ -51,7 +51,7 @@ public interface SharedService {
     /**
      * Build the response of the shared link
      *
-     * @param link The {@link SharedLink} data
+     * @param link The {@link SharedLink} response
      *
      * @return Response of {@link SharedLinkResponse}
      */
@@ -67,9 +67,9 @@ public interface SharedService {
     SharedStatus getCurrentStatus(SharedLink link);
 
     /**
-     * Prepares SharedLink data response
+     * Prepares SharedLink response response
      *
-     * @param link The SharedLink data to prepare data with
+     * @param link The SharedLink response to prepare response with
      * @param status The SharedLink status
      *
      * @return {@link SharedLinkData}
@@ -88,19 +88,19 @@ public interface SharedService {
     /**
      * Prepares the SharedStatusData response from {@link SharedLink} and {@link SharedStatus}
      *
-     * @param link The SharedLink data
-     * @param status The SharedStatus data
+     * @param link The SharedLink response
+     * @param status The SharedStatus response
      *
      * @return SharedPricingData response {@link SharedStatusData}
      */
     SharedStatusData getStatusData(SharedLink link, SharedStatus status);
 
     /**
-     * Create a shared status data for the trip data
+     * Create a shared status response for the trip response
      *
      * @param linkId The {@link SharedLink} id
      * @param account The {@link Guest} id
-     * @param trip The {@link Trip} data
+     * @param trip The {@link Trip} response
      */
     void create(String linkId, String account, Trip trip);
 

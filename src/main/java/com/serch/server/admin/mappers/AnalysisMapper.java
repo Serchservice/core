@@ -6,12 +6,10 @@ import com.serch.server.admin.services.responses.auth.AccountSessionResponse;
 import com.serch.server.models.auth.Session;
 import com.serch.server.models.auth.mfa.MFAChallenge;
 import com.serch.server.models.auth.mfa.MFAFactor;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Mappings;
+import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING)
 public interface AnalysisMapper {
     AnalysisMapper instance = Mappers.getMapper(AnalysisMapper.class);
 

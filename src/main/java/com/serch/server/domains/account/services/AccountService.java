@@ -50,7 +50,7 @@ public interface AccountService {
     /**
      * Update the public encryption key of the logged-in user
      *
-     * @param key The new key data {@link UpdateE2EKey}
+     * @param key The new key response {@link UpdateE2EKey}
      *
      * @return {@link ApiResponse} of Success or failure
      */

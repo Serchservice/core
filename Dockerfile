@@ -17,7 +17,7 @@ RUN mvn help:evaluate -Dexpression=project.version -q -DforceStdout | tee versio
 RUN JAR_VERSION=$(cat version.txt)
 
 # Rename the jar file with the version extracted from pom.xml
-RUN mv target/*.jar /app/core-${JAR_VERSION}.jar
+RUN mv target/*.jar /app/services-${JAR_VERSION}.jar
 
 # Stage 2: Run the application
 FROM amazoncorretto:21.0.2-alpine3.19

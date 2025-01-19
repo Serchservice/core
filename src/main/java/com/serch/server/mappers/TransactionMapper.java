@@ -4,12 +4,10 @@ import com.serch.server.models.transaction.Transaction;
 import com.serch.server.models.transaction.Wallet;
 import com.serch.server.domains.transaction.responses.TransactionData;
 import com.serch.server.domains.transaction.responses.WalletResponse;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Mappings;
+import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING)
 public interface TransactionMapper {
     TransactionMapper INSTANCE = Mappers.getMapper(TransactionMapper.class);
 

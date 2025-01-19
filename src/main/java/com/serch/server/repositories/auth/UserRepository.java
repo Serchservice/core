@@ -25,9 +25,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query("select count(u) from users u where u.status = ?1 and (u.role = 'ADMIN' or u.role = 'SUPER_ADMIN' or u.role = 'MANAGER' or u.role = 'TEAM')")
     long countAdminByStatus(@NonNull AccountStatus accountStatus);
 
-    @Query("select (count(u) > 0) from users u where u.id = ?1 and u.status = 'ACTIVE' ")
-    boolean isActive(@NonNull UUID id);
-
     List<User> findByRoleAndCreatedAtBetween(Role role, ZonedDateTime start, ZonedDateTime end);
 
     List<User> findByRole(@NonNull Role role);

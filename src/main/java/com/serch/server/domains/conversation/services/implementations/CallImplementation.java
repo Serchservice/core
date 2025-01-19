@@ -6,6 +6,7 @@ import com.serch.server.enums.call.CallStatus;
 import com.serch.server.enums.call.CallType;
 import com.serch.server.exceptions.ExceptionCodes;
 import com.serch.server.exceptions.conversation.CallException;
+import com.serch.server.mappers.ConversationMapper;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.conversation.Call;
 import com.serch.server.repositories.account.ProfileRepository;
@@ -286,28 +287,20 @@ public class CallImplementation implements CallService {
 
     private Page<Call> getCalls(Integer page, Integer size) {
         CallPeriodResponse period = CallUtil.getPeriod(userUtil.getUser().getTimezone());
+
         return callRepository.findByUserId(userUtil.getUser().getId(), period.getStart(), period.getEnd(), HelperUtil.getPageable(page, size));
     }
 
     private CallInformation createCallInformation(Call call) {
-        CallInformation info = new CallInformation();
-        info.setChannel(call.getChannel());
+        CallInformation info = ConversationMapper.INSTANCE.info(call);
         info.setLabel(TimeUtil.formatDay(call.getCreatedAt(), userUtil.getUser().getTimezone()));
-        info.setDuration(call.getDuration());
         info.setOutgoing(call.getCaller().isSameAs(userUtil.getUser().getId()));
-        info.setType(call.getType());
-        info.setStatus(call.getStatus());
+
         return info;
     }
 
     private CallMemberData createCallMemberData(Profile profile) {
-        CallMemberData data = new CallMemberData();
-        data.setMember(profile.getId());
-        data.setName(profile.getFullName());
-        data.setAvatar(profile.getAvatar());
-        data.setCategory(profile.getCategory().getType());
-        data.setImage(profile.getCategory().getImage());
-        return data;
+        return ConversationMapper.INSTANCE.data(profile);
     }
 
     @Override

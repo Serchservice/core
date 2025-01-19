@@ -11,7 +11,7 @@ public class AccountUserScopeActivityResponse {
     private List<MonthlyActivity> activities = new ArrayList<>();
 
     /**
-     * Represents a single month's activity data.
+     * Represents a single month's activity response.
      */
     @Data
     public static class MonthlyActivity {

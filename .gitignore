@@ -38,3 +38,4 @@ service-account.json
 .env.dev
 .env.sandbox
 src/main/resources/application-dev.properties
+src/main/resources/banner/dev.txt

@@ -4,7 +4,7 @@ import com.serch.server.bases.ApiResponse;
 import com.serch.server.domains.schedule.responses.ScheduleGroupResponse;
 import com.serch.server.domains.schedule.responses.ScheduleResponse;
 
-import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -67,5 +67,5 @@ public interface ScheduleHistoryService {
      * @param size The number of items per page.
      * @see ScheduleGroupResponse
      */
-    ApiResponse<List<ScheduleGroupResponse>> history(Integer page, Integer size, String status, String category, ZonedDateTime dateTime);
+    ApiResponse<List<ScheduleGroupResponse>> history(Integer page, Integer size, String status, String category, Date dateTime);
 }

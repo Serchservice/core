@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -28,9 +28,9 @@ public class TripHistoryController {
             @RequestParam(required = false) Integer size,
             @RequestParam(required = false, name = "shared") Boolean isShared,
             @RequestParam(required = false) String category,
-            @RequestParam(required = false, name = "date_time") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateTime
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date date
     ) {
-        ApiResponse<List<TripResponse>> response = service.history(guest, link, page, size, isShared, category, dateTime);
+        ApiResponse<List<TripResponse>> response = service.history(guest, link, page, size, isShared, category, date);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

@@ -13,9 +13,13 @@ import java.util.UUID;
 public interface TripShareRepository extends JpaRepository<TripShare, Long> {
   Optional<TripShare> findByTrip_IdAndProvider_Id(@NonNull String id, @NonNull UUID id1);
 
-  @Query("SELECT t from TripShare t join t.timelines tt where (t.provider.id = ?1 OR t.provider.business.id = ?1) and " +
-          "tt.status in (com.serch.server.enums.trip.TripConnectionStatus.COMPLETED)" +
-          " AND FUNCTION('DATE',t.updatedAt) = FUNCTION('CURRENT_DATE') order by t.updatedAt desc")
+  @Query("""
+        SELECT t from TripShare t
+        join t.timelines tt where (t.provider.id = ?1 OR t.provider.business.id = ?1)
+        and tt.status in (com.serch.server.enums.trip.TripConnectionStatus.COMPLETED)
+        AND FUNCTION('DATE',t.updatedAt) = FUNCTION('CURRENT_DATE')
+        order by t.updatedAt desc
+  """)
   List<TripShare> todaySharedTrips(UUID id);
 
   Optional<TripShare> findByTrip_IdAndTrip_Account(@NonNull String id, @NonNull String account);

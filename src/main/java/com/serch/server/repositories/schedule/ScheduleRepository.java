@@ -20,13 +20,11 @@ public interface ScheduleRepository extends JpaRepository<Schedule, String> {
 
     List<Schedule> findByClosedByAndClosedOnTime(UUID closedBy, Boolean closedOnTime);
 
-    @Query("SELECT s from Schedule s where (s.user.id = ?1 OR s.provider.id = ?1 or s.provider.business.id = ?1) " +
-            "and (s.status = 'PENDING' or s.status = 'ACCEPTED') order by s.updatedAt desc"
+    @Query("SELECT s from Schedule s where (s.user.id = ?1 OR s.provider.id = ?1 or s.provider.business.id = ?1) and (s.status = 'PENDING' or s.status = 'ACCEPTED') order by s.updatedAt desc"
     )
     List<Schedule> active(UUID userId);
 
-    @Query("SELECT s from Schedule s where (s.user.id = ?1 OR s.provider.id = ?1 or s.provider.business.id = ?1) " +
-            "and s.status = 'ACCEPTED' order by s.updatedAt desc"
+    @Query("SELECT s from Schedule s where (s.user.id = ?1 OR s.provider.id = ?1 or s.provider.business.id = ?1) and s.status = 'ACCEPTED' order by s.updatedAt desc"
     )
     Page<Schedule> active(UUID userId, Pageable pageable);
 
@@ -37,7 +35,7 @@ public interface ScheduleRepository extends JpaRepository<Schedule, String> {
         SELECT s from Schedule s where (s.user.id = :userId OR s.provider.id = :userId or s.provider.business.id = :userId)
         and s.status != 'PENDING' and s.status != 'ACCEPTED'
         and (:category is null or s.provider.category = :category)
-        and (:date is null or trunc(s.createdAt) = :date)
+        and (:date is null or function('DATE', s.createdAt) = :date)
         and (:status is null or s.status = :status)
         order by s.updatedAt desc
     """)

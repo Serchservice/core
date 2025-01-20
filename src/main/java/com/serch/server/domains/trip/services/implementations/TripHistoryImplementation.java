@@ -36,6 +36,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -504,7 +505,7 @@ public class TripHistoryImplementation implements TripHistoryService {
 
     @Override
     @Transactional
-    public ApiResponse<List<TripResponse>> history(String id, String linkId, Integer page, Integer size, Boolean isShared, String category, Date dateTime) {
+    public ApiResponse<List<TripResponse>> history(String id, String linkId, Integer page, Integer size, Boolean isShared, String category, LocalDate dateTime) {
         List<TripResponse> list;
         boolean isGuestAccount = id != null && !id.isEmpty() && linkId != null && !linkId.isEmpty();
 

@@ -9,8 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.lang.NonNull;
 
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -35,11 +35,11 @@ public interface ScheduleRepository extends JpaRepository<Schedule, String> {
         SELECT s from Schedule s where (s.user.id = :userId OR s.provider.id = :userId or s.provider.business.id = :userId)
         and s.status != 'PENDING' and s.status != 'ACCEPTED'
         and (:category is null or s.provider.category = :category)
-        and (:date is null or function('DATE', s.createdAt) = :date)
+        and (:date is null or CAST(s.createdAt AS DATE) = :date)
         and (:status is null or s.status = :status)
         order by s.updatedAt desc
     """)
-    Page<Schedule> schedules(@Param("userId") UUID userId, @Param("status") String status, @Param("category") String category, @Param("date") Date date, Pageable pageable);
+    Page<Schedule> schedules(@Param("userId") UUID userId, @Param("status") String status, @Param("category") String category, @Param("date") LocalDate date, Pageable pageable);
 
     List<Schedule> findByCreatedAtBetween(ZonedDateTime createdAt, ZonedDateTime createdAt2);
 

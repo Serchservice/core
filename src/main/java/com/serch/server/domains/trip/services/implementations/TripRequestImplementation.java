@@ -84,6 +84,10 @@ public class TripRequestImplementation implements TripRequestService {
 
             TripInvite trip = create(request, String.valueOf(userUtil.getUser().getId()), FROM_USER, null);
 
+            if(request.getAmount() != null && request.getProvider() != null) {
+                createAndSendQuotation(getQuotationRequestFromInvite(request), trip);
+            }
+
             SerchCategory category = request.getCategory();
             if(request.getProvider() != null) {
                 category = profileRepository.findById(request.getProvider()).map(Profile::getCategory).orElse(request.getCategory());
@@ -101,6 +105,13 @@ public class TripRequestImplementation implements TripRequestService {
                     HttpStatus.OK
             );
         }
+    }
+
+    private QuotationRequest getQuotationRequestFromInvite(TripInviteRequest request) {
+        QuotationRequest quotation = new QuotationRequest();
+        quotation.setAmount(request.getAmount());
+
+        return quotation;
     }
 
     private void validateInviteRequest(TripInviteRequest request, String guest) {
@@ -260,43 +271,7 @@ public class TripRequestImplementation implements TripRequestService {
                         HttpStatus.OK
                 );
             } else {
-                Profile profile = profileRepository.findById(userUtil.getUser().getId())
-                        .orElseThrow(() -> new TripException("Provider not found"));
-                BigDecimal amount = BigDecimal.valueOf(request.getAmount());
-
-                TripInviteQuotation quote = tripInviteQuotationRepository
-                        .findByInvite_IdAndProvider_id(trip.getId(), userUtil.getUser().getId())
-                        .orElseGet(() -> {
-                            TripInviteQuotation quotation = new TripInviteQuotation();
-                            quotation.setAmount(amount);
-                            quotation.setUpdatedAt(TimeUtil.now());
-                            quotation.setProvider(profile);
-                            quotation.setInvite(trip);
-
-                            return tripInviteQuotationRepository.save(quotation);
-                        });
-
-                quote.setAmount(amount);
-                quote.setAccount(null);
-                quote.setUpdatedAt(TimeUtil.now());
-                quote.setProvider(profile);
-                tripInviteQuotationRepository.save(quote);
-
-                messaging.convertAndSend(
-                        "/platform/%s/trip/requested".formatted(trip.getAccount()),
-                        historyService.response(trip.getId(), trip.getAccount())
-                );
-                messaging.convertAndSend(
-                        "/platform/%s/trip/requested/%s".formatted(trip.getAccount(), trip.getId()),
-                        historyService.response(trip.getId(), trip.getAccount())
-                );
-
-                notificationService.send(
-                        String.valueOf(String.valueOf(trip.getAccount())),
-                        String.format("%s sent in a quotation for your request", userUtil.getUser().getFullName()),
-                        String.format("Trip is now being charged at %s", MoneyUtil.formatToNaira(amount)),
-                        String.valueOf(userUtil.getUser().getId()), null, true
-                );
+                createAndSendQuotation(request, trip);
 
                 return new ApiResponse<>(
                         "Quotation sent. Wait for response",
@@ -307,6 +282,46 @@ public class TripRequestImplementation implements TripRequestService {
         } else {
             throw new TripException("Your quotation must have an amount");
         }
+    }
+
+    private void createAndSendQuotation(QuotationRequest request, TripInvite trip) {
+        Profile profile = profileRepository.findById(userUtil.getUser().getId())
+                .orElseThrow(() -> new TripException("Provider not found"));
+        BigDecimal amount = BigDecimal.valueOf(request.getAmount());
+
+        TripInviteQuotation quote = tripInviteQuotationRepository
+                .findByInvite_IdAndProvider_id(trip.getId(), userUtil.getUser().getId())
+                .orElseGet(() -> {
+                    TripInviteQuotation quotation = new TripInviteQuotation();
+                    quotation.setAmount(amount);
+                    quotation.setUpdatedAt(TimeUtil.now());
+                    quotation.setProvider(profile);
+                    quotation.setInvite(trip);
+
+                    return tripInviteQuotationRepository.save(quotation);
+                });
+
+        quote.setAmount(amount);
+        quote.setAccount(null);
+        quote.setUpdatedAt(TimeUtil.now());
+        quote.setProvider(profile);
+        tripInviteQuotationRepository.save(quote);
+
+        messaging.convertAndSend(
+                "/platform/%s/trip/requested".formatted(trip.getAccount()),
+                historyService.response(trip.getId(), trip.getAccount())
+        );
+        messaging.convertAndSend(
+                "/platform/%s/trip/requested/%s".formatted(trip.getAccount(), trip.getId()),
+                historyService.response(trip.getId(), trip.getAccount())
+        );
+
+        notificationService.send(
+                String.valueOf(String.valueOf(trip.getAccount())),
+                String.format("%s sent in a quotation for your request", userUtil.getUser().getFullName()),
+                String.format("Trip is now being charged at %s", MoneyUtil.formatToNaira(amount)),
+                String.valueOf(userUtil.getUser().getId()), null, true
+        );
     }
 
     @Transactional

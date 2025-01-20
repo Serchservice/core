@@ -210,7 +210,7 @@ public class NotificationImplementation implements NotificationService {
         log.info(String.format("Preparing trip notification for %s from %s to %s", trip, sender, id));
 
         repository.getToken(id).ifPresent(token -> {
-            NotificationMessage<Map<String, String>> message = new NotificationMessage<>();
+            NotificationMessage<Map<String, Object>> message = new NotificationMessage<>();
             message.setToken(token);
             message.setData(getTripNotification(content, title, sender, getTripData(sender, trip, isInvite)));
             message.setSnt("TRIP_MESSAGE");
@@ -218,13 +218,14 @@ public class NotificationImplementation implements NotificationService {
         });
     }
 
-    private Map<String, String> getTripData(String sender, String trip, boolean isInvite) {
-        Map<String, String> data = new HashMap<>();
+    private Map<String, Object> getTripData(String sender, String trip, boolean isInvite) {
+        Map<String, Object> data = new HashMap<>();
         data.put("snt", "TRIP_MESSAGE");
         data.put("sender_name", repository.getName(sender));
         data.put("sender_id", sender);
-        data.put("can_act", String.valueOf(trip != null));
-        data.put("is_request", String.valueOf(isInvite));
+        data.put("can_act", trip != null);
+        data.put("is_request", isInvite);
+        data.put("type", isInvite ? "REQUEST" : "");
 
         if(trip != null) {
             data.put("trip_id", trip);
@@ -233,8 +234,8 @@ public class NotificationImplementation implements NotificationService {
         return data;
     }
 
-    private SerchNotification<Map<String, String>> getTripNotification(String content, String title, String sender, Map<String, String> data) {
-        SerchNotification<Map<String, String>> notification = new SerchNotification<>();
+    private SerchNotification<Map<String, Object>> getTripNotification(String content, String title, String sender, Map<String, Object> data) {
+        SerchNotification<Map<String, Object>> notification = new SerchNotification<>();
         notification.setTitle(title);
         notification.setBody(content);
         notification.setImage(repository.getAvatar(sender));

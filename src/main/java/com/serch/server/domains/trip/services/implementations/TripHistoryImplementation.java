@@ -2,6 +2,8 @@ package com.serch.server.domains.trip.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.core.payment.responses.InitializePaymentData;
+import com.serch.server.domains.trip.responses.*;
+import com.serch.server.domains.trip.services.TripHistoryService;
 import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.trip.TripConnectionStatus;
 import com.serch.server.exceptions.others.TripException;
@@ -25,8 +27,6 @@ import com.serch.server.repositories.trip.TripInviteRepository;
 import com.serch.server.repositories.trip.TripPaymentRepository;
 import com.serch.server.repositories.trip.TripRepository;
 import com.serch.server.repositories.trip.TripTimelineRepository;
-import com.serch.server.domains.trip.responses.*;
-import com.serch.server.domains.trip.services.TripHistoryService;
 import com.serch.server.utils.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,7 +36,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -505,26 +504,16 @@ public class TripHistoryImplementation implements TripHistoryService {
 
     @Override
     @Transactional
-    public ApiResponse<List<TripResponse>> history(String id, String linkId, Integer page, Integer size, Boolean isShared, String category, ZonedDateTime dateTime) {
+    public ApiResponse<List<TripResponse>> history(String id, String linkId, Integer page, Integer size, Boolean isShared, String category, Date dateTime) {
         List<TripResponse> list;
         boolean isGuestAccount = id != null && !id.isEmpty() && linkId != null && !linkId.isEmpty();
 
-        if(dateTime == null) {
-            if(isGuestAccount) {
-                list = buildTrips(tripRepository.findByGuestHistoryTrips(id, linkId, category, TimeUtil.now(), isShared, HelperUtil.getPageable(page, size)), id, false);
-            } else if(userUtil.getUser().isUser()) {
-                list = buildTrips(tripRepository.findByUserHistoryTrips(String.valueOf(userUtil.getUser().getId()), category, TimeUtil.now(), isShared, HelperUtil.getPageable(page, size)), String.valueOf(userUtil.getUser().getId()), false);
-            } else {
-                list = buildTrips(tripRepository.findByProviderHistoryTrips(userUtil.getUser().getId(), category, TimeUtil.now(), isShared, HelperUtil.getPageable(page, size)), String.valueOf(userUtil.getUser().getId()), false);
-            }
+        if(isGuestAccount) {
+            list = buildTrips(tripRepository.findByGuestHistoryTrips(id, linkId, category, dateTime, isShared, HelperUtil.getPageable(page, size)), id, false);
+        } else if(userUtil.getUser().isUser()) {
+            list = buildTrips(tripRepository.findByUserHistoryTrips(String.valueOf(userUtil.getUser().getId()), category, dateTime, isShared, HelperUtil.getPageable(page, size)), String.valueOf(userUtil.getUser().getId()), false);
         } else {
-            if(isGuestAccount) {
-                list = buildTrips(tripRepository.findByGuestHistoryTrips(id, linkId, category, dateTime, isShared, HelperUtil.getPageable(page, size)), id, false);
-            } else if(userUtil.getUser().isUser()) {
-                list = buildTrips(tripRepository.findByUserHistoryTrips(String.valueOf(userUtil.getUser().getId()), category, dateTime, isShared, HelperUtil.getPageable(page, size)), String.valueOf(userUtil.getUser().getId()), false);
-            } else {
-                list = buildTrips(tripRepository.findByProviderHistoryTrips(userUtil.getUser().getId(), category, dateTime, isShared, HelperUtil.getPageable(page, size)), String.valueOf(userUtil.getUser().getId()), false);
-            }
+            list = buildTrips(tripRepository.findByProviderHistoryTrips(userUtil.getUser().getId(), category, dateTime, isShared, HelperUtil.getPageable(page, size)), String.valueOf(userUtil.getUser().getId()), false);
         }
 
         return new ApiResponse<>(list);

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -27,9 +27,9 @@ public class ScheduleHistoryController {
             @RequestParam(required = false) Integer size,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String category,
-            @RequestParam(required = false, name = "date_time") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateTime
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date date
     ) {
-        ApiResponse<List<ScheduleGroupResponse>> response = service.history(page, size, status, category, dateTime);
+        ApiResponse<List<ScheduleGroupResponse>> response = service.history(page, size, status, category, date);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

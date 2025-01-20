@@ -2,12 +2,12 @@ package com.serch.server.domains.trip.services;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.core.payment.responses.InitializePaymentData;
-import com.serch.server.models.trip.Trip;
 import com.serch.server.domains.trip.responses.TripResponse;
 import com.serch.server.domains.trip.services.implementations.TripHistoryImplementation;
+import com.serch.server.models.trip.Trip;
 
 import javax.annotation.Nullable;
-import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -138,5 +138,5 @@ public interface TripHistoryService {
      * @param size The number of items per page.
      * @return An {@link ApiResponse} containing a list of {@link TripResponse} objects.
      */
-    ApiResponse<List<TripResponse>> history(String id, String linkId, Integer page, Integer size, Boolean isShared, String category, ZonedDateTime dateTime);
+    ApiResponse<List<TripResponse>> history(String id, String linkId, Integer page, Integer size, Boolean isShared, String category, Date dateTime);
 }

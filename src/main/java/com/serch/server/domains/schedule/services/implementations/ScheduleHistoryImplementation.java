@@ -1,14 +1,14 @@
 package com.serch.server.domains.schedule.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.models.auth.User;
-import com.serch.server.models.schedule.Schedule;
-import com.serch.server.repositories.auth.UserRepository;
-import com.serch.server.repositories.schedule.ScheduleRepository;
 import com.serch.server.domains.schedule.responses.ScheduleGroupResponse;
 import com.serch.server.domains.schedule.responses.ScheduleResponse;
 import com.serch.server.domains.schedule.services.ScheduleHistoryService;
 import com.serch.server.domains.schedule.services.SchedulingService;
+import com.serch.server.models.auth.User;
+import com.serch.server.models.schedule.Schedule;
+import com.serch.server.repositories.auth.UserRepository;
+import com.serch.server.repositories.schedule.ScheduleRepository;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -76,12 +75,12 @@ public class ScheduleHistoryImplementation implements ScheduleHistoryService {
     }
 
     @Override
-    public ApiResponse<List<ScheduleGroupResponse>> history(Integer page, Integer size, String status, String category, ZonedDateTime dateTime) {
-        return new ApiResponse<>(schedules(userUtil.getUser().getId(), page, size, status, category, dateTime));
+    public ApiResponse<List<ScheduleGroupResponse>> history(Integer page, Integer size, String status, String category, Date date) {
+        return new ApiResponse<>(schedules(userUtil.getUser().getId(), page, size, status, category, date));
     }
 
-    private List<ScheduleGroupResponse> schedules(UUID id, Integer page, Integer size, String status, String category, ZonedDateTime dateTime) {
-        Page<Schedule> schedules = scheduleRepository.schedules(id, status, category, dateTime, HelperUtil.getPageable(page, size));
+    private List<ScheduleGroupResponse> schedules(UUID id, Integer page, Integer size, String status, String category, Date date) {
+        Page<Schedule> schedules = scheduleRepository.schedules(id, status, category, date, HelperUtil.getPageable(page, size));
 
         if(schedules != null && !schedules.isEmpty() && schedules.hasContent()) {
             List<ScheduleGroupResponse> list = new ArrayList<>(

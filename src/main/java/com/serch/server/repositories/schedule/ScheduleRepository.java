@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.lang.NonNull;
 
 import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -29,19 +30,18 @@ public interface ScheduleRepository extends JpaRepository<Schedule, String> {
     )
     Page<Schedule> active(UUID userId, Pageable pageable);
 
-    @Query("SELECT s from Schedule s where (s.user.id = ?1 OR s.provider.id = ?1 or s.provider.business.id = ?1) " +
-            "and s.status = 'PENDING' order by s.updatedAt desc"
-    )
+    @Query("SELECT s from Schedule s where (s.user.id = ?1 OR s.provider.id = ?1 or s.provider.business.id = ?1) and s.status = 'PENDING' order by s.updatedAt desc")
     Page<Schedule> pending(UUID userId, Pageable pageable);
 
-    @Query("SELECT s from Schedule s where (s.user.id = :userId OR s.provider.id = :userId or s.provider.business.id = :userId) " +
-            "and s.status != 'PENDING' and s.status != 'ACCEPTED' " +
-            "and (:category is null or s.provider.category = :category) " +
-            "and (:dateTime is null or s.createdAt = :dateTime) " +
-            "and (:status is null or s.status = :status) " +
-            "order by s.updatedAt desc"
-    )
-    Page<Schedule> schedules(@Param("userId") UUID userId, @Param("status") String status, @Param("category") String category, @Param("dateTime") ZonedDateTime dateTime, Pageable pageable);
+    @Query("""
+        SELECT s from Schedule s where (s.user.id = :userId OR s.provider.id = :userId or s.provider.business.id = :userId)
+        and s.status != 'PENDING' and s.status != 'ACCEPTED'
+        and (:category is null or s.provider.category = :category)
+        and (:date is null or trunc(s.createdAt) = :date)
+        and (:status is null or s.status = :status)
+        order by s.updatedAt desc
+    """)
+    Page<Schedule> schedules(@Param("userId") UUID userId, @Param("status") String status, @Param("category") String category, @Param("date") Date date, Pageable pageable);
 
     List<Schedule> findByCreatedAtBetween(ZonedDateTime createdAt, ZonedDateTime createdAt2);
 

@@ -8,8 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.lang.NonNull;
 
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -105,10 +105,10 @@ public interface TripRepository extends JpaRepository<Trip, String> {
         where t.account = :account
         and (t.status = 'UNFULFILLED' or t.status = 'CLOSED')
         and (:category is null or t.category = :category)
-        and (:date is null or function('DATE', t.createdAt) = :date)
+        and (:date is null or CAST(t.createdAt AS DATE) = :date)
         and (:isShared is null or (ti is not null and :isShared = true))
     """)
-    Page<Trip> findByUserHistoryTrips(@Param("account") String account, @Param("category") String category, @Param("date") Date date, @Param("isShared") Boolean isShared, Pageable pageable);
+    Page<Trip> findByUserHistoryTrips(@Param("account") String account, @Param("category") String category, @Param("date") LocalDate date, @Param("isShared") Boolean isShared, Pageable pageable);
 
     @Query("""
         select t from Trip t
@@ -116,10 +116,10 @@ public interface TripRepository extends JpaRepository<Trip, String> {
         where t.account = :account and t.linkId = :linkId
         and (t.status = 'UNFULFILLED' or t.status = 'CLOSED')
         and (:category is null or t.category = :category)
-        and (:date is null or function('DATE', t.createdAt) = :date)
+        and (:date is null or CAST(t.createdAt AS DATE) = :date)
         and (:isShared is null or (ti is not null and :isShared = true))
     """)
-    Page<Trip> findByGuestHistoryTrips(@Param("account") String account, @Param("linkId") String linkId, @Param("category") String category, @Param("date") Date date, @Param("isShared") Boolean isShared, Pageable pageable);
+    Page<Trip> findByGuestHistoryTrips(@Param("account") String account, @Param("linkId") String linkId, @Param("category") String category, @Param("date") LocalDate date, @Param("isShared") Boolean isShared, Pageable pageable);
 
     @Query("""
         select t from Trip t
@@ -131,10 +131,10 @@ public interface TripRepository extends JpaRepository<Trip, String> {
         where ((p.id = :userId or pb.id = :userId) or (inp.id = :userId or inpb.id = :userId))
         and (t.status = 'UNFULFILLED' or t.status = 'CLOSED')
         and (:category is null or t.category = :category)
-        and (:date is null or function('DATE', t.createdAt) = :date)
+        and (:date is null or CAST(t.createdAt AS DATE) = :date)
         and (:isShared is null or (ti is not null and :isShared = true))
     """)
-    Page<Trip> findByProviderHistoryTrips(@Param("userId") UUID id, @Param("category") String category, @Param("date") Date date, @Param("isShared") Boolean isShared, Pageable pageable);
+    Page<Trip> findByProviderHistoryTrips(@Param("userId") UUID id, @Param("category") String category, @Param("date") LocalDate date, @Param("isShared") Boolean isShared, Pageable pageable);
 
     @Query("""
         select t from Trip t

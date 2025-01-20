@@ -75,11 +75,11 @@ public class ScheduleHistoryImplementation implements ScheduleHistoryService {
     }
 
     @Override
-    public ApiResponse<List<ScheduleGroupResponse>> history(Integer page, Integer size, String status, String category, Date date) {
+    public ApiResponse<List<ScheduleGroupResponse>> history(Integer page, Integer size, String status, String category, LocalDate date) {
         return new ApiResponse<>(schedules(userUtil.getUser().getId(), page, size, status, category, date));
     }
 
-    private List<ScheduleGroupResponse> schedules(UUID id, Integer page, Integer size, String status, String category, Date date) {
+    private List<ScheduleGroupResponse> schedules(UUID id, Integer page, Integer size, String status, String category, LocalDate date) {
         Page<Schedule> schedules = scheduleRepository.schedules(id, status, category, date, HelperUtil.getPageable(page, size));
 
         if(schedules != null && !schedules.isEmpty() && schedules.hasContent()) {

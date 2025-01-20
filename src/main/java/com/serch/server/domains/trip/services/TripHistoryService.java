@@ -7,7 +7,7 @@ import com.serch.server.domains.trip.services.implementations.TripHistoryImpleme
 import com.serch.server.models.trip.Trip;
 
 import javax.annotation.Nullable;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -138,5 +138,5 @@ public interface TripHistoryService {
      * @param size The number of items per page.
      * @return An {@link ApiResponse} containing a list of {@link TripResponse} objects.
      */
-    ApiResponse<List<TripResponse>> history(String id, String linkId, Integer page, Integer size, Boolean isShared, String category, Date dateTime);
+    ApiResponse<List<TripResponse>> history(String id, String linkId, Integer page, Integer size, Boolean isShared, String category, LocalDate dateTime);
 }

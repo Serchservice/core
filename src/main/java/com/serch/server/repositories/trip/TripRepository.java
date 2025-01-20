@@ -104,7 +104,7 @@ public interface TripRepository extends JpaRepository<Trip, String> {
         where t.account = :account
         and (t.status = 'UNFULFILLED' or t.status = 'CLOSED')
         and (:category is null or t.category = :category)
-        and (TRUE = :#{#dateTime == null} or t.createdAt = :dateTime)
+        and (:dateTime = null or t.createdAt = :dateTime)
         and (:isShared is null or (ti is not null and :isShared = true))
     """)
     Page<Trip> findByUserHistoryTrips(@Param("account") String account, @Param("category") String category, @Param("dateTime") ZonedDateTime dateTime, @Param("isShared") Boolean isShared, Pageable pageable);
@@ -115,7 +115,7 @@ public interface TripRepository extends JpaRepository<Trip, String> {
         where t.account = :account and t.linkId = :linkId
         and (t.status = 'UNFULFILLED' or t.status = 'CLOSED')
         and (:category is null or t.category = :category)
-        and (TRUE = :#{#dateTime == null} or t.createdAt = :dateTime)
+        and (:dateTime = null or t.createdAt = :dateTime)
         and (:isShared is null or (ti is not null and :isShared = true))
     """)
     Page<Trip> findByGuestHistoryTrips(@Param("account") String account, @Param("linkId") String linkId, @Param("category") String category, @Param("dateTime") ZonedDateTime dateTime, @Param("isShared") Boolean isShared, Pageable pageable);
@@ -130,7 +130,7 @@ public interface TripRepository extends JpaRepository<Trip, String> {
         where ((p.id = :userId or pb.id = :userId) or (inp.id = :userId or inpb.id = :userId))
         and (t.status = 'UNFULFILLED' or t.status = 'CLOSED')
         and (:category is null or t.category = :category)
-        and (TRUE = :#{#dateTime == null} or t.createdAt = :dateTime)
+        and (:dateTime = null or t.createdAt = :dateTime)
         and (:isShared is null or (ti is not null and :isShared = true))
     """)
     Page<Trip> findByProviderHistoryTrips(@Param("userId") UUID id, @Param("category") String category, @Param("dateTime") ZonedDateTime dateTime, @Param("isShared") Boolean isShared, Pageable pageable);

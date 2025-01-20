@@ -285,7 +285,7 @@ public class TripRequestImplementation implements TripRequestService {
     }
 
     private void createAndSendQuotation(QuotationRequest request, TripInvite trip) {
-        Profile profile = profileRepository.findById(userUtil.getUser().getId())
+        Profile profile = profileRepository.findById(userUtil.getUser().isProvider() ? userUtil.getUser().getId() : trip.getSelected())
                 .orElseThrow(() -> new TripException("Provider not found"));
         BigDecimal amount = BigDecimal.valueOf(request.getAmount());
 
@@ -317,7 +317,7 @@ public class TripRequestImplementation implements TripRequestService {
         );
 
         notificationService.send(
-                String.valueOf(String.valueOf(trip.getAccount())),
+                String.valueOf(String.valueOf(userUtil.getUser().isProvider() ? trip.getAccount() : profile.getId())),
                 String.format("%s sent in a quotation for your request", userUtil.getUser().getFullName()),
                 String.format("Trip is now being charged at %s", MoneyUtil.formatToNaira(amount)),
                 String.valueOf(userUtil.getUser().getId()), null, true

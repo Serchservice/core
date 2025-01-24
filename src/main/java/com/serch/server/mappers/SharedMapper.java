@@ -1,13 +1,13 @@
 package com.serch.server.mappers;
 
-import com.serch.server.models.account.Profile;
-import com.serch.server.models.shared.Guest;
-import com.serch.server.models.shared.SharedLink;
-import com.serch.server.models.shared.SharedStatus;
 import com.serch.server.domains.auth.requests.RequestProfile;
 import com.serch.server.domains.shared.requests.CreateGuestRequest;
 import com.serch.server.domains.shared.requests.GuestToUserRequest;
 import com.serch.server.domains.shared.responses.*;
+import com.serch.server.models.account.Profile;
+import com.serch.server.models.shared.Guest;
+import com.serch.server.models.shared.SharedLink;
+import com.serch.server.models.shared.SharedStatus;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 

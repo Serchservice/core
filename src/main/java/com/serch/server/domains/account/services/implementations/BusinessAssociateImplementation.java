@@ -3,6 +3,16 @@ package com.serch.server.domains.account.services.implementations;
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.core.email.EmailService;
 import com.serch.server.core.token.JwtService;
+import com.serch.server.domains.account.requests.AddAssociateRequest;
+import com.serch.server.domains.account.responses.BusinessAssociateResponse;
+import com.serch.server.domains.account.services.AccountDeleteService;
+import com.serch.server.domains.account.services.BusinessAssociateService;
+import com.serch.server.domains.account.services.ProfileService;
+import com.serch.server.domains.auth.services.AccountStatusTrackerService;
+import com.serch.server.domains.auth.services.AuthService;
+import com.serch.server.domains.auth.services.ProviderAuthService;
+import com.serch.server.domains.referral.services.ReferralProgramService;
+import com.serch.server.domains.referral.services.ReferralService;
 import com.serch.server.enums.account.AccountStatus;
 import com.serch.server.enums.auth.Role;
 import com.serch.server.enums.email.EmailType;
@@ -24,21 +34,11 @@ import com.serch.server.repositories.account.SpecialtyRepository;
 import com.serch.server.repositories.auth.PendingRepository;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.auth.incomplete.IncompleteRepository;
-import com.serch.server.domains.account.requests.AddAssociateRequest;
-import com.serch.server.domains.account.responses.BusinessAssociateResponse;
-import com.serch.server.domains.account.services.AccountDeleteService;
-import com.serch.server.domains.account.services.BusinessAssociateService;
-import com.serch.server.domains.account.services.ProfileService;
-import com.serch.server.domains.auth.services.AccountStatusTrackerService;
-import com.serch.server.domains.auth.services.AuthService;
-import com.serch.server.domains.auth.services.ProviderAuthService;
-import com.serch.server.domains.referral.services.ReferralProgramService;
-import com.serch.server.domains.referral.services.ReferralService;
 import com.serch.server.utils.HelperUtil;
+import com.serch.server.utils.LinkUtils;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -80,9 +80,6 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
     private final PhoneInformationRepository phoneInformationRepository;
     private final SpecialtyRepository specialtyRepository;
     private final PendingRepository pendingRepository;
-
-    @Value("${application.link.invite.associate}")
-    private String ASSOCIATE_INVITE_LINK;
 
     @Override
     public BusinessAssociateResponse response(Profile profile) {
@@ -194,7 +191,7 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
         email.setBusinessLogo(business.getBusinessLogo());
         email.setBusinessDescription(business.getBusinessDescription());
         email.setType(EmailType.ASSOCIATE_INVITE);
-        email.setContent(String.format("%s?invite=%s&role=%s&platform=%s", ASSOCIATE_INVITE_LINK, secret, user.getRole(), "provider"));
+        email.setContent(LinkUtils.instance.invite(user.getRole(), secret));
 
         emailService.send(email);
     }

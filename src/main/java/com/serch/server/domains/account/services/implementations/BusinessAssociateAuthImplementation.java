@@ -22,6 +22,7 @@ import com.serch.server.domains.account.responses.VerifiedInviteResponse;
 import com.serch.server.domains.account.services.BusinessAssociateAuthService;
 import com.serch.server.utils.DatabaseUtil;
 import com.serch.server.utils.HelperUtil;
+import com.serch.server.utils.LinkUtils;
 import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -43,6 +44,8 @@ public class BusinessAssociateAuthImplementation implements BusinessAssociateAut
 
     @Override
     public ApiResponse<VerifiedInviteResponse> verifyLink(String token) {
+        token = LinkUtils.instance.invite(token);
+
         UUID userId = UUID.fromString(jwtService.getItemFromToken(token, "user"));
 
         businessProfileRepository.findById(UUID.fromString(jwtService.getItemFromToken(token, "business")))

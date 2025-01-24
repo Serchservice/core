@@ -71,4 +71,20 @@ public interface TokenService {
      *         the specified number of alphanumeric characters.
      */
     String generate(int length);
+
+    /**
+     * Generates an alphanumeric code of specified length using specified letters.
+     * <p>
+     * This method creates a code that includes both characters and numbers,
+     * allowing for a more complex and secure code generation. It is useful for
+     * scenarios that require unique identifiers or codes with enhanced security.
+     * </p>
+     *
+     * @param from The characters to use in generation
+     * @param length The length of the code to generate.
+     *               Must be a positive integer to ensure a valid code is produced.
+     * @return The generated code as a {@link String}. The output will contain
+     *         the specified number of alphanumeric characters.
+     */
+    String generate(String from, int length);
 }

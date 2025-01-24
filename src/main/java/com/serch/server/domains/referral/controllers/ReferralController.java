@@ -34,8 +34,8 @@ public class ReferralController {
     }
 
     @GetMapping("/program/verify/link")
-    public ResponseEntity<ApiResponse<ReferralProgramResponse>> verifyLink(@RequestParam String link) {
-        ApiResponse<ReferralProgramResponse> response = programService.verifyLink(link);
+    public ResponseEntity<ApiResponse<ReferralProgramResponse>> verifyLink(@RequestParam String content) {
+        ApiResponse<ReferralProgramResponse> response = programService.verifyLink(content);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

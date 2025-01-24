@@ -41,7 +41,6 @@ public interface AccountUserScopeMapper {
     @Mapping(target = "id", source = "bookmarkId")
     AccountUserScopeBookmarkResponse bookmark(Bookmark bookmark);
 
-    @Mapping(target = "referralLink", source = "referLink")
     AccountUserScopeReferralResponse program(ReferralProgram program);
 
     @Mapping(target = "id", source = "referId")

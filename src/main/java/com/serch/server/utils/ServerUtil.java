@@ -4,6 +4,7 @@ import com.serch.server.enums.ServerHeader;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class ServerUtil {
@@ -20,7 +21,15 @@ public class ServerUtil {
             ServerHeader.GUEST_AUTHORIZATION.getValue(),
             HttpHeaders.AUTHORIZATION,
             HttpHeaders.ACCEPT,
-            HttpHeaders.CONTENT_TYPE
+            HttpHeaders.CONTENT_TYPE,
+            HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN,
+            HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS,
+            HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS,
+            HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS,
+            HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS,
+            HttpHeaders.ACCESS_CONTROL_MAX_AGE,
+            HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS,
+            HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD
     );
 
     public static final List<String> ALLOWED_ORIGINS = List.of(
@@ -50,10 +59,5 @@ public class ServerUtil {
     /**
      * Allowing methods for both development and production purposes
      */
-    public static final List<String> METHODS = List.of(
-            HttpMethod.GET.name(),
-            HttpMethod.POST.name(),
-            HttpMethod.PATCH.name(),
-            HttpMethod.DELETE.name()
-    );
+    public static final List<String> METHODS = Arrays.stream(HttpMethod.values()).map(HttpMethod::name).toList();
 }

@@ -14,10 +14,13 @@ import java.security.SecureRandom;
 public class TokenImplementation implements TokenService {
     @Value("${application.security.refresh-token-length}")
     private Integer REFRESH_TOKEN_LENGTH;
+
     @Value("${application.security.refresh-token-characters}")
     private String REFRESH_TOKEN_CHARACTERS;
+
     @Value("${application.security.otp-token-characters}")
     private String OTP_TOKEN_CHARACTERS;
+
     @Value("${application.security.otp-token-length}")
     private String OTP_TOKEN_LENGTH;
 
@@ -30,13 +33,7 @@ public class TokenImplementation implements TokenService {
 
     @Override
     public String generateCode(int length) {
-        StringBuilder otp = new StringBuilder(length);
-        for(int i = 0; i < length; i++) {
-            int index = random.nextInt(OTP_TOKEN_CHARACTERS.length());
-            otp.append(OTP_TOKEN_CHARACTERS.charAt(index));
-        }
-
-        return otp.toString();
+        return generate(length, OTP_TOKEN_CHARACTERS).toString();
     }
 
     @Override
@@ -46,12 +43,21 @@ public class TokenImplementation implements TokenService {
 
     @Override
     public String generate(int length) {
+        return generate(length, REFRESH_TOKEN_CHARACTERS).toString();
+    }
+
+    private StringBuilder generate(int length, String characters) {
         StringBuilder token = new StringBuilder(length);
-        for(int i = 0; i < length; i++) {
-            int index = random.nextInt(REFRESH_TOKEN_CHARACTERS.length());
-            token.append(REFRESH_TOKEN_CHARACTERS.charAt(index));
+        for (int i = 0; i < length; i++) {
+            int index = random.nextInt(characters.length());
+            token.append(characters.charAt(index));
         }
 
-        return token.toString();
+        return token;
+    }
+
+    @Override
+    public String generate(String from, int length) {
+        return generate(length, from.replaceAll(" ", "")).toString();
     }
 }

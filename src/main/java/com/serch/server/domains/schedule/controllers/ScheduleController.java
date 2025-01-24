@@ -35,7 +35,7 @@ public class ScheduleController {
         return new ResponseEntity<>(response, response.getStatus());
     }
 
-    @PostMapping("/decline")
+    @PatchMapping("/decline")
     @PreAuthorize("hasRole('PROVIDER') || hasRole('ASSOCIATE_PROVIDER')")
     public ResponseEntity<ApiResponse<String>> decline(@RequestBody ScheduleDeclineRequest decline) {
         ApiResponse<String> response = service.decline(decline);

@@ -6,8 +6,12 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.generator.BeforeExecutionGenerator;
 import org.hibernate.generator.EventType;
 
+import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * The TransactionID class generates unique identifiers for transactions.
@@ -21,30 +25,38 @@ public class CoreIdGenerator implements BeforeExecutionGenerator {
      * @return A generated unique identifier
      */
     public Object generate(SharedSessionContractImplementor sharedSessionContractImplementor, Object o, Object o1, EventType eventType) {
-        String prefix = "";
-        String uuid = UUID.randomUUID().toString();
+        AtomicReference<String> prefix = new AtomicReference<>("");
+        AtomicReference<String> uuid = new AtomicReference<>(UUID.randomUUID().toString());
 
-        if(o.getClass().getAnnotation(CoreID.class) != null) {
-            CoreID core = o.getClass().getAnnotation(CoreID.class);
-            prefix = core.prefix();
+        Optional<Field> field = Optional.of(o.getClass())
+                .map(Class::getDeclaredFields)
+                .flatMap(fields -> Arrays.stream(fields)
+                        .filter(f -> f.isAnnotationPresent(CoreID.class) || f.isAnnotationPresent(TransactionID.class))
+                        .findFirst());
 
-            if (core.replaceSymbols()) {
-                uuid = uuid.replaceAll("-", "");
+        field.ifPresent(f -> {
+            if (f.isAnnotationPresent(CoreID.class)) {
+                CoreID core = f.getAnnotation(CoreID.class);
+                prefix.set(core.prefix());
+
+                if (core.replaceSymbols()) {
+                    uuid.set(uuid.get().replaceAll("-", ""));
+                }
+
+                if (core.toUpperCase()) {
+                    uuid.set(uuid.get().toUpperCase());
+                }
+
+                if (core.start() >= 0 && core.end() <= uuid.get().length() && core.start() <= core.end()) {
+                    uuid.set(uuid.get().substring(core.start(), core.end()));
+                }
+            } else if (f.isAnnotationPresent(TransactionID.class)) {
+                TransactionID transaction = f.getAnnotation(TransactionID.class);
+                prefix.set(transaction.prefix());
             }
+        });
 
-            if (core.toUpperCase()) {
-                uuid = uuid.toUpperCase();
-            }
-
-            if (core.start() >= 0 && core.end() <= uuid.length() && core.start() <= core.end()) {
-                uuid = uuid.substring(core.start(), core.end());
-            }
-        } else if(o.getClass().getAnnotation(TransactionID.class) != null) {
-            TransactionID transaction = o.getClass().getAnnotation(TransactionID.class);
-            prefix = transaction.prefix();
-        }
-
-        return prefix + uuid;
+        return prefix.get() + uuid.get();
     }
 
     @Override

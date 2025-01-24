@@ -18,8 +18,8 @@ public class GuestAuthController {
     private final GuestAuthService service;
 
     @GetMapping("/link/verify")
-    public ResponseEntity<ApiResponse<SharedLinkData>> verifyLink(@RequestParam String link, @RequestParam(name = "shared_by") String sharedBy) {
-        ApiResponse<SharedLinkData> response = service.verifyLink(String.format("%s&shared_by=%s", link, sharedBy));
+    public ResponseEntity<ApiResponse<SharedLinkData>> verifyLink(@RequestParam String content) {
+        ApiResponse<SharedLinkData> response = service.verifyLink(content);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

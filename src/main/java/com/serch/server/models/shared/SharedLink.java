@@ -9,7 +9,6 @@ import com.serch.server.models.trip.TripTimeline;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.validator.constraints.URL;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -37,11 +36,10 @@ public class SharedLink extends BaseDateTime {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String id;
 
-    @Column(name = "link", unique = true, nullable = false, columnDefinition = "TEXT")
-    @URL(message = "Shared Link must be formatted as a link")
-    private String link;
+    @Column(unique = true, nullable = false, columnDefinition = "TEXT")
+    private String secret;
 
-    @Column(name = "amount", nullable = false)
+    @Column(nullable = false)
     private BigDecimal amount;
 
     @ManyToOne(fetch = FetchType.LAZY)

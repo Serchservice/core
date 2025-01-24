@@ -13,7 +13,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface SharedLinkRepository extends JpaRepository<SharedLink, String> {
-    Optional<SharedLink> findByLink(@NonNull String link);
+    Optional<SharedLink> findBySecret(@NonNull String secret);
 
     @Query("select s from SharedLink s where s.user.id = ?1 or s.provider.id = ?1 or s.provider.business.id = ?1")
     List<SharedLink> findByUserId(@NonNull UUID id);

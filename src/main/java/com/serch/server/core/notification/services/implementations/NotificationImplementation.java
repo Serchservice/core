@@ -47,7 +47,7 @@ public class NotificationImplementation implements NotificationService {
         } else {
             notification.setTitle(String.format("New message from %s", HelperUtil.textWithAorAn(response.getCategory())));
         }
-        notification.setBody(String.format("%s sent you a message", response.getName()));
+        notification.setBody(response.getMessage());
         notification.setData(getChatData(response));
 
         return notification;
@@ -65,6 +65,8 @@ public class NotificationImplementation implements NotificationService {
         data.put("roommate", response.getRoommate().toString());
         data.put("image", response.getAvatar());
         data.put("category", response.getCategory());
+        data.put("name", response.getName());
+        data.put("e_pub_key", response.getPublicKey());
         data.put("summary", String.format("%s from %s", summary, shortRoomName));
         data.put("snt", "CHAT");
 
@@ -220,7 +222,6 @@ public class NotificationImplementation implements NotificationService {
 
     private Map<String, Object> getTripData(String sender, String trip, boolean isInvite) {
         Map<String, Object> data = new HashMap<>();
-        data.put("snt", "TRIP_MESSAGE");
         data.put("sender_name", repository.getName(sender));
         data.put("sender_id", sender);
         data.put("can_act", trip != null);
@@ -273,7 +274,6 @@ public class NotificationImplementation implements NotificationService {
 
     private Map<String, String> getTransactionData(UUID id) {
         Map<String, String> data = new HashMap<>();
-        data.put("snt", "TRANSACTION");
         data.put("sender_name", repository.getName(id.toString()));
         data.put("sender_id", String.valueOf(id));
 

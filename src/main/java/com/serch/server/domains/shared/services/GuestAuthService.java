@@ -16,12 +16,12 @@ public interface GuestAuthService {
     /**
      * Verifies a guest authentication link.
      *
-     * @param link The authentication link to verify.
+     * @param content The authentication content to verify.
      * @return A response containing the verification result.
      *
      * @see SharedLinkData
      */
-    ApiResponse<SharedLinkData> verifyLink(String link);
+    ApiResponse<SharedLinkData> verifyLink(String content);
 
     /**
      * Requests verification of an email address.

@@ -25,6 +25,7 @@ import com.serch.server.domains.shared.services.GuestService;
 import com.serch.server.domains.shared.services.SharedService;
 import com.serch.server.core.storage.services.StorageService;
 import com.serch.server.utils.HelperUtil;
+import com.serch.server.utils.LinkUtils;
 import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
@@ -66,8 +67,8 @@ public class GuestAuthImplementation implements GuestAuthService {
     protected Integer OTP_EXPIRATION_TIME;
 
     @Override
-    public ApiResponse<SharedLinkData> verifyLink(String link) {
-        SharedLink sharedLink = sharedLinkRepository.findByLink(link.trim())
+    public ApiResponse<SharedLinkData> verifyLink(String content) {
+        SharedLink sharedLink = sharedLinkRepository.findBySecret(LinkUtils.instance.shared(content))
                 .orElseThrow(() -> new SharedException("Link not found"));
 
         return new ApiResponse<>(sharedService.data(sharedLink, sharedService.getCurrentStatus(sharedLink)));
@@ -120,7 +121,7 @@ public class GuestAuthImplementation implements GuestAuthService {
     public ApiResponse<GuestResponse> login(VerifyEmailRequest request) {
         Guest guest = guestRepository.findByEmailAddressIgnoreCase(request.getEmailAddress())
                 .orElseThrow(() -> new SharedException("Guest not found"));
-        SharedLink sharedLink = sharedLinkRepository.findByLink(request.getLink())
+        SharedLink sharedLink = sharedLinkRepository.findBySecret(LinkUtils.instance.shared(request.getLink()))
                 .orElseThrow(() -> new SharedException("Link not found"));
 
         sharedLink.validate(request.getEmailAddress());
@@ -133,7 +134,7 @@ public class GuestAuthImplementation implements GuestAuthService {
                 login = sharedLoginRepository.findBySharedLink_IdAndGuest_Id(request.getLinkId(), guest.getId())
                         .orElseGet(() -> getNewLogin(sharedLink, guest));
             } else {
-                login = sharedLoginRepository.findBySharedLink_LinkAndGuest_Id(request.getLink(), guest.getId())
+                login = sharedLoginRepository.findBySharedLink_SecretAndGuest_Id(LinkUtils.instance.shared(request.getLink()), guest.getId())
                         .orElseThrow(() -> new SharedException("An error occurred while performing this action. Try clicking on the link in order to redirect you to the Serch app."));
             }
 
@@ -147,7 +148,7 @@ public class GuestAuthImplementation implements GuestAuthService {
 
     @Override
     public ApiResponse<GuestResponse> create(CreateGuestRequest request) {
-        SharedLink sharedLink = sharedLinkRepository.findByLink(request.getLink())
+        SharedLink sharedLink = sharedLinkRepository.findBySecret(LinkUtils.instance.shared(request.getLink()))
                 .orElseThrow(() -> new SharedException("Link not found"));
 
         sharedLink.validate(request.getEmailAddress());
@@ -204,7 +205,7 @@ public class GuestAuthImplementation implements GuestAuthService {
                 .orElseThrow(() -> new SharedException("User not found"));
         Profile profile = profileRepository.findById(user.getId())
                 .orElseThrow(() -> new SharedException("User has not profile"));
-        SharedLink sharedLink = sharedLinkRepository.findByLink(request.getLink())
+        SharedLink sharedLink = sharedLinkRepository.findBySecret(LinkUtils.instance.shared(request.getLink()))
                 .orElseThrow(() -> new SharedException("Link not found"));
 
         sharedLink.validate(request.getEmailAddress());

@@ -24,13 +24,13 @@ public interface ReferralProgramService {
     /**
      * Verifies a referral link and retrieves the associated ReferralProgram.
      *
-     * @param link The referral link to verify.
-     * @return An ApiResponse containing the verified referral link.
+     * @param content The referral content to verify.
+     * @return An ApiResponse containing the verified referral content.
      *
      * @see ReferralProgramResponse
      * @see ApiResponse
      */
-    ApiResponse<ReferralProgramResponse> verifyLink(String link);
+    ApiResponse<ReferralProgramResponse> verifyLink(String content);
 
     /**
      * Verifies a referral code and retrieves the associated ReferralProgram.

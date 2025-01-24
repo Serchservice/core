@@ -1,10 +1,15 @@
 package com.serch.server.domains.conversation.controllers;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.domains.conversation.requests.SendMessageRequest;
+import com.serch.server.domains.conversation.requests.UpdateMessageRequest;
 import com.serch.server.domains.conversation.responses.ChatGroupMessageResponse;
 import com.serch.server.domains.conversation.responses.ChatRoomResponse;
 import com.serch.server.domains.conversation.services.ChatService;
+import com.serch.server.domains.conversation.services.ChattingService;
+import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +22,7 @@ import java.util.UUID;
 @RequestMapping("/chat")
 public class ChatController {
     private final ChatService service;
+    private final ChattingService chatting;
 
     @GetMapping("/rooms")
     public ResponseEntity<ApiResponse<List<ChatRoomResponse>>> rooms(
@@ -48,5 +54,17 @@ public class ChatController {
     ) {
         ApiResponse<List<ChatGroupMessageResponse>> response = service.messages(room, page, size);
         return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @PostMapping("/send")
+    public ResponseEntity<ApiResponse<String>> send(@RequestBody SendMessageRequest request) {
+        chatting.send(request, UserUtil.getLoginUser());
+        return ResponseEntity.ok(new ApiResponse<>("Successfully sent", HttpStatus.OK));
+    }
+
+    @PatchMapping("/update")
+    public ResponseEntity<ApiResponse<String>> update(@RequestBody UpdateMessageRequest request) {
+        chatting.update(request, UserUtil.getLoginUser());
+        return ResponseEntity.ok(new ApiResponse<>("Successfully updated", HttpStatus.OK));
     }
 }

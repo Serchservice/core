@@ -64,6 +64,7 @@ public class ChattingImplementation implements ChattingService {
             chatRoomRepository.save(room);
 
             sendMessage(room, user, true);
+            markAllAsRead(room.getId(), emailAddress);
         }));
     }
 

@@ -1,6 +1,13 @@
 package com.serch.server.domains.shared.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.core.token.TokenService;
+import com.serch.server.domains.account.responses.AccountResponse;
+import com.serch.server.domains.shared.responses.GuestProfileData;
+import com.serch.server.domains.shared.responses.SharedLinkData;
+import com.serch.server.domains.shared.responses.SharedLinkResponse;
+import com.serch.server.domains.shared.responses.SharedStatusData;
+import com.serch.server.domains.shared.services.SharedService;
 import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.exceptions.others.SharedException;
 import com.serch.server.exceptions.others.TripException;
@@ -21,16 +28,7 @@ import com.serch.server.repositories.shared.SharedLinkRepository;
 import com.serch.server.repositories.shared.SharedLoginRepository;
 import com.serch.server.repositories.shared.SharedStatusRepository;
 import com.serch.server.repositories.trip.TripRepository;
-import com.serch.server.domains.account.responses.AccountResponse;
-import com.serch.server.domains.shared.responses.GuestProfileData;
-import com.serch.server.domains.shared.responses.SharedLinkData;
-import com.serch.server.domains.shared.responses.SharedLinkResponse;
-import com.serch.server.domains.shared.responses.SharedStatusData;
-import com.serch.server.domains.shared.services.SharedService;
-import com.serch.server.utils.HelperUtil;
-import com.serch.server.utils.MoneyUtil;
-import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -50,6 +48,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class SharedImplementation implements SharedService {
     private final UserUtil util;
+    private final TokenService tokenService;
     private final SharedLinkRepository sharedLinkRepository;
     private final GuestRepository guestRepository;
     private final UserRepository userRepository;
@@ -63,25 +62,12 @@ public class SharedImplementation implements SharedService {
     @Value("${application.trip.count.min}")
     private Integer TRIP_MIN_COUNT_BEFORE_CHARGE;
 
-    @Value("${application.link.invite.shared}")
-    private String SHARED_INVITE_LINK;
-
     @Override
     public ApiResponse<List<AccountResponse>> accounts(String id) {
         Guest guest = guestRepository.findById(id).orElseThrow(() -> new SharedException("Guest not found"));
         User user = userRepository.findByEmailAddressIgnoreCase(guest.getEmailAddress()).orElse(null);
 
         return buildAccountResponse(guest, user);
-    }
-
-    private String generateSharingLink(String firstName, String category) {
-        String code = (firstName + UUID.randomUUID().toString().substring(0, 10))
-                .toLowerCase()
-                .replaceAll("-", "")
-                .replaceAll("_", "");
-        String cat = category.toLowerCase().replaceAll(" ", "-");
-
-        return "%s?category=%s&shared_by=%s".formatted(SHARED_INVITE_LINK, cat, code);
     }
 
     @Override
@@ -94,29 +80,19 @@ public class SharedImplementation implements SharedService {
         if(withInvited != null && withInvited) {
             if(trip.getInvited() != null && trip.getInvited().getProvider() != null) {
                 verifyShareEligibility(trip.getInvited().getProvider());
-
-                saveSharedLInk(profile, trip, trip.getInvited().getProvider(), trip.getInvited().getProvider().getCategory().name());
+                saveSharedLInk(profile, trip, trip.getInvited().getProvider());
             } else {
                 throw new TripException("There is no invited provider in this trip");
             }
         } else {
             verifyShareEligibility(trip.getProvider());
-            saveSharedLInk(profile, trip, trip.getProvider(), trip.getProvider().getCategory().getType());
+            saveSharedLInk(profile, trip, trip.getProvider());
         }
 
         return links(null, null);
     }
 
-    private void saveSharedLInk(Profile profile, Trip trip, Profile provider, String type) {
-        SharedLink shared = new SharedLink();
-        shared.setLink(generateSharingLink(profile.getUser().getFirstName(), type));
-        shared.setAmount(trip.getAmount());
-        shared.setUser(profile);
-        shared.setProvider(provider);
-        sharedLinkRepository.save(shared);
-    }
-
-    protected void verifyShareEligibility(Profile profile) {
+    private void verifyShareEligibility(Profile profile) {
         List<Trip> trips = tripRepository.findByProviderId(profile.getUser().getId());
         if(trips.size() < TRIP_MIN_COUNT_BEFORE_CHARGE) {
             int remains = TRIP_MIN_COUNT_BEFORE_CHARGE - trips.size();
@@ -127,6 +103,17 @@ public class SharedImplementation implements SharedService {
                             String.format("%s has %s trips to go before this becomes possible.", profile.getFullName(), remains)
             );
         }
+    }
+
+    private void saveSharedLInk(Profile profile, Trip trip, Profile provider) {
+        String from = String.format("%s-%s", profile.getFullName(), provider.getFullName());
+
+        SharedLink shared = new SharedLink();
+        shared.setSecret(tokenService.generate(from, 10));
+        shared.setAmount(trip.getAmount());
+        shared.setUser(profile);
+        shared.setProvider(provider);
+        sharedLinkRepository.save(shared);
     }
 
     @Override
@@ -150,25 +137,24 @@ public class SharedImplementation implements SharedService {
         SharedLinkResponse response = new SharedLinkResponse();
         response.setData(data(link, getCurrentStatus(link)));
         response.setTotalGuests(link.getLogins() != null ? link.getLogins().size() : 0);
+
         if(link.getLogins() != null && !link.getLogins().isEmpty()) {
             response.setGuests(link.getLogins().stream()
                     .sorted(Comparator.comparing(login -> getCurrentStatusForAccount(login).getCreatedAt()))
                     .map(login -> {
-                        GuestProfileData data = new GuestProfileData();
-                        data.setId(login.getGuest().getId());
-                        data.setGender(login.getGuest().getGender());
-                        data.setAvatar(login.getGuest().getAvatar());
-                        data.setName(login.getGuest().getFullName());
+                        GuestProfileData data = SharedMapper.INSTANCE.response(login.getGuest());
                         data.setJoinedAt(TimeUtil.formatDay(login.getCreatedAt(), ""));
                         data.setStatus(login.getStatus().getType());
                         if(login.getStatuses() != null && !login.getStatuses().isEmpty()) {
                             data.setStatuses(login.getStatuses().stream().map(stat -> getStatusData(login.getSharedLink(), stat)).toList());
                         }
+
                         return data;
                     })
                     .toList()
             );
         }
+
         return response;
     }
 
@@ -217,6 +203,7 @@ public class SharedImplementation implements SharedService {
         data.setCategory(link.getProvider().getCategory().getType());
         data.setLabel(TimeUtil.formatDay(link.getCreatedAt(), ""));
         data.setAmount(MoneyUtil.formatToNaira(link.getAmount()));
+        data.setLink(LinkUtils.instance.shared(link.getProvider().getCategory().name(), link.getSecret()));
         data.setStatus(status != null ? status.getUseStatus().getType() : "No usage");
 
         return data;

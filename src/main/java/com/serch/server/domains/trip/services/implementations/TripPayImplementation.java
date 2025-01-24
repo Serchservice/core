@@ -84,7 +84,12 @@ public class TripPayImplementation implements TripPayService {
                                 userWallet.setUpdatedAt(TimeUtil.now());
                                 walletRepository.save(userWallet);
 
-                                notificationService.send(trip.getShared().getSharedLink().getUser().getId(), true, BigDecimal.valueOf(TRIP_SERVICE_USER));
+                                notificationService.send(
+                                        trip.getShared().getSharedLink().getUser().getId(),
+                                        true,
+                                        BigDecimal.valueOf(TRIP_SERVICE_USER),
+                                        transaction.getId()
+                                );
                             });
 
                     return true;
@@ -133,10 +138,9 @@ public class TripPayImplementation implements TripPayService {
         trip.setServiceFeeReference(reference);
         tripRepository.save(trip);
 
-        notificationService.send(wallet.getUser().getId(), false, debit);
+        notificationService.send(wallet.getUser().getId(), false, debit, reference);
 
-        Transaction transaction = getTransaction(trip, reference);
-        return transactionRepository.save(transaction);
+        return getTransaction(trip, reference);
     }
 
     private Transaction getTransaction(Trip trip, String reference) {
@@ -156,7 +160,8 @@ public class TripPayImplementation implements TripPayService {
         }
         transaction.setEvent(trip.getId());
         transaction.setReference(reference);
-        return transaction;
+
+        return transactionRepository.save(transaction);
     }
 
     private boolean isBalanceSufficient(Trip trip, BigDecimal amount) {

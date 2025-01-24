@@ -203,9 +203,8 @@ public class WalletImplementation implements WalletService {
                             wallet.setUpdatedAt(TimeUtil.now());
                             walletRepository.save(wallet);
 
-                            getDebitTransaction(amount, wallet, SUCCESSFUL, "Debt Payment", String.valueOf(wallet.getUser().getId()));
-
-                            notificationService.send(wallet.getUser().getId(), amount);
+                            Transaction transaction = getDebitTransaction(amount, wallet, SUCCESSFUL, "Debt Payment", String.valueOf(wallet.getUser().getId()));
+                            notificationService.send(wallet.getUser().getId(), amount, transaction.getId());
                         }
                     }
                 });
@@ -237,13 +236,15 @@ public class WalletImplementation implements WalletService {
         }
     }
 
-    protected void saveDebitTransaction(BigDecimal amount, Wallet wallet, String sender) {
+    protected Transaction saveDebitTransaction(BigDecimal amount, Wallet wallet, String sender) {
         Transaction transaction = getDebitTransaction(amount, wallet, TransactionStatus.PENDING, "Debit", sender);
 
         wallet.setUncleared(wallet.getUncleared().add(transaction.getAmount()));
         wallet.setBalance(wallet.getBalance().subtract(transaction.getAmount()));
         wallet.setUpdatedAt(TimeUtil.now());
         walletRepository.save(wallet);
+
+        return transaction;
     }
 
     private Transaction getDebitTransaction(BigDecimal amount, Wallet wallet, TransactionStatus status, String mode, String sender) {
@@ -351,7 +352,7 @@ public class WalletImplementation implements WalletService {
             wallet.setUpdatedAt(TimeUtil.now());
             walletRepository.save(wallet);
 
-            notificationService.send(sender, false, transaction.getAmount());
+            notificationService.send(sender, false, transaction.getAmount(), transaction.getId());
         }, () -> {
             throw new WalletException("Couldn't process Tip2Fix payment. Try again");
         });
@@ -361,7 +362,7 @@ public class WalletImplementation implements WalletService {
             wallet.setUpdatedAt(TimeUtil.now());
             walletRepository.save(wallet);
 
-            notificationService.send(wallet.getUser().getId(), true, transaction.getAmount());
+            notificationService.send(wallet.getUser().getId(), true, transaction.getAmount(), transaction.getId());
         }, () -> {
             throw new WalletException("Couldn't process Tip2Fix payment. Try again");
         });
@@ -733,13 +734,13 @@ public class WalletImplementation implements WalletService {
                     if(isPayday(wallet)) {
                         if(wallet.getBalance().compareTo(wallet.getPayout()) > 0) {
                             if(wallet.hasBank()) {
-                                saveDebitTransaction(wallet.getPayout(), wallet, String.valueOf(wallet.getUser().getId()));
-                                updateLastPayday(wallet, SUCCESSFUL);
+                                Transaction transaction = saveDebitTransaction(wallet.getPayout(), wallet, String.valueOf(wallet.getUser().getId()));
+                                updateLastPayday(wallet, SUCCESSFUL, transaction.getId());
                             } else {
-                                updateLastPayday(wallet, FAILED);
+                                updateLastPayday(wallet, FAILED, UUID.randomUUID().toString());
                             }
                         } else {
-                            updateLastPayday(wallet, FAILED);
+                            updateLastPayday(wallet, FAILED, UUID.randomUUID().toString());
                         }
                     }
                 }
@@ -763,7 +764,7 @@ public class WalletImplementation implements WalletService {
         return nextPayday.isBefore(today) ? nextPayday.plusDays(wallet.getPayday()) : nextPayday;
     }
 
-    private void updateLastPayday(Wallet wallet, TransactionStatus status) {
+    private void updateLastPayday(Wallet wallet, TransactionStatus status, String transaction) {
         LocalDate today = LocalDate.now();
         // Set last payday to today, and calculate the new next payout date
         wallet.setLastPayday(today);
@@ -775,7 +776,8 @@ public class WalletImplementation implements WalletService {
                 wallet.getPayout(),
                 status == SUCCESSFUL,
                 formatNextPayday(wallet),
-                String.format("%s - %s", wallet.getBankName(), wallet.getAccountName())
+                String.format("%s - %s", wallet.getBankName(), wallet.getAccountName()),
+                transaction
         );
     }
 
@@ -808,7 +810,7 @@ public class WalletImplementation implements WalletService {
                     transaction.setUpdatedAt(TimeUtil.now());
                     transactionRepository.save(transaction);
 
-                    notificationService.send(UUID.fromString(transaction.getSender()), true, transaction.getAmount());
+                    notificationService.send(UUID.fromString(transaction.getSender()), true, transaction.getAmount(), transaction.getId());
                 } catch (Exception e) {
                     transaction.setStatus(FAILED);
                     transaction.setVerified(false);

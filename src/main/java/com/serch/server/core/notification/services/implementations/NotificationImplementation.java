@@ -246,7 +246,7 @@ public class NotificationImplementation implements NotificationService {
     }
 
     @Override
-    public void send(UUID id, boolean isIncome, BigDecimal amount) {
+    public void send(UUID id, boolean isIncome, BigDecimal amount, String transaction) {
         log.info(String.format("Preparing transaction notification for %s to %s", amount, id));
 
         SerchNotification<Map<String, String>> notification = new SerchNotification<>();
@@ -256,12 +256,13 @@ public class NotificationImplementation implements NotificationService {
         notification.setBody(isIncome
                 ? String.format("Your Serch wallet just received %s into your withdrawing balance", MoneyUtil.formatToNaira(amount))
                 : String.format("%s was debited from your wallet. See details in your history.", MoneyUtil.formatToNaira(amount)));
-        sendTransactionNotification(id, notification);
+
+        sendTransactionNotification(id, notification, transaction);
     }
 
-    private void sendTransactionNotification(UUID id, SerchNotification<Map<String, String>> notification) {
+    private void sendTransactionNotification(UUID id, SerchNotification<Map<String, String>> notification, String transaction) {
         notification.setImage(repository.getAvatar(id.toString()));
-        notification.setData(getTransactionData(id));
+        notification.setData(getTransactionData(id, transaction));
 
         repository.getToken(id.toString()).ifPresent(token -> {
             NotificationMessage<Map<String, String>> message = new NotificationMessage<>();
@@ -272,19 +273,20 @@ public class NotificationImplementation implements NotificationService {
         });
     }
 
-    private Map<String, String> getTransactionData(UUID id) {
+    private Map<String, String> getTransactionData(UUID id, String transaction) {
         Map<String, String> data = new HashMap<>();
         data.put("sender_name", repository.getName(id.toString()));
         data.put("sender_id", String.valueOf(id));
+        data.put("id", transaction);
 
         return data;
     }
 
     @Override
-    public void send(UUID id, BigDecimal amount) {
+    public void send(UUID id, BigDecimal amount, String transaction) {
         log.info(String.format("Preparing uncleared transaction notification for %s to %s", amount, id));
 
-        sendTransactionNotification(id, getUnclearedTransactionNotification(amount));
+        sendTransactionNotification(id, getUnclearedTransactionNotification(amount), transaction);
     }
 
     private SerchNotification<Map<String, String>> getUnclearedTransactionNotification(BigDecimal amount) {
@@ -296,10 +298,10 @@ public class NotificationImplementation implements NotificationService {
     }
 
     @Override
-    public void send(UUID id, BigDecimal amount, boolean paid, String next, String bank) {
+    public void send(UUID id, BigDecimal amount, boolean paid, String next, String bank, String transaction) {
         log.info(String.format("Preparing payout notification for %s to %s", amount, id));
 
-        sendTransactionNotification(id, getPayoutNotification(amount, paid, next, bank));
+        sendTransactionNotification(id, getPayoutNotification(amount, paid, next, bank), transaction);
     }
 
     private SerchNotification<Map<String, String>> getPayoutNotification(BigDecimal amount, boolean paid, String next, String bank) {

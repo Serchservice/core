@@ -137,7 +137,7 @@ public class SchedulePayImplementation implements SchedulePayService {
         wallet.setUncleared(wallet.getUncleared().subtract(transaction.getAmount()));
         walletRepository.save(wallet);
 
-        notificationService.send(wallet.getUser().getId(), false, transaction.getAmount());
+        notificationService.send(wallet.getUser().getId(), false, transaction.getAmount(), transaction.getId());
 
         transaction.setStatus(TransactionStatus.SUCCESSFUL);
         transaction.setUpdatedAt(TimeUtil.now());
@@ -152,7 +152,7 @@ public class SchedulePayImplementation implements SchedulePayService {
             wallet.setBalance(wallet.getBalance().add(transaction.getAmount()));
             wallet.setUpdatedAt(TimeUtil.now());
             walletRepository.save(wallet);
-            notificationService.send(id, true, transaction.getAmount());
+            notificationService.send(id, true, transaction.getAmount(), transaction.getId());
         }
     }
 }

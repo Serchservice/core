@@ -4,6 +4,7 @@ import com.serch.server.enums.ServerHeader;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -11,26 +12,27 @@ public class ServerUtil {
     /**
      * Allowing headers for both development and production purposes
      */
-    public static final List<String> HEADERS = List.of(
-            "X-CSRF-TOKEN",
-            ServerHeader.DRIVE_API_KEY.getValue(),
-            ServerHeader.DRIVE_SECRET_KEY.getValue(),
-            ServerHeader.GUEST_API_KEY.getValue(),
-            ServerHeader.GUEST_SECRET_KEY.getValue(),
-            ServerHeader.SERCH_SIGNED.getValue(),
-            ServerHeader.GUEST_AUTHORIZATION.getValue(),
-            HttpHeaders.AUTHORIZATION,
-            HttpHeaders.ACCEPT,
-            HttpHeaders.CONTENT_TYPE,
-            HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN,
-            HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS,
-            HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS,
-            HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS,
-            HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS,
-            HttpHeaders.ACCESS_CONTROL_MAX_AGE,
-            HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS,
-            HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD
-    );
+    public static final List<String> HEADERS = getHeaders();
+
+    static List<String> getHeaders() {
+        List<String> headers = new ArrayList<>(Arrays.stream(ServerHeader.values()).map(ServerHeader::getValue).toList());
+        headers.add("X-CSRF-TOKEN");
+        headers.addAll(List.of(
+                HttpHeaders.AUTHORIZATION,
+                HttpHeaders.ACCEPT,
+                HttpHeaders.CONTENT_TYPE,
+                HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN,
+                HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS,
+                HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS,
+                HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS,
+                HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS,
+                HttpHeaders.ACCESS_CONTROL_MAX_AGE,
+                HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS,
+                HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD
+        ));
+
+        return headers;
+    }
 
     public static final List<String> ALLOWED_ORIGINS = List.of(
             "https://www.serchservice.com", "https://serchservice.com",

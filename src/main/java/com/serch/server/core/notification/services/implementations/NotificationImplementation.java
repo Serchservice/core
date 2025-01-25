@@ -10,6 +10,7 @@ import com.serch.server.core.notification.requests.NotificationMessage;
 import com.serch.server.domains.schedule.responses.ScheduleResponse;
 import com.serch.server.domains.transaction.responses.TransactionResponse;
 import com.serch.server.domains.transaction.services.TransactionResponseService;
+import com.serch.server.enums.NotificationType;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.MoneyUtil;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +38,7 @@ public class NotificationImplementation implements NotificationService {
             NotificationMessage<Object> message = new NotificationMessage<>();
             message.setToken(token);
             message.setData(getChatNotification(response));
-            message.setSnt("CHAT");
+            message.setSnt(NotificationType.CHAT);
             notificationCoreService.send(message);
         });
     }
@@ -89,7 +90,7 @@ public class NotificationImplementation implements NotificationService {
             NotificationMessage<ActiveCallResponse> message = new NotificationMessage<>();
             message.setToken(token);
             message.setData(getCallNotification(response));
-            message.setSnt("CALL");
+            message.setSnt(NotificationType.CALL);
             notificationCoreService.send(message);
         });
     }
@@ -113,14 +114,14 @@ public class NotificationImplementation implements NotificationService {
         repository.getToken(String.valueOf(id)).ifPresent(token -> {
             message.setToken(token);
             message.setData(getScheduleNotification(response, false));
-            message.setSnt("SCHEDULE");
+            message.setSnt(NotificationType.SCHEDULE);
             notificationCoreService.send(message);
         });
 
         repository.getBusinessToken(id).ifPresent(token -> {
             message.setToken(token);
             message.setData(getScheduleNotification(response, true));
-            message.setSnt("SCHEDULE");
+            message.setSnt(NotificationType.SCHEDULE);
             notificationCoreService.send(message);
         });
     }
@@ -223,7 +224,7 @@ public class NotificationImplementation implements NotificationService {
             NotificationMessage<Map<String, Object>> message = new NotificationMessage<>();
             message.setToken(token);
             message.setData(getTripNotification(content, title, sender, getTripData(sender, trip, isInvite)));
-            message.setSnt("TRIP_MESSAGE");
+            message.setSnt(NotificationType.TRIP_MESSAGE);
             notificationCoreService.send(message);
         });
     }
@@ -278,7 +279,7 @@ public class NotificationImplementation implements NotificationService {
             NotificationMessage<Object> message = new NotificationMessage<>();
             message.setToken(token);
             message.setData(notification);
-            message.setSnt("TRANSACTION");
+            message.setSnt(NotificationType.TRANSACTION);
             notificationCoreService.send(message);
         });
     }

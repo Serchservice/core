@@ -65,7 +65,7 @@ public class NotificationImplementation implements NotificationService {
 
         response.setSummary(summary);
 
-        return response;
+        return getChatData(response, summary);
     }
 
     private Map<String, String> getChatData(ChatRoomResponse response, String summary) {

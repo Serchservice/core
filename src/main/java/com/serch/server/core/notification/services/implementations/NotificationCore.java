@@ -4,11 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
-import com.serch.server.core.notification.services.NotificationCoreService;
 import com.serch.server.core.notification.requests.NotificationMessage;
 import com.serch.server.core.notification.requests.SerchNotification;
+import com.serch.server.core.notification.services.NotificationCoreService;
 import com.serch.server.enums.NotificationType;
-import com.serch.server.utils.DatabaseUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -53,14 +52,9 @@ public class NotificationCore implements NotificationCoreService {
                 map.put("image", data.getImage());
             }
 
-            if(snt == NotificationType.CHAT) {
-                map.put("data", DatabaseUtil.encodeData(objectMapper.writeValueAsString(data.getData())));
-            } else {
-                map.put("data", objectMapper.writeValueAsString(data.getData()));
-            }
+            map.put("data", objectMapper.writeValueAsString(data.getData()));
         }
 
         return map;
     }
-
 }

@@ -7,6 +7,8 @@ import com.google.firebase.messaging.Message;
 import com.serch.server.core.notification.services.NotificationCoreService;
 import com.serch.server.core.notification.requests.NotificationMessage;
 import com.serch.server.core.notification.requests.SerchNotification;
+import com.serch.server.enums.NotificationType;
+import com.serch.server.utils.DatabaseUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +40,7 @@ public class NotificationCore implements NotificationCoreService {
     }
 
     @SneakyThrows
-    private Map<String, String> toMap(SerchNotification<?> data, String snt) {
+    private Map<String, String> toMap(SerchNotification<?> data, NotificationType snt) {
         Map<String, String> map = new HashMap<>();
 
         // Convert response field if it's not null
@@ -46,11 +48,16 @@ public class NotificationCore implements NotificationCoreService {
             // Manually convert important fields
             map.put("title", data.getTitle());
             map.put("body", data.getBody());
-            map.put("snt", snt);
+            map.put("snt", snt.name());
             if (data.getImage() != null) {
                 map.put("image", data.getImage());
             }
-            map.put("data", objectMapper.writeValueAsString(data.getData()));
+
+            if(snt == NotificationType.CHAT) {
+                map.put("data", DatabaseUtil.encodeData(objectMapper.writeValueAsString(data.getData())));
+            } else {
+                map.put("data", objectMapper.writeValueAsString(data.getData()));
+            }
         }
 
         return map;

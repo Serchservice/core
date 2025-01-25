@@ -5,15 +5,12 @@ import com.serch.server.core.payment.responses.InitializePaymentData;
 import com.serch.server.domains.transaction.requests.FundWalletRequest;
 import com.serch.server.domains.transaction.requests.WalletUpdateRequest;
 import com.serch.server.domains.transaction.requests.WithdrawRequest;
-import com.serch.server.domains.transaction.responses.TransactionGroupResponse;
 import com.serch.server.domains.transaction.responses.WalletResponse;
 import com.serch.server.domains.transaction.services.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,21 +22,6 @@ public class WalletController {
     @GetMapping
     public ResponseEntity<ApiResponse<WalletResponse>> view() {
         ApiResponse<WalletResponse> response = service.view();
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
-    @GetMapping("/transactions")
-    public ResponseEntity<ApiResponse<List<TransactionGroupResponse>>> transactions(
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer size
-    ) {
-        ApiResponse<List<TransactionGroupResponse>> response = service.transactions(page, size);
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
-    @GetMapping("/recent")
-    public ResponseEntity<ApiResponse<List<TransactionGroupResponse>>> recent() {
-        ApiResponse<List<TransactionGroupResponse>> response = service.recent();
         return new ResponseEntity<>(response, response.getStatus());
     }
 

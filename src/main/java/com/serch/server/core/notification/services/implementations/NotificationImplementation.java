@@ -8,6 +8,8 @@ import com.serch.server.domains.conversation.responses.ChatRoomResponse;
 import com.serch.server.core.notification.repository.INotificationRepository;
 import com.serch.server.core.notification.requests.NotificationMessage;
 import com.serch.server.domains.schedule.responses.ScheduleResponse;
+import com.serch.server.domains.transaction.responses.TransactionResponse;
+import com.serch.server.domains.transaction.services.TransactionResponseService;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.MoneyUtil;
 import lombok.RequiredArgsConstructor;
@@ -25,13 +27,14 @@ import java.util.UUID;
 public class NotificationImplementation implements NotificationService {
     private final NotificationCoreService notificationCoreService;
     private final INotificationRepository repository;
+    private final TransactionResponseService transactionResponseService;
 
     @Override
     public void send(UUID receiver, ChatRoomResponse response) {
         log.info(String.format("Preparing chat notification for %s to %s", response.getRoom(), receiver));
 
         repository.getToken(String.valueOf(receiver)).ifPresent(token -> {
-            NotificationMessage<Map<String, String>> message = new NotificationMessage<>();
+            NotificationMessage<Object> message = new NotificationMessage<>();
             message.setToken(token);
             message.setData(getChatNotification(response));
             message.setSnt("CHAT");
@@ -39,13 +42,13 @@ public class NotificationImplementation implements NotificationService {
         });
     }
 
-    private SerchNotification<Map<String, String>> getChatNotification(ChatRoomResponse response) {
-        SerchNotification<Map<String, String>> notification = new SerchNotification<>();
+    private SerchNotification<Object> getChatNotification(ChatRoomResponse response) {
+        SerchNotification<Object> notification = new SerchNotification<>();
 
         if(response.getCategory().equalsIgnoreCase("user")) {
-            notification.setTitle("New message");
+            notification.setTitle(response.getName());
         } else {
-            notification.setTitle(String.format("New message from %s", HelperUtil.textWithAorAn(response.getCategory())));
+            notification.setTitle(String.format("%s (%s)", response.getName(), HelperUtil.textWithAorAn(response.getCategory())));
         }
         notification.setBody(response.getMessage());
         notification.setData(getChatData(response));
@@ -53,12 +56,18 @@ public class NotificationImplementation implements NotificationService {
         return notification;
     }
 
-    private Map<String, String> getChatData(ChatRoomResponse response) {
+    private Object getChatData(ChatRoomResponse response) {
         String summary = response.getCount() > 1
                 ? "%s messages".formatted(response.getCount())
                 : "%s message".formatted(response.getCount());
-        String shortRoomName = response.getRoom().substring(0, 6).replaceAll("-", "");
+        summary = String.format("%s from %s", summary, response.getRoom().substring(0, 6).replaceAll("-", ""));
 
+        response.setSummary(summary);
+
+        return response;
+    }
+
+    private Map<String, String> getChatData(ChatRoomResponse response, String summary) {
         Map<String, String> data = new HashMap<>();
         data.put("room", response.getRoom());
         data.put("id", response.getMessageId());
@@ -67,8 +76,7 @@ public class NotificationImplementation implements NotificationService {
         data.put("category", response.getCategory());
         data.put("name", response.getName());
         data.put("e_pub_key", response.getPublicKey());
-        data.put("summary", String.format("%s from %s", summary, shortRoomName));
-        data.put("snt", "CHAT");
+        data.put("summary", summary);
 
         return data;
     }
@@ -230,6 +238,8 @@ public class NotificationImplementation implements NotificationService {
 
         if(trip != null) {
             data.put("trip_id", trip);
+        } else {
+            data.put("trip", UUID.randomUUID().toString());
         }
 
         return data;
@@ -246,25 +256,26 @@ public class NotificationImplementation implements NotificationService {
     }
 
     @Override
-    public void send(UUID id, boolean isIncome, BigDecimal amount) {
+    public void send(UUID id, boolean isIncome, BigDecimal amount, String transaction) {
         log.info(String.format("Preparing transaction notification for %s to %s", amount, id));
 
-        SerchNotification<Map<String, String>> notification = new SerchNotification<>();
+        SerchNotification<Object> notification = new SerchNotification<>();
         notification.setTitle(isIncome
                 ? String.format("Money In | %s! Keep increasing that wealth", MoneyUtil.formatToNaira(amount))
                 : String.format("Money out | %s! You were debited", MoneyUtil.formatToNaira(amount)));
         notification.setBody(isIncome
                 ? String.format("Your Serch wallet just received %s into your withdrawing balance", MoneyUtil.formatToNaira(amount))
                 : String.format("%s was debited from your wallet. See details in your history.", MoneyUtil.formatToNaira(amount)));
-        sendTransactionNotification(id, notification);
+
+        sendTransactionNotification(id, notification, transaction);
     }
 
-    private void sendTransactionNotification(UUID id, SerchNotification<Map<String, String>> notification) {
+    private void sendTransactionNotification(UUID id, SerchNotification<Object> notification, String transaction) {
         notification.setImage(repository.getAvatar(id.toString()));
-        notification.setData(getTransactionData(id));
+        notification.setData(getTransactionData(id, transaction));
 
         repository.getToken(id.toString()).ifPresent(token -> {
-            NotificationMessage<Map<String, String>> message = new NotificationMessage<>();
+            NotificationMessage<Object> message = new NotificationMessage<>();
             message.setToken(token);
             message.setData(notification);
             message.setSnt("TRANSACTION");
@@ -272,23 +283,29 @@ public class NotificationImplementation implements NotificationService {
         });
     }
 
-    private Map<String, String> getTransactionData(UUID id) {
+    private Object getTransactionData(UUID id, String transaction) {
+        TransactionResponse response = transactionResponseService.response(transaction);
+        if(response != null) {
+            return response;
+        }
+
         Map<String, String> data = new HashMap<>();
         data.put("sender_name", repository.getName(id.toString()));
         data.put("sender_id", String.valueOf(id));
+        data.put("id", transaction);
 
         return data;
     }
 
     @Override
-    public void send(UUID id, BigDecimal amount) {
+    public void send(UUID id, BigDecimal amount, String transaction) {
         log.info(String.format("Preparing uncleared transaction notification for %s to %s", amount, id));
 
-        sendTransactionNotification(id, getUnclearedTransactionNotification(amount));
+        sendTransactionNotification(id, getUnclearedTransactionNotification(amount), transaction);
     }
 
-    private SerchNotification<Map<String, String>> getUnclearedTransactionNotification(BigDecimal amount) {
-        SerchNotification<Map<String, String>> notification = new SerchNotification<>();
+    private SerchNotification<Object> getUnclearedTransactionNotification(BigDecimal amount) {
+        SerchNotification<Object> notification = new SerchNotification<>();
         notification.setTitle(String.format("Money Out | %s! You were debited", MoneyUtil.formatToNaira(amount)));
         notification.setBody(String.format("%s was debited from your wallet which was used to clear your unpaid debts.", MoneyUtil.formatToNaira(amount)));
 
@@ -296,14 +313,14 @@ public class NotificationImplementation implements NotificationService {
     }
 
     @Override
-    public void send(UUID id, BigDecimal amount, boolean paid, String next, String bank) {
+    public void send(UUID id, BigDecimal amount, boolean paid, String next, String bank, String transaction) {
         log.info(String.format("Preparing payout notification for %s to %s", amount, id));
 
-        sendTransactionNotification(id, getPayoutNotification(amount, paid, next, bank));
+        sendTransactionNotification(id, getPayoutNotification(amount, paid, next, bank), transaction);
     }
 
-    private SerchNotification<Map<String, String>> getPayoutNotification(BigDecimal amount, boolean paid, String next, String bank) {
-        SerchNotification<Map<String, String>> notification = new SerchNotification<>();
+    private SerchNotification<Object> getPayoutNotification(BigDecimal amount, boolean paid, String next, String bank) {
+        SerchNotification<Object> notification = new SerchNotification<>();
         notification.setTitle(paid ? "Yay!!! It's payday again. An exciting time in Serch" : "Seems like we won't be cashing out today.");
         notification.setBody(paid
                 ? String.format("%s has successfully being cashed out to %s. Looking forward to the next payday - %s", MoneyUtil.formatToNaira(amount), bank, next)

@@ -27,6 +27,7 @@ public class ChatRoomResponse {
     private String bookmark = "";
     private String trip = "";
     private MessageType type;
+    private String summary;
 
     @JsonProperty("public_encryption_key")
     private String publicKey;

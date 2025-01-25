@@ -94,4 +94,12 @@ public class HelperUtil {
     public static Pageable getPageable(Integer page, Integer size) {
         return PageRequest.of(page != null ? page : 0, size != null ? size : 20);
     }
+
+    public static String wallet(String wallet) {
+        if(wallet.length() >= 4) {
+            return "Serch Wallet - %s".formatted(wallet.substring(wallet.length() - 4));
+        } else {
+            return "Serch Wallet - %s".formatted(wallet);
+        }
+    }
 }

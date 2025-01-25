@@ -57,28 +57,31 @@ public interface NotificationService {
     /**
      * Sends a transaction notification to the user for debit and credit transactions.
      *
+     * @param transaction The transaction id
      * @param id The UUID of the user receiving the notification.
      * @param isIncome Indicates whether the payment is classified as income.
      * @param amount The amount associated with the transaction.
      */
-    void send(UUID id, boolean isIncome, BigDecimal amount);
+    void send(UUID id, boolean isIncome, BigDecimal amount, String transaction);
 
     /**
      * Sends an uncleared transaction notification to the user for debit and credit transactions.
      *
+     * @param transaction The transaction id
      * @param id The UUID of the user receiving the notification.
      * @param amount The amount associated with the transaction.
      */
-    void send(UUID id, BigDecimal amount);
+    void send(UUID id, BigDecimal amount, String transaction);
 
     /**
      * Sends a transaction notification to the user for payouts.
      *
+     * @param transaction The transaction id
      * @param id The UUID of the user receiving the notification.
      * @param paid Indicates whether the payment is an income or a payout.
      * @param amount The amount associated with the payout.
      * @param next The date for the next payout.
      * @param bank The bank name and relevant details associated with the payout.
      */
-    void send(UUID id, BigDecimal amount, boolean paid, String next, String bank);
+    void send(UUID id, BigDecimal amount, boolean paid, String next, String bank, String transaction);
 }

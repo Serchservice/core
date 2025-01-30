@@ -1,6 +1,15 @@
 package com.serch.server.domains.shared.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.core.session.GuestSessionService;
+import com.serch.server.domains.auth.requests.RequestProfile;
+import com.serch.server.domains.auth.responses.AuthResponse;
+import com.serch.server.domains.auth.services.UserAuthService;
+import com.serch.server.domains.conversation.responses.CallPeriodResponse;
+import com.serch.server.domains.shared.requests.SwitchRequest;
+import com.serch.server.domains.shared.responses.GuestResponse;
+import com.serch.server.domains.shared.services.GuestAuthService;
+import com.serch.server.domains.shared.services.SwitchService;
 import com.serch.server.enums.call.CallStatus;
 import com.serch.server.exceptions.ExceptionCodes;
 import com.serch.server.exceptions.others.SharedException;
@@ -14,17 +23,8 @@ import com.serch.server.repositories.shared.GuestRepository;
 import com.serch.server.repositories.shared.SharedLinkRepository;
 import com.serch.server.repositories.shared.SharedLoginRepository;
 import com.serch.server.repositories.trip.TripRepository;
-import com.serch.server.domains.auth.requests.RequestProfile;
-import com.serch.server.domains.auth.responses.AuthResponse;
-import com.serch.server.domains.auth.services.UserAuthService;
-import com.serch.server.domains.conversation.responses.CallPeriodResponse;
-import com.serch.server.domains.shared.requests.SwitchRequest;
-import com.serch.server.domains.shared.responses.GuestResponse;
-import com.serch.server.domains.shared.services.GuestAuthService;
-import com.serch.server.domains.shared.services.GuestService;
-import com.serch.server.domains.shared.services.SwitchService;
 import com.serch.server.utils.CallUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -43,7 +43,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class SwitchImplementation implements SwitchService {
-    private final GuestService guestService;
+    private final GuestSessionService sessionService;
     private final UserAuthService userAuthService;
     private final GuestRepository guestRepository;
     private final UserRepository userRepository;
@@ -51,6 +51,7 @@ public class SwitchImplementation implements SwitchService {
     private final SharedLoginRepository sharedLoginRepository;
     private final CallRepository callRepository;
     private final SharedLinkRepository sharedLinkRepository;
+    private final AuthUtil authUtil;
 
     @Override
     public ApiResponse<GuestResponse> switchToGuest(SwitchRequest request) {
@@ -62,18 +63,21 @@ public class SwitchImplementation implements SwitchService {
         } else {
             SharedLogin login = sharedLoginRepository.findBySharedLink_IdAndGuest_Id(request.getLinkId(), request.getId())
                     .orElseThrow(() -> new SharedException("Couldn't find the account you want to switch to"));
-            Optional<User> user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser());
+            Optional<User> user = userRepository.findByEmailAddressIgnoreCase(AuthUtil.getAuth());
+
             if(user.isPresent()) {
                 if(tripRepository.existsByStatusAndAccount(String.valueOf(user.get().getId()))) {
                     throw new SharedException("Can't switch account when you are on a trip");
                 } else {
                     checkCall(user.get());
                 }
+            } else if(!authUtil.getGuestId().isEmpty() && tripRepository.existsByStatusAndAccount(authUtil.getGuestId())) {
+                throw new SharedException("Can't switch account when you are on a trip");
             } else {
                 checkRequest(request);
             }
 
-            return new ApiResponse<>(guestService.response(login));
+            return new ApiResponse<>(sessionService.response(login));
         }
     }
 
@@ -91,7 +95,7 @@ public class SwitchImplementation implements SwitchService {
 
     @Override
     public ApiResponse<AuthResponse> switchToUser(SwitchRequest request) {
-        User user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
+        User user = userRepository.findByEmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new SharedException("Sign in as user to be able to switch easily"));
 
         checkRequest(request);

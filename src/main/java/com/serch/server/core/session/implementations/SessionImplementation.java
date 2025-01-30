@@ -1,8 +1,9 @@
-package com.serch.server.core.session;
+package com.serch.server.core.session.implementations;
 
 import com.serch.server.admin.models.Admin;
 import com.serch.server.admin.repositories.AdminRepository;
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.core.session.SessionService;
 import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.auth.AuthLevel;
 import com.serch.server.enums.auth.AuthMethod;
@@ -27,7 +28,7 @@ import com.serch.server.domains.auth.responses.SessionResponse;
 import com.serch.server.core.token.JwtService;
 import com.serch.server.core.token.TokenService;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import lombok.RequiredArgsConstructor;
@@ -305,7 +306,7 @@ public class SessionImplementation implements SessionService {
     @Override
     public void signOut(String jwt) {
         try {
-            var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
+            var user = userRepository.findByEmailAddressIgnoreCase(AuthUtil.getAuth())
                     .orElseThrow(() -> new AuthException("User not found", ExceptionCodes.USER_NOT_FOUND));
 
             revokeSession(user.getId(), UUID.fromString(jwtService.getItemFromToken(jwt, "session_id")));
@@ -317,7 +318,7 @@ public class SessionImplementation implements SessionService {
 
     @Override
     public void updateLastSignedIn() {
-        userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser()).ifPresent(user -> {
+        userRepository.findByEmailAddressIgnoreCase(AuthUtil.getAuth()).ifPresent(user -> {
             user.setLastSignedIn(TimeUtil.now());
             userRepository.save(user);
         });

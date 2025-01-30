@@ -2,19 +2,18 @@ package com.serch.server.domains.trip.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.core.notification.services.NotificationService;
+import com.serch.server.domains.trip.requests.*;
+import com.serch.server.domains.trip.responses.TripResponse;
+import com.serch.server.domains.trip.services.*;
 import com.serch.server.exceptions.others.TripException;
 import com.serch.server.mappers.TripMapper;
 import com.serch.server.models.account.Profile;
 import com.serch.server.models.shared.Guest;
 import com.serch.server.models.trip.*;
 import com.serch.server.repositories.account.ProfileRepository;
-import com.serch.server.repositories.shared.GuestRepository;
 import com.serch.server.repositories.trip.*;
-import com.serch.server.domains.trip.requests.*;
-import com.serch.server.domains.trip.responses.TripResponse;
-import com.serch.server.domains.trip.services.*;
+import com.serch.server.utils.AuthUtil;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,12 +25,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.serch.server.enums.account.ProviderStatus.ONLINE;
+import static com.serch.server.enums.account.ProviderStatus.REQUESTSHARING;
 import static com.serch.server.enums.auth.Role.USER;
 import static com.serch.server.enums.trip.TripConnectionStatus.*;
 import static com.serch.server.enums.trip.TripShareAccess.DENIED;
 import static com.serch.server.enums.trip.TripShareAccess.GRANTED;
-import static com.serch.server.enums.account.ProviderStatus.ONLINE;
-import static com.serch.server.enums.account.ProviderStatus.REQUESTSHARING;
 import static com.serch.server.enums.trip.TripStatus.*;
 
 @Service
@@ -45,11 +44,10 @@ public class TripShareImplementation implements TripShareService {
     private final TripPayService payService;
     private final ActiveService activeService;
     private final TripService tripService;
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
     private final SimpMessagingTemplate messaging;
     private final TripRepository tripRepository;
     private final TripShareRepository tripShareRepository;
-    private final GuestRepository guestRepository;
     private final ProfileRepository profileRepository;
     private final TripAuthenticationRepository tripAuthenticationRepository;
     private final ActiveRepository activeRepository;
@@ -60,18 +58,18 @@ public class TripShareImplementation implements TripShareService {
 
     @Override
     @Transactional
-    public ApiResponse<TripResponse> access(String guest, String id) {
+    public ApiResponse<TripResponse> access(String id) {
         String account;
         String name;
 
-        if(guest != null && !guest.isEmpty()) {
-            Guest guestProfile = guestRepository.findById(guest)
-                    .orElseThrow(() -> new TripException("Guest not found"));
-            account = guestProfile.getId();
-            name = guestProfile.getFullName();
+        if(!authUtil.getGuestId().isEmpty()) {
+            Guest guest = authUtil.getGuest();
+
+            account = guest.getId();
+            name = guest.getFullName();
         } else {
-            account = String.valueOf(userUtil.getUser().getId());
-            name = userUtil.getUser().getFullName();
+            account = String.valueOf(authUtil.getUser().getId());
+            name = authUtil.getUser().getFullName();
         }
 
         Trip trip = tripRepository.findByIdAndAccount(id, account)
@@ -106,7 +104,7 @@ public class TripShareImplementation implements TripShareService {
     @Override
     @Transactional
     public ApiResponse<TripResponse> share(TripShareRequest request) {
-        Trip trip = tripRepository.findByIdAndProviderId(request.getTrip(), userUtil.getUser().getId())
+        Trip trip = tripRepository.findByIdAndProviderId(request.getTrip(), authUtil.getUser().getId())
                 .orElseThrow(() -> new TripException("No trip found for trip " + request.getTrip()));
 
         if(trip.getAccess() == GRANTED) {
@@ -122,10 +120,10 @@ public class TripShareImplementation implements TripShareService {
                         trip.getAccount(),
                         String.format(
                                 "%s has shared this trip on the Serch platform. Waiting for responses... should be quick.",
-                                userUtil.getUser().getFullName()
+                                authUtil.getUser().getFullName()
                         ),
                         "Another provider is invited!",
-                        String.valueOf(userUtil.getUser().getId()), null, false
+                        String.valueOf(authUtil.getUser().getId()), null, false
                 );
 
                 trip.setInvited(share);
@@ -137,7 +135,7 @@ public class TripShareImplementation implements TripShareService {
                 }
 
                 tripService.updateOthers(trip);
-                return new ApiResponse<>(historyService.response(trip.getId(), String.valueOf(userUtil.getUser().getId()), null, true, null));
+                return new ApiResponse<>(historyService.response(trip.getId(), String.valueOf(authUtil.getUser().getId()), null, true, null));
             } else {
                 throw new TripException("You cannot share a trip more than once.");
             }
@@ -177,9 +175,9 @@ public class TripShareImplementation implements TripShareService {
                     );
                     notificationService.send(
                             String.valueOf(active.getProfile().getId()),
-                            String.format("%s wants your service now", userUtil.getUser().getFullName()),
+                            String.format("%s wants your service now", authUtil.getUser().getFullName()),
                             "You have a new shared trip request. Tap to view details",
-                            String.valueOf(userUtil.getUser().getId()), null, false
+                            String.valueOf(authUtil.getUser().getId()), null, false
                     );
                 }
             });
@@ -194,36 +192,36 @@ public class TripShareImplementation implements TripShareService {
         TripShare share;
 
         String account;
-        if(request.getGuest() != null && !request.getGuest().isEmpty()) {
-            share = tripShareRepository.findByTrip_IdAndTrip_Account(request.getTrip(), request.getGuest())
+        if(!authUtil.getGuestId().isEmpty()) {
+            share = tripShareRepository.findByTrip_IdAndTrip_Account(request.getTrip(), authUtil.getGuestId())
                     .orElseThrow(() -> new TripException("Shared trip not found"));
-            account = request.getGuest();
-        } else if(userUtil.getUser().getRole() == USER) {
-            share = tripShareRepository.findByTrip_IdAndTrip_Account(request.getTrip(), String.valueOf(userUtil.getUser().getId()))
+            account = authUtil.getGuestId();
+        } else if(authUtil.getUser().getRole() == USER) {
+            share = tripShareRepository.findByTrip_IdAndTrip_Account(request.getTrip(), String.valueOf(authUtil.getUser().getId()))
                     .orElseThrow(() -> new TripException("Shared trip not found"));
-            account = String.valueOf(userUtil.getUser().getId());
+            account = String.valueOf(authUtil.getUser().getId());
         } else {
-            share = tripShareRepository.findByTrip_IdAndProvider_Id(request.getTrip(), userUtil.getUser().getId())
+            share = tripShareRepository.findByTrip_IdAndProvider_Id(request.getTrip(), authUtil.getUser().getId())
                     .orElseThrow(() -> new TripException("Shared trip not found"));
-            account = String.valueOf(userUtil.getUser().getId());
+            account = String.valueOf(authUtil.getUser().getId());
         }
 
         notificationService.send(
                 share.getTrip().getAccount(),
                 String.format(
                         "%s has cancelled the shared trip request from %s",
-                        userUtil.getUser().getFullName(),
+                        authUtil.getUser().getFullName(),
                         share.getTrip().getProvider().getFullName()
                 ),
                 "Trip share cancelled",
-                String.valueOf(userUtil.getUser().getId()), null, false
+                String.valueOf(authUtil.getUser().getId()), null, false
         );
 
         notificationService.send(
                 String.valueOf(share.getTrip().getProvider().getId()),
-                String.format("%s has cancelled your shared trip request", userUtil.getUser().getFullName()),
+                String.format("%s has cancelled your shared trip request", authUtil.getUser().getFullName()),
                 "Trip share cancelled",
-                String.valueOf(userUtil.getUser().getId()), null, false
+                String.valueOf(authUtil.getUser().getId()), null, false
         );
 
         tripService.updateOthers(share.getTrip());
@@ -241,7 +239,7 @@ public class TripShareImplementation implements TripShareService {
                 .orElseThrow(() -> new TripException("No shared found for trip " + request.getTrip()));
 
         if(share.getProvider() == null) {
-            Profile profile = profileRepository.findById(userUtil.getUser().getId())
+            Profile profile = profileRepository.findById(authUtil.getUser().getId())
                     .orElseThrow(() -> new TripException("User not found"));
 
             share.getTrip().setCategory(profile.getCategory());
@@ -260,25 +258,25 @@ public class TripShareImplementation implements TripShareService {
             timelineService.create(null, share, CONNECTED);
             authenticationService.create(null, share);
             activeService.toggle(share.getTrip().getProvider().getUser(), REQUESTSHARING, null);
-            activeService.toggle(userUtil.getUser(), REQUESTSHARING, null);
+            activeService.toggle(authUtil.getUser(), REQUESTSHARING, null);
 
             notificationService.send(
                     share.getTrip().getAccount(),
-                    String.format("%s has accepted the shared trip invite", userUtil.getUser().getFullName()),
+                    String.format("%s has accepted the shared trip invite", authUtil.getUser().getFullName()),
                     "Trip Update - Shared invite accepted",
-                    String.valueOf(userUtil.getUser().getId()), null, false
+                    String.valueOf(authUtil.getUser().getId()), null, false
             );
 
             notificationService.send(
                     String.valueOf(share.getTrip().getProvider().getId()),
-                    String.format("%s has accepted the shared trip invite", userUtil.getUser().getFullName()),
+                    String.format("%s has accepted the shared trip invite", authUtil.getUser().getFullName()),
                     "Trip Update - Shared invite accepted",
-                    String.valueOf(userUtil.getUser().getId()), null, false
+                    String.valueOf(authUtil.getUser().getId()), null, false
             );
 
             tripService.updateOthers(share.getTrip());
 
-            return new ApiResponse<>(historyService.response(share.getTrip().getId(), String.valueOf(userUtil.getUser().getId()),  null, true, null));
+            return new ApiResponse<>(historyService.response(share.getTrip().getId(), String.valueOf(authUtil.getUser().getId()),  null, true, null));
         } else {
             throw new TripException("This trip has been accepted by another provider");
         }
@@ -290,14 +288,14 @@ public class TripShareImplementation implements TripShareService {
         TripShare share;
         String account;
 
-        if(request.getGuest() != null && !request.getGuest().isEmpty()) {
-            share = tripShareRepository.findByTrip_IdAndTrip_Account(request.getTrip(), request.getGuest())
+        if(!authUtil.getGuestId().isEmpty()) {
+            share = tripShareRepository.findByTrip_IdAndTrip_Account(request.getTrip(), authUtil.getGuestId())
                     .orElseThrow(() -> new TripException("Trip not found"));
-            account = request.getGuest();
+            account = authUtil.getGuestId();
         } else {
-            share = tripShareRepository.findByTrip_IdAndTrip_Account(request.getTrip(), String.valueOf(userUtil.getUser().getId()))
+            share = tripShareRepository.findByTrip_IdAndTrip_Account(request.getTrip(), String.valueOf(authUtil.getUser().getId()))
                     .orElseThrow(() -> new TripException("Trip not found"));
-            account = String.valueOf(userUtil.getUser().getId());
+            account = String.valueOf(authUtil.getUser().getId());
         }
 
         if(share.getAuthentication() != null) {
@@ -308,7 +306,7 @@ public class TripShareImplementation implements TripShareService {
                 tripAuthenticationRepository.save(authentication);
 
                 notificationService.send(
-                        String.valueOf(userUtil.getUser().getId()),
+                        String.valueOf(authUtil.getUser().getId()),
                         "Shared trip is now verified",
                         "Trip authentication successful",
                         share.getTrip().getAccount(), null, false
@@ -338,7 +336,7 @@ public class TripShareImplementation implements TripShareService {
     @Override
     @Transactional
     public ApiResponse<List<TripResponse>> end(String id) {
-        TripShare share = tripShareRepository.findByTrip_IdAndProvider_Id(id, userUtil.getUser().getId())
+        TripShare share = tripShareRepository.findByTrip_IdAndProvider_Id(id, authUtil.getUser().getId())
                 .orElseThrow(() -> new TripException("No shared found for trip " + id));
 
         OnlineRequest request = TripMapper.INSTANCE.request(share.getTrip());
@@ -355,7 +353,7 @@ public class TripShareImplementation implements TripShareService {
         timelineService.create(trip, null, COMPLETED);
         activeService.toggle(trip.getProvider().getUser(), ONLINE, request);
         timelineService.create(null, share, COMPLETED);
-        activeService.toggle(userUtil.getUser(), ONLINE, request);
+        activeService.toggle(authUtil.getUser(), ONLINE, request);
 
         return historyService.history(null, null, null, null, true, share.getTrip().getId());
     }
@@ -363,7 +361,7 @@ public class TripShareImplementation implements TripShareService {
     @Override
     @Transactional
     public ApiResponse<List<TripResponse>> leave(String id) {
-        TripShare share = tripShareRepository.findByTrip_IdAndProvider_Id(id, userUtil.getUser().getId())
+        TripShare share = tripShareRepository.findByTrip_IdAndProvider_Id(id, authUtil.getUser().getId())
                 .orElseThrow(() -> new TripException("No shared found for trip " + id));
 
         if(share.getTrip().getTimelines().stream().anyMatch(time -> time.getStatus() == LEFT)) {
@@ -376,20 +374,20 @@ public class TripShareImplementation implements TripShareService {
 
         timelineService.create(null, share, LEFT);
         OnlineRequest request = TripMapper.INSTANCE.request(share.getTrip());
-        activeService.toggle(userUtil.getUser(), ONLINE, request);
+        activeService.toggle(authUtil.getUser(), ONLINE, request);
 
         notificationService.send(
                 share.getTrip().getAccount(),
-                String.format("%s has left the trip", userUtil.getUser().getFullName()),
+                String.format("%s has left the trip", authUtil.getUser().getFullName()),
                 "Trip Update - Invited Provider left",
-                String.valueOf(userUtil.getUser().getId()), null, false
+                String.valueOf(authUtil.getUser().getId()), null, false
         );
 
         notificationService.send(
                 String.valueOf(share.getTrip().getProvider().getId()),
-                String.format("%s has left the trip", userUtil.getUser().getFullName()),
+                String.format("%s has left the trip", authUtil.getUser().getFullName()),
                 "Trip Update - Invited Provider left",
-                String.valueOf(userUtil.getUser().getId()), null, false
+                String.valueOf(authUtil.getUser().getId()), null, false
         );
 
         return historyService.history(null, null, null, null, true, share.getTrip().getId());

@@ -12,7 +12,7 @@ import com.serch.server.domains.rating.requests.RatingCalculation;
 import com.serch.server.domains.rating.services.RatingCalculationService;
 import com.serch.server.domains.shop.requests.ShopDriveRequest;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -23,7 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ShopDriveImplementation implements ShopDriveService {
     private final ShopRepository shopRepository;
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
     private final RatingCalculationService calculationService;
     private final ShopDriveRepository shopDriveRepository;
 
@@ -33,7 +33,7 @@ public class ShopDriveImplementation implements ShopDriveService {
 
         ShopDrive drive = ShopMapper.INSTANCE.drive(request);
         drive.setShop(shop);
-        drive.setUser(userUtil.getUser());
+        drive.setUser(authUtil.getUser());
         shopDriveRepository.save(drive);
 
         return new ApiResponse<>("Success", HttpStatus.OK);
@@ -43,7 +43,7 @@ public class ShopDriveImplementation implements ShopDriveService {
     public ApiResponse<String> rate(Long id, Double rating) {
         ShopDrive drive = shopDriveRepository.findById(id).orElseThrow(() -> new ShopException("Drive not found"));
 
-        if(drive.getUser().isUser(userUtil.getUser().getId())) {
+        if(drive.getUser().isUser(authUtil.getUser().getId())) {
             drive.setRating(rating);
             drive.setUpdatedAt(TimeUtil.now());
             shopDriveRepository.save(drive);

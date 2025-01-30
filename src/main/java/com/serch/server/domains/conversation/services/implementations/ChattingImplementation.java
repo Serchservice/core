@@ -19,7 +19,7 @@ import com.serch.server.domains.conversation.responses.ChatRoomResponse;
 import com.serch.server.domains.conversation.services.ChatService;
 import com.serch.server.domains.conversation.services.ChattingService;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -38,7 +38,7 @@ public class ChattingImplementation implements ChattingService {
     private final ChatRoomRepository chatRoomRepository;
     private final ProfileRepository profileRepository;
     private final UserRepository userRepository;
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
 
     private boolean isCurrentUser(UUID id, UUID current) {
         return id.equals(current);
@@ -216,9 +216,9 @@ public class ChattingImplementation implements ChattingService {
     @Override
     @Transactional
     public void notifyAboutSchedule(UUID roommate) {
-        profileRepository.findById(userUtil.getUser().getId())
+        profileRepository.findById(authUtil.getUser().getId())
                 .flatMap(profile -> chatRoomRepository.findRoom(roommate, profile.getId()))
-                .ifPresent(room -> sendMessage(room, userUtil.getUser(), false));
+                .ifPresent(room -> sendMessage(room, authUtil.getUser(), false));
     }
 
     @Override

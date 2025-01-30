@@ -22,7 +22,7 @@ import com.serch.server.repositories.trip.TripRepository;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.MoneyUtil;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -41,7 +41,7 @@ import static com.serch.server.enums.transaction.TransactionStatus.SUCCESSFUL;
 @RequiredArgsConstructor
 public class TransactionResponseImplementation implements TransactionResponseService {
     private final TransactionRepository transactionRepository;
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
     private final WalletRepository walletRepository;
     private final ScheduleRepository scheduleRepository;
     private final ProfileRepository profileRepository;
@@ -51,7 +51,7 @@ public class TransactionResponseImplementation implements TransactionResponseSer
     @Override
     public ApiResponse<List<TransactionGroupResponse>> transactions(Integer page, Integer size) {
         Pageable pageable = PageRequest.of(page != null ? page : 0, size != null ? size : 20, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Transaction> transactions = transactionRepository.findBySenderOrReceiver(String.valueOf(userUtil.getUser().getId()), pageable);
+        Page<Transaction> transactions = transactionRepository.findBySenderOrReceiver(String.valueOf(authUtil.getUser().getId()), pageable);
 
         if(transactions == null || transactions.getTotalElements() == 0) {
             return new ApiResponse<>(List.of());
@@ -63,7 +63,7 @@ public class TransactionResponseImplementation implements TransactionResponseSer
     @Override
     public ApiResponse<List<TransactionGroupResponse>> recent() {
         Pageable pageable = PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Transaction> page = transactionRepository.findRecentBySenderOrReceiver(String.valueOf(userUtil.getUser().getId()), pageable);
+        Page<Transaction> page = transactionRepository.findRecentBySenderOrReceiver(String.valueOf(authUtil.getUser().getId()), pageable);
 
         if(page == null || page.getTotalElements() == 0) {
             return new ApiResponse<>(List.of());
@@ -74,13 +74,9 @@ public class TransactionResponseImplementation implements TransactionResponseSer
 
     @Override
     public TransactionResponse response(String id) {
-        Transaction transaction = transactionRepository.findById(id).orElse(null);
-
-        if(transaction != null) {
-            return response(transaction);
-        } else {
-            return new TransactionResponse();
-        }
+        return transactionRepository.findById(id)
+                .map(this::response)
+                .orElse(null);
     }
 
     private ApiResponse<List<TransactionGroupResponse>> response(List<Transaction> transactions) {
@@ -90,7 +86,7 @@ public class TransactionResponseImplementation implements TransactionResponseSer
 
         map.forEach((date, transactionList) -> {
             TransactionGroupResponse group = new TransactionGroupResponse();
-            group.setLabel(TimeUtil.formatChatLabel(LocalDateTime.of(date, transactionList.getFirst().getCreatedAt().toLocalTime()), userUtil.getUser().getTimezone()));
+            group.setLabel(TimeUtil.formatChatLabel(LocalDateTime.of(date, transactionList.getFirst().getCreatedAt().toLocalTime()), authUtil.getUser().getTimezone()));
 
             List<TransactionResponse> response = transactionList.stream()
                     .sorted(Comparator.comparing(Transaction::getCreatedAt).reversed())
@@ -129,8 +125,8 @@ public class TransactionResponseImplementation implements TransactionResponseSer
                 MoneyUtil.formatToNaira(transaction.getAmount()),
                 transaction.getStatus().getSentence()
         ));
-        data.setDate(TimeUtil.formatDay(transaction.getCreatedAt(), userUtil.getUser().getTimezone()));
-        data.setUpdatedAt(TimeUtil.formatDay(transaction.getUpdatedAt(), userUtil.getUser().getTimezone()));
+        data.setDate(TimeUtil.formatDay(transaction.getCreatedAt(), authUtil.getUser().getTimezone()));
+        data.setUpdatedAt(TimeUtil.formatDay(transaction.getUpdatedAt(), authUtil.getUser().getTimezone()));
         response.setData(data);
 
         return response;
@@ -146,22 +142,22 @@ public class TransactionResponseImplementation implements TransactionResponseSer
                 MoneyUtil.formatToNaira(transaction.getAmount()),
                 transaction.getStatus().getSentence()
         ));
-        data.setDate(TimeUtil.formatDay(transaction.getCreatedAt(), userUtil.getUser().getTimezone()));
-        data.setUpdatedAt(TimeUtil.formatDay(transaction.getUpdatedAt(), userUtil.getUser().getTimezone()));
+        data.setDate(TimeUtil.formatDay(transaction.getCreatedAt(), authUtil.getUser().getTimezone()));
+        data.setUpdatedAt(TimeUtil.formatDay(transaction.getUpdatedAt(), authUtil.getUser().getTimezone()));
         response.setData(data);
 
         return response;
     }
 
     protected TransactionResponse prepareScheduleTransactionResponse(Transaction transaction) {
-        boolean isIncoming = String.valueOf(userUtil.getUser().getId()).equals(transaction.getAccount());
+        boolean isIncoming = String.valueOf(authUtil.getUser().getId()).equals(transaction.getAccount());
         TransactionResponse response = getResponse(transaction, isIncoming);
 
         TransactionData data = getData(transaction);
         data.setDescription(prepareScheduleDescription(transaction, isIncoming));
         response.setData(data);
 
-        if(userUtil.getUser().isBusiness()) {
+        if(authUtil.getUser().isBusiness()) {
             addAssociateData(scheduleRepository.findById(transaction.getEvent()).map(Schedule::getProvider), response);
         }
         return response;
@@ -170,8 +166,8 @@ public class TransactionResponseImplementation implements TransactionResponseSer
     private TransactionData getData(Transaction transaction) {
         TransactionData data = TransactionMapper.INSTANCE.data(transaction);
         data.setHeader("Transaction %s".formatted(transaction.getStatus().getType()));
-        data.setDate(TimeUtil.formatDay(transaction.getCreatedAt(), userUtil.getUser().getTimezone()));
-        data.setUpdatedAt(TimeUtil.formatDay(transaction.getUpdatedAt(), userUtil.getUser().getTimezone()));
+        data.setDate(TimeUtil.formatDay(transaction.getCreatedAt(), authUtil.getUser().getTimezone()));
+        data.setUpdatedAt(TimeUtil.formatDay(transaction.getUpdatedAt(), authUtil.getUser().getTimezone()));
 
         return data;
     }
@@ -191,7 +187,7 @@ public class TransactionResponseImplementation implements TransactionResponseSer
 
         TransactionResponse response = new TransactionResponse();
         response.setIsIncoming(isIncoming);
-        response.setLabel(TimeUtil.formatDay(transaction.getCreatedAt(), userUtil.getUser().getTimezone()));
+        response.setLabel(TimeUtil.formatDay(transaction.getCreatedAt(), authUtil.getUser().getTimezone()));
         response.setType(transaction.getType());
         response.setStatus(transaction.getStatus());
         response.setAmount(MoneyUtil.formatToNaira(transaction.getAmount()));
@@ -226,7 +222,7 @@ public class TransactionResponseImplementation implements TransactionResponseSer
                 optional.map(Schedule::getId).orElse(""),
                 getScheduleParticipant(transaction),
                 optional.map(Schedule::getTime).orElse(""),
-                optional.map(schedule -> TimeUtil.formatDay(schedule.getCreatedAt(), userUtil.getUser().getTimezone())).orElse("")
+                optional.map(schedule -> TimeUtil.formatDay(schedule.getCreatedAt(), authUtil.getUser().getTimezone())).orElse("")
         );
     }
 
@@ -240,7 +236,7 @@ public class TransactionResponseImplementation implements TransactionResponseSer
                 optional.map(Schedule::getId).orElse(""),
                 optional.map(schedule -> profileRepository.findById(schedule.getClosedBy()).map(Profile::getFullName).orElse("someone")).orElse("someone"),
                 optional.map(Schedule::getTime).orElse(""),
-                optional.map(schedule -> TimeUtil.formatDay(schedule.getCreatedAt(), userUtil.getUser().getTimezone())).orElse("")
+                optional.map(schedule -> TimeUtil.formatDay(schedule.getCreatedAt(), authUtil.getUser().getTimezone())).orElse("")
         );
     }
 
@@ -249,14 +245,14 @@ public class TransactionResponseImplementation implements TransactionResponseSer
             /// If user is the same person that closed the schedule
             if(schedule.getUser().isSameAs(schedule.getClosedBy()) ) {
                 /// If the logged-in user is same as the provider
-                if(schedule.getProvider().isSameAs(userUtil.getUser().getId())) {
+                if(schedule.getProvider().isSameAs(authUtil.getUser().getId())) {
                     return "you";
                 } else {
                     return profileRepository.findById(schedule.getProvider().getId()).map(Profile::getFullName).orElse("someone");
                 }
             } else {
                 /// If the logged-in user is same as the user
-                if(schedule.getUser().isSameAs(userUtil.getUser().getId())) {
+                if(schedule.getUser().isSameAs(authUtil.getUser().getId())) {
                     return "you";
                 } else {
                     return profileRepository.findById(schedule.getUser().getId()).map(Profile::getFullName).orElse("someone");
@@ -277,14 +273,14 @@ public class TransactionResponseImplementation implements TransactionResponseSer
     }
 
     protected TransactionResponse prepareTip2FixTransactionResponse(Transaction transaction) {
-        boolean isIncoming = userUtil.getUser().getRole() != Role.USER;
+        boolean isIncoming = authUtil.getUser().getRole() != Role.USER;
         TransactionResponse response = getResponse(transaction, isIncoming);
 
         TransactionData data = getData(transaction);
         data.setDescription(prepareCallDescription(transaction, isIncoming));
         response.setData(data);
 
-        if(userUtil.getUser().isBusiness()) {
+        if(authUtil.getUser().isBusiness()) {
             addAssociateData(callRepository.findById(transaction.getEvent()).map(Call::getCalled), response);
         }
         return response;
@@ -330,27 +326,27 @@ public class TransactionResponseImplementation implements TransactionResponseSer
     }
 
     protected TransactionResponse prepareTripShareTransactionResponse(Transaction transaction) {
-        boolean isIncoming = String.valueOf(userUtil.getUser().getId()).equals(transaction.getAccount());
+        boolean isIncoming = String.valueOf(authUtil.getUser().getId()).equals(transaction.getAccount());
         TransactionResponse response = getResponse(transaction, isIncoming);
 
         TransactionData data = getData(transaction);
         data.setDescription(prepareTripShareDescription(transaction));
         response.setData(data);
 
-        if(userUtil.getUser().isBusiness()) {
+        if(authUtil.getUser().isBusiness()) {
             addAssociateData(tripRepository.findById(transaction.getEvent()).map(Trip::getProvider), response);
         }
         return response;
     }
 
     protected String prepareTripShareDescription(Transaction transaction) {
-        if(userUtil.getUser().isBusiness()) {
+        if(authUtil.getUser().isBusiness()) {
             return String.format(
                     "This is the amount sent to the user that shared %s based on the attended trip %s",
                     tripRepository.findById(transaction.getEvent()).map(trip -> trip.getProvider().getFullName()).orElse("your associate provider"),
                     transaction.getEvent()
             );
-        } else if(userUtil.getUser().isUser()) {
+        } else if(authUtil.getUser().isUser()) {
             return String.format("This is your received percentage for sharing the link that made %s happen. Keep sharing!!!", transaction.getEvent());
         } else {
             return String.format("This is the trip charge for your attended trip %s", transaction.getEvent());
@@ -365,7 +361,7 @@ public class TransactionResponseImplementation implements TransactionResponseSer
         data.setDescription(prepareTripChargeDescription(transaction));
         response.setData(data);
 
-        if(userUtil.getUser().isBusiness()) {
+        if(authUtil.getUser().isBusiness()) {
             addAssociateData(tripRepository.findById(transaction.getEvent()).map(Trip::getProvider), response);
         }
 
@@ -373,7 +369,7 @@ public class TransactionResponseImplementation implements TransactionResponseSer
     }
 
     protected String prepareTripChargeDescription(Transaction transaction) {
-        if(userUtil.getUser().isBusiness()) {
+        if(authUtil.getUser().isBusiness()) {
             return String.format(
                     "This is a trip charge for %s based on the attended trip %s",
                     tripRepository.findById(transaction.getEvent()).map(trip -> trip.getProvider().getFullName()).orElse("your associate provider"),

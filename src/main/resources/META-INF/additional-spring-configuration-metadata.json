@@ -309,6 +309,21 @@
       "name": "application.access.signature",
       "type": "java.lang.String",
       "description": "This is the access signature for all Serch products accessing the server."
+    },
+    {
+      "name": "application.access.enc.key",
+      "type": "java.lang.String",
+      "description": "The encryption key for guest session."
+    },
+    {
+      "name": "application.access.enc.cipher",
+      "type": "java.lang.String",
+      "description": "The encryption cipher name."
+    },
+    {
+      "name": "application.access.enc.iv",
+      "type": "java.lang.String",
+      "description": "The encryption initialization vector."
     }
   ]
 }

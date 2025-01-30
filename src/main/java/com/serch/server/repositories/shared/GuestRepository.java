@@ -29,17 +29,21 @@ public interface GuestRepository extends JpaRepository<Guest, String> {
 
     Page<Guest> findByLastNameStartingWithIgnoreCase(@NonNull String start, Pageable pageable);
 
-    @Query("SELECT g FROM Guest g WHERE " +
-            "(LOWER(g.firstName) LIKE LOWER(CONCAT(:q, '%')) " +
-            "OR LOWER(g.lastName) LIKE LOWER(CONCAT(:q, '%')) " +
-            "OR LOWER(g.emailAddress) LIKE LOWER(CONCAT(:q, '%')) " +
-            "OR CAST(g.id AS string) LIKE CONCAT(:q, '%'))")
+    @Query("""
+        SELECT g FROM Guest g WHERE
+        (LOWER(g.firstName) LIKE LOWER(CONCAT(:q, '%'))
+        OR LOWER(g.lastName) LIKE LOWER(CONCAT(:q, '%'))
+        OR LOWER(g.emailAddress) LIKE LOWER(CONCAT(:q, '%'))
+        OR CAST(g.id AS string) LIKE CONCAT(:q, '%'))
+    """)
     Page<Guest> searchByQuery(String q, Pageable pageable);
 
-    @Query("SELECT COUNT(g) FROM Guest g WHERE " +
-            "(LOWER(g.firstName) LIKE LOWER(CONCAT(:q, '%')) " +
-            "OR LOWER(g.lastName) LIKE LOWER(CONCAT(:q, '%')) " +
-            "OR LOWER(g.emailAddress) LIKE LOWER(CONCAT(:q, '%')) " +
-            "OR CAST(g.id AS string) LIKE CONCAT(:q, '%'))")
+    @Query("""
+        SELECT COUNT(g) FROM Guest g WHERE
+        (LOWER(g.firstName) LIKE LOWER(CONCAT(:q, '%'))
+        OR LOWER(g.lastName) LIKE LOWER(CONCAT(:q, '%'))
+        OR LOWER(g.emailAddress) LIKE LOWER(CONCAT(:q, '%'))
+        OR CAST(g.id AS string) LIKE CONCAT(:q, '%'))
+    """)
     long countByQuery(String q);
 }

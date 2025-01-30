@@ -13,7 +13,7 @@ import com.serch.server.exceptions.auth.AuthException;
 import com.serch.server.models.auth.User;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -33,7 +33,7 @@ public class AdminActivityImplementation implements AdminActivityService {
     @Override
     @Transactional
     public List<AdminActivityResponse> activities(UUID id, Integer page, Integer size) {
-        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
+        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new AuthException("Admin not found"));
         Admin account = adminRepository.findById(id).orElseThrow(() -> new AuthException("Admin not found"));
 
@@ -54,7 +54,7 @@ public class AdminActivityImplementation implements AdminActivityService {
     @Override
     @Transactional
     public List<AdminActivityResponse> activities(Integer page, Integer size) {
-        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
+        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new AuthException("Admin not found"));
 
         return switch (admin.getUser().getRole()) {
@@ -103,7 +103,7 @@ public class AdminActivityImplementation implements AdminActivityService {
     }
 
     private String activity(boolean isLoggedInAdmin, AdminActivity activity) {
-        Admin loggedInAdmin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
+        Admin loggedInAdmin = adminRepository.findByUser_EmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new AuthException("Admin not found"));
         String name = activity.getAdmin().getUser().getFullName();
         String associatedName = adminRepository.findByPass(activity.getAssociated())

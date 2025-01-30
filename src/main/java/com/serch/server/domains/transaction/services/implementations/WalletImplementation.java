@@ -24,7 +24,7 @@ import com.serch.server.repositories.transaction.WalletRepository;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.MoneyUtil;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -56,7 +56,7 @@ import static com.serch.server.enums.transaction.TransactionStatus.SUCCESSFUL;
 public class WalletImplementation implements WalletService {
     private final PaymentService paymentService;
     private final NotificationService notificationService;
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
 
@@ -95,7 +95,7 @@ public class WalletImplementation implements WalletService {
 
     @Override
     public ApiResponse<InitializePaymentData> fund(FundWalletRequest request) {
-        Wallet wallet = walletRepository.findByUser_Id(userUtil.getUser().getId())
+        Wallet wallet = walletRepository.findByUser_Id(authUtil.getUser().getId())
                 .orElseThrow(() -> new WalletException("User wallet not found"));
 
         if(request.getAmount() >= FUND_LIMIT) {
@@ -117,7 +117,7 @@ public class WalletImplementation implements WalletService {
         transaction.setStatus(TransactionStatus.PENDING);
         transaction.setAccount(wallet.getId());
         transaction.setMode("PAYSTACK");
-        transaction.setSender(String.valueOf(userUtil.getUser().getId()));
+        transaction.setSender(String.valueOf(authUtil.getUser().getId()));
         transaction.setReference(data.getReference());
         transactionRepository.save(transaction);
     }
@@ -136,13 +136,13 @@ public class WalletImplementation implements WalletService {
         Transaction transaction = transactionRepository.findByReference(reference)
                 .orElseThrow(() -> new WalletException("Transaction not found"));
 
-        if(UUID.fromString(transaction.getSender()).equals(userUtil.getUser().getId())) {
+        if(UUID.fromString(transaction.getSender()).equals(authUtil.getUser().getId())) {
             if(transaction.getStatus() == SUCCESSFUL) {
                 throw new WalletException("Transaction is already verified");
             } else {
                 try {
                     var data = paymentService.verify(transaction.getReference());
-                    creditWallet(transaction.getAmount(), userUtil.getUser().getId());
+                    creditWallet(transaction.getAmount(), authUtil.getUser().getId());
                     transaction.setStatus(SUCCESSFUL);
                     transaction.setVerified(true);
                     transaction.setMode(data.getChannel().toUpperCase().replaceAll("_", " "));
@@ -198,14 +198,14 @@ public class WalletImplementation implements WalletService {
 
     @Override
     public ApiResponse<String> withdraw(WithdrawRequest request) {
-        Wallet wallet = walletRepository.findByUser_Id(userUtil.getUser().getId())
+        Wallet wallet = walletRepository.findByUser_Id(authUtil.getUser().getId())
                 .orElseThrow(() -> new WalletException("User wallet not found"));
 
         if(request.getAmount() >= WITHDRAW_LIMIT) {
             /// Check if the money in the user's balance is sufficient for withdraws
             if(wallet.getBalance().compareTo(BigDecimal.valueOf(request.getAmount())) > 0) {
                 if(wallet.hasBank()) {
-                    saveDebitTransaction(BigDecimal.valueOf(request.getAmount()), wallet, String.valueOf(userUtil.getUser().getId()));
+                    saveDebitTransaction(BigDecimal.valueOf(request.getAmount()), wallet, String.valueOf(authUtil.getUser().getId()));
 
                     return new ApiResponse<>(
                             "Withdrawal request is being processed. Expect payment in %s working days".formatted(PAYDAY),
@@ -249,7 +249,7 @@ public class WalletImplementation implements WalletService {
 
     @Override
     public ApiResponse<WalletResponse> view() {
-        Wallet wallet = walletRepository.findByUser_Id(userUtil.getUser().getId())
+        Wallet wallet = walletRepository.findByUser_Id(authUtil.getUser().getId())
                 .orElseThrow(() -> new WalletException("User wallet not found"));
 
         return new ApiResponse<>(buildWallet(wallet, TransactionMapper.INSTANCE.wallet(wallet)));
@@ -269,7 +269,7 @@ public class WalletImplementation implements WalletService {
 
     @Override
     public ApiResponse<String> update(WalletUpdateRequest request) {
-        Wallet wallet = walletRepository.findByUser_Id(userUtil.getUser().getId())
+        Wallet wallet = walletRepository.findByUser_Id(authUtil.getUser().getId())
                 .orElseThrow(() -> new WalletException("User wallet not found"));
 
         if(request.getAccountName() != null && !request.getAccountName().isEmpty()) {
@@ -421,7 +421,7 @@ public class WalletImplementation implements WalletService {
         LocalDate today = LocalDate.now();
         // Set last payday to today, and calculate the new next payout date
         wallet.setLastPayday(today);
-        walletRepository.save(wallet); // Persist the changes
+        walletRepository.save(wallet);
 
         /// Send Notification
         notificationService.send(

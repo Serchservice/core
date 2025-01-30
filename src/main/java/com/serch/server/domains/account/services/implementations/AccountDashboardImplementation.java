@@ -17,7 +17,7 @@ import com.serch.server.domains.account.services.AccountDashboardService;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.MoneyUtil;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -34,7 +34,7 @@ import static com.serch.server.enums.auth.Role.USER;
 @Service
 @RequiredArgsConstructor
 public class AccountDashboardImplementation implements AccountDashboardService {
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
     private final ScheduleRepository scheduleRepository;
     private final TransactionRepository transactionRepository;
     private final RatingRepository ratingRepository;
@@ -49,18 +49,18 @@ public class AccountDashboardImplementation implements AccountDashboardService {
     }
 
     private DashboardResponse buildDashboard() {
-        if(userUtil.getUser().isBusiness()) {
-            BusinessProfile business = businessProfileRepository.findById(userUtil.getUser().getId())
+        if(authUtil.getUser().isBusiness()) {
+            BusinessProfile business = businessProfileRepository.findById(authUtil.getUser().getId())
                     .orElseThrow(() -> new AccountException("Access denied"));
 
             return calculateBusinessDashboard(generateBusinessDashboards(business.getAssociates()), business.getAvatar());
         } else {
             return DashboardResponse.builder()
-                    .earning(todayEarnings(userUtil.getUser().getId()))
-                    .rating(todayRatings(userUtil.getUser().getId()))
-                    .schedule(todaySchedules(userUtil.getUser().getId()))
-                    .shared(todayShared(userUtil.getUser().getId()))
-                    .trip(todayTrips(userUtil.getUser().getId()))
+                    .earning(todayEarnings(authUtil.getUser().getId()))
+                    .rating(todayRatings(authUtil.getUser().getId()))
+                    .schedule(todaySchedules(authUtil.getUser().getId()))
+                    .shared(todayShared(authUtil.getUser().getId()))
+                    .trip(todayTrips(authUtil.getUser().getId()))
                     .build();
         }
     }
@@ -92,7 +92,7 @@ public class AccountDashboardImplementation implements AccountDashboardService {
     }
 
     private String todayTrips(UUID id) {
-        int size = userUtil.getUser().getRole() == USER
+        int size = authUtil.getUser().getRole() == USER
                 ? tripRepository.todayTrips(String.valueOf(id)).size()
                 : tripRepository.todayTrips(id).size();
 
@@ -180,10 +180,10 @@ public class AccountDashboardImplementation implements AccountDashboardService {
 
     @Override
     public ApiResponse<List<DashboardResponse>> dashboards(Integer page, Integer size) {
-        BusinessProfile business = businessProfileRepository.findById(userUtil.getUser().getId())
+        BusinessProfile business = businessProfileRepository.findById(authUtil.getUser().getId())
                 .orElseThrow(() -> new AccountException("Access denied"));
 
-        Page<Profile> associates = profileRepository.findActiveAssociatesByBusinessId(userUtil.getUser().getId(), HelperUtil.getPageable(page, size));
+        Page<Profile> associates = profileRepository.findActiveAssociatesByBusinessId(authUtil.getUser().getId(), HelperUtil.getPageable(page, size));
 
         if(associates.hasContent() && !associates.isEmpty()) {
             List<DashboardResponse> list = new ArrayList<>(generateBusinessDashboards(associates.getContent()));

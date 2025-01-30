@@ -12,7 +12,7 @@ import com.serch.server.exceptions.others.SerchException;
 import com.serch.server.models.company.Complaint;
 import com.serch.server.repositories.company.ComplaintRepository;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,7 +71,7 @@ public class ComplaintScopeImplementation implements ComplaintScopeService {
     @Override
     @Transactional
     public ApiResponse<List<ComplaintScopeResponse>> resolve(String id) {
-        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
+        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new AuthException("Admin not found"));
         Complaint complaint = complaintRepository.findById(id)
                 .orElseThrow(() -> new SerchException("Complaint not found"));

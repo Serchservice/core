@@ -24,7 +24,7 @@ import com.serch.server.domains.trip.responses.TripResponse;
 import com.serch.server.domains.trip.services.TripService;
 import com.serch.server.utils.MoneyUtil;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -45,7 +45,7 @@ import static com.serch.server.enums.schedule.ScheduleStatus.*;
  *
  * @see ScheduleService
  * @see SchedulePayService
- * @see UserUtil
+ * @see AuthUtil
  * @see ProfileRepository
  * @see ScheduleRepository
  */
@@ -59,7 +59,7 @@ public class ScheduleImplementation implements ScheduleService {
     private final TripService tripService;
     private final ChattingService chattingService;
     private final SimpMessagingTemplate template;
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("h:mma");
     private final ProfileRepository profileRepository;
     private final ScheduleRepository scheduleRepository;
@@ -72,7 +72,7 @@ public class ScheduleImplementation implements ScheduleService {
     private Integer ACCOUNT_SCHEDULE_CLOSE_DURATION;
 
     private boolean isCurrentUser(UUID id) {
-        return userUtil.getUser().getId().equals(id);
+        return authUtil.getUser().getId().equals(id);
     }
 
     @Override
@@ -80,7 +80,7 @@ public class ScheduleImplementation implements ScheduleService {
     public ApiResponse<ScheduleResponse> schedule(ScheduleRequest request) {
         Profile provider = profileRepository.findById(request.getProvider())
                 .orElseThrow(() -> new ScheduleException("Provider not found"));
-        Profile user = profileRepository.findById(userUtil.getUser().getId())
+        Profile user = profileRepository.findById(authUtil.getUser().getId())
                 .orElseThrow(() -> new ScheduleException("User not found"));
 
         validateTime(request);
@@ -109,8 +109,8 @@ public class ScheduleImplementation implements ScheduleService {
 
         return scheduleRepository.findByProvider_IdAndCreatedAtBetween(
                 provider,
-                ZonedDateTime.of(today.atStartOfDay(), TimeUtil.zoneId(userUtil.getUser().getTimezone())),
-                ZonedDateTime.of(today.atTime(23, 59, 59), TimeUtil.zoneId(userUtil.getUser().getTimezone()))
+                ZonedDateTime.of(today.atStartOfDay(), TimeUtil.zoneId(authUtil.getUser().getTimezone())),
+                ZonedDateTime.of(today.atTime(23, 59, 59), TimeUtil.zoneId(authUtil.getUser().getTimezone()))
         );
     }
 
@@ -197,7 +197,7 @@ public class ScheduleImplementation implements ScheduleService {
                 .orElseThrow(() -> new ScheduleException("Schedule not found"));
 
         validateTime(ScheduleRequest.builder().time(schedule.getTime()).build());
-        if(schedule.getProvider().isSameAs(userUtil.getUser().getId())) {
+        if(schedule.getProvider().isSameAs(authUtil.getUser().getId())) {
             if(schedule.getStatus() == PENDING) {
                 schedule.setStatus(ACCEPTED);
                 schedule.setUpdatedAt(TimeUtil.now());
@@ -226,7 +226,7 @@ public class ScheduleImplementation implements ScheduleService {
         Schedule schedule = scheduleRepository.findById(id)
                 .orElseThrow(() -> new ScheduleException("Schedule not found"));
 
-        if(schedule.getUser().isSameAs(userUtil.getUser().getId())) {
+        if(schedule.getUser().isSameAs(authUtil.getUser().getId())) {
             if(schedule.getStatus() == PENDING) {
                 schedule.setStatus(CANCELLED);
                 schedule.setUpdatedAt(TimeUtil.now());
@@ -262,7 +262,7 @@ public class ScheduleImplementation implements ScheduleService {
                 schedule.setStatus(ScheduleStatus.CLOSED);
                 schedule.setUpdatedAt(TimeUtil.now());
                 schedule.setClosedAt(TimeUtil.formatTimeDifference(diff));
-                schedule.setClosedBy(userUtil.getUser().getId());
+                schedule.setClosedBy(authUtil.getUser().getId());
                 schedule.setClosedOnTime(diff <= ACCOUNT_SCHEDULE_CLOSE_DURATION && diff >= 0);
                 scheduleRepository.save(schedule);
 
@@ -273,7 +273,7 @@ public class ScheduleImplementation implements ScheduleService {
                         schedulingService.response(schedule, isCurrentUser(schedule.getProvider().getId()), true)
                 );
 
-                int closed = scheduleRepository.findByClosedByAndClosedOnTime(userUtil.getUser().getId(), false).size();
+                int closed = scheduleRepository.findByClosedByAndClosedOnTime(authUtil.getUser().getId(), false).size();
                 if(closed == ACCOUNT_SCHEDULE_CLOSE_LIMIT) {
                     return new ApiResponse<>(
                             "Schedule ended. " +
@@ -328,7 +328,7 @@ public class ScheduleImplementation implements ScheduleService {
         Schedule schedule = scheduleRepository.findById(id)
                 .orElseThrow(() -> new ScheduleException("Schedule not found"));
 
-        if(schedule.getProvider().isSameAs(userUtil.getUser().getId()) || schedule.getUser().isSameAs(userUtil.getUser().getId())) {
+        if(schedule.getProvider().isSameAs(authUtil.getUser().getId()) || schedule.getUser().isSameAs(authUtil.getUser().getId())) {
             if(schedule.getStatus() == ACCEPTED) {
                 if(schedule.getProvider() == null) {
                     throw new SharedException("Provider not found");
@@ -364,7 +364,7 @@ public class ScheduleImplementation implements ScheduleService {
         if(request.getReason() == null || request.getReason().isEmpty()) {
             throw new ScheduleException("Reason for declining is required");
         } else {
-            if(schedule.getProvider().isSameAs(userUtil.getUser().getId())) {
+            if(schedule.getProvider().isSameAs(authUtil.getUser().getId())) {
                 if(schedule.getStatus() == PENDING) {
                     schedule.setStatus(ScheduleStatus.DECLINED);
                     schedule.setUpdatedAt(TimeUtil.now());

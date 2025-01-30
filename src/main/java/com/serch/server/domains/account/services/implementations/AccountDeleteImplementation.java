@@ -15,7 +15,7 @@ import com.serch.server.domains.account.services.AccountDeleteService;
 import com.serch.server.domains.referral.services.ReferralService;
 import com.serch.server.domains.transaction.services.WalletService;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +31,7 @@ import java.util.UUID;
  * Service implementation for deleting user accounts.
  * It implements the wrapper class {@link AccountDeleteService}
  *
- * @see UserUtil
+ * @see AuthUtil
  * @see AccountDeleteRepository
  * @see ProfileRepository
  * @see UserRepository
@@ -43,7 +43,7 @@ public class AccountDeleteImplementation implements AccountDeleteService {
 
     private final ReferralService referralService;
     private final WalletService walletService;
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
     private final AccountDeleteRepository accountDeleteRepository;
     private final ProfileRepository profileRepository;
     private final UserRepository userRepository;
@@ -55,7 +55,7 @@ public class AccountDeleteImplementation implements AccountDeleteService {
 
     @Override
     public ApiResponse<String> delete(UUID id) {
-        if(userUtil.getUser().isProfile()) {
+        if(authUtil.getUser().isProfile()) {
             throw new AccountException("Cannot access this resource. Access denied");
         } else {
             User user = profileRepository.findById(id)
@@ -74,7 +74,7 @@ public class AccountDeleteImplementation implements AccountDeleteService {
 
     @Override
     public ApiResponse<String> delete() {
-        return getDeleteResponse(userUtil.getUser());
+        return getDeleteResponse(authUtil.getUser());
     }
 
     private ApiResponse<String> getDeleteResponse(User user) {

@@ -13,7 +13,7 @@ import com.serch.server.bases.ApiResponse;
 import com.serch.server.core.qr_code.QRCodeService;
 import com.serch.server.core.token.TokenService;
 import com.serch.server.exceptions.others.SerchException;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +28,7 @@ public class OrganizationImplementation implements OrganizationService {
     private final TokenService tokenService;
     private final OrganizationRepository organizationRepository;
     private final AdminRepository adminRepository;
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
 
     @Override
     public ApiResponse<List<OrganizationResponse>> getAllOrganizations() {
@@ -47,7 +47,7 @@ public class OrganizationImplementation implements OrganizationService {
 
     @Override
     public ApiResponse<List<OrganizationResponse>> add(OrganizationDto organization) {
-        Admin admin = adminRepository.findById(userUtil.getUser().getId())
+        Admin admin = adminRepository.findById(authUtil.getUser().getId())
                 .orElseThrow(() -> new SerchException("No admin found"));
 
         if(organizationRepository.findByUsernameIgnoreCaseOrEmailAddressIgnoreCase(organization.username(), organization.emailAddress()).isPresent()) {
@@ -73,7 +73,7 @@ public class OrganizationImplementation implements OrganizationService {
 
     @Override
     public ApiResponse<List<OrganizationResponse>> update(OrganizationDto organization, Long id) {
-        adminRepository.findById(userUtil.getUser().getId()).orElseThrow(() -> new SerchException("No admin found"));
+        adminRepository.findById(authUtil.getUser().getId()).orElseThrow(() -> new SerchException("No admin found"));
         Organization existing = organizationRepository.findById(id)
                 .orElseThrow(() -> new SerchException("Organization member not found"));
 

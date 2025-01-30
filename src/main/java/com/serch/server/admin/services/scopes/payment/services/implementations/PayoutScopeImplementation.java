@@ -21,7 +21,7 @@ import com.serch.server.repositories.transaction.WalletRepository;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.MoneyUtil;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -44,7 +44,7 @@ import static com.serch.server.enums.transaction.TransactionType.WITHDRAW;
 @RequiredArgsConstructor
 public class PayoutScopeImplementation implements PayoutScopeService {
     private final CommonProfileService profileService;
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
     private final TransactionRepository transactionRepository;
     private final WalletRepository walletRepository;
     private final PayoutRepository payoutRepository;
@@ -99,7 +99,7 @@ public class PayoutScopeImplementation implements PayoutScopeService {
         PayoutScopeResponse response = new PayoutScopeResponse();
         response.setLabel(TimeUtil.formatChatLabel(
                 LocalDateTime.of(key, value.getFirst().getCreatedAt().toLocalTime()),
-                userUtil.getUser().getTimezone()
+                authUtil.getUser().getTimezone()
         ));
         response.setPayouts(value.stream().map(this::mapToPayoutResponse).toList());
 
@@ -137,7 +137,7 @@ public class PayoutScopeImplementation implements PayoutScopeService {
 
     @Override
     public ApiResponse<PayoutResponse> cancel(String id) {
-        Admin admin = adminRepository.findById(userUtil.getUser().getId())
+        Admin admin = adminRepository.findById(authUtil.getUser().getId())
                 .orElseThrow(() -> new SerchException("Admin not found"));
         Transaction transaction = transactionRepository.findById(id)
                 .orElseThrow(() -> new SerchException("Transaction not found"));
@@ -171,7 +171,7 @@ public class PayoutScopeImplementation implements PayoutScopeService {
 
     @Override
     public ApiResponse<PayoutResponse> payout(String id) {
-        Admin admin = adminRepository.findById(userUtil.getUser().getId())
+        Admin admin = adminRepository.findById(authUtil.getUser().getId())
                 .orElseThrow(() -> new SerchException("Admin not found"));
         Transaction transaction = transactionRepository.findById(id)
                 .orElseThrow(() -> new SerchException("Transaction not found"));
@@ -188,7 +188,7 @@ public class PayoutScopeImplementation implements PayoutScopeService {
     }
 
     private ApiResponse<List<PaymentApiResponse<PayoutScopeResponse>>> getListApiResponse(Integer page, Integer size, List<String> id, TransactionStatus status) {
-        Admin admin = adminRepository.findById(userUtil.getUser().getId())
+        Admin admin = adminRepository.findById(authUtil.getUser().getId())
                 .orElseThrow(() -> new SerchException("Admin not found"));
         List<Transaction> transactions = transactionRepository.findAllById(id);
 

@@ -52,7 +52,7 @@ import static com.serch.server.enums.trip.TripType.REQUEST;
  * This is the implementation of the wrapper class {@link TripHistoryService}.
  * It contains the logic and implementation of all the methods in its service layer.
  *
- * @see UserUtil
+ * @see AuthUtil
  * @see ProfileRepository
  * @see TripRepository
  * @see GuestRepository
@@ -60,7 +60,7 @@ import static com.serch.server.enums.trip.TripType.REQUEST;
 @Service
 @RequiredArgsConstructor
 public class TripHistoryImplementation implements TripHistoryService {
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
     private final SimpMessagingTemplate messaging;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM d ' | ' h:mma");
     private final ProfileRepository profileRepository;
@@ -206,7 +206,7 @@ public class TripHistoryImplementation implements TripHistoryService {
         response.setTripRating(ratingRepository.findByEventAndRated(trip, String.valueOf(profile.getId())).map(Rating::getRating).orElse(null));
 
         try {
-            User user = userUtil.getUser();
+            User user = authUtil.getUser();
             if(user.isUser()) {
                 response.setBookmark(bookmarkRepository.findByUser_IdAndProvider_Id(user.getId(), profile.getId()).map(Bookmark::getBookmarkId).orElse(""));
             } else {
@@ -235,7 +235,7 @@ public class TripHistoryImplementation implements TripHistoryService {
         if(payment != null) {
             response.setPendingPaymentData(payment);
             if(trip.getPayment() != null) {
-                trip.getPayment().setUrl(DatabaseUtil.encodeData(payment.getAuthorization_url()));
+                trip.getPayment().setUrl(DatabaseUtil.encode(payment.getAuthorization_url()));
                 tripPaymentRepository.save(trip.getPayment());
             }
         } else if(trip.getPayment() != null && trip.getPayment().getStatus() != SUCCESSFUL) {
@@ -511,10 +511,10 @@ public class TripHistoryImplementation implements TripHistoryService {
 
         if(isGuestAccount) {
             list = buildTrips(tripRepository.findByGuestHistoryTrips(id, linkId, category, dateTime, isShared, HelperUtil.getPageable(page, size)), id, false);
-        } else if(userUtil.getUser().isUser()) {
-            list = buildTrips(tripRepository.findByUserHistoryTrips(String.valueOf(userUtil.getUser().getId()), category, dateTime, isShared, HelperUtil.getPageable(page, size)), String.valueOf(userUtil.getUser().getId()), false);
+        } else if(authUtil.getUser().isUser()) {
+            list = buildTrips(tripRepository.findByUserHistoryTrips(String.valueOf(authUtil.getUser().getId()), category, dateTime, isShared, HelperUtil.getPageable(page, size)), String.valueOf(authUtil.getUser().getId()), false);
         } else {
-            list = buildTrips(tripRepository.findByProviderHistoryTrips(userUtil.getUser().getId(), category, dateTime, isShared, HelperUtil.getPageable(page, size)), String.valueOf(userUtil.getUser().getId()), false);
+            list = buildTrips(tripRepository.findByProviderHistoryTrips(authUtil.getUser().getId(), category, dateTime, isShared, HelperUtil.getPageable(page, size)), String.valueOf(authUtil.getUser().getId()), false);
         }
 
         return new ApiResponse<>(list);
@@ -537,10 +537,10 @@ public class TripHistoryImplementation implements TripHistoryService {
                 } catch (Exception ignored) {
                     buildGuestInviteHistory(id, linkId, page, size, list, sendUpdate);
                 }
-            } else if (userUtil.getUser().isUser()) {
-                buildUserList(list, userUtil.getUser(), page, size, sendUpdate);
+            } else if (authUtil.getUser().isUser()) {
+                buildUserList(list, authUtil.getUser(), page, size, sendUpdate);
             } else {
-                buildProviderWaitingList(list, userUtil.getUser(), page, size, sendUpdate);
+                buildProviderWaitingList(list, authUtil.getUser(), page, size, sendUpdate);
             }
 
             return list.stream()
@@ -620,26 +620,26 @@ public class TripHistoryImplementation implements TripHistoryService {
         if(isActive) {
             if(isGuestAccount) {
                 return buildTrips(tripRepository.findByActiveGuestTrips(id, linkId, HelperUtil.getPageable(page, size)), id, sendUpdate);
-            } else if(userUtil.getUser().isUser()) {
-                return buildTrips(tripRepository.findByActiveUserTrips(String.valueOf(userUtil.getUser().getId()), HelperUtil.getPageable(page, size)), String.valueOf(userUtil.getUser().getId()), sendUpdate);
+            } else if(authUtil.getUser().isUser()) {
+                return buildTrips(tripRepository.findByActiveUserTrips(String.valueOf(authUtil.getUser().getId()), HelperUtil.getPageable(page, size)), String.valueOf(authUtil.getUser().getId()), sendUpdate);
             } else {
-                return buildTrips(tripRepository.findByActiveProviderTrips(userUtil.getUser().getId(), HelperUtil.getPageable(page, size)), String.valueOf(userUtil.getUser().getId()), sendUpdate);
+                return buildTrips(tripRepository.findByActiveProviderTrips(authUtil.getUser().getId(), HelperUtil.getPageable(page, size)), String.valueOf(authUtil.getUser().getId()), sendUpdate);
             }
         } else if(isShared) {
             if(isGuestAccount) {
                 return buildTrips(tripRepository.findBySharedGuestTrips(id, linkId, HelperUtil.getPageable(page, size)), id, sendUpdate);
-            } else if(userUtil.getUser().isUser()) {
-                return buildTrips(tripRepository.findBySharedUserTrips(String.valueOf(userUtil.getUser().getId()), HelperUtil.getPageable(page, size)), String.valueOf(userUtil.getUser().getId()), sendUpdate);
+            } else if(authUtil.getUser().isUser()) {
+                return buildTrips(tripRepository.findBySharedUserTrips(String.valueOf(authUtil.getUser().getId()), HelperUtil.getPageable(page, size)), String.valueOf(authUtil.getUser().getId()), sendUpdate);
             } else {
-                return buildTrips(tripRepository.findBySharedProviderTrips(userUtil.getUser().getId(), HelperUtil.getPageable(page, size)), String.valueOf(userUtil.getUser().getId()), sendUpdate);
+                return buildTrips(tripRepository.findBySharedProviderTrips(authUtil.getUser().getId(), HelperUtil.getPageable(page, size)), String.valueOf(authUtil.getUser().getId()), sendUpdate);
             }
         } else {
             if(isGuestAccount) {
                 return buildTrips(tripRepository.findByGuestHistoryTrips(id, linkId, null, null, null, HelperUtil.getPageable(page, size)), id, sendUpdate);
-            } else if(userUtil.getUser().isUser()) {
-                return buildTrips(tripRepository.findByUserHistoryTrips(String.valueOf(userUtil.getUser().getId()), null, null, null, HelperUtil.getPageable(page, size)), String.valueOf(userUtil.getUser().getId()), sendUpdate);
+            } else if(authUtil.getUser().isUser()) {
+                return buildTrips(tripRepository.findByUserHistoryTrips(String.valueOf(authUtil.getUser().getId()), null, null, null, HelperUtil.getPageable(page, size)), String.valueOf(authUtil.getUser().getId()), sendUpdate);
             } else {
-                return buildTrips(tripRepository.findByProviderHistoryTrips(userUtil.getUser().getId(), null, null, null, HelperUtil.getPageable(page, size)), String.valueOf(userUtil.getUser().getId()), sendUpdate);
+                return buildTrips(tripRepository.findByProviderHistoryTrips(authUtil.getUser().getId(), null, null, null, HelperUtil.getPageable(page, size)), String.valueOf(authUtil.getUser().getId()), sendUpdate);
             }
         }
     }

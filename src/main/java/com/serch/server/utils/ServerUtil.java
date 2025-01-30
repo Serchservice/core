@@ -9,6 +9,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class ServerUtil {
+    public static String AUTH_KEY = "Bearer ";
+
     /**
      * Allowing headers for both development and production purposes
      */

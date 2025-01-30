@@ -10,6 +10,7 @@ public class GuestResponse {
     private String id;
     private String gender;
     private String avatar;
+    private String session;
 
     @JsonProperty("email_address")
     private String emailAddress;

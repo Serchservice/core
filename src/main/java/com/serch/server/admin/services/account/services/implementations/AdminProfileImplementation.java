@@ -22,7 +22,7 @@ import com.serch.server.models.auth.User;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -39,12 +39,12 @@ public class AdminProfileImplementation implements AdminProfileService {
     private final AdminActivityService activityService;
     private final AdminRepository adminRepository;
     private final UserRepository userRepository;
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
 
     @Override
     @Transactional
     public ApiResponse<AdminResponse> get() {
-        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
+        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new AuthException("Admin not found"));
 
         return new ApiResponse<>(prepare(admin));
@@ -64,7 +64,7 @@ public class AdminProfileImplementation implements AdminProfileService {
     @Override
     @Transactional
     public ApiResponse<AdminResponse> update(AdminProfileUpdateRequest request) {
-        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
+        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new AuthException("Admin not found"));
 
         if(!Objects.equals(admin.getUser().getFirstName(), request.getFirstName()) && !request.getFirstName().isEmpty()) {
@@ -86,7 +86,7 @@ public class AdminProfileImplementation implements AdminProfileService {
     @Override
     @Transactional
     public ApiResponse<AdminResponse> uploadAvatar(FileUploadRequest request) {
-        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
+        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new AuthException("Admin not found"));
 
         if(HelperUtil.isUploadEmpty(request)) {
@@ -116,13 +116,13 @@ public class AdminProfileImplementation implements AdminProfileService {
     @Override
     @Transactional
     public <T extends AccountScopeDetailResponse> T updateProfile(ZonedDateTime updatedAt, ZonedDateTime createdAt, User user, T response) {
-        response.setProfileUpdatedAt(TimeUtil.formatDay(updatedAt, userUtil.getUser().getTimezone()));
-        response.setProfileCreatedAt(TimeUtil.formatDay(createdAt, userUtil.getUser().getTimezone()));
-        response.setAccountCreatedAt(TimeUtil.formatDay(user.getCreatedAt(), userUtil.getUser().getTimezone()));
-        response.setAccountUpdatedAt(TimeUtil.formatDay(user.getUpdatedAt(), userUtil.getUser().getTimezone()));
-        response.setEmailConfirmedAt(TimeUtil.formatDay(user.getEmailConfirmedAt(), userUtil.getUser().getTimezone()));
-        response.setPasswordUpdatedAt(TimeUtil.formatDay(user.getLastUpdatedAt(), userUtil.getUser().getTimezone()));
-        response.setLastSignedIn(TimeUtil.formatLastSignedIn(user.getLastSignedIn(), userUtil.getUser().getTimezone(), false));
+        response.setProfileUpdatedAt(TimeUtil.formatDay(updatedAt, authUtil.getUser().getTimezone()));
+        response.setProfileCreatedAt(TimeUtil.formatDay(createdAt, authUtil.getUser().getTimezone()));
+        response.setAccountCreatedAt(TimeUtil.formatDay(user.getCreatedAt(), authUtil.getUser().getTimezone()));
+        response.setAccountUpdatedAt(TimeUtil.formatDay(user.getUpdatedAt(), authUtil.getUser().getTimezone()));
+        response.setEmailConfirmedAt(TimeUtil.formatDay(user.getEmailConfirmedAt(), authUtil.getUser().getTimezone()));
+        response.setPasswordUpdatedAt(TimeUtil.formatDay(user.getLastUpdatedAt(), authUtil.getUser().getTimezone()));
+        response.setLastSignedIn(TimeUtil.formatLastSignedIn(user.getLastSignedIn(), authUtil.getUser().getTimezone(), false));
 
         return response;
     }
@@ -142,7 +142,7 @@ public class AdminProfileImplementation implements AdminProfileService {
 
     @Override
     public ApiResponse<String> updateTimezone(String timezone) {
-        adminRepository.findById(userUtil.getUser().getId())
+        adminRepository.findById(authUtil.getUser().getId())
                 .ifPresent(profile -> {
                     profile.getUser().setTimezone(timezone);
                     userRepository.save(profile.getUser());

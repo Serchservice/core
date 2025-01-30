@@ -6,5 +6,4 @@ import lombok.Data;
 public class TripAuthRequest {
     private String code;
     private String trip;
-    private String guest;
 }

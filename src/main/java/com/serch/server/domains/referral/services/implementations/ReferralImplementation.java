@@ -13,7 +13,7 @@ import com.serch.server.domains.referral.responses.ReferralResponse;
 import com.serch.server.domains.referral.services.ReferralService;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -56,7 +56,7 @@ public class ReferralImplementation implements ReferralService {
 
     @Override
     public ApiResponse<List<ReferralResponse>> viewReferrals(Integer page, Integer size) {
-        Page<Referral> referrals = referralRepository.findByReferredBy_User_EmailAddress(UserUtil.getLoginUser(), HelperUtil.getPageable(page, size));
+        Page<Referral> referrals = referralRepository.findByReferredBy_User_EmailAddress(AuthUtil.getAuth(), HelperUtil.getPageable(page, size));
         List<ReferralResponse> list = new ArrayList<>();
 
         if(referrals != null && !referrals.getContent().isEmpty()) {

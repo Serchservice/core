@@ -7,7 +7,7 @@ import com.serch.server.mappers.AccountMapper;
 import com.serch.server.models.account.AccountSetting;
 import com.serch.server.models.auth.User;
 import com.serch.server.repositories.account.AccountSettingRepository;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -17,13 +17,13 @@ import java.util.Optional;
 /**
  * This holds the implementation for its wrapper class {@link AccountSettingService}
  *
- * @see UserUtil
+ * @see AuthUtil
  * @see AccountSettingRepository
  */
 @Service
 @RequiredArgsConstructor
 public class AccountSettingImplementation implements AccountSettingService {
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
     private final AccountSettingRepository accountSettingRepository;
 
     @Override
@@ -39,7 +39,7 @@ public class AccountSettingImplementation implements AccountSettingService {
 
     @Override
     public ApiResponse<AccountSettingResponse> update(AccountSettingResponse request) {
-        AccountSetting setting = accountSettingRepository.findByUser_Id(userUtil.getUser().getId())
+        AccountSetting setting = accountSettingRepository.findByUser_Id(authUtil.getUser().getId())
                 .orElse(new AccountSetting());
 
         AccountMapper.INSTANCE.updateAccountSetting(request, setting);
@@ -50,7 +50,7 @@ public class AccountSettingImplementation implements AccountSettingService {
 
     @Override
     public ApiResponse<AccountSettingResponse> settings() {
-        AccountSetting setting = accountSettingRepository.findByUser_Id(userUtil.getUser().getId())
+        AccountSetting setting = accountSettingRepository.findByUser_Id(authUtil.getUser().getId())
                 .orElse(new AccountSetting());
 
         AccountSettingResponse response = AccountMapper.INSTANCE.response(setting);

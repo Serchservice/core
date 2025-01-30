@@ -26,7 +26,7 @@ import com.serch.server.domains.certificate.responses.VerifyCertificateResponse;
 import com.serch.server.domains.rating.services.RatingService;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -46,7 +46,7 @@ public class CertificateImplementation implements CertificateService {
     private final StorageService storageService;
     private final RatingService ratingService;
     private final QRCodeService qrCodeService;
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
     private final PasswordEncoder encoder;
     private final CertificateRepository certificateRepository;
     private final RatingRepository ratingRepository;
@@ -68,7 +68,7 @@ public class CertificateImplementation implements CertificateService {
 
     @Override
     public ApiResponse<CertificateData> generate() {
-        User user = userUtil.getUser();
+        User user = authUtil.getUser();
         Optional<Certificate> cert = certificateRepository.findByUser(user.getId());
 
         if(cert.isPresent()) {
@@ -111,7 +111,7 @@ public class CertificateImplementation implements CertificateService {
 
     @Override
     public ApiResponse<CertificateResponse> fetch() {
-        Optional<Certificate> cert = certificateRepository.findByUser(userUtil.getUser().getId());
+        Optional<Certificate> cert = certificateRepository.findByUser(authUtil.getUser().getId());
         CertificateResponse response = new CertificateResponse();
         CertificateData data = new CertificateData();
 
@@ -126,7 +126,7 @@ public class CertificateImplementation implements CertificateService {
                             "This simply enables Serch to update your certificate content based on the " +
                             "additional information added by users of your service"
             );
-            response.setInstructions(instruction(userUtil.getUser(), cert.get()));
+            response.setInstructions(instruction(authUtil.getUser(), cert.get()));
         } else {
             data.setDocument(storageService.buildUrl(HelperUtil.dummyCertificate));
             response.setIsGenerated(false);
@@ -135,7 +135,7 @@ public class CertificateImplementation implements CertificateService {
                             "This enables us to generate certificate content that is personalized for you " +
                             "based on what users of your service said about you"
             );
-            response.setInstructions(instruction(userUtil.getUser(), null));
+            response.setInstructions(instruction(authUtil.getUser(), null));
         }
         response.setData(data);
 
@@ -181,10 +181,10 @@ public class CertificateImplementation implements CertificateService {
 
     @Override
     public ApiResponse<CertificateResponse> upload(FileUploadRequest request) {
-        String bucket = userUtil.getUser().isBusiness() ? "certificate/business" : "certificate/provider";
+        String bucket = authUtil.getUser().isBusiness() ? "certificate/business" : "certificate/provider";
         String url = storageService.upload(request, bucket);
 
-        Certificate certificate = certificateRepository.findByUser(userUtil.getUser().getId())
+        Certificate certificate = certificateRepository.findByUser(authUtil.getUser().getId())
                 .orElseThrow(() -> new CertificateException("Certificate not found"));
         certificate.setDocument(url);
         certificate.setUpdatedAt(TimeUtil.now());
@@ -214,7 +214,7 @@ public class CertificateImplementation implements CertificateService {
     }
 
     private String generateHeader() {
-        Double rating = ratingRepository.getOverallAverageRating(String.valueOf(userUtil.getUser().getId()));
+        Double rating = ratingRepository.getOverallAverageRating(String.valueOf(authUtil.getUser().getId()));
         if(rating == 5) {
             return "your outstanding contributions, unparalleled expertise and distinctive qualities";
         } else if(rating >= 4) {
@@ -237,11 +237,11 @@ public class CertificateImplementation implements CertificateService {
     }
 
     private String generateComment(String firstName) {
-        Double rating = ratingRepository.getOverallAverageRating(String.valueOf(userUtil.getUser().getId()));
-        Gender gender = profileRepository.findById(userUtil.getUser().getId())
+        Double rating = ratingRepository.getOverallAverageRating(String.valueOf(authUtil.getUser().getId()));
+        Gender gender = profileRepository.findById(authUtil.getUser().getId())
                 .map(BaseProfile::getGender)
                 .orElse(
-                        businessProfileRepository.findById(userUtil.getUser().getId())
+                        businessProfileRepository.findById(authUtil.getUser().getId())
                                 .map(BaseProfile::getGender)
                                 .orElse(Gender.NONE)
                 );

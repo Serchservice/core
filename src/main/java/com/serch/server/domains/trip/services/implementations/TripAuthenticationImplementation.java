@@ -31,7 +31,7 @@ public class TripAuthenticationImplementation implements TripAuthenticationServi
         }
 
         String code = tokenService.generateCode(4);
-        authentication.setCode(DatabaseUtil.encodeData(code));
+        authentication.setCode(DatabaseUtil.encode(code));
         tripAuthenticationRepository.save(authentication);
 
         if(share != null && share.isOffline()) {

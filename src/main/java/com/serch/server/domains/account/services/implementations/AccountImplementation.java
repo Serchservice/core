@@ -17,7 +17,7 @@ import com.serch.server.domains.shared.services.GuestService;
 import com.serch.server.domains.shared.services.SharedService;
 import com.serch.server.utils.DatabaseUtil;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -39,7 +39,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class AccountImplementation implements AccountService {
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
     private final SharedService sharedService;
     private final GuestRepository guestRepository;
     private final BusinessProfileRepository businessProfileRepository;
@@ -48,9 +48,9 @@ public class AccountImplementation implements AccountService {
 
     @Override
     public ApiResponse<List<AccountResponse>> accounts() {
-        Guest guest = guestRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
+        Guest guest = guestRepository.findByEmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElse(null);
-        User user = userUtil.getUser();
+        User user = authUtil.getUser();
 
         if(user.isProfile()) {
             return sharedService.buildAccountResponse(guest, user);
@@ -61,17 +61,17 @@ public class AccountImplementation implements AccountService {
 
     @Override
     public ApiResponse<String> lastPasswordUpdateAt() {
-        String time = TimeUtil.formatDay(userUtil.getUser().getLastUpdatedAt(), userUtil.getUser().getTimezone());
+        String time = TimeUtil.formatDay(authUtil.getUser().getLastUpdatedAt(), authUtil.getUser().getTimezone());
 
         return new ApiResponse<>("Success", time, HttpStatus.OK);
     }
 
     @Override
     public ApiResponse<String> updateFcmToken(String token) {
-        profileRepository.findById(userUtil.getUser().getId()).ifPresentOrElse(profile -> {
+        profileRepository.findById(authUtil.getUser().getId()).ifPresentOrElse(profile -> {
             profile.setFcmToken(token);
             profileRepository.save(profile);
-            }, () -> businessProfileRepository.findById(userUtil.getUser().getId()).ifPresent(business -> {
+            }, () -> businessProfileRepository.findById(authUtil.getUser().getId()).ifPresent(business -> {
                 business.setFcmToken(token);
                 businessProfileRepository.save(business);
             })
@@ -82,10 +82,10 @@ public class AccountImplementation implements AccountService {
 
     @Override
     public ApiResponse<String> updateTimezone(String timezone) {
-        profileRepository.findById(userUtil.getUser().getId()).ifPresentOrElse(profile -> {
+        profileRepository.findById(authUtil.getUser().getId()).ifPresentOrElse(profile -> {
                     profile.getUser().setTimezone(timezone);
                     userRepository.save(profile.getUser());
-                }, () -> businessProfileRepository.findById(userUtil.getUser().getId()).ifPresent(business -> {
+                }, () -> businessProfileRepository.findById(authUtil.getUser().getId()).ifPresent(business -> {
                     business.getUser().setTimezone(timezone);
                     userRepository.save(business.getUser());
                 })
@@ -96,11 +96,11 @@ public class AccountImplementation implements AccountService {
 
     @Override
     public ApiResponse<String> updatePublicEncryptionKey(UpdateE2EKey key) {
-        profileRepository.findById(userUtil.getUser().getId()).ifPresentOrElse(profile -> {
-            profile.setPublicEncryptionKey(DatabaseUtil.encodeData(key.getPublicKey()));
+        profileRepository.findById(authUtil.getUser().getId()).ifPresentOrElse(profile -> {
+            profile.setPublicEncryptionKey(DatabaseUtil.encode(key.getPublicKey()));
             profileRepository.save(profile);
-            }, () -> businessProfileRepository.findById(userUtil.getUser().getId()).ifPresent(business -> {
-                business.setPublicEncryptionKey(DatabaseUtil.encodeData(key.getPublicKey()));
+            }, () -> businessProfileRepository.findById(authUtil.getUser().getId()).ifPresent(business -> {
+                business.setPublicEncryptionKey(DatabaseUtil.encode(key.getPublicKey()));
                 businessProfileRepository.save(business);
             })
         );

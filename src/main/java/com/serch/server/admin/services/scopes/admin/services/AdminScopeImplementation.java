@@ -26,7 +26,7 @@ import com.serch.server.core.storage.requests.FileUploadRequest;
 import com.serch.server.domains.auth.services.AccountStatusTrackerService;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -96,7 +96,7 @@ public class AdminScopeImplementation implements AdminScopeService {
     @Override
     @Transactional
     public ApiResponse<String> changeAvatar(FileUploadRequest request, UUID id) {
-        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
+        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new AuthException("Admin not found"));
 
         validateAccess(admin, id);
@@ -118,7 +118,7 @@ public class AdminScopeImplementation implements AdminScopeService {
     @Override
     @Transactional
     public ApiResponse<String> changeStatus(ChangeStatusRequest request) {
-        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
+        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new AuthException("Admin not found"));
 
         validateAccess(admin, request.getId());
@@ -142,7 +142,7 @@ public class AdminScopeImplementation implements AdminScopeService {
     @Override
     @Transactional
     public ApiResponse<String> changeRole(ChangeRoleRequest request) {
-        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
+        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new AuthException("Admin not found"));
 
         validateAccess(admin, request.getId());
@@ -177,7 +177,7 @@ public class AdminScopeImplementation implements AdminScopeService {
     @Override
     @Transactional
     public ApiResponse<Boolean> toggle(UUID id) {
-        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
+        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new AuthException("Admin not found"));
         Admin user = adminRepository.findById(id).orElseThrow(() -> new AuthException("Admin not found"));
 
@@ -205,7 +205,7 @@ public class AdminScopeImplementation implements AdminScopeService {
     @Override
     @Transactional
     public ApiResponse<String> update(AdminProfileUpdateRequest request, UUID id) {
-        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
+        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new AuthException("Admin not found"));
 
         validateAccess(admin, id);
@@ -231,7 +231,7 @@ public class AdminScopeImplementation implements AdminScopeService {
     @Override
     @Transactional
     public ApiResponse<String> delete(UUID id) {
-        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
+        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new AuthException("Admin not found"));
 
         validateAccess(admin, id);

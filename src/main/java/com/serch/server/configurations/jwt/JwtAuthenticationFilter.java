@@ -2,6 +2,7 @@ package com.serch.server.configurations.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.serch.server.core.Logging;
+import com.serch.server.core.session.GuestSessionService;
 import com.serch.server.core.session.SessionService;
 import com.serch.server.core.validator.EndpointValidatorService;
 import com.serch.server.core.validator.KeyValidatorService;
@@ -49,6 +50,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final UserDetailsService userDetailsService;
     private final EndpointValidatorService endpointValidator;
     private final SessionService sessionService;
+    private final GuestSessionService guestSessionService;
     private final KeyValidatorService keyService;
     private final ApiResponseExceptionHandler handler;
 
@@ -66,35 +68,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if(endpointValidator.isSocketPermitted(request.getServletPath()) || endpointValidator.isSwaggerPermitted(request.getServletPath())){
             Logging.logRequest(request, "Unsigned request");
-
             filterChain.doFilter(request, response);
         } else {
             try {
                 if(keyService.isSigned(request.getHeader(ServerHeader.SERCH_SIGNED.getValue()))) {
-                    Logging.logRequest(request, "Signed request");
-
                     if(isDrivePermitted(request)) {
-                        authenticateApiKeyRequests(request, "Drive Request", ServerHeader.DRIVE_API_KEY);
-                        filterChain.doFilter(request, response);
+                        handleDriveAuthorization(request, response, filterChain);
                     } else if(isGuestPermitted(request)) {
-                        authenticateApiKeyRequests(request, "Guest Request", ServerHeader.GUEST_API_KEY);
-                        filterChain.doFilter(request, response);
+                        handleGuestAuthorization(request, response, filterChain);
                     } else if(ServerUtil.ALLOWED_IP_ADDRESSES.contains(request.getRemoteAddr())){
-                        Logging.logRequest(request, "Allowed Ip Request");
+                        Logging.logRequest(request, "Signed Allowed Ip Request");
                         filterChain.doFilter(request, response);
                     } else {
-                        // Extract JWT token from the Authorization header
-                        String header = request.getHeader("Authorization");
-
-                        // If the Authorization header is missing or does not start with "Bearer", proceed to the next filter
-                        if(header == null || !header.startsWith("Bearer") || header.length() < 7){
-                            Logging.logRequest(request, "No Auth Request");
-                            filterChain.doFilter(request, response);
-                        } else {
-                            // Validate the session associated with the JWT token
-                            authenticateJwtRequests(request, header);
-                            filterChain.doFilter(request, response);
-                        }
+                        handleJwtAuthorization(request, response, filterChain);
                     }
                 }
             } catch (ExpiredJwtException | MalformedJwtException | AuthException | SignatureException
@@ -106,31 +92,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
     }
 
-    private void authenticateJwtRequests(HttpServletRequest request, String header) {
-        Logging.logRequest(request, "JWT Request");
+    private boolean isDrivePermitted(HttpServletRequest request) {
+        return keyService.isDrive(
+                request.getHeader(ServerHeader.DRIVE_API_KEY.getValue()),
+                request.getHeader(ServerHeader.DRIVE_SECRET_KEY.getValue())
+        ) && endpointValidator.isDrivePermitted(request.getServletPath());
+    }
 
-        String jwt = header.substring(7);
+    @SneakyThrows
+    private void handleDriveAuthorization(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) {
+        Logging.logRequest(request, "Signed Drive Request");
 
-        var session = sessionService.validateSession(jwt, null, null);
-        if(session.getStatus().is2xxSuccessful()) {
-            // If the user is not already authenticated, set up the authentication context
-            if(SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = this.userDetailsService.loadUserByUsername(session.getData());
-                UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities()
-                );
-                token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(token);
-                // Update the last seen timestamp of the session
-                sessionService.updateLastSignedIn();
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                request.getHeader(ServerHeader.DRIVE_API_KEY.getValue()),
+                null,
+                new ArrayList<>()
+        );
+        auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(auth);
 
-                if(request.getRemoteAddr() != null) {
-                    sessionService.updateSessionDetails(request.getRemoteAddr(), jwt);
-                }
-            }
-        }
+        filterChain.doFilter(request, response);
     }
 
     private boolean isGuestPermitted(HttpServletRequest request) {
@@ -140,22 +121,76 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         ) && endpointValidator.isGuestPermitted(request.getServletPath());
     }
 
-    private boolean isDrivePermitted(HttpServletRequest request) {
-        return keyService.isDrive(
-                request.getHeader(ServerHeader.DRIVE_API_KEY.getValue()),
-                request.getHeader(ServerHeader.DRIVE_SECRET_KEY.getValue())
-        ) && endpointValidator.isDrivePermitted(request.getServletPath());
+    @SneakyThrows
+    private void handleGuestAuthorization(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) {
+        // Extract Session token from the Guest Authorization header
+        String auth = request.getHeader(ServerHeader.GUEST_AUTHORIZATION.getValue());
+
+        // If the Authorization header is missing or does not start with "Bearer", proceed to the next filter
+        if(auth == null || auth.length() < 7) {
+            Logging.logRequest(request, "Signed Guest ApiKey Request");
+
+            UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
+                    request.getHeader(ServerHeader.GUEST_API_KEY.getValue()),
+                    null,
+                    new ArrayList<>()
+            );
+            token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(token);
+        } else {
+            Logging.logRequest(request, "Signed Guest Authorized Request");
+
+            var session = guestSessionService.validateSession(auth);
+            if(session.getStatus().is2xxSuccessful()) {
+                // If the guest is not already authenticated, set up the authentication context
+                if(SecurityContextHolder.getContext().getAuthentication() == null) {
+                    UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
+                            session.getData(),
+                            null,
+                            new ArrayList<>()
+                    );
+                    token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(token);
+                }
+            }
+        }
+
+        filterChain.doFilter(request, response);
     }
 
-    private void authenticateApiKeyRequests(HttpServletRequest request, String message, ServerHeader key) {
-        Logging.logRequest(request, message);
+    @SneakyThrows
+    private void handleJwtAuthorization(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) {
+        // Extract JWT token from the Authorization header
+        String header = request.getHeader("Authorization");
 
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(
-                        request.getHeader(key.getValue()),
-                        null,
-                        new ArrayList<>()
-                )
-        );
+        // If the Authorization header is missing or does not start with ServerUtil.AUTH_KEY, proceed to the next filter
+        if(header == null || !header.startsWith(ServerUtil.AUTH_KEY) || header.length() < 7){
+            Logging.logRequest(request, "Signed No Auth Request");
+        } else {
+            Logging.logRequest(request, "Signed Auth Request");
+
+            String token = header.substring(7);
+
+            var session = sessionService.validateSession(token, null, null);
+            if(session.getStatus().is2xxSuccessful()) {
+                if(SecurityContextHolder.getContext().getAuthentication() == null) {
+                    UserDetails userDetails = this.userDetailsService.loadUserByUsername(session.getData());
+                    UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities()
+                    );
+                    auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                    sessionService.updateLastSignedIn();
+
+                    if(request.getRemoteAddr() != null) {
+                        sessionService.updateSessionDetails(request.getRemoteAddr(), token);
+                    }
+                }
+            }
+        }
+
+        filterChain.doFilter(request, response);
     }
 }

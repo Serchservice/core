@@ -32,7 +32,7 @@ import com.serch.server.repositories.shared.GuestRepository;
 import com.serch.server.utils.ActivityUtils;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -54,7 +54,7 @@ public class PermissionImplementation implements PermissionService {
     private final GuestRepository guestRepository;
     private final AdminRepository adminRepository;
     private final RequestedPermissionRepository requestedPermissionRepository;
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
     private final AdminProfileService adminProfileService;
 
     @Override
@@ -132,7 +132,7 @@ public class PermissionImplementation implements PermissionService {
     @Override
     @Transactional
     public ApiResponse<String> request(PermissionRequest request) {
-        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
+        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new AuthException("Admin not found"));
 
         if(request.getCluster() != null) {
@@ -218,14 +218,14 @@ public class PermissionImplementation implements PermissionService {
         Admin admin = adminRepository.findByUser_Role(Role.SUPER_ADMIN)
                 .orElseThrow(() -> new PermissionException("Super admin not found"));
 
-        User user = userUtil.getUser();
+        User user = authUtil.getUser();
         return (user.isAdmin() && user.isUser(permission.getRequestedBy().getAdmin().getId())) || user.isUser(admin.getId());
     }
 
     @Override
     @Transactional
     public ApiResponse<List<PermissionRequestGroupResponse>> grant(Long id, String expiration) {
-        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
+        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new PermissionException("Admin not found"));
         RequestedPermission requested = requestedPermissionRepository.findById(id)
                 .orElseThrow(() -> new PermissionException("Permission not found"));
@@ -289,7 +289,7 @@ public class PermissionImplementation implements PermissionService {
     @Override
     @Transactional
     public ApiResponse<List<PermissionRequestGroupResponse>> decline(Long id) {
-        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
+        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new PermissionException("Admin not found"));
         RequestedPermission requested = requestedPermissionRepository.findById(id)
                 .orElseThrow(() -> new PermissionException("Permission not found"));
@@ -329,7 +329,7 @@ public class PermissionImplementation implements PermissionService {
     @Override
     @Transactional
     public ApiResponse<List<PermissionRequestGroupResponse>> requests() {
-        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
+        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new PermissionException("Admin not found"));
 
         if(admin.isSuper()) {
@@ -362,8 +362,8 @@ public class PermissionImplementation implements PermissionService {
             List<PermissionRequestGroupResponse> response = new ArrayList<>();
             permitted.forEach((date, permit) -> {
                 PermissionRequestGroupResponse group = new PermissionRequestGroupResponse();
-                group.setCreatedAt(TimeUtil.toZonedDate(LocalDateTime.of(date, permit.getFirst().getCreatedAt().toLocalTime()), userUtil.getUser().getTimezone()));
-                group.setLabel(TimeUtil.formatChatLabel(LocalDateTime.of(date, permit.getFirst().getCreatedAt().toLocalTime()), userUtil.getUser().getTimezone()));
+                group.setCreatedAt(TimeUtil.toZonedDate(LocalDateTime.of(date, permit.getFirst().getCreatedAt().toLocalTime()), authUtil.getUser().getTimezone()));
+                group.setLabel(TimeUtil.formatChatLabel(LocalDateTime.of(date, permit.getFirst().getCreatedAt().toLocalTime()), authUtil.getUser().getTimezone()));
 
                 group.setRequests(permit.stream().map(permission -> getPermissionRequestResponse(admin, permission)).toList());
 
@@ -384,7 +384,7 @@ public class PermissionImplementation implements PermissionService {
                 permission.getPermission().name(),
                 permission.getAccount() != null ? permission.getAccount() : permission.getScope()
         ));
-        request.setExpiration(permission.getExpirationTime(userUtil.getUser().getTimezone()));
+        request.setExpiration(permission.getExpirationTime(authUtil.getUser().getTimezone()));
         request.setLabel(TimeUtil.formatTime(permission.getCreatedAt(), permission.getRequestedBy().getUser().getTimezone()));
 
         if(permission.getAccount() != null && !permission.getAccount().isEmpty()) {
@@ -412,7 +412,7 @@ public class PermissionImplementation implements PermissionService {
     @Override
     @Transactional
     public ApiResponse<List<PermissionRequestGroupResponse>> revoke(Long id) {
-        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
+        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new AuthException("Admin not found"));
         RequestedPermission permission = requestedPermissionRepository.findById(id)
                 .orElseThrow(() -> new PermissionException("Permission not found"));
@@ -429,7 +429,7 @@ public class PermissionImplementation implements PermissionService {
     @Override
     @Transactional
     public ApiResponse<List<PermissionRequestGroupResponse>> cancel(Long id) {
-        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
+        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new AuthException("Admin not found"));
         RequestedPermission permission = requestedPermissionRepository.findById(id)
                 .orElseThrow(() -> new PermissionException("Permission not found"));
@@ -474,7 +474,7 @@ public class PermissionImplementation implements PermissionService {
 
     @Transactional
     protected void updateScopes(List<GrantedPermissionScope> current, List<PermissionScopeRequest> newList, Admin user, String account) {
-        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
+        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new AuthException("Admin not found"));
 
         // Convert current to a location for easy lookup
@@ -636,7 +636,7 @@ public class PermissionImplementation implements PermissionService {
 
             if(user.isSuperAdmin()) {
                 throw new PermissionException("Cannot view this profile");
-            } else if(!(userUtil.getUser().isAdmin() || userUtil.getUser().isSuperAdmin()) && user.isAdmin()) {
+            } else if(!(authUtil.getUser().isAdmin() || authUtil.getUser().isSuperAdmin()) && user.isAdmin()) {
                 throw new PermissionException("You are not allowed to seek permission for an admin account");
             }
 

@@ -1,10 +1,12 @@
 package com.serch.server.core.token.implementations;
 
 import com.serch.server.core.token.JwtService;
+import com.serch.server.core.validator.implementations.KeyValidator;
 import com.serch.server.domains.auth.requests.RequestSessionToken;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.io.Encoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,11 +25,16 @@ import java.util.function.Function;
 @Service
 @RequiredArgsConstructor
 public class JwtImplementation implements JwtService {
+    private final KeyValidator validator;
+
     @Value("${application.security.jwt-secret-key}")
     protected String JWT_SECRET_KEY;
 
     @Value("${application.security.jwt-expiration-time}")
     protected Long JWT_EXPIRATION_TIME;
+
+    @Value("${application.access.signature}")
+    private String ACCESS_SIGNATURE;
 
     /**
      * Retrieves the signing key for JWT.
@@ -70,7 +77,7 @@ public class JwtImplementation implements JwtService {
                 .builder()
                 .setClaims(data)
                 .setSubject(subject)
-                .setIssuer("Serch")
+                .setIssuer(Encoders.BASE64.encode(ACCESS_SIGNATURE.getBytes()))
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .signWith(getSigningKey())
                 .compact();
@@ -88,7 +95,7 @@ public class JwtImplementation implements JwtService {
                 .builder()
                 .setClaims(claims)
                 .setSubject(request.getEmailAddress())
-                .setIssuer("Serch")
+                .setIssuer(Encoders.BASE64.encode(ACCESS_SIGNATURE.getBytes()))
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + JWT_EXPIRATION_TIME))
                 .signWith(getSigningKey())
@@ -107,7 +114,7 @@ public class JwtImplementation implements JwtService {
 
     @Override
     public boolean isTokenIssuedBySerch(String token) {
-        return extractClaims(token, Claims::getIssuer).equals("Serch");
+        return validator.isSigned(new String(Decoders.BASE64.decode(extractClaims(token, Claims::getIssuer))));
     }
 
     @Override

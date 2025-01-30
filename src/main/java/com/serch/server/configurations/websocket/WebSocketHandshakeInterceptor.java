@@ -2,11 +2,13 @@ package com.serch.server.configurations.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.serch.server.core.Logging;
+import com.serch.server.core.session.GuestSessionService;
 import com.serch.server.core.session.SessionService;
 import com.serch.server.core.validator.KeyValidatorService;
 import com.serch.server.enums.ServerHeader;
 import com.serch.server.exceptions.ApiResponseExceptionHandler;
 import com.serch.server.exceptions.auth.AuthException;
+import com.serch.server.utils.ServerUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
@@ -38,12 +40,14 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.Map;
 
 @Configuration
 @RequiredArgsConstructor
 public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
     private final SessionService sessionService;
+    private final GuestSessionService guestSessionService;
     private final UserDetailsService userDetailsService;
     private final KeyValidatorService keyService;
     private final ApiResponseExceptionHandler handler;
@@ -57,41 +61,11 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
             if(keyService.isSigned(request.getHeaders().getFirst(ServerHeader.SERCH_SIGNED.getValue()))) {
                 if(keyService.isDrive(request.getHeaders().getFirst(ServerHeader.DRIVE_API_KEY.getValue()), request.getHeaders().getFirst(ServerHeader.DRIVE_SECRET_KEY.getValue()))) {
                     Logging.logRequest(request, "SIGNED DRIVE HANDSHAKE");
-
-                    return true;
                 } else if(keyService.isGuest(request.getHeaders().getFirst(ServerHeader.GUEST_API_KEY.getValue()), request.getHeaders().getFirst(ServerHeader.GUEST_SECRET_KEY.getValue()))) {
-                    Logging.logRequest(request, "SIGNED GUEST HANDSHAKE");
-
-                    return true;
+                    return handleGuestAuthorization(request, attributes);
                 } else {
-                    String authHeader = request.getHeaders().getFirst("Authorization");
-
-                    if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                        Logging.logRequest(request, "AUTHORIZED HANDSHAKE");
-
-                        String token = authHeader.substring(7);
-                        var session = sessionService.validateSession(token, null, null);
-
-                        if (session.getStatus().is2xxSuccessful()) {
-                            UserDetails userDetails = userDetailsService.loadUserByUsername(session.getData());
-                            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                                    userDetails,
-                                    null,
-                                    userDetails.getAuthorities()
-                            );
-                            SecurityContextHolder.getContext().setAuthentication(authentication);
-                            sessionService.updateLastSignedIn();
-
-                            attributes.put("username", userDetails.getUsername());
-
-                            return true;
-                        }
-                    } else {
-                        Logging.logRequest(request, "SIGNED HANDSHAKE");
-                    }
+                    return handleJwtAuthorization(request, attributes);
                 }
-
-                return true;
             } else {
                 Logging.logRequest(request, "BEFORE HANDSHAKE");
             }
@@ -181,6 +155,61 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
                 return headers;
             }
         };
+    }
+
+    private boolean handleGuestAuthorization(ServerHttpRequest request, Map<String, Object> attributes) {
+        String token = request.getHeaders().getFirst(ServerHeader.GUEST_AUTHORIZATION.getValue());
+
+        if(token != null) {
+            Logging.logRequest(request, "SIGNED AUTHORIZED GUEST HANDSHAKE");
+
+            var session = guestSessionService.validateSession(token);
+            if(session.getStatus().is2xxSuccessful()) {
+                if(SecurityContextHolder.getContext().getAuthentication() == null) {
+                    UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                            session.getData(),
+                            null,
+                            new ArrayList<>()
+                    );
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                }
+
+                attributes.put("username", session.getData());
+                return true;
+            }
+        } else {
+            Logging.logRequest(request, "SIGNED GUEST HANDSHAKE");
+        }
+
+        return false;
+    }
+
+    private boolean handleJwtAuthorization(ServerHttpRequest request, Map<String, Object> attributes) {
+        String bearer = request.getHeaders().getFirst(ServerHeader.AUTHORIZATION.getValue());
+
+        if (bearer != null && bearer.startsWith(ServerUtil.AUTH_KEY)) {
+            Logging.logRequest(request, "SIGNED AUTHORIZED HANDSHAKE");
+
+            String token = bearer.substring(7);
+            var session = sessionService.validateSession(token, null, null);
+            if (session.getStatus().is2xxSuccessful()) {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(session.getData());
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities()
+                );
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+                sessionService.updateLastSignedIn();
+
+                attributes.put("username", userDetails.getUsername());
+                return true;
+            }
+        } else {
+            Logging.logRequest(request, "SIGNED HANDSHAKE");
+        }
+
+        return false;
     }
 
     @SneakyThrows

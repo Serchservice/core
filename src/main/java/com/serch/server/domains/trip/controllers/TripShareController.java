@@ -28,11 +28,8 @@ public class TripShareController {
     }
 
     @PatchMapping("/access")
-    public ResponseEntity<ApiResponse<TripResponse>> access(
-            @RequestParam(required = false) String guest,
-            @RequestParam String id
-    ) {
-        ApiResponse<TripResponse> response = service.access(guest, id);
+    public ResponseEntity<ApiResponse<TripResponse>> access(@RequestParam String id) {
+        ApiResponse<TripResponse> response = service.access(id);
         return new ResponseEntity<>(response, response.getStatus());
     }
 

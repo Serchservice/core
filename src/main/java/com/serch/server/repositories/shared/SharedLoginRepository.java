@@ -16,5 +16,5 @@ public interface SharedLoginRepository extends JpaRepository<SharedLogin, Long> 
 
   Optional<SharedLogin> findBySharedLink_SecretAndGuest_Id(@NonNull String link, @NonNull String id);
 
-    Page<SharedLogin> findByGuest_EmailAddress(@NonNull String emailAddress, Pageable pageable);
+  Page<SharedLogin> findByGuest_EmailAddress(@NonNull String emailAddress, Pageable pageable);
 }

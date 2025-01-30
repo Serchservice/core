@@ -30,7 +30,7 @@ import com.serch.server.domains.transaction.services.WalletService;
 import com.serch.server.utils.DatabaseUtil;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -48,7 +48,7 @@ import java.util.List;
  * @see WalletService
  * @see SpecialtyService
  * @see TokenService
- * @see UserUtil
+ * @see AuthUtil
  * @see BusinessProfileRepository
  * @see PhoneInformationRepository
  * @see UserRepository
@@ -66,7 +66,7 @@ public class BusinessImplementation implements BusinessService {
     private final ProfileService profileService;
     private final StorageService supabase;
     private final SpecialtyService specialtyService;
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
     private final BusinessProfileRepository businessProfileRepository;
     private final PhoneInformationRepository phoneInformationRepository;
     private final UserRepository userRepository;
@@ -104,7 +104,7 @@ public class BusinessImplementation implements BusinessService {
         BusinessProfile business = AccountMapper.INSTANCE.profile(incomplete.getProfile());
         business.setUser(user);
         business.setCategory(incomplete.getCategory().getCategory());
-        business.setDefaultPassword(DatabaseUtil.encodeData(defaultPassword));
+        business.setDefaultPassword(DatabaseUtil.encode(defaultPassword));
         business.setBusinessAddress(profile.getAddress());
         business.setBusinessName(profile.getName());
         business.setBusinessDescription(profile.getDescription());
@@ -118,7 +118,7 @@ public class BusinessImplementation implements BusinessService {
 
     @Override
     public ApiResponse<BusinessProfileResponse> profile() {
-        BusinessProfile profile = businessProfileRepository.findById(userUtil.getUser().getId())
+        BusinessProfile profile = businessProfileRepository.findById(authUtil.getUser().getId())
                 .orElseThrow(() -> new AccountException("Profile not found"));
 
         BusinessProfileResponse response = AccountMapper.INSTANCE.profile(profile);
@@ -181,7 +181,7 @@ public class BusinessImplementation implements BusinessService {
 
     @Override
     public ApiResponse<BusinessProfileResponse> update(UpdateBusinessRequest request) {
-        User user = userUtil.getUser();
+        User user = authUtil.getUser();
         BusinessProfile profile = businessProfileRepository.findById(user.getId())
                 .orElseThrow(() -> new AccountException("Profile not found"));
 
@@ -212,12 +212,12 @@ public class BusinessImplementation implements BusinessService {
 
         profileService.updatePhoneInformation(request.getPhone(), user);
         if(!HelperUtil.isUploadEmpty(request.getUpload())) {
-            String url = supabase.upload(request.getUpload(), UserUtil.getBucket(user.getRole()));
+            String url = supabase.upload(request.getUpload(), AuthUtil.getBucket(user.getRole()));
             profile.setAvatar(url);
             updateTimeStamps(profile.getUser(), profile);
         }
         if(!HelperUtil.isUploadEmpty(request.getLogo())) {
-            String url = supabase.upload(request.getLogo(), UserUtil.getBucket(user.getRole()));
+            String url = supabase.upload(request.getLogo(), AuthUtil.getBucket(user.getRole()));
             profile.setBusinessLogo(url);
             updateTimeStamps(profile.getUser(), profile);
         }

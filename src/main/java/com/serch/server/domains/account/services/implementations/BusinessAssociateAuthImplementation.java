@@ -57,7 +57,7 @@ public class BusinessAssociateAuthImplementation implements BusinessAssociateAut
 
         if(jwtService.isTokenIssuedBySerch(token) && Role.valueOf(jwtService.getItemFromToken(token, "role")) == Role.ASSOCIATE_PROVIDER) {
             String scope = tokenService.generate(30);
-            pending.setScope(DatabaseUtil.encodeData(scope));
+            pending.setScope(DatabaseUtil.encode(scope));
             pendingRepository.save(pending);
 
             return new ApiResponse<>(getVerifiedInviteResponse(scope, user));

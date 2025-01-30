@@ -7,7 +7,7 @@ import com.serch.server.domains.conversation.responses.ChatGroupMessageResponse;
 import com.serch.server.domains.conversation.responses.ChatRoomResponse;
 import com.serch.server.domains.conversation.services.ChatService;
 import com.serch.server.domains.conversation.services.ChattingService;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -58,13 +58,13 @@ public class ChatController {
 
     @PostMapping("/send")
     public ResponseEntity<ApiResponse<String>> send(@RequestBody SendMessageRequest request) {
-        chatting.send(request, UserUtil.getLoginUser());
+        chatting.send(request, AuthUtil.getAuth());
         return ResponseEntity.ok(new ApiResponse<>("Successfully sent", HttpStatus.OK));
     }
 
     @PatchMapping("/update")
     public ResponseEntity<ApiResponse<String>> update(@RequestBody UpdateMessageRequest request) {
-        chatting.update(request, UserUtil.getLoginUser());
+        chatting.update(request, AuthUtil.getAuth());
         return ResponseEntity.ok(new ApiResponse<>("Successfully updated", HttpStatus.OK));
     }
 }

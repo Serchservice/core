@@ -12,7 +12,7 @@ import com.serch.server.admin.services.notification.services.AdminNotificationSe
 import com.serch.server.enums.auth.Role;
 import com.serch.server.models.auth.User;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -24,7 +24,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class AdminNotificationImplementation implements AdminNotificationService {
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
     private final SimpMessagingTemplate template;
     private final AdminNotificationRepository adminNotificationRepository;
     private final AdminRepository adminRepository;
@@ -49,7 +49,7 @@ public class AdminNotificationImplementation implements AdminNotificationService
     @Override
     @Transactional
     public void notifications() {
-        User user = userUtil.getUser();
+        User user = authUtil.getUser();
         if(user.isAdmin()) {
             sendNotification(user);
         }
@@ -99,7 +99,7 @@ public class AdminNotificationImplementation implements AdminNotificationService
 
     @Override
     public void markAsRead(Long id) {
-        AdminNotification notification = adminNotificationRepository.findByIdAndUser_Id(id, userUtil.getUser().getId()).orElse(null);
+        AdminNotification notification = adminNotificationRepository.findByIdAndUser_Id(id, authUtil.getUser().getId()).orElse(null);
 
         if(notification != null) {
             notification.setStatus(AdminNotificationStatus.READ);
@@ -110,11 +110,11 @@ public class AdminNotificationImplementation implements AdminNotificationService
 
     @Override
     public void clear(Long id) {
-        adminNotificationRepository.findByIdAndUser_Id(id, userUtil.getUser().getId()).ifPresent(adminNotificationRepository::delete);
+        adminNotificationRepository.findByIdAndUser_Id(id, authUtil.getUser().getId()).ifPresent(adminNotificationRepository::delete);
     }
 
     @Override
     public void clearAll() {
-        adminNotificationRepository.deleteAll(adminNotificationRepository.findByUser_Id(userUtil.getUser().getId()));
+        adminNotificationRepository.deleteAll(adminNotificationRepository.findByUser_Id(authUtil.getUser().getId()));
     }
 }

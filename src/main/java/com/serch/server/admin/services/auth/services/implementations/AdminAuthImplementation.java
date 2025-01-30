@@ -28,7 +28,7 @@ import com.serch.server.domains.auth.responses.MFADataResponse;
 import com.serch.server.domains.auth.services.*;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -239,7 +239,7 @@ public class AdminAuthImplementation implements AdminAuthService {
     @Override
     @Transactional
     public ApiResponse<String> add(AddAdminRequest request) {
-        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
+        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new AuthException("Admin not found"));
 
         if(request.getRole() == Role.SUPER_ADMIN) {
@@ -426,7 +426,7 @@ public class AdminAuthImplementation implements AdminAuthService {
     @Override
     @Transactional
     public ApiResponse<String> resendInvite(UUID id) {
-        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
+        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new AuthException("Admin not found"));
         Admin user = adminRepository.findById(id).orElseThrow(() -> new AuthException("Admin not found"));
 
@@ -442,7 +442,7 @@ public class AdminAuthImplementation implements AdminAuthService {
     @Override
     @Transactional
     public ApiResponse<String> resetPassword(UUID id) {
-        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
+        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new AuthException("Admin not found"));
         Admin user = adminRepository.findById(id).orElseThrow(() -> new AuthException("Admin not found"));
 

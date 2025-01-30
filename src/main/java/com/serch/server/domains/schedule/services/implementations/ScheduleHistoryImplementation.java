@@ -11,7 +11,7 @@ import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.schedule.ScheduleRepository;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ScheduleHistoryImplementation implements ScheduleHistoryService {
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
     private final SchedulingService schedulingService;
     private final ScheduleRepository scheduleRepository;
     private final UserRepository userRepository;
@@ -36,7 +36,7 @@ public class ScheduleHistoryImplementation implements ScheduleHistoryService {
 
     @Override
     public List<ScheduleResponse> pending(UUID id) {
-        return active(userUtil.getUser().getId(), null, null, true);
+        return active(authUtil.getUser().getId(), null, null, true);
     }
 
     @Override
@@ -46,7 +46,7 @@ public class ScheduleHistoryImplementation implements ScheduleHistoryService {
 
     @Override
     public ApiResponse<List<ScheduleResponse>> active(Integer page, Integer size) {
-        return new ApiResponse<>(active(userUtil.getUser().getId(), page, size, false));
+        return new ApiResponse<>(active(authUtil.getUser().getId(), page, size, false));
     }
 
     private List<ScheduleResponse> active(UUID id, Integer page, Integer size, boolean isRequested) {
@@ -71,12 +71,12 @@ public class ScheduleHistoryImplementation implements ScheduleHistoryService {
 
     @Override
     public ApiResponse<List<ScheduleResponse>> requested(Integer page, Integer size) {
-        return new ApiResponse<>(active(userUtil.getUser().getId(), page, size, true));
+        return new ApiResponse<>(active(authUtil.getUser().getId(), page, size, true));
     }
 
     @Override
     public ApiResponse<List<ScheduleGroupResponse>> history(Integer page, Integer size, String status, String category, LocalDate date) {
-        return new ApiResponse<>(schedules(userUtil.getUser().getId(), page, size, status, category, date));
+        return new ApiResponse<>(schedules(authUtil.getUser().getId(), page, size, status, category, date));
     }
 
     private List<ScheduleGroupResponse> schedules(UUID id, Integer page, Integer size, String status, String category, LocalDate date) {
@@ -103,7 +103,7 @@ public class ScheduleHistoryImplementation implements ScheduleHistoryService {
         ScheduleGroupResponse response = new ScheduleGroupResponse();
 
         response.setTime(LocalDateTime.of(date, scheduleList.getFirst().getCreatedAt().toLocalTime()));
-        response.setLabel(TimeUtil.formatChatLabel(LocalDateTime.of(date, scheduleList.getFirst().getCreatedAt().toLocalTime()), userUtil.getUser().getTimezone()));
+        response.setLabel(TimeUtil.formatChatLabel(LocalDateTime.of(date, scheduleList.getFirst().getCreatedAt().toLocalTime()), authUtil.getUser().getTimezone()));
         response.setSchedules(scheduleList.stream()
                 .sorted(Comparator.comparing(Schedule::getUpdatedAt).reversed())
                 .map(schedule -> schedulingService.response(

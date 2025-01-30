@@ -33,7 +33,7 @@ import com.serch.server.core.storage.services.StorageService;
 import com.serch.server.domains.transaction.services.WalletService;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -49,7 +49,7 @@ import java.util.List;
  * @see StorageService
  * @see ReferralService
  * @see WalletService
- * @see UserUtil
+ * @see AuthUtil
  * @see ProfileRepository
  * @see PhoneInformationRepository
  * @see UserRepository
@@ -65,7 +65,7 @@ public class ProfileImplementation implements ProfileService {
     private final ReferralService referralService;
     private final WalletService walletService;
     private final SpecialtyService specialtyService;
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
     private final ProfileRepository profileRepository;
     private final PhoneInformationRepository phoneInformationRepository;
     private final UserRepository userRepository;
@@ -149,7 +149,7 @@ public class ProfileImplementation implements ProfileService {
 
     @Override
     public ApiResponse<ProfileResponse> profile() {
-        Profile profile = profileRepository.findById(userUtil.getUser().getId())
+        Profile profile = profileRepository.findById(authUtil.getUser().getId())
                 .orElseThrow(() -> new AccountException("Profile not found"));
 
         return new ApiResponse<>(profile(profile));
@@ -209,7 +209,7 @@ public class ProfileImplementation implements ProfileService {
 
     @Override
     public ApiResponse<ProfileResponse> update(UpdateProfileRequest request) {
-        User user = userUtil.getUser();
+        User user = authUtil.getUser();
         Profile profile = profileRepository.findById(user.getId())
                 .orElseThrow(() -> new AccountException("Profile not found"));
         if(user.isProfile()) {
@@ -237,7 +237,7 @@ public class ProfileImplementation implements ProfileService {
         updateGender(request, profile);
 
         if(!HelperUtil.isUploadEmpty(request.getUpload())) {
-            String url = supabase.upload(request.getUpload(), UserUtil.getBucket(user.getRole()));
+            String url = supabase.upload(request.getUpload(), AuthUtil.getBucket(user.getRole()));
             profile.setAvatar(url);
             updateTimeStamps(profile.getUser(), profile);
         }

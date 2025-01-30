@@ -15,7 +15,7 @@ import com.serch.server.repositories.shop.ShopRepository;
 import com.serch.server.domains.auth.services.AccountStatusTrackerService;
 import com.serch.server.domains.report.requests.AccountReportRequest;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -25,7 +25,7 @@ import org.springframework.stereotype.Service;
  * Service implementation for reporting user accounts or shops.
  * It implements its wrapper class {@link AccountReportService}
  *
- * @see UserUtil
+ * @see AuthUtil
  * @see UserRepository
  * @see AccountReportRepository
  * @see ShopRepository
@@ -34,7 +34,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AccountReportImplementation implements AccountReportService {
     private final AccountStatusTrackerService trackerService;
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
     private final UserRepository userRepository;
     private final AccountReportRepository accountReportRepository;
     private final ShopRepository shopRepository;
@@ -82,7 +82,7 @@ public class AccountReportImplementation implements AccountReportService {
     private void saveReport(String reported, AccountReportRequest request) {
         AccountReport report = new AccountReport();
         report.setAccount(reported);
-        report.setUser(userUtil.getUser());
+        report.setUser(authUtil.getUser());
         report.setComment(request.getContent());
         report.setStatus(IssueStatus.OPENED);
         accountReportRepository.save(report);

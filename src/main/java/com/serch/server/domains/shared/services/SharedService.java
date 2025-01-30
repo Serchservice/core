@@ -23,11 +23,9 @@ public interface SharedService {
     /**
      * Retrieves account information based on the provided ID.
      *
-     * @param id The ID of the account.
-     *
      * @return {@link ApiResponse} list of {@link AccountResponse}
      */
-    ApiResponse<List<AccountResponse>> accounts(String id);
+    ApiResponse<List<AccountResponse>> accounts();
 
     /**
      * Create provide sharing link

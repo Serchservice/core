@@ -29,7 +29,7 @@ import com.serch.server.domains.rating.responses.RatingChartResponse;
 import com.serch.server.domains.rating.responses.RatingResponse;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -49,7 +49,7 @@ import static com.serch.server.enums.call.CallType.T2F;
  * <p></p>
  * It implements the {@link RatingService} interface
  * <p></p>
- * @see UserUtil
+ * @see AuthUtil
  * @see AppRatingRepository
  * @see UserRepository
  * @see GuestRepository
@@ -62,7 +62,7 @@ import static com.serch.server.enums.call.CallType.T2F;
 @RequiredArgsConstructor
 public class RatingImplementation implements RatingService {
     private final RatingCalculationService calculationService;
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
     private final AppRatingRepository appRatingRepository;
     private final UserRepository userRepository;
     private final GuestRepository guestRepository;
@@ -88,12 +88,12 @@ public class RatingImplementation implements RatingService {
                 createRating(request, call.getChannel(), request.getRating(), call.getChannel(), false);
             }
             if(request.getRating() != null && request.getInvited() != null) {
-                Profile rated = userUtil.getUser().isUser(call.getCalled().getId()) ? call.getCaller() : call.getCalled();
+                Profile rated = authUtil.getUser().isUser(call.getCalled().getId()) ? call.getCaller() : call.getCalled();
 
                 createRating(request, rated.getId().toString(), request.getInvited(), call.getChannel(), true);
                 updateUserRating(rated);
             } else if(request.getInvited() != null) {
-                Profile rated = userUtil.getUser().isUser(call.getCalled().getId()) ? call.getCaller() : call.getCalled();
+                Profile rated = authUtil.getUser().isUser(call.getCalled().getId()) ? call.getCaller() : call.getCalled();
 
                 createRating(request, rated.getId().toString(), request.getInvited(), call.getChannel(), false);
                 updateUserRating(rated);
@@ -119,7 +119,7 @@ public class RatingImplementation implements RatingService {
     }
 
     private void rateTrip(RateRequest request, Trip trip) {
-        if((request.getGuest() != null && !request.getGuest().isEmpty()) || userUtil.getUser().getRole() == USER) {
+        if((request.getGuest() != null && !request.getGuest().isEmpty()) || authUtil.getUser().getRole() == USER) {
             rateTripAsUserOrGuest(request, trip);
         } else if(trip.getInvited() != null && trip.getInvited().getProvider() != null) {
             rateTripAsInvited(request, trip);
@@ -214,7 +214,7 @@ public class RatingImplementation implements RatingService {
 
     private String getAccount(String account) {
         if (account == null || account.isEmpty()) {
-            return String.valueOf(userUtil.getUser().getId());
+            return String.valueOf(authUtil.getUser().getId());
         } else {
             return guestRepository.findById(account).orElseThrow(() -> new RatingException("Guest not found")).getId();
         }
@@ -295,12 +295,12 @@ public class RatingImplementation implements RatingService {
 
     @Override
     public ApiResponse<List<RatingResponse>> view(Integer page, Integer size) {
-        return ratings(ratingRepository.findByRated(String.valueOf(userUtil.getUser().getId()), HelperUtil.getPageable(page, size)));
+        return ratings(ratingRepository.findByRated(String.valueOf(authUtil.getUser().getId()), HelperUtil.getPageable(page, size)));
     }
 
     @Override
     public ApiResponse<List<RatingResponse>> good(String id, Integer page, Integer size) {
-        String user = id == null ? String.valueOf(userUtil.getUser().getId()) : id;
+        String user = id == null ? String.valueOf(authUtil.getUser().getId()) : id;
 
         return ratings(ratingRepository.findGood(user, HelperUtil.getPageable(page, size)));
     }
@@ -338,14 +338,14 @@ public class RatingImplementation implements RatingService {
 
     @Override
     public ApiResponse<List<RatingResponse>> bad(String id, Integer page, Integer size) {
-        String user = id == null ? String.valueOf(userUtil.getUser().getId()) : id;
+        String user = id == null ? String.valueOf(authUtil.getUser().getId()) : id;
 
         return ratings(ratingRepository.findBad(user, HelperUtil.getPageable(page, size)));
     }
 
     @Override
     public List<RatingChartResponse> buildChart(String id) {
-        String user = id == null ? String.valueOf(userUtil.getUser().getId()) : id;
+        String user = id == null ? String.valueOf(authUtil.getUser().getId()) : id;
         List<Object[]> resultList = ratingRepository.chart(user);
 
         Map<String, RatingChartResponse> responseMap = new LinkedHashMap<>();

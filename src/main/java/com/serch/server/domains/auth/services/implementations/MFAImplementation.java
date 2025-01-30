@@ -29,7 +29,7 @@ import com.serch.server.repositories.auth.mfa.MFAFactorRepository;
 import com.serch.server.repositories.auth.mfa.MFARecoveryCodeRepository;
 import com.serch.server.utils.DatabaseUtil;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -68,7 +68,7 @@ public class MFAImplementation implements MFAService {
 
     @Override
     public ApiResponse<MFADataResponse> getMFAData() {
-        var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
+        var user = userRepository.findByEmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         if(user.getMfaEnabled()) {
@@ -97,14 +97,14 @@ public class MFAImplementation implements MFAService {
     private void createMFAFactor(User user, String secret) {
         MFAFactor factor = new MFAFactor();
         factor.setUser(user);
-        factor.setSecret(DatabaseUtil.encodeData(secret));
+        factor.setSecret(DatabaseUtil.encode(secret));
 
         mFAFactorRepository.save(factor);
     }
 
     @Override
     public ApiResponse<AuthResponse> validateCode(RequestMFAChallenge request) {
-        var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
+        var user = userRepository.findByEmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         if(user.getMfaFactor() == null) {
@@ -149,7 +149,7 @@ public class MFAImplementation implements MFAService {
 
     @Override
     public ApiResponse<AuthResponse> validateRecoveryCode(RequestMFAChallenge request) {
-        var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
+        var user = userRepository.findByEmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         if(user.getMfaEnabled()) {
@@ -193,7 +193,7 @@ public class MFAImplementation implements MFAService {
 
     @Override
     public ApiResponse<List<MFARecoveryCodeResponse>> getRecoveryCodes() {
-        var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
+        var user = userRepository.findByEmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         if(user.getMfaEnabled()) {
@@ -259,14 +259,14 @@ public class MFAImplementation implements MFAService {
     private void saveRecoveryCode(User user, String code) {
         MFARecoveryCode recoveryCode = new MFARecoveryCode();
         recoveryCode.setCode(passwordEncoder.encode(code));
-        recoveryCode.setRecovery(DatabaseUtil.encodeData(code));
+        recoveryCode.setRecovery(DatabaseUtil.encode(code));
         recoveryCode.setFactor(user.getMfaFactor());
         mFARecoveryCodeRepository.save(recoveryCode);
     }
 
     @Override
     public ApiResponse<AuthResponse> disable(RequestDevice device) {
-        var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
+        var user = userRepository.findByEmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         if(user.getMfaEnabled()) {
@@ -292,7 +292,7 @@ public class MFAImplementation implements MFAService {
 
     @Override
     public ApiResponse<MFAUsageResponse> usage() {
-        var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
+        var user = userRepository.findByEmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if(user.getMfaEnabled()) {
             return new ApiResponse<>(MFAUsageResponse.builder()

@@ -37,7 +37,7 @@ import com.serch.server.repositories.auth.incomplete.IncompleteRepository;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.LinkUtils;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -55,7 +55,7 @@ import java.util.*;
  * @see AuthService
  * @see ProviderAuthService
  * @see AccountDeleteService
- * @see UserUtil
+ * @see AuthUtil
  * @see BusinessProfileRepository
  * @see UserRepository
  * @see IncompleteRepository
@@ -71,7 +71,7 @@ public class BusinessAssociateImplementation implements BusinessAssociateService
     private final ReferralProgramService referralProgramService;
     private final EmailService emailService;
     private final AccountStatusTrackerService trackerService;
-    private final UserUtil util;
+    private final AuthUtil util;
     private final PasswordEncoder passwordEncoder;
     private final BusinessProfileRepository businessProfileRepository;
     private final UserRepository userRepository;

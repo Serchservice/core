@@ -23,7 +23,7 @@ import com.serch.server.repositories.company.SpeakWithSerchRepository;
 import com.serch.server.domains.company.requests.IssueRequest;
 import com.serch.server.domains.company.responses.IssueResponse;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -47,7 +47,7 @@ public class SpeakWithSerchScopeImplementation implements SpeakWithSerchScopeSer
     @Override
     @Transactional
     public ApiResponse<SpeakWithSerchOverviewResponse> overview() {
-        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
+        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new AuthException("Admin not found"));
 
         SpeakWithSerchOverviewResponse response = new SpeakWithSerchOverviewResponse();
@@ -70,7 +70,7 @@ public class SpeakWithSerchScopeImplementation implements SpeakWithSerchScopeSer
     }
 
     private boolean canReply(SpeakWithSerch speakWithSerch) {
-        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
+        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new AuthException("Admin not found"));
         return admin.isSuper() || admin.isAdmin() || speakWithSerch.getAssignedAdmin() == null
                 || speakWithSerch.getAssignedAdmin().getUser().isUser(admin.getId());
@@ -124,7 +124,7 @@ public class SpeakWithSerchScopeImplementation implements SpeakWithSerchScopeSer
     public ApiResponse<SpeakWithSerchScopeResponse> reply(IssueRequest request) {
         SpeakWithSerch speakWithSerch = speakWithSerchRepository.findById(request.getTicket())
                 .orElseThrow(() -> new SerchException("Ticket not found"));
-        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
+        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new AuthException("Admin not found"));
         if(canReply(speakWithSerch)) {
             Issue issue = new Issue();
@@ -171,7 +171,7 @@ public class SpeakWithSerchScopeImplementation implements SpeakWithSerchScopeSer
     public ApiResponse<SpeakWithSerchScopeResponse> resolve(String ticket) {
         SpeakWithSerch speakWithSerch = speakWithSerchRepository.findById(ticket)
                 .orElseThrow(() -> new SerchException("Ticket not found"));
-        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
+        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new AuthException("Admin not found"));
         if(canReply(speakWithSerch)) {
             if(canAct(speakWithSerch)) {
@@ -205,7 +205,7 @@ public class SpeakWithSerchScopeImplementation implements SpeakWithSerchScopeSer
     public ApiResponse<SpeakWithSerchScopeResponse> close(String ticket) {
         SpeakWithSerch speakWithSerch = speakWithSerchRepository.findById(ticket)
                 .orElseThrow(() -> new SerchException("Ticket not found"));
-        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(UserUtil.getLoginUser())
+        Admin admin = adminRepository.findByUser_EmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new AuthException("Admin not found"));
         if(canReply(speakWithSerch)) {
             if(canAct(speakWithSerch)) {

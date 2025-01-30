@@ -59,6 +59,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -66,6 +67,7 @@ import java.net.NoRouteToHostException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLDataException;
@@ -779,6 +781,17 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
         return new ApiResponse<>("Host not found for specified route. Please check your internet", HttpStatus.BAD_REQUEST);
     }
 
+    @Override
+    protected ResponseEntity<Object> handleNoResourceFoundException(@NonNull NoResourceFoundException ex, @NonNull HttpHeaders headers, @NonNull HttpStatusCode status, @NonNull WebRequest request) {
+        log.error(ex.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>("Couldn't finish your request, try again later.");
+        response.setData(request.getContextPath());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
     @ExceptionHandler(GeneralSecurityException.class)
     public ApiResponse<String> handleGeneralSecurityException(GeneralSecurityException exception){
         log.error(exception.getMessage());
@@ -790,7 +803,21 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     public ApiResponse<String> handleNoSuchAlgorithmException(NoSuchAlgorithmException exception){
         log.error(exception.getMessage());
 
-        return new ApiResponse<>(exception.getLocalizedMessage(), HttpStatus.BAD_REQUEST);
+        return new ApiResponse<>("An error occurred while performing your request. Please try again", HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ApiResponse<String> handleIllegalStateException(IllegalStateException exception){
+        log.error(exception.getMessage());
+
+        return new ApiResponse<>("An error occurred while performing your request. Please try again", HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidAlgorithmParameterException.class)
+    public ApiResponse<String> handleInvalidAlgorithmParameterException(InvalidAlgorithmParameterException exception){
+        log.error(exception.getMessage());
+
+        return new ApiResponse<>("An error occurred while performing your request. Please try again", HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(StringIndexOutOfBoundsException.class)
@@ -804,7 +831,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     public ApiResponse<String> handleInvalidKeyException(InvalidKeyException exception){
         log.error(exception.getMessage());
 
-        return new ApiResponse<>(exception.getLocalizedMessage(), HttpStatus.BAD_REQUEST);
+        return new ApiResponse<>("An error occurred while performing your request. Try again", HttpStatus.BAD_REQUEST);
     }
 
     @Override

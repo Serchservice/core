@@ -1,33 +1,35 @@
 package com.serch.server.domains.shared.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.exceptions.others.SharedException;
-import com.serch.server.mappers.SharedMapper;
-import com.serch.server.models.account.PhoneInformation;
-import com.serch.server.models.account.Profile;
-import com.serch.server.models.auth.User;
-import com.serch.server.models.shared.*;
-import com.serch.server.repositories.account.PhoneInformationRepository;
-import com.serch.server.repositories.account.ProfileRepository;
-import com.serch.server.repositories.auth.UserRepository;
-import com.serch.server.repositories.shared.GuestRepository;
-import com.serch.server.repositories.shared.SharedLinkRepository;
-import com.serch.server.repositories.shared.SharedLoginRepository;
-import com.serch.server.domains.auth.services.AuthService;
+import com.serch.server.core.session.GuestSessionService;
+import com.serch.server.core.storage.services.StorageService;
 import com.serch.server.core.token.TokenService;
+import com.serch.server.domains.auth.services.AuthService;
 import com.serch.server.domains.shared.requests.CreateGuestFromUserRequest;
 import com.serch.server.domains.shared.requests.CreateGuestRequest;
 import com.serch.server.domains.shared.requests.VerifyEmailRequest;
 import com.serch.server.domains.shared.responses.GuestResponse;
 import com.serch.server.domains.shared.responses.SharedLinkData;
 import com.serch.server.domains.shared.services.GuestAuthService;
-import com.serch.server.domains.shared.services.GuestService;
 import com.serch.server.domains.shared.services.SharedService;
-import com.serch.server.core.storage.services.StorageService;
+import com.serch.server.exceptions.others.SharedException;
+import com.serch.server.mappers.SharedMapper;
+import com.serch.server.models.account.PhoneInformation;
+import com.serch.server.models.account.Profile;
+import com.serch.server.models.auth.User;
+import com.serch.server.models.shared.Guest;
+import com.serch.server.models.shared.SharedLink;
+import com.serch.server.models.shared.SharedLogin;
+import com.serch.server.repositories.account.PhoneInformationRepository;
+import com.serch.server.repositories.account.ProfileRepository;
+import com.serch.server.repositories.auth.UserRepository;
+import com.serch.server.repositories.shared.GuestRepository;
+import com.serch.server.repositories.shared.SharedLinkRepository;
+import com.serch.server.repositories.shared.SharedLoginRepository;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.LinkUtils;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -51,9 +53,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class GuestAuthImplementation implements GuestAuthService {
     private final TokenService tokenService;
+    private final GuestSessionService sessionService;
     private final SharedService sharedService;
     private final AuthService authService;
-    private final GuestService guestService;
     private final StorageService supabase;
     private final PasswordEncoder passwordEncoder;
     private final SharedLinkRepository sharedLinkRepository;
@@ -142,7 +144,7 @@ public class GuestAuthImplementation implements GuestAuthService {
             guest.setCountry(request.getCountry());
             guestRepository.save(guest);
 
-            return new ApiResponse<>(guestService.response(login));
+            return new ApiResponse<>(sessionService.response(login));
         }
     }
 
@@ -169,7 +171,8 @@ public class GuestAuthImplementation implements GuestAuthService {
                 existing.get().setState(request.getState());
                 existing.get().setCountry(request.getCountry());
                 guestRepository.save(existing.get());
-                return new ApiResponse<>(guestService.response(login));
+
+                return new ApiResponse<>(sessionService.response(login));
             } else {
                 if(HelperUtil.isUploadEmpty(request.getUpload())) {
                     throw new SharedException("A picture is needed to facilitate your trips. Upload one");
@@ -178,14 +181,14 @@ public class GuestAuthImplementation implements GuestAuthService {
                 Guest guest = getNewGuest(request, null);
                 SharedLogin login = getNewLogin(sharedLink, guest);
 
-                return new ApiResponse<>(guestService.response(login));
+                return new ApiResponse<>(sessionService.response(login));
             }
         }
     }
 
     protected Guest getNewGuest(CreateGuestRequest request, String image) {
         Guest guest = SharedMapper.INSTANCE.guest(request);
-        guest.setAvatar(image != null ? image : supabase.upload(request.getUpload(), UserUtil.getBucket(null)));
+        guest.setAvatar(image != null ? image : supabase.upload(request.getUpload(), AuthUtil.getBucket(null)));
 
         return guestRepository.save(guest);
     }
@@ -201,7 +204,7 @@ public class GuestAuthImplementation implements GuestAuthService {
 
     @Override
     public ApiResponse<GuestResponse> createFromExistingUser(CreateGuestFromUserRequest request) {
-        User user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
+        User user = userRepository.findByEmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new SharedException("User not found"));
         Profile profile = profileRepository.findById(user.getId())
                 .orElseThrow(() -> new SharedException("User has not profile"));
@@ -222,7 +225,7 @@ public class GuestAuthImplementation implements GuestAuthService {
                 guest.setConfirmedAt(profile.getUser().getEmailConfirmedAt());
                 guestRepository.save(guest);
 
-                return new ApiResponse<>(guestService.response(getNewLogin(sharedLink, guest)));
+                return new ApiResponse<>(sessionService.response(getNewLogin(sharedLink, guest)));
             } else {
                 throw new SharedException("Incorrect password or email address");
             }
@@ -243,7 +246,7 @@ public class GuestAuthImplementation implements GuestAuthService {
         if(profile.getAvatar() != null && !profile.getAvatar().isEmpty()) {
             return profile.getAvatar();
         } else {
-            String image = supabase.upload(request.getUpload(), UserUtil.getBucket(null));
+            String image = supabase.upload(request.getUpload(), AuthUtil.getBucket(null));
             profile.setAvatar(image);
             profile.setUpdatedAt(TimeUtil.now());
             profileRepository.save(profile);

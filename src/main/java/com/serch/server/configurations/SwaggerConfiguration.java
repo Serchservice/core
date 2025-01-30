@@ -43,7 +43,7 @@ public class SwaggerConfiguration {
         return new OpenAPI()
                 .info(new Info()
                         .title("Serch Server - Service made easy")
-                        .version("1.2.0")
+                        .version("1.4.0")
                         .summary("This contains the server implementations for Serch platform")
                         .description("""
                                 This API supports four authentication methods:

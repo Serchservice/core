@@ -21,8 +21,8 @@ public class SharedController {
     private final SharedService service;
 
     @GetMapping("/accounts")
-    public ResponseEntity<ApiResponse<List<AccountResponse>>> accounts(@RequestParam String id) {
-        ApiResponse<List<AccountResponse>> response = service.accounts(id);
+    public ResponseEntity<ApiResponse<List<AccountResponse>>> accounts() {
+        ApiResponse<List<AccountResponse>> response = service.accounts();
         return new ResponseEntity<>(response, response.getStatus());
     }
 

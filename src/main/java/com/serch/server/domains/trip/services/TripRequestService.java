@@ -16,7 +16,6 @@ import com.serch.server.domains.trip.responses.TripResponse;
  * </p>
  */
 public interface TripRequestService {
-
     /**
      * Invites a new trip based on the provided request details.
      * <p>
@@ -35,28 +34,6 @@ public interface TripRequestService {
      * @see TripResponse
      */
     ApiResponse<TripResponse> invite(TripInviteRequest request);
-
-    /**
-     * Invites a new trip with specified guest and link identifiers.
-     * <p>
-     * This method initiates a new trip request for a guest, using the provided
-     * guest and shared link identifiers, along with the details specified in
-     * the {@link TripInviteRequest}.
-     * </p>
-     *
-     * @param guestId The identifier of the guest for whom the trip is being
-     *                requested.
-     * @param linkId  The shared link identifier used for the trip invitation.
-     * @param request The trip invitation request containing the details needed
-     *                to create a new trip.
-     * @return An {@link ApiResponse} containing the active {@link TripResponse}
-     *         details of the trip.
-     *
-     * @see TripInviteRequest
-     * @see ApiResponse
-     * @see TripResponse
-     */
-    ApiResponse<TripResponse> invite(String guestId, String linkId, TripInviteRequest request);
 
     /**
      * Sends a quotation for a trip.

@@ -10,7 +10,7 @@ import com.serch.server.repositories.account.SpecialtyRepository;
 import com.serch.server.domains.account.responses.SpecialtyResponse;
 import com.serch.server.domains.account.services.SpecialtyService;
 import com.serch.server.utils.HelperUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -25,12 +25,12 @@ import java.util.List;
  *
  * @see SpecialtyRepository
  * @see ProfileRepository
- * @see UserUtil
+ * @see AuthUtil
  */
 @Service
 @RequiredArgsConstructor
 public class SpecialtyImplementation implements SpecialtyService {
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
     private final SpecialtyRepository specialtyRepository;
     private final ProfileRepository profileRepository;
 
@@ -51,10 +51,10 @@ public class SpecialtyImplementation implements SpecialtyService {
 
     @Override
     public ApiResponse<SpecialtyResponse> add(String specialty) {
-        Profile profile = profileRepository.findById(userUtil.getUser().getId())
+        Profile profile = profileRepository.findById(authUtil.getUser().getId())
                 .orElseThrow(() -> new AccountException("Profile not found"));
 
-        int size = specialtyRepository.findByProfile_Id(userUtil.getUser().getId()).size();
+        int size = specialtyRepository.findByProfile_Id(authUtil.getUser().getId()).size();
         if(size < SPECIALTY_LIMIT) {
             Specialty special = new Specialty();
             special.setSpecialty(specialty);
@@ -73,7 +73,7 @@ public class SpecialtyImplementation implements SpecialtyService {
 
     @Override
     public ApiResponse<String> delete(Long id) {
-        specialtyRepository.findByIdAndProfile_Id(id, userUtil.getUser().getId())
+        specialtyRepository.findByIdAndProfile_Id(id, authUtil.getUser().getId())
                 .ifPresentOrElse(specialtyRepository::delete, () -> {
                     throw new AccountException("An error occurred while performing action");
                 });

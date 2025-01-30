@@ -22,7 +22,7 @@ import com.serch.server.core.session.SessionService;
 import com.serch.server.core.token.TokenService;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -149,7 +149,7 @@ public class PasswordImplementation implements PasswordService {
 
     @Override
     public ApiResponse<AuthResponse> changePassword(RequestPasswordChange request) {
-        var user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
+        var user = userRepository.findByEmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         if(passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
@@ -159,7 +159,7 @@ public class PasswordImplementation implements PasswordService {
                 user.setPassword(passwordEncoder.encode(request.getNewPassword()));
                 user.setLastUpdatedAt(TimeUtil.now());
 
-                accountDeleteRepository.findByUser_EmailAddress(UserUtil.getLoginUser())
+                accountDeleteRepository.findByUser_EmailAddress(AuthUtil.getAuth())
                         .ifPresent(accountDeleteRepository::delete);
 
                 if(user.isAdmin()) {

@@ -21,7 +21,7 @@ import com.serch.server.domains.shop.responses.ShopResponse;
 import com.serch.server.domains.shop.responses.ShopWeekdayResponse;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * Implementation of {@link ShopService} interface, providing methods for shop management operations.
  *
- * @see UserUtil
+ * @see AuthUtil
  * @see ShopRepository
  * @see ShopServiceRepository
  */
@@ -46,7 +46,7 @@ import java.util.List;
 public class ShopImplementation implements ShopService {
     private final StorageService storageService;
     private final LocationService locationService;
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
     private final ShopRepository shopRepository;
     private final ShopServiceRepository shopServiceRepository;
     private final ShopWeekdayRepository shopWeekdayRepository;
@@ -84,7 +84,7 @@ public class ShopImplementation implements ShopService {
     }
 
     protected ApiResponse<ShopResponse> getUpdatedShopResponse(String shopId) {
-        Shop updatedShop = shopRepository.findByIdAndUser_Id(shopId, userUtil.getUser().getId())
+        Shop updatedShop = shopRepository.findByIdAndUser_Id(shopId, authUtil.getUser().getId())
                 .orElseThrow(() -> new ShopException("Shop not found"));
 
         return new ApiResponse<>(response(updatedShop));
@@ -128,7 +128,7 @@ public class ShopImplementation implements ShopService {
         String logo = storageService.upload(request.getUpload(), "shops");
 
         Shop newShop = ShopMapper.INSTANCE.shop(request);
-        newShop.setUser(userUtil.getUser());
+        newShop.setUser(authUtil.getUser());
         newShop.setLogo(logo);
 
         return shopRepository.save(newShop);
@@ -136,7 +136,7 @@ public class ShopImplementation implements ShopService {
 
     @Override
     public ApiResponse<ShopResponse> create(String shopId, ShopWeekdayRequest request) {
-        Shop shop = shopRepository.findByIdAndUser_Id(shopId, userUtil.getUser().getId())
+        Shop shop = shopRepository.findByIdAndUser_Id(shopId, authUtil.getUser().getId())
                 .orElseThrow(() -> new ShopException("Shop not found"));
 
         ShopWeekday weekday = new ShopWeekday();
@@ -151,7 +151,7 @@ public class ShopImplementation implements ShopService {
 
     @Override
     public ApiResponse<ShopResponse> create(CreateShopServiceRequest request) {
-        Shop shop = shopRepository.findByIdAndUser_Id(request.getId(), userUtil.getUser().getId())
+        Shop shop = shopRepository.findByIdAndUser_Id(request.getId(), authUtil.getUser().getId())
                 .orElseThrow(() -> new ShopException("Shop not found"));
 
         ShopSpecialty newService = new ShopSpecialty();
@@ -164,7 +164,7 @@ public class ShopImplementation implements ShopService {
 
     @Override
     public ApiResponse<ShopResponse> update(UpdateShopRequest request) {
-        Shop shop = shopRepository.findByIdAndUser_Id(request.getShop(), userUtil.getUser().getId())
+        Shop shop = shopRepository.findByIdAndUser_Id(request.getShop(), authUtil.getUser().getId())
                 .orElseThrow(() -> new ShopException("Shop not found"));
 
         if(!shop.getName().equalsIgnoreCase(request.getName())) {
@@ -223,7 +223,7 @@ public class ShopImplementation implements ShopService {
 
     @Override
     public ApiResponse<List<ShopResponse>> fetch(Integer page, Integer size) {
-        Page<Shop> shops = shopRepository.findByUser_Id(userUtil.getUser().getId(), HelperUtil.getPageable(page, size));
+        Page<Shop> shops = shopRepository.findByUser_Id(authUtil.getUser().getId(), HelperUtil.getPageable(page, size));
 
         List<ShopResponse> list = new ArrayList<>();
 
@@ -245,7 +245,7 @@ public class ShopImplementation implements ShopService {
 
     @Override
     public ApiResponse<List<ShopResponse>> remove(String shopId) {
-        shopRepository.findByIdAndUser_Id(shopId, userUtil.getUser().getId()).ifPresent(shopRepository::delete);
+        shopRepository.findByIdAndUser_Id(shopId, authUtil.getUser().getId()).ifPresent(shopRepository::delete);
         return fetch(null, null);
     }
 
@@ -257,7 +257,7 @@ public class ShopImplementation implements ShopService {
 
     @Override
     public ApiResponse<ShopResponse> changeStatus(String shopId, ShopStatus status) {
-        Shop shop = shopRepository.findByIdAndUser_Id(shopId, userUtil.getUser().getId())
+        Shop shop = shopRepository.findByIdAndUser_Id(shopId, authUtil.getUser().getId())
                 .orElseThrow(() -> new ShopException("Shop not found"));
         shop.setStatus(status);
         shop.setUpdatedAt(TimeUtil.now());
@@ -268,7 +268,7 @@ public class ShopImplementation implements ShopService {
 
     @Override
     public ApiResponse<List<ShopResponse>> changeAllStatus() {
-        List<Shop> shops = shopRepository.findByUser_Id(userUtil.getUser().getId());
+        List<Shop> shops = shopRepository.findByUser_Id(authUtil.getUser().getId());
         if(shops != null && !shops.isEmpty()) {
             shops.stream().filter(shop -> shop.getStatus() != ShopStatus.SUSPENDED).peek(shop -> {
                 if(shop.getStatus() == ShopStatus.OPEN) {

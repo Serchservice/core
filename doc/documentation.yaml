@@ -18,10 +18,12 @@ info:
   license:
     name: Serch Server License
     url: https://www.serchservice.com/hub/legal
-  version: 1.2.0
+  version: 1.4.0
 servers:
-- url: http://localhost:8080/api/v1
-  description: Development Server
+- url: https://api.serchservice.com/api/v1
+  description: Production Server
+- url: https://sandbox.serchservice.com/api/v1
+  description: Sandbox Server
 security:
 - Signature Authentication: []
   Bearer Authentication: []
@@ -125,35 +127,6 @@ paths:
       tags:
       - trip-request-controller
       operationId: request_1
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TripInviteRequest'
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/ApiResponseTripResponse'
-  /trip/invite/request/{guest}/{link}:
-    post:
-      tags:
-      - trip-request-controller
-      operationId: request_2
-      parameters:
-      - name: guest
-        in: path
-        required: true
-        schema:
-          type: string
-      - name: link
-        in: path
-        required: true
-        schema:
-          type: string
       requestBody:
         content:
           application/json:
@@ -357,7 +330,7 @@ paths:
     post:
       tags:
       - schedule-controller
-      operationId: request_3
+      operationId: request_2
       requestBody:
         content:
           application/json:
@@ -371,24 +344,6 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseScheduleResponse'
-  /schedule/decline:
-    post:
-      tags:
-      - schedule-controller
-      operationId: decline
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ScheduleDeclineRequest'
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/ApiResponseString'
   /rating/rate:
     post:
       tags:
@@ -549,6 +504,24 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ComplaintRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseString'
+  /chat/send:
+    post:
+      tags:
+      - chat-controller
+      operationId: send
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendMessageRequest'
         required: true
       responses:
         "200":
@@ -1208,7 +1181,7 @@ paths:
     post:
       tags:
       - permission-controller
-      operationId: request_4
+      operationId: request_3
       requestBody:
         content:
           application/json:
@@ -1318,11 +1291,6 @@ paths:
       - trip-share-controller
       operationId: access
       parameters:
-      - name: guest
-        in: query
-        required: false
-        schema:
-          type: string
       - name: id
         in: query
         required: true
@@ -1958,6 +1926,24 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseTripResponse'
+  /schedule/decline:
+    patch:
+      tags:
+      - schedule-controller
+      operationId: decline
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleDeclineRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseString'
   /schedule/close/{id}:
     patch:
       tags:
@@ -2084,11 +2070,6 @@ paths:
         required: true
         schema:
           type: string
-      - name: guest
-        in: query
-        required: true
-        schema:
-          type: string
       responses:
         "200":
           description: OK
@@ -2103,11 +2084,6 @@ paths:
       operationId: updateFcmToken
       parameters:
       - name: token
-        in: query
-        required: true
-        schema:
-          type: string
-      - name: guest
         in: query
         required: true
         schema:
@@ -2137,6 +2113,24 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseListSpeakWithSerchResponse'
+  /chat/update:
+    patch:
+      tags:
+      - chat-controller
+      operationId: update_6
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMessageRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseString'
   /certificate/upload:
     patch:
       tags:
@@ -2159,7 +2153,7 @@ paths:
     patch:
       tags:
       - call-controller
-      operationId: update_6
+      operationId: update_7
       requestBody:
         content:
           application/json:
@@ -2251,7 +2245,7 @@ paths:
     patch:
       tags:
       - admin-profile-controller
-      operationId: update_7
+      operationId: update_8
       requestBody:
         content:
           application/json:
@@ -2458,7 +2452,7 @@ paths:
     patch:
       tags:
       - account-setting-controller
-      operationId: update_8
+      operationId: update_9
       requestBody:
         content:
           application/json:
@@ -2484,10 +2478,22 @@ paths:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseWalletResponse'
-  /wallet/transactions:
+  /wallet/transaction/recent:
     get:
       tags:
-      - wallet-controller
+      - transaction-controller
+      operationId: recent
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseListTransactionGroupResponse'
+  /wallet/transaction/history:
+    get:
+      tags:
+      - transaction-controller
       operationId: transactions
       parameters:
       - name: page
@@ -2502,18 +2508,6 @@ paths:
         schema:
           type: integer
           format: int32
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/ApiResponseListTransactionGroupResponse'
-  /wallet/recent:
-    get:
-      tags:
-      - wallet-controller
-      operationId: recent
       responses:
         "200":
           description: OK
@@ -2680,16 +2674,6 @@ paths:
       - trip-history-controller
       operationId: history
       parameters:
-      - name: guest
-        in: query
-        required: false
-        schema:
-          type: string
-      - name: link
-        in: query
-        required: false
-        schema:
-          type: string
       - name: page
         in: query
         required: false
@@ -2712,12 +2696,12 @@ paths:
         required: false
         schema:
           type: string
-      - name: date_time
+      - name: date
         in: query
         required: false
         schema:
           type: string
-          format: date-time
+          format: date
       responses:
         "200":
           description: OK
@@ -2731,16 +2715,6 @@ paths:
       - trip-history-controller
       operationId: shared
       parameters:
-      - name: guest
-        in: query
-        required: false
-        schema:
-          type: string
-      - name: link
-        in: query
-        required: false
-        schema:
-          type: string
       - name: page
         in: query
         required: false
@@ -2766,16 +2740,6 @@ paths:
       - trip-history-controller
       operationId: requested
       parameters:
-      - name: guest
-        in: query
-        required: false
-        schema:
-          type: string
-      - name: link
-        in: query
-        required: false
-        schema:
-          type: string
       - name: page
         in: query
         required: false
@@ -2801,16 +2765,6 @@ paths:
       - trip-history-controller
       operationId: active
       parameters:
-      - name: guest
-        in: query
-        required: false
-        schema:
-          type: string
-      - name: link
-        in: query
-        required: false
-        schema:
-          type: string
       - name: page
         in: query
         required: false
@@ -5256,12 +5210,12 @@ paths:
         required: false
         schema:
           type: string
-      - name: date_time
+      - name: date
         in: query
         required: false
         schema:
           type: string
-          format: date-time
+          format: date
       responses:
         "200":
           description: OK
@@ -5381,7 +5335,7 @@ paths:
       - referral-controller
       operationId: verifyLink
       parameters:
-      - name: link
+      - name: content
         in: query
         required: true
         schema:
@@ -5737,12 +5691,6 @@ paths:
       tags:
       - shared-controller
       operationId: accounts
-      parameters:
-      - name: id
-        in: query
-        required: true
-        schema:
-          type: string
       responses:
         "200":
           description: OK
@@ -6262,12 +6210,7 @@ paths:
       - guest-auth-controller
       operationId: verifyLink_1
       parameters:
-      - name: link
-        in: query
-        required: true
-        schema:
-          type: string
-      - name: shared_by
+      - name: content
         in: query
         required: true
         schema:
@@ -7629,8 +7572,6 @@ components:
     QuotationRequest:
       type: object
       properties:
-        guest:
-          type: string
         amount:
           type: integer
           format: int32
@@ -7643,8 +7584,6 @@ components:
       type: object
       properties:
         trip:
-          type: string
-        guest:
           type: string
         quote_id:
           type: integer
@@ -7767,6 +7706,8 @@ components:
         gender:
           type: string
         avatar:
+          type: string
+        session:
           type: string
         confirmed:
           type: boolean
@@ -8615,13 +8556,6 @@ components:
           type: string
         closed_on_time:
           type: boolean
-    ScheduleDeclineRequest:
-      type: object
-      properties:
-        reason:
-          type: string
-        id:
-          type: string
     RateRequest:
       type: object
       properties:
@@ -9031,6 +8965,31 @@ components:
         last_name:
           type: string
         email_address:
+          type: string
+    SendMessageRequest:
+      type: object
+      properties:
+        room:
+          type: string
+        message:
+          type: string
+        file:
+          $ref: '#/components/schemas/FileUploadRequest'
+        type:
+          type: string
+          enum:
+          - TEXT
+          - IMAGE
+          - VIDEO
+          - VOICE
+          - AUDIO
+          - EMOJI
+          - FILE
+        duration:
+          type: string
+        replied:
+          type: string
+        sender_message:
           type: string
     StartCallRequest:
       type: object
@@ -10136,8 +10095,6 @@ components:
       properties:
         trip:
           type: string
-        guest:
-          type: string
         status:
           type: string
           enum:
@@ -10245,18 +10202,12 @@ components:
           type: string
         trip:
           type: string
-        guest:
-          type: string
     TripCancelRequest:
       type: object
       properties:
         trip:
           type: string
-        guest:
-          type: string
         reason:
-          type: string
-        link_id:
           type: string
     ApiResponseSpecialtyResponse:
       type: object
@@ -11238,6 +11189,13 @@ components:
           type: string
         department:
           type: string
+    ScheduleDeclineRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+        id:
+          type: string
     UpdateProfileRequest:
       type: object
       properties:
@@ -11583,6 +11541,27 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SpeakWithSerchResponse'
+    UpdateMessageRequest:
+      type: object
+      properties:
+        id:
+          type: string
+        room:
+          type: string
+        status:
+          type: string
+          enum:
+          - SENDING
+          - SENT
+          - DELIVERED
+          - NOT_SENT
+          - READ
+        state:
+          type: string
+          enum:
+          - ACTIVE
+          - DELETED
+          - REMOVED
     ApiResponseCertificateResponse:
       type: object
       properties:
@@ -19971,10 +19950,6 @@ components:
           type: string
         device:
           $ref: '#/components/schemas/RequestDevice'
-        guest_id:
-          type: string
-        link_id:
-          type: string
         phone_information:
           $ref: '#/components/schemas/RequestPhoneInformation'
     AccountResponse:
@@ -20383,6 +20358,8 @@ components:
           - AUDIO
           - EMOJI
           - FILE
+        summary:
+          type: string
         schedule:
           $ref: '#/components/schemas/ScheduleResponse'
         groups:

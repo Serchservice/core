@@ -18,13 +18,12 @@ public interface TripShareService {
     /**
      * Grants or denies access for the provider to share a trip with a guest.
      *
-     * @param guest The guest ID (if the guest is the one participating in the trip).
      * @param id The trip ID to which access is being granted or denied.
      *
      * @return {@link ApiResponse} containing the {@link TripResponse}
      *         which reflects the updated trip access status.
      */
-    ApiResponse<TripResponse> access(String guest, String id);
+    ApiResponse<TripResponse> access(String id);
 
     /**
      * Allows the provider to share a trip with others.

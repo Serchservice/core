@@ -28,7 +28,7 @@ import com.serch.server.domains.trip.responses.ActiveResponse;
 import com.serch.server.domains.trip.responses.SearchResponse;
 import com.serch.server.domains.trip.services.ActiveSearchService;
 import com.serch.server.utils.HelperUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -126,7 +126,7 @@ public class ActiveSearchImplementation implements ActiveSearchService {
 
     protected SearchResponse prepareResponse(Double longitude, Double latitude, Page<Active> actives) {
         AtomicReference<AccountSetting> setting = new AtomicReference<>();
-        userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser()).ifPresent(user -> setting.set(user.getSetting()));
+        userRepository.findByEmailAddressIgnoreCase(AuthUtil.getAuth()).ifPresent(user -> setting.set(user.getSetting()));
 
         SearchResponse response = new SearchResponse();
         if(setting.get() != null) {

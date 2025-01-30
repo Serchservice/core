@@ -19,7 +19,7 @@ import com.serch.server.domains.transaction.services.WalletService;
 import com.serch.server.utils.CallUtil;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import io.getstream.chat.java.models.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class CallImplementation implements CallService {
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
     private final WalletService walletService;
     private final CallRepository callRepository;
     private final ProfileRepository profileRepository;
@@ -54,7 +54,7 @@ public class CallImplementation implements CallService {
     private Integer TIP2FIX_SESSION;
 
     private boolean userIsOnCall(UUID id) {
-        CallPeriodResponse period = CallUtil.getPeriod(userUtil.getUser().getTimezone());
+        CallPeriodResponse period = CallUtil.getPeriod(authUtil.getUser().getTimezone());
 
         return callRepository.findByUserId(id, period.getStart(), period.getEnd())
                 .stream().anyMatch(call -> call.getStatus() == CallStatus.ON_CALL);
@@ -63,7 +63,7 @@ public class CallImplementation implements CallService {
     @Override
     @Transactional
     public ApiResponse<ActiveCallResponse> start(StartCallRequest request) {
-        Profile caller = profileRepository.findById(userUtil.getUser().getId())
+        Profile caller = profileRepository.findById(authUtil.getUser().getId())
                 .orElseThrow(() -> new CallException("User not found", false));
         Profile called = profileRepository.findById(request.getUser())
                 .orElseThrow(() -> new CallException("User not found", false));
@@ -77,7 +77,7 @@ public class CallImplementation implements CallService {
                 throw new CallException("%s is on another call. Wait a moment and try again".formatted(called.getFullName()), false);
             } else {
                 if (request.getType() == CallType.T2F) {
-                    walletService.checkBalanceForTip2Fix(userUtil.getUser().getId());
+                    walletService.checkBalanceForTip2Fix(authUtil.getUser().getId());
                 }
 
                 Call call = new Call();
@@ -98,7 +98,7 @@ public class CallImplementation implements CallService {
     }
 
     private ActiveCallResponse prepareResponse(Call call) {
-        Profile profile = call.getCalled().isSameAs(userUtil.getUser().getId())
+        Profile profile = call.getCalled().isSameAs(authUtil.getUser().getId())
                 ? call.getCaller()
                 : call.getCalled();
 
@@ -109,7 +109,7 @@ public class CallImplementation implements CallService {
                 .name(profile.getFullName())
                 .type(call.getType())
                 .user(profile.getId())
-                .isCaller(call.getCaller().isSameAs(userUtil.getUser().getId()))
+                .isCaller(call.getCaller().isSameAs(authUtil.getUser().getId()))
                 .avatar(profile.getAvatar())
                 .image(profile.getCategory().getImage())
                 .category(profile.getCategory().getType())
@@ -119,7 +119,7 @@ public class CallImplementation implements CallService {
     @Override
     @Transactional
     public ApiResponse<String> auth() {
-        String token = User.createToken(String.valueOf(userUtil.getUser().getId()), null, null);
+        String token = User.createToken(String.valueOf(authUtil.getUser().getId()), null, null);
 
         return new ApiResponse<>("Authentication successful", token, HttpStatus.OK);
     }
@@ -131,12 +131,12 @@ public class CallImplementation implements CallService {
 
         String token;
         if(call.isVoice()) {
-            token = User.createToken(String.valueOf(userUtil.getUser().getId()), null, null);
+            token = User.createToken(String.valueOf(authUtil.getUser().getId()), null, null);
         } else {
             var calendar = new GregorianCalendar();
             calendar.add(Calendar.MINUTE, CALL_TOKEN_EXPIRATION_TIME);
 
-            token = User.createToken(String.valueOf(userUtil.getUser().getId()), calendar.getTime(), null);
+            token = User.createToken(String.valueOf(authUtil.getUser().getId()), calendar.getTime(), null);
         }
 
         return new ApiResponse<>("Authentication successful", token, HttpStatus.OK);
@@ -145,13 +145,13 @@ public class CallImplementation implements CallService {
     @Override
     @Transactional
     public ApiResponse<ActiveCallResponse> update(UpdateCallRequest request) {
-        Call call = callRepository.findByChannelAndUserId(request.getChannel(), userUtil.getUser().getId())
+        Call call = callRepository.findByChannelAndUserId(request.getChannel(), authUtil.getUser().getId())
                 .orElseThrow(() -> new CallException("Call not found", true));
 
         call.checkIfActive();
 
         if(request.getStatus() == CallStatus.ON_CALL) {
-            if(userIsOnCall(userUtil.getUser().getId())) {
+            if(userIsOnCall(authUtil.getUser().getId())) {
                 throw new CallException("You cannot pick a call when you are on another.", false);
             } else {
                 if(call.getType() == CallType.T2F) {
@@ -159,11 +159,11 @@ public class CallImplementation implements CallService {
                 }
             }
         } else if(request.getStatus() == CallStatus.DECLINED) {
-            if(!call.getCalled().isSameAs(userUtil.getUser().getId())) {
+            if(!call.getCalled().isSameAs(authUtil.getUser().getId())) {
                 throw new CallException("You cannot decline calls that is not made to you", false);
             }
         } else if(request.getStatus() == CallStatus.CLOSED) {
-            if(call.getCaller().isSameAs(userUtil.getUser().getId()) || call.getCalled().isSameAs(userUtil.getUser().getId())) {
+            if(call.getCaller().isSameAs(authUtil.getUser().getId()) || call.getCalled().isSameAs(authUtil.getUser().getId())) {
                 call.setDuration(request.getTime());
             } else {
                 throw new CallException("You cannot cancel calls you don't belong to.", false);
@@ -179,7 +179,7 @@ public class CallImplementation implements CallService {
 
     @Override
     public ApiResponse<ActiveCallResponse> checkSession(UpdateCallRequest request) {
-        Call call = callRepository.findByChannelAndUserId(request.getChannel(), userUtil.getUser().getId())
+        Call call = callRepository.findByChannelAndUserId(request.getChannel(), authUtil.getUser().getId())
                 .orElseThrow(() -> new CallException("Call not found", true));
 
         call.checkIfActive();
@@ -223,7 +223,7 @@ public class CallImplementation implements CallService {
 
     @Override
     public ApiResponse<ActiveCallResponse> fetch(String channel) {
-        Call call = callRepository.findByChannelAndUserId(channel, userUtil.getUser().getId())
+        Call call = callRepository.findByChannelAndUserId(channel, authUtil.getUser().getId())
                 .orElseThrow(() -> new CallException("Call not found", true));
         call.checkIfActive();
 
@@ -231,7 +231,7 @@ public class CallImplementation implements CallService {
     }
 
     private ActiveCallResponse getCallResponse(Call call) {
-        Profile profile = call.getCalled().isSameAs(userUtil.getUser().getId()) ? call.getCaller() : call.getCalled();
+        Profile profile = call.getCalled().isSameAs(authUtil.getUser().getId()) ? call.getCaller() : call.getCalled();
 
         return ActiveCallResponse.builder()
                 .status(call.getStatus())
@@ -257,7 +257,7 @@ public class CallImplementation implements CallService {
 
         if(items != null && !items.getContent().isEmpty()) {
             items.getContent().stream().sorted(Comparator.comparing(Call::getCreatedAt))
-                    .collect(Collectors.groupingBy(call -> call.getCaller().isSameAs(userUtil.getUser().getId())
+                    .collect(Collectors.groupingBy(call -> call.getCaller().isSameAs(authUtil.getUser().getId())
                             ? call.getCalled().getId()
                             : call.getCaller().getId()
                     ))
@@ -266,7 +266,7 @@ public class CallImplementation implements CallService {
 
                         Call recent = calls.getLast();
                         response.setRecent(createCallInformation(recent));
-                        response.setMember(recent.getCalled().isSameAs(userUtil.getUser().getId())
+                        response.setMember(recent.getCalled().isSameAs(authUtil.getUser().getId())
                                 ? createCallMemberData(recent.getCaller())
                                 : createCallMemberData(recent.getCalled())
                         );
@@ -286,15 +286,15 @@ public class CallImplementation implements CallService {
     }
 
     private Page<Call> getCalls(Integer page, Integer size) {
-        CallPeriodResponse period = CallUtil.getPeriod(userUtil.getUser().getTimezone());
+        CallPeriodResponse period = CallUtil.getPeriod(authUtil.getUser().getTimezone());
 
-        return callRepository.findByUserId(userUtil.getUser().getId(), period.getStart(), period.getEnd(), HelperUtil.getPageable(page, size));
+        return callRepository.findByUserId(authUtil.getUser().getId(), period.getStart(), period.getEnd(), HelperUtil.getPageable(page, size));
     }
 
     private CallInformation createCallInformation(Call call) {
         CallInformation info = ConversationMapper.INSTANCE.info(call);
-        info.setLabel(TimeUtil.formatDay(call.getCreatedAt(), userUtil.getUser().getTimezone()));
-        info.setOutgoing(call.getCaller().isSameAs(userUtil.getUser().getId()));
+        info.setLabel(TimeUtil.formatDay(call.getCreatedAt(), authUtil.getUser().getTimezone()));
+        info.setOutgoing(call.getCaller().isSameAs(authUtil.getUser().getId()));
 
         return info;
     }

@@ -1,6 +1,7 @@
 package com.serch.server.core.session;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.core.session.implementations.SessionImplementation;
 import com.serch.server.domains.auth.requests.RequestSession;
 import com.serch.server.domains.auth.responses.AuthResponse;
 import com.serch.server.domains.auth.responses.SessionResponse;

@@ -39,7 +39,7 @@ import java.util.*;
 /**
  * This is the class that contains the logic and implementation for its wrapper class {@link SharedService}
  *
- * @see UserUtil
+ * @see AuthUtil
  * @see SharedLinkRepository
  * @see GuestRepository
  * @see UserRepository
@@ -47,34 +47,34 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class SharedImplementation implements SharedService {
-    private final UserUtil util;
+    private final AuthUtil util;
     private final TokenService tokenService;
     private final SharedLinkRepository sharedLinkRepository;
-    private final GuestRepository guestRepository;
     private final UserRepository userRepository;
     private final RatingRepository ratingRepository;
     private final ProfileRepository profileRepository;
     private final SharedLoginRepository sharedLoginRepository;
     private final TripRepository tripRepository;
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
     private final SharedStatusRepository sharedStatusRepository;
 
     @Value("${application.trip.count.min}")
     private Integer TRIP_MIN_COUNT_BEFORE_CHARGE;
 
     @Override
-    public ApiResponse<List<AccountResponse>> accounts(String id) {
-        Guest guest = guestRepository.findById(id).orElseThrow(() -> new SharedException("Guest not found"));
-        User user = userRepository.findByEmailAddressIgnoreCase(guest.getEmailAddress()).orElse(null);
+    public ApiResponse<List<AccountResponse>> accounts() {
+        Guest guest = authUtil.getGuest();
+        User user = userRepository.findByEmailAddressIgnoreCase(guest.getEmailAddress())
+                .orElse(null);
 
         return buildAccountResponse(guest, user);
     }
 
     @Override
     public ApiResponse<List<SharedLinkResponse>> create(String id, Boolean withInvited) {
-        Trip trip = tripRepository.findByIdAndAccount(id, String.valueOf(userUtil.getUser().getId()))
+        Trip trip = tripRepository.findByIdAndAccount(id, String.valueOf(authUtil.getUser().getId()))
                 .orElseThrow(() -> new SharedException("Trip not found"));
-        Profile profile = profileRepository.findById(userUtil.getUser().getId())
+        Profile profile = profileRepository.findById(authUtil.getUser().getId())
                 .orElseThrow(() -> new SharedException("User not found"));
 
         if(withInvited != null && withInvited) {

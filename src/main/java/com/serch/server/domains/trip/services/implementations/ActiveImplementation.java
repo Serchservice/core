@@ -16,7 +16,7 @@ import com.serch.server.domains.trip.services.ActiveSearchService;
 import com.serch.server.domains.trip.services.ActiveService;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,14 +35,14 @@ import java.util.Optional;
  *
  * @see ActiveRepository
  * @see ProfileRepository
- * @see UserUtil
+ * @see AuthUtil
  * @see ActiveSearchService
  */
 @Service
 @RequiredArgsConstructor
 public class ActiveImplementation implements ActiveService {
     private static final Logger log = LoggerFactory.getLogger(ActiveImplementation.class);
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
     private final SimpMessagingTemplate messaging;
     private final ActiveRepository activeRepository;
     private final ProfileRepository profileRepository;
@@ -51,8 +51,8 @@ public class ActiveImplementation implements ActiveService {
     public ApiResponse<ProviderStatus> toggleStatus(OnlineRequest request) {
         log.info(String.format("ACTIVE TOGGLE STATUS::: %s", request));
 
-        if(userUtil.getUser().isProvider()) {
-            Optional<Active> existing = activeRepository.findByProfile_Id(userUtil.getUser().getId());
+        if(authUtil.getUser().isProvider()) {
+            Optional<Active> existing = activeRepository.findByProfile_Id(authUtil.getUser().getId());
             if(existing.isPresent()) {
                 if(existing.get().getStatus() == ProviderStatus.ONLINE) {
                     existing.get().setStatus(ProviderStatus.OFFLINE);
@@ -76,7 +76,7 @@ public class ActiveImplementation implements ActiveService {
             } else if(request.getAddress() == null || request.getAddress().isEmpty()) {
                 throw new TripException("Your address is needed for your online activity. Please try again");
             } else {
-                Profile profile = profileRepository.findById(userUtil.getUser().getId())
+                Profile profile = profileRepository.findById(authUtil.getUser().getId())
                         .orElseThrow(() -> new TripException("Profile not found"));
                 Active active = TripMapper.INSTANCE.active(request);
                 active.setStatus(ProviderStatus.ONLINE);
@@ -110,7 +110,7 @@ public class ActiveImplementation implements ActiveService {
     public ApiResponse<ProviderStatus> fetchStatus() {
         return new ApiResponse<>(
                 "Success",
-                activeRepository.findByProfile_Id(userUtil.getUser().getId())
+                activeRepository.findByProfile_Id(authUtil.getUser().getId())
                         .map(Active::getStatus)
                         .orElse(ProviderStatus.OFFLINE),
                 HttpStatus.OK
@@ -119,7 +119,7 @@ public class ActiveImplementation implements ActiveService {
 
     @Override
     public ApiResponse<List<ActiveResponse>> activeList(Integer page, Integer size) {
-        Page<Profile> associates = profileRepository.findActiveAssociatesByBusinessId(userUtil.getUser().getId(), HelperUtil.getPageable(page, size));
+        Page<Profile> associates = profileRepository.findActiveAssociatesByBusinessId(authUtil.getUser().getId(), HelperUtil.getPageable(page, size));
 
         if(associates != null && associates.hasContent() && !associates.getContent().isEmpty()) {
             List<ActiveResponse> list = associates.getContent()

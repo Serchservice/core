@@ -18,7 +18,7 @@ import com.serch.server.models.transaction.Transaction;
 import com.serch.server.repositories.transaction.TransactionRepository;
 import com.serch.server.utils.MoneyUtil;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -39,7 +39,7 @@ import static com.serch.server.enums.transaction.TransactionStatus.PENDING;
 @RequiredArgsConstructor
 public class TransactionScopeImplementation implements TransactionScopeService {
     private final CommonProfileService profileService;
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
     private final TransactionRepository transactionRepository;
     private final AdminRepository adminRepository;
     private final ResolvedTransactionRepository resolvedTransactionRepository;
@@ -107,11 +107,11 @@ public class TransactionScopeImplementation implements TransactionScopeService {
         // Set group label and creation date
         group.setLabel(TimeUtil.formatChatLabel(
                 LocalDateTime.of(date, firstTransaction.getCreatedAt().toLocalTime()),
-                userUtil.getUser().getTimezone()
+                authUtil.getUser().getTimezone()
         ));
         group.setCreatedAt(ZonedDateTime.of(
                 LocalDateTime.of(date, firstTransaction.getCreatedAt().toLocalTime()),
-                TimeUtil.zoneId(userUtil.getUser().getTimezone())
+                TimeUtil.zoneId(authUtil.getUser().getTimezone())
         ));
 
         // Transform transactions to TransactionScopeResponse
@@ -233,7 +233,7 @@ public class TransactionScopeImplementation implements TransactionScopeService {
 
     @Override
     public ApiResponse<TransactionScopeResponse> resolve(String id, TransactionStatus status) {
-        Admin admin = adminRepository.findById(userUtil.getUser().getId())
+        Admin admin = adminRepository.findById(authUtil.getUser().getId())
                 .orElseThrow(() -> new PermissionException("Admin not found"));
         Transaction transaction = transactionRepository.findById(id)
                 .orElseThrow(() -> new PermissionException("Transaction not found"));

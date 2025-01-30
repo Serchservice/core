@@ -7,7 +7,6 @@ import lombok.Data;
 @Data
 public class TripUpdateRequest {
     private String trip;
-    private String guest;
     private TripConnectionStatus status;
 
     @JsonProperty("is_shared")

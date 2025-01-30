@@ -40,7 +40,7 @@ import static com.serch.server.enums.account.SerchCategory.USER;
 @Service
 @RequiredArgsConstructor
 public class ChatImplementation implements ChatService {
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
     private final SchedulingService schedulingService;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatMessageRepository chatMessageRepository;
@@ -53,7 +53,7 @@ public class ChatImplementation implements ChatService {
     @Override
     @Transactional
     public ApiResponse<List<ChatRoomResponse>> rooms(Integer page, Integer size) {
-        List<ChatRoomResponse> list = getRoomList(userUtil.getUser().getId(), page, size);
+        List<ChatRoomResponse> list = getRoomList(authUtil.getUser().getId(), page, size);
 
         return new ApiResponse<>(list);
     }
@@ -241,30 +241,30 @@ public class ChatImplementation implements ChatService {
     @Override
     @Transactional
     public ApiResponse<List<ChatGroupMessageResponse>> messages(String roomId, Integer page, Integer size) {
-        return new ApiResponse<>(getGroupMessageList(roomId, page, size, userUtil.getUser().getId()));
+        return new ApiResponse<>(getGroupMessageList(roomId, page, size, authUtil.getUser().getId()));
     }
 
     @Override
     @Transactional
     public ApiResponse<ChatRoomResponse> room(String roomId) {
         ChatRoom room = chatRoomRepository.findById(roomId)
-                .orElseThrow(() -> new ChatException("Chat not found", String.valueOf(userUtil.getUser().getId())));
+                .orElseThrow(() -> new ChatException("Chat not found", String.valueOf(authUtil.getUser().getId())));
 
-        return new ApiResponse<>(getChatRoomResponse(room, userUtil.getUser().getId()));
+        return new ApiResponse<>(getChatRoomResponse(room, authUtil.getUser().getId()));
     }
 
     @Override
     @Transactional
     public ApiResponse<ChatRoomResponse> getOrCreate(UUID roommate) {
-        ChatRoom room = chatRoomRepository.findByRoommateAndCreator(roommate, userUtil.getUser().getId())
+        ChatRoom room = chatRoomRepository.findByRoommateAndCreator(roommate, authUtil.getUser().getId())
                 .orElseGet(() -> {
                     ChatRoom newRoom = new ChatRoom();
-                    newRoom.setCreator(userUtil.getUser().getId());
+                    newRoom.setCreator(authUtil.getUser().getId());
                     newRoom.setRoommate(roommate);
                     newRoom.setState(MessageState.ACTIVE);
                     return chatRoomRepository.save(newRoom);
                 });
 
-        return new ApiResponse<>(getChatRoomResponse(room, userUtil.getUser().getId()));
+        return new ApiResponse<>(getChatRoomResponse(room, authUtil.getUser().getId()));
     }
 }

@@ -10,7 +10,7 @@ import com.serch.server.repositories.account.AdditionalInformationRepository;
 import com.serch.server.domains.account.responses.AdditionalInformationResponse;
 import com.serch.server.domains.account.services.AdditionalService;
 import com.serch.server.domains.auth.requests.RequestAdditionalInformation;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -22,13 +22,13 @@ import org.springframework.stereotype.Service;
  * <p></p>
  * It implements its wrapper class {@link AdditionalService}
  *
- * @see UserUtil
+ * @see AuthUtil
  * @see AdditionalInformationRepository
  */
 @Service
 @RequiredArgsConstructor
 public class AdditionalImplementation implements AdditionalService {
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
     private final AdditionalInformationRepository additionalInformationRepository;
 
     @Override
@@ -40,7 +40,7 @@ public class AdditionalImplementation implements AdditionalService {
 
     @Override
     public ApiResponse<AdditionalInformationResponse> view() {
-        AdditionalInformation information = additionalInformationRepository.findByProfile_Id(userUtil.getUser().getId())
+        AdditionalInformation information = additionalInformationRepository.findByProfile_Id(authUtil.getUser().getId())
                 .orElseThrow(() -> new AccountException("User has no additional profile"));
 
         return new ApiResponse<>("Additional fetched successfully", AccountMapper.INSTANCE.additional(information), HttpStatus.OK);

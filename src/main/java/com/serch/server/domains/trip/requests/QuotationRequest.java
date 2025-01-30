@@ -5,7 +5,6 @@ import lombok.Data;
 
 @Data
 public class QuotationRequest {
-    private String guest;
     private Integer amount;
     private String id;
 

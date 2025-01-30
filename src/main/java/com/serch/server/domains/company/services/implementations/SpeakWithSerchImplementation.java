@@ -16,7 +16,7 @@ import com.serch.server.domains.company.responses.SpeakWithSerchResponse;
 import com.serch.server.domains.company.services.SpeakWithSerchService;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -29,14 +29,14 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class SpeakWithSerchImplementation implements SpeakWithSerchService {
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
     private final UserRepository userRepository;
     private final SpeakWithSerchRepository speakWithSerchRepository;
     private final IssueRepository issueRepository;
 
     @Override
     public ApiResponse<SpeakWithSerchResponse> lodgeIssue(IssueRequest request) {
-        User user = userRepository.findByEmailAddressIgnoreCase(UserUtil.getLoginUser())
+        User user = userRepository.findByEmailAddressIgnoreCase(AuthUtil.getAuth())
                 .orElseThrow(() -> new CompanyException("User not found"));
 
         Optional<SpeakWithSerch> existing = speakWithSerchRepository.findById(request.getTicket());
@@ -83,7 +83,7 @@ public class SpeakWithSerchImplementation implements SpeakWithSerchService {
         response.setLabel(TimeUtil.formatDay(speakWithSerch.getCreatedAt(), ""));
         response.setTime(TimeUtil.formatDay(speakWithSerch.getUpdatedAt(), ""));
         response.setTotal(speakWithSerch.getIssues().size());
-        response.setHasSerchMessage(speakWithSerch.getIssues().stream().anyMatch((i) -> !i.getIsRead() && !i.getSender().equals(userUtil.getUser().getId().toString())));
+        response.setHasSerchMessage(speakWithSerch.getIssues().stream().anyMatch((i) -> !i.getIsRead() && !i.getSender().equals(authUtil.getUser().getId().toString())));
 
         if(!speakWithSerch.getIssues().isEmpty()) {
             response.setIssues(getIssues(speakWithSerch.getTicket(), null,  null));
@@ -99,7 +99,7 @@ public class SpeakWithSerchImplementation implements SpeakWithSerchService {
 
     private List<SpeakWithSerchResponse> getTickets( Integer page, Integer size) {
         Page<SpeakWithSerch> speak = speakWithSerchRepository
-                .findByUserId(userUtil.getUser().getId(), HelperUtil.getPageable(page, size));
+                .findByUserId(authUtil.getUser().getId(), HelperUtil.getPageable(page, size));
 
         if(speak != null) {
             return speak.getContent()
@@ -133,7 +133,7 @@ public class SpeakWithSerchImplementation implements SpeakWithSerchService {
 
     private IssueResponse getIssueResponse(Issue issue) {
         IssueResponse response = CompanyMapper.INSTANCE.response(issue);
-        response.setIsSerch(!issue.getSender().equals(String.valueOf(userUtil.getUser().getId())));
+        response.setIsSerch(!issue.getSender().equals(String.valueOf(authUtil.getUser().getId())));
         response.setLabel(TimeUtil.formatDay(issue.getCreatedAt(), ""));
 
         return response;
@@ -146,7 +146,7 @@ public class SpeakWithSerchImplementation implements SpeakWithSerchService {
 
         speakWithSerch.getIssues().stream()
                 .filter(serch -> !serch.getIsRead())
-                .filter(serch -> !serch.getSender().equals(String.valueOf(userUtil.getUser().getId())))
+                .filter(serch -> !serch.getSender().equals(String.valueOf(authUtil.getUser().getId())))
                 .forEach(serch -> {
                     serch.setIsRead(true);
                     serch.setUpdatedAt(TimeUtil.now());

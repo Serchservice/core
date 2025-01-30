@@ -10,5 +10,6 @@ public class SwitchRequest {
 
     @JsonProperty("link_id")
     private String linkId;
+
     private RequestDevice device;
 }

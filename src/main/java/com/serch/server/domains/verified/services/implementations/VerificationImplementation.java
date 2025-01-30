@@ -11,7 +11,7 @@ import com.serch.server.repositories.auth.verified.VerificationRepository;
 import com.serch.server.domains.verified.responses.VerificationResponse;
 import com.serch.server.domains.verified.responses.VerificationStage;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.UserUtil;
+import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +29,7 @@ import static com.serch.server.enums.verified.VerificationType.CONSENT;
 public class VerificationImplementation implements VerificationService {
     private static final Logger log = LoggerFactory.getLogger(VerificationImplementation.class);
 
-    private final UserUtil userUtil;
+    private final AuthUtil authUtil;
     private final VerificationRepository verificationRepository;
 
     @Value("${application.verification.expiration.time.link}")
@@ -40,7 +40,7 @@ public class VerificationImplementation implements VerificationService {
 
     @Override
     public ApiResponse<VerificationResponse> verification() {
-        return new ApiResponse<>(buildResponse(userUtil.getUser().getId()));
+        return new ApiResponse<>(buildResponse(authUtil.getUser().getId()));
     }
 
     @Override
@@ -148,10 +148,10 @@ public class VerificationImplementation implements VerificationService {
 
     @Override
     public ApiResponse<VerificationResponse> consent() {
-        Verification verification = verificationRepository.findById(userUtil.getUser().getId()).orElse(null);
+        Verification verification = verificationRepository.findById(authUtil.getUser().getId()).orElse(null);
         if(verification == null) {
             Verification newVerification = new Verification();
-            newVerification.setUser(userUtil.getUser());
+            newVerification.setUser(authUtil.getUser());
             newVerification.setMannerConsent(ConsentType.YES);
             newVerification.setLiabilityConsent(ConsentType.YES);
             newVerification.setRegulationConsent(ConsentType.YES);
@@ -170,6 +170,6 @@ public class VerificationImplementation implements VerificationService {
             verification.setStatus(VerificationStatus.REQUESTED);
             verificationRepository.save(verification);
         }
-        return new ApiResponse<>(buildResponse(userUtil.getUser().getId()));
+        return new ApiResponse<>(buildResponse(authUtil.getUser().getId()));
     }
 }

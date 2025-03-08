@@ -114,7 +114,7 @@ public class GoAddonImplementation implements GoAddonService {
         InitializePaymentRequest payment = new InitializePaymentRequest();
         payment.setAmount(plan.getAmt());
         payment.setEmail(user.getEmailAddress());
-        payment.setCallbackUrl("https://nearby.serchservice.com");
+        payment.setCallbackUrl("https://nearby.serchservice.com/tx-verify");
 
         return payment;
     }

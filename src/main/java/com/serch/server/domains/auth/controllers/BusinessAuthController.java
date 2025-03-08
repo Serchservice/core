@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/auth/business")
+@RequestMapping("/api/v1/auth/business")
 public class BusinessAuthController {
     private final BusinessAuthService businessAuthService;
     private final AuthService authService;

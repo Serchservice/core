@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/company/complaint")
+@RequestMapping("/api/v1/company/complaint")
 public class ComplaintController {
     private final ComplaintService service;
 

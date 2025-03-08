@@ -17,7 +17,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/trip")
+@RequestMapping("/api/v1/trip")
 public class TripController {
     private final TripService service;
 

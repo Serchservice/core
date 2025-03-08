@@ -2134,7 +2134,7 @@ paths:
   /certificate/upload:
     patch:
       tags:
-      - certificate-controller
+      - uploadCertificate-controller
       operationId: upload
       requestBody:
         content:
@@ -4465,7 +4465,7 @@ paths:
     get:
       tags:
       - account-user-scope-controller
-      operationId: certificate
+      operationId: uploadCertificate
       parameters:
       - name: id
         in: query
@@ -5859,7 +5859,7 @@ paths:
   /certificate:
     get:
       tags:
-      - certificate-controller
+      - uploadCertificate-controller
       operationId: fetch_4
       responses:
         "200":
@@ -5871,7 +5871,7 @@ paths:
   /certificate/verify:
     get:
       tags:
-      - certificate-controller
+      - uploadCertificate-controller
       operationId: verify_2
       parameters:
       - name: token
@@ -5889,7 +5889,7 @@ paths:
   /certificate/generate:
     get:
       tags:
-      - certificate-controller
+      - uploadCertificate-controller
       operationId: generate
       responses:
         "200":
@@ -6408,7 +6408,7 @@ paths:
     get:
       tags:
       - permission-controller
-      operationId: requests
+      operationId: dtos
       responses:
         "200":
           description: OK

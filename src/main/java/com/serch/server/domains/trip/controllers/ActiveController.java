@@ -14,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/active")
+@RequestMapping("/api/v1/active")
 public class ActiveController {
     private final ActiveService service;
 

@@ -13,6 +13,7 @@ public enum ServerHeader {
     GUEST_SECRET_KEY("X-Serch-Guest-Secret-Key"),
     DRIVE_API_KEY("X-Serch-Drive-Api-Key"),
     DRIVE_SECRET_KEY("X-Serch-Drive-Secret-Key"),
+    GO_AUTHORIZATION("Go-Authorization"),
     SUPABASE_API_KEY("apiKey"),
     GOOGLE_API_KEY("X-Goog-Api-Key"),
     GOOGLE_FIELD_MASK("X-Goog-FieldMask");

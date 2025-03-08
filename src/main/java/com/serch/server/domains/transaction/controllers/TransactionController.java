@@ -15,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/wallet/transaction")
+@RequestMapping("/api/v1/wallet/transaction")
 @PreAuthorize("hasRole('BUSINESS') || hasRole('PROVIDER') || hasRole('USER')")
 public class TransactionController {
     private final TransactionResponseService service;

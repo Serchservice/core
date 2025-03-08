@@ -17,7 +17,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/trip/history")
+@RequestMapping("/api/v1/trip/history")
 public class TripHistoryController {
     private final TripHistoryService service;
     private final AuthUtil authUtil;

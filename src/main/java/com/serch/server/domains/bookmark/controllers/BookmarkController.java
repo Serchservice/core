@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/bookmark")
+@RequestMapping("/api/v1/bookmark")
 public class BookmarkController {
     private final BookmarkService bookmarkService;
 

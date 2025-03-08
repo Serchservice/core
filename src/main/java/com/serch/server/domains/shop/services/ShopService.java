@@ -145,7 +145,7 @@ public interface ShopService {
     /**
      * Marks all shops as either open or closed.
      * This method can be used for bulk operations, such as closing all shops at a certain time
-     * or opening them for a special event.
+     * or opening them for a special activity.
      *
      * @return An {@link ApiResponse} containing a list of updated {@link ShopResponse} for all shops.
      */

@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/company/speak_with_serch")
+@RequestMapping("/api/v1/company/speak_with_serch")
 public class SpeakWithSerchController {
     private final SpeakWithSerchService service;
 

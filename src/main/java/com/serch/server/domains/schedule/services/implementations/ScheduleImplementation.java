@@ -55,7 +55,7 @@ public class ScheduleImplementation implements ScheduleService {
     private final SchedulePayService payService;
     private final SchedulingService schedulingService;
     private final ScheduleHistoryService historyService;
-    private final NotificationService notificationService;
+    private final NotificationService scheduleNotification;
     private final TripService tripService;
     private final ChattingService chattingService;
     private final SimpMessagingTemplate template;
@@ -93,7 +93,7 @@ public class ScheduleImplementation implements ScheduleService {
 
             sendPendingNotification(schedule);
             chattingService.notifyAboutSchedule(provider.getId());
-            notificationService.send(provider.getId(), schedulingService.response(schedule, true, true));
+            scheduleNotification.send(provider.getId(), schedulingService.response(schedule, true, true));
 
             return new ApiResponse<>(
                     "Schedule placed for %s. ".formatted(request.getTime()) +
@@ -206,7 +206,7 @@ public class ScheduleImplementation implements ScheduleService {
                 sendActiveNotification(schedule);
                 sendPendingNotification(schedule);
                 chattingService.notifyAboutSchedule(schedule.getUser().getId());
-                notificationService.send(schedule.getUser().getId(), schedulingService.response(schedule, false, true));
+                scheduleNotification.send(schedule.getUser().getId(), schedulingService.response(schedule, false, true));
 
                 return new ApiResponse<>(
                         "Schedule accepted. %s will be notified".formatted(schedule.getUser().getFullName()),
@@ -235,7 +235,7 @@ public class ScheduleImplementation implements ScheduleService {
                 sendInactiveNotification(schedule);
                 sendPendingNotification(schedule);
                 chattingService.notifyAboutSchedule(schedule.getProvider().getId());
-                notificationService.send(schedule.getProvider().getId(), schedulingService.response(schedule, true, true));
+                scheduleNotification.send(schedule.getProvider().getId(), schedulingService.response(schedule, true, true));
 
                 return new ApiResponse<>(
                         "Schedule cancelled. %s will not be notified".formatted(schedule.getProvider().getFullName()),
@@ -268,7 +268,7 @@ public class ScheduleImplementation implements ScheduleService {
 
                 sendInactiveNotification(schedule);
                 sendActiveNotification(schedule);
-                notificationService.send(
+                scheduleNotification.send(
                         isCurrentUser(schedule.getProvider().getId()) ? schedule.getUser().getId() : schedule.getProvider().getId(),
                         schedulingService.response(schedule, isCurrentUser(schedule.getProvider().getId()), true)
                 );
@@ -373,7 +373,7 @@ public class ScheduleImplementation implements ScheduleService {
                     sendInactiveNotification(schedule);
                     sendPendingNotification(schedule);
                     chattingService.notifyAboutSchedule(schedule.getUser().getId());
-                    notificationService.send(schedule.getUser().getId(), schedulingService.response(schedule, false, true));
+                    scheduleNotification.send(schedule.getUser().getId(), schedulingService.response(schedule, false, true));
 
                     return new ApiResponse<>(
                             "Schedule declined. %s will not be notified".formatted(schedule.getUser().getFullName()),
@@ -455,11 +455,11 @@ public class ScheduleImplementation implements ScheduleService {
                     LocalTime time = LocalTime.parse(schedule.getTime(), DateTimeFormatter.ofPattern("h:mma"));
 
                     if(time.equals(LocalTime.now())) {
-                        notificationService.send(
+                        scheduleNotification.send(
                                 schedule.getProvider().getId(),
                                 schedulingService.response(schedule, true, true)
                         );
-                        notificationService.send(
+                        scheduleNotification.send(
                                 schedule.getUser().getId(),
                                 schedulingService.response(schedule, false, true)
                         );

@@ -15,7 +15,8 @@ import com.serch.server.admin.services.scopes.common.services.CommonAccountAnaly
 import com.serch.server.admin.services.scopes.common.services.CommonAuthService;
 import com.serch.server.admin.services.scopes.common.services.CommonProfileService;
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.core.storage.services.StorageService;
+import com.serch.server.core.file.services.FileBuilderService;
+import com.serch.server.core.file.services.FileService;
 import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.call.CallType;
 import com.serch.server.enums.shop.Weekday;
@@ -95,7 +96,6 @@ public class AccountUserScopeImplementation implements AccountUserScopeService {
     private final CommonAccountAnalysisService analysisService;
     private final ScheduleService scheduleService;
     private final SharedService sharedService;
-    private final StorageService storageService;
     private final CommonProfileService profileService;
     private final WalletService walletService;
     private final RatingService ratingService;
@@ -267,7 +267,7 @@ public class AccountUserScopeImplementation implements AccountUserScopeService {
             } else {
                 response = new AccountUserScopeCertificateResponse();
                 response.setIsGenerated(false);
-                response.setDocument(storageService.buildUrl(HelperUtil.dummyCertificate));
+                response.setDocument(FileBuilderService.instance.supabase(HelperUtil.dummyCertificate));
             }
 
             return new ApiResponse<>(response);

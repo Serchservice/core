@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/auth/associate")
+@RequestMapping("/api/v1/auth/associate")
 public class BusinessAssociateAuthController {
     private final BusinessAssociateAuthService service;
 

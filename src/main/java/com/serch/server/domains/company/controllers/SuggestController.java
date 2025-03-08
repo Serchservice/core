@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/company/suggest")
+@RequestMapping("/api/v1/company/suggest")
 public class SuggestController {
     private final SuggestService service;
 

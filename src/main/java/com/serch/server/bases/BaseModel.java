@@ -34,4 +34,3 @@ public class BaseModel extends BaseDateTime {
     @Column(nullable = false)
     private Long id;
 }
-

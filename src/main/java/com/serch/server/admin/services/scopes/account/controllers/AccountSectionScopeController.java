@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/scope/account/section")
+@RequestMapping("/api/v1/scope/account/section")
 public class AccountSectionScopeController {
     private final AccountSectionScopeService service;
 

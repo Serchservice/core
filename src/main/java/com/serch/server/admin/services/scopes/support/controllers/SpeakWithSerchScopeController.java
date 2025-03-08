@@ -14,7 +14,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/scope/support/speak-with-serch")
+@RequestMapping("/api/v1/scope/support/speak-with-serch")
 @PreAuthorize("hasRole('SUPER_ADMIN') || hasRole('ADMIN') || hasRole('MANAGER') || hasRole('TEAM')")
 public class SpeakWithSerchScopeController {
     private final SpeakWithSerchScopeService service;

@@ -1,9 +1,9 @@
 package com.serch.server.domains.trip.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.core.file.services.FileService;
 import com.serch.server.core.notification.services.NotificationService;
 import com.serch.server.core.payment.responses.InitializePaymentData;
-import com.serch.server.core.storage.services.StorageService;
 import com.serch.server.domains.shared.services.SharedService;
 import com.serch.server.domains.trip.requests.QuotationRequest;
 import com.serch.server.domains.trip.requests.TripAcceptRequest;
@@ -48,8 +48,8 @@ import static com.serch.server.enums.trip.TripType.REQUEST;
 @RequiredArgsConstructor
 public class TripRequestImplementation implements TripRequestService {
     private static final Logger log = LoggerFactory.getLogger(TripRequestImplementation.class);
-    private final StorageService storageService;
-    private final NotificationService notificationService;
+    private final FileService uploadService;
+    private final NotificationService tripNotification;
     private final TripHistoryService historyService;
     private final ActiveService activeService;
     private final TripPayService payService;
@@ -145,12 +145,16 @@ public class TripRequestImplementation implements TripRequestService {
         trip.setMode(mode);
         trip.setLinkId(linkId);
 
-        if(!HelperUtil.isUploadEmpty(request.getAudio())) {
-            String url = storageService.upload(request.getAudio(), "trip");
-            trip.setAudio(url);
-        }
+        trip = tripInviteRepository.save(trip);
 
-        return tripInviteRepository.save(trip);
+        if(!HelperUtil.isUploadEmpty(request.getAudio())) {
+            String url = uploadService.uploadTrip(request.getAudio(), trip.getId()).getFile();
+            trip.setAudio(url);
+
+            return tripInviteRepository.save(trip);
+        } else {
+            return trip;
+        }
     }
 
     @Transactional
@@ -178,7 +182,7 @@ public class TripRequestImplementation implements TripRequestService {
             );
 
             log.info(String.format("Sending notification trip invitation ping request to %s", request.getProvider()));
-            notificationService.send(
+            tripNotification.send(
                     String.valueOf(request.getProvider()),
                     String.format("%s wants your service now", name),
                     "You have a new trip request. Tap to view details",
@@ -198,7 +202,7 @@ public class TripRequestImplementation implements TripRequestService {
                     );
 
                     log.info(String.format("Sending notification trip invitation ping request to %s", active.getProfile().getId()));
-                    notificationService.send(
+                    tripNotification.send(
                             String.valueOf(active.getProfile().getId()),
                             String.format("%s wants your service now", name),
                             "You have a new trip request. Tap to view details",
@@ -233,7 +237,7 @@ public class TripRequestImplementation implements TripRequestService {
                 "/platform/%s/trip/requested".formatted(String.valueOf(link.getProvider().getId())),
                 historyService.response(trip.getId(), String.valueOf(link.getProvider().getId()))
         );
-        notificationService.send(
+        tripNotification.send(
                 String.valueOf(link.getProvider().getId()),
                 String.format("%s wants your service now", guest.getFullName()),
                 "You have a new trip request. Tap to view details",
@@ -312,7 +316,7 @@ public class TripRequestImplementation implements TripRequestService {
                 historyService.response(trip.getId(), trip.getAccount())
         );
 
-        notificationService.send(
+        tripNotification.send(
                 String.valueOf(String.valueOf(authUtil.getUser().isProvider() ? trip.getAccount() : profile.getId())),
                 String.format("%s sent in a quotation for your request", authUtil.getUser().getFullName()),
                 String.format("Trip is now being charged at %s", MoneyUtil.formatToNaira(amount)),
@@ -342,7 +346,7 @@ public class TripRequestImplementation implements TripRequestService {
                 historyService.response(trip, String.valueOf(quote.getProvider().getId()))
         );
 
-        notificationService.send(
+        tripNotification.send(
                 String.valueOf(quote.getProvider().getId()),
                 String.format("%s updated the quotation you gave", name),
                 String.format("Trip is now being charged at %s", MoneyUtil.formatToNaira(amount)),

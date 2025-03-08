@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.time.LocalDate;
 import java.util.Comparator;
 
 @Service
@@ -101,7 +102,12 @@ public class GuestSessionImplementation implements GuestSessionService {
 
     @SneakyThrows
     String encode(UseStatus status, Long id) {
-        String json = gson.toJson(new GuestSession(id, status, Encoders.BASE64.encode(ACCESS_SIGNATURE.getBytes())));
+        String json = gson.toJson(new GuestSession(
+                id,
+                status,
+                Encoders.BASE64.encode(ACCESS_SIGNATURE.getBytes()),
+                LocalDate.now().plusWeeks(2)
+        ));
 
         Cipher cipher = getEncryptionCipher();
         byte[] encryptedBytes = cipher.doFinal(json.getBytes());
@@ -123,6 +129,10 @@ public class GuestSessionImplementation implements GuestSessionService {
     @Override
     public ApiResponse<String> validateSession(String token) {
         GuestSession session = decode(token);
+
+        if (session.getExpiry().isBefore(LocalDate.now())) {
+            throw new AuthException("Session has expired");
+        }
 
         if(keyValidator.isSigned(new String(Decoders.BASE64.decode(session.getKey())))) {
             SharedLogin login = sharedLoginRepository.findById(session.getId())

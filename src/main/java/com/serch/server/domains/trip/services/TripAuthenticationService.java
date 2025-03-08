@@ -9,7 +9,7 @@ import com.serch.server.domains.trip.requests.TripAuthRequest;
  * <p>
  * This interface provides methods for creating trip authentication links
  * and verifying trip authentication codes. It is used to manage the
- * security and authorization for shared trip access.
+ * security and auth for shared trip access.
  * </p>
  */
 public interface TripAuthenticationService {

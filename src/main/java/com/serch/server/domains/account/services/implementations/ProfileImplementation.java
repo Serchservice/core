@@ -1,6 +1,7 @@
 package com.serch.server.domains.account.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.core.file.services.FileService;
 import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.verified.VerificationStatus;
 import com.serch.server.exceptions.account.AccountException;
@@ -29,7 +30,6 @@ import com.serch.server.domains.account.services.SpecialtyService;
 import com.serch.server.domains.auth.requests.RequestPhoneInformation;
 import com.serch.server.domains.referral.services.ReferralService;
 import com.serch.server.domains.auth.requests.RequestProfile;
-import com.serch.server.core.storage.services.StorageService;
 import com.serch.server.domains.transaction.services.WalletService;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
@@ -46,7 +46,6 @@ import java.util.List;
  * Service for managing user profiles, including creation, updating, and retrieval.
  * It implements the wrapper class {@link ProfileService}
  *
- * @see StorageService
  * @see ReferralService
  * @see WalletService
  * @see AuthUtil
@@ -61,7 +60,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ProfileImplementation implements ProfileService {
-    private final StorageService supabase;
+    private final FileService uploadService;
     private final ReferralService referralService;
     private final WalletService walletService;
     private final SpecialtyService specialtyService;
@@ -237,7 +236,7 @@ public class ProfileImplementation implements ProfileService {
         updateGender(request, profile);
 
         if(!HelperUtil.isUploadEmpty(request.getUpload())) {
-            String url = supabase.upload(request.getUpload(), AuthUtil.getBucket(user.getRole()));
+            String url = uploadService.uploadCommon(request.getUpload(), user).getFile();
             profile.setAvatar(url);
             updateTimeStamps(profile.getUser(), profile);
         }
@@ -262,9 +261,8 @@ public class ProfileImplementation implements ProfileService {
                     phone.setIsoCode(request.getIsoCode());
                 }
                 phoneInformationRepository.save(phone);
-            }, () -> {
-                savePhoneInformation(request, user);
-            });
+            }, () -> savePhoneInformation(request, user));
+
             user.setUpdatedAt(TimeUtil.now());
             user.setLastUpdatedAt(TimeUtil.now());
             userRepository.save(user);

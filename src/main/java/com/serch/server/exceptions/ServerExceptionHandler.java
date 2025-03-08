@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.http.HttpHeaders;
@@ -58,6 +59,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -74,6 +76,7 @@ import java.sql.SQLDataException;
 import java.sql.SQLException;
 import java.sql.SQLNonTransientConnectionException;
 import java.sql.SQLTimeoutException;
+import java.time.DateTimeException;
 import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
@@ -519,6 +522,17 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
         return response;
     }
 
+    @ExceptionHandler(LinkedDynamicException.class)
+    public ResponseEntity<String> handleLinkedDynamicException(LinkedDynamicException exception) {
+        log.error(exception.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>(exception.getMessage());
+        response.setData(exception.getLocalizedMessage());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
+        return ResponseEntity.badRequest().body(response.getMessage());
+    }
+
     @ExceptionHandler(StorageException.class)
     public ApiResponse<String> handleStorageException(StorageException exception) {
         log.error(exception.getMessage());
@@ -634,6 +648,13 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
         return new ApiResponse<>("No network connection. Check your internet.", HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(IncorrectResultSizeDataAccessException.class)
+    public ApiResponse<String> handleIncorrectResultSizeDataAccessException(IncorrectResultSizeDataAccessException exception) {
+        log.error(exception.getMessage());
+
+        return new ApiResponse<>("Request was not completed due to server issues. Try again later", HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(UnexpectedTypeException.class)
     public ApiResponse<String> handleUnexpectedTypeException(UnexpectedTypeException exception) {
         log.error(exception.getMessage());
@@ -718,6 +739,14 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
         return new ApiResponse<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(DateTimeException.class)
+    public ApiResponse<String> handleDateTimeException(DateTimeException exception){
+        log.error(exception.getMessage());
+        log.error(String.valueOf(exception.getCause()));
+
+        return new ApiResponse<>("An error occurred while formatting your data. Try again.", HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(WriterException.class)
     public ApiResponse<String> handleWriterException(WriterException exception){
         log.error(exception.getMessage());
@@ -790,6 +819,24 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
         response.setStatus(HttpStatus.BAD_REQUEST);
 
         return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(@NonNull HttpMessageNotReadableException ex, @NonNull HttpHeaders headers, @NonNull HttpStatusCode status, @NonNull WebRequest request) {
+        log.error(ex.getMessage());
+
+        ApiResponse<String> response = new ApiResponse<>("Couldn't complete your request due to an error from the client.");
+        response.setData(request.getContextPath());
+        response.setStatus(HttpStatus.BAD_REQUEST);
+
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ApiResponse<String> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException exception){
+        log.error(exception.getMessage());
+
+        return new ApiResponse<>("Couldn't complete your request due to an error from the client.", HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(GeneralSecurityException.class)
@@ -874,20 +921,6 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @Override
-    protected ResponseEntity<Object> handleHttpMessageNotReadable(
-            HttpMessageNotReadableException ex, @NonNull HttpHeaders headers,
-            @NonNull HttpStatusCode status, WebRequest request
-    ) {
-        log.error(ex.getMessage());
-
-        ApiResponse<String> response = new ApiResponse<>("An error occurred while sending your request message.");
-        response.setData(request.getContextPath());
-        response.setStatus(HttpStatus.BAD_REQUEST);
-
-        return new ResponseEntity<>(response, response.getStatus());
-    }
-
-    @Override
     protected ResponseEntity<Object> handleTypeMismatch(TypeMismatchException ex, @NonNull HttpHeaders headers, @NonNull HttpStatusCode status, WebRequest request) {
         log.error(ex.getMessage());
 
@@ -910,7 +943,7 @@ public class ServerExceptionHandler extends ResponseEntityExceptionHandler {
         log.error(exception.getMessage());
 
         return new ApiResponse<>(
-                "Invalid response format",
+                exception.getMessage(),
                 ExceptionCodes.IMPROPER_USER_ID_FORMAT,
                 HttpStatus.NOT_ACCEPTABLE
         );

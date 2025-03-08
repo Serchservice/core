@@ -37,7 +37,7 @@ import static com.serch.server.enums.trip.TripStatus.*;
 @RequiredArgsConstructor
 public class TripShareImplementation implements TripShareService {
     private static final Logger log = LoggerFactory.getLogger(TripShareImplementation.class);
-    private final NotificationService notificationService;
+    private final NotificationService tripNotification;
     private final TripTimelineService timelineService;
     private final TripAuthenticationService authenticationService;
     private final TripHistoryService historyService;
@@ -77,7 +77,7 @@ public class TripShareImplementation implements TripShareService {
 
         if(trip.getAccess() == GRANTED) {
             trip.setAccess(DENIED);
-            notificationService.send(
+            tripNotification.send(
                     String.valueOf(trip.getProvider().getId()),
                     String.format("%s has denied you share access. You cannot invite another provider to the trip", name),
                     "Share access denied",
@@ -85,7 +85,7 @@ public class TripShareImplementation implements TripShareService {
             );
         } else {
             trip.setAccess(GRANTED);
-            notificationService.send(
+            tripNotification.send(
                     String.valueOf(trip.getProvider().getId()),
                     String.format("%s has granted you share access. You can now invite another provider to the trip", name),
                     "Share access granted",
@@ -116,7 +116,7 @@ public class TripShareImplementation implements TripShareService {
                     authenticationService.create(null, share);
                 }
 
-                notificationService.send(
+                tripNotification.send(
                         trip.getAccount(),
                         String.format(
                                 "%s has shared this trip on the Serch platform. Waiting for responses... should be quick.",
@@ -173,7 +173,7 @@ public class TripShareImplementation implements TripShareService {
                             "/platform/%s/trip/invited".formatted(String.valueOf(active.getProfile().getId())),
                             historyService.response(trip.getId(), String.valueOf(active.getProfile().getId()), null, false, null)
                     );
-                    notificationService.send(
+                    tripNotification.send(
                             String.valueOf(active.getProfile().getId()),
                             String.format("%s wants your service now", authUtil.getUser().getFullName()),
                             "You have a new shared trip request. Tap to view details",
@@ -206,7 +206,7 @@ public class TripShareImplementation implements TripShareService {
             account = String.valueOf(authUtil.getUser().getId());
         }
 
-        notificationService.send(
+        tripNotification.send(
                 share.getTrip().getAccount(),
                 String.format(
                         "%s has cancelled the shared trip request from %s",
@@ -217,7 +217,7 @@ public class TripShareImplementation implements TripShareService {
                 String.valueOf(authUtil.getUser().getId()), null, false
         );
 
-        notificationService.send(
+        tripNotification.send(
                 String.valueOf(share.getTrip().getProvider().getId()),
                 String.format("%s has cancelled your shared trip request", authUtil.getUser().getFullName()),
                 "Trip share cancelled",
@@ -260,14 +260,14 @@ public class TripShareImplementation implements TripShareService {
             activeService.toggle(share.getTrip().getProvider().getUser(), REQUESTSHARING, null);
             activeService.toggle(authUtil.getUser(), REQUESTSHARING, null);
 
-            notificationService.send(
+            tripNotification.send(
                     share.getTrip().getAccount(),
                     String.format("%s has accepted the shared trip invite", authUtil.getUser().getFullName()),
                     "Trip Update - Shared invite accepted",
                     String.valueOf(authUtil.getUser().getId()), null, false
             );
 
-            notificationService.send(
+            tripNotification.send(
                     String.valueOf(share.getTrip().getProvider().getId()),
                     String.format("%s has accepted the shared trip invite", authUtil.getUser().getFullName()),
                     "Trip Update - Shared invite accepted",
@@ -305,14 +305,14 @@ public class TripShareImplementation implements TripShareService {
                 authentication.setUpdatedAt(TimeUtil.now());
                 tripAuthenticationRepository.save(authentication);
 
-                notificationService.send(
+                tripNotification.send(
                         String.valueOf(authUtil.getUser().getId()),
                         "Shared trip is now verified",
                         "Trip authentication successful",
                         share.getTrip().getAccount(), null, false
                 );
 
-                notificationService.send(
+                tripNotification.send(
                         String.valueOf(share.getTrip().getProvider().getId()),
                         "Shared trip is now verified",
                         "Trip authentication successful",
@@ -376,14 +376,14 @@ public class TripShareImplementation implements TripShareService {
         OnlineRequest request = TripMapper.INSTANCE.request(share.getTrip());
         activeService.toggle(authUtil.getUser(), ONLINE, request);
 
-        notificationService.send(
+        tripNotification.send(
                 share.getTrip().getAccount(),
                 String.format("%s has left the trip", authUtil.getUser().getFullName()),
                 "Trip Update - Invited Provider left",
                 String.valueOf(authUtil.getUser().getId()), null, false
         );
 
-        notificationService.send(
+        tripNotification.send(
                 String.valueOf(share.getTrip().getProvider().getId()),
                 String.format("%s has left the trip", authUtil.getUser().getFullName()),
                 "Trip Update - Invited Provider left",

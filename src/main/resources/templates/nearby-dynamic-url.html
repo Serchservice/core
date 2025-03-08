@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" data-tag="font" />
+
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="white" />
+
+        <link rel="icon" type="image/png" th:href="${favicon}" />
+        <link rel="mask-icon" th:href="${favicon}" color="#ffffff" />
+
+        <title th:text="${title}">Default Title</title>
+        <meta name="description" th:content="${description}" />
+
+        <meta property="og:title" th:content="${title}" />
+        <meta property="og:description" th:content="${description}" />
+        <meta property="og:image" th:content="${thumbnail}" />
+        <meta property="og:type" content="website" />
+        <meta property="og:locale" content="en_US" />
+        <meta property="og:url" th:content="${shortUrl}">
+        <meta property="og:site_name" content="nearby.serchservice.com">
+
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" th:content="${title}" />
+        <meta name="twitter:description" th:content="${description}" />
+        <meta name="twitter:image" th:content="${thumbnail}" />
+        <meta name="twitter:site" content="@serchnearby">
+        <meta name="twitter:creator" content="@serchnearby">
+
+        <meta property="al:android:package" th:content="${androidBundleID}">
+        <meta property="al:android:url" th:content="${androidUrl}">
+
+        <link rel="apple-touch-icon" th:href="${favicon}" />
+
+        <style>
+            body {
+                padding: 0;
+                margin: 0;
+                background-color: #4361EE;
+                font-family: 'Nunito', sans-serif;
+            }
+
+            img.logo {
+                width: 30px;
+                height: 30px;
+            }
+
+            body, div, p, a, h1, h2, h3, h4, h5, h6, span {
+                font-family: 'Nunito', sans-serif;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div style="background-color:#FFFFFF;padding:16px">
+            <div style="text-align:left">
+                <img
+                        class="logo"
+                        alt="Nearby"
+                        th:src="${favicon}"
+                        style="outline:none;border:none;text-decoration:none;vertical-align:middle;display:inline-block"
+                />
+            </div>
+        </div>
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            let redirectToStore = [[${redirectToStore}]];
+            let redirectUrl = [[${redirectUrl}]];
+            let androidScheme = [[${androidScheme}]];
+            let androidBundleID = [[${androidBundleID}]];
+            let appStoreID = [[${appStoreID}]];
+
+            if (redirectToStore) {
+                let result = navigator.userAgent.toLowerCase();
+
+                if (result.includes("iphone") || result.includes("ipad")) {
+                    window.location.href = `https://apps.apple.com/us/app/${appStoreID}`;
+                } else if (result.includes("android")) {
+                    if (androidScheme !== "") {
+                        const fallbackUrl = encodeURIComponent(`https://play.google.com/store/apps/details?id=${androidBundleID}`);
+                        window.location.href = `intent:#Intent;scheme=${androidScheme};package=${androidBundleID};S.browser_fallback_url=${fallbackUrl};end`;
+                    } else {
+                        window.location.href = `https://play.google.com/store/apps/details?id=${androidBundleID}`;
+                    }
+                } else {
+                    if (redirectUrl !== "") {
+                        window.location.href = redirectUrl;
+                    }
+                }
+            } else if (redirectUrl !== "") {
+                window.location.href = redirectUrl;
+            }
+            /*]]>*/
+        </script>
+    </body>
+</html>

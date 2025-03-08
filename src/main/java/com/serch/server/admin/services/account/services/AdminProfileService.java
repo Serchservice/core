@@ -7,7 +7,7 @@ import com.serch.server.admin.services.account.responses.AdminResponse;
 import com.serch.server.admin.services.responses.AccountScopeDetailResponse;
 import com.serch.server.admin.services.team.responses.AdminTeamResponse;
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.core.storage.requests.FileUploadRequest;
+import com.serch.server.core.file.requests.FileUploadRequest;
 import com.serch.server.models.auth.User;
 
 import java.time.ZonedDateTime;

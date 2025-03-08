@@ -61,10 +61,10 @@ public interface AccountUserScopeService {
     ApiResponse<AccountUserScopeWalletResponse> wallet(UUID id);
 
     /**
-     * Fetches certificate details for a user.
+     * Fetches uploadCertificate details for a user.
      *
      * @param id the unique identifier of the user
-     * @return {@link ApiResponse} containing {@link AccountUserScopeCertificateResponse} with certificate details
+     * @return {@link ApiResponse} containing {@link AccountUserScopeCertificateResponse} with uploadCertificate details
      */
     ApiResponse<AccountUserScopeCertificateResponse> certificate(UUID id);
 

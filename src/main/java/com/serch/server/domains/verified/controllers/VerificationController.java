@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/verification")
+@RequestMapping("/api/v1/verification")
 public class VerificationController {
     private final VerificationService service;
 

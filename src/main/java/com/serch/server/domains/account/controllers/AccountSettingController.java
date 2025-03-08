@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/account/settings")
+@RequestMapping("/api/v1/account/settings")
 public class AccountSettingController {
     private final AccountSettingService service;
 

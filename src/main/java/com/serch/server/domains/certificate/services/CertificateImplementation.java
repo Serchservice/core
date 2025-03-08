@@ -2,10 +2,15 @@ package com.serch.server.domains.certificate.services;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.bases.BaseProfile;
-import com.serch.server.core.token.JwtService;
+import com.serch.server.core.file.requests.FileUploadRequest;
+import com.serch.server.core.file.services.FileBuilderService;
+import com.serch.server.core.file.services.FileService;
 import com.serch.server.core.qr_code.QRCodeService;
-import com.serch.server.core.storage.services.StorageService;
-import com.serch.server.core.storage.requests.FileUploadRequest;
+import com.serch.server.core.token.JwtService;
+import com.serch.server.domains.certificate.responses.CertificateData;
+import com.serch.server.domains.certificate.responses.CertificateResponse;
+import com.serch.server.domains.certificate.responses.VerifyCertificateResponse;
+import com.serch.server.domains.rating.services.RatingService;
 import com.serch.server.enums.account.Gender;
 import com.serch.server.enums.account.SerchCategory;
 import com.serch.server.enums.company.IssueStatus;
@@ -20,13 +25,9 @@ import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.certificate.CertificateRepository;
 import com.serch.server.repositories.rating.RatingRepository;
 import com.serch.server.repositories.trip.TripRepository;
-import com.serch.server.domains.certificate.responses.CertificateData;
-import com.serch.server.domains.certificate.responses.CertificateResponse;
-import com.serch.server.domains.certificate.responses.VerifyCertificateResponse;
-import com.serch.server.domains.rating.services.RatingService;
+import com.serch.server.utils.AuthUtil;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -43,7 +44,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CertificateImplementation implements CertificateService {
     private final JwtService jwtService;
-    private final StorageService storageService;
+    private final FileService uploadService;
     private final RatingService ratingService;
     private final QRCodeService qrCodeService;
     private final AuthUtil authUtil;
@@ -83,7 +84,7 @@ public class CertificateImplementation implements CertificateService {
 
                 return new ApiResponse<>(getCertificateData(user, code, cert.get(), cert.get().getUpdatedAt()));
             } else {
-                throw new CertificateException("You cannot generate a new certificate");
+                throw new CertificateException("You cannot generate a new uploadCertificate");
             }
         } else if(instruction(user, null).values().stream().allMatch(val -> val)) {
             String secret = secret(user);
@@ -102,8 +103,8 @@ public class CertificateImplementation implements CertificateService {
         data.setQrCode(code);
         data.setId(cert.getId());
         data.setName(user.getFullName());
-        data.setDocument(storageService.buildUrl("/storage/v1/object/public/certificate/Unsigned.png"));
-        data.setSignature(storageService.buildUrl("/storage/v1/object/public/certificate/ceo-sign.png"));
+        data.setDocument(FileBuilderService.instance.supabase("/storage/v1/object/public/uploadCertificate/Unsigned.png"));
+        data.setSignature(FileBuilderService.instance.supabase("/storage/v1/object/public/uploadCertificate/ceo-sign.png"));
         data.setIssueDate(date(issuedDate));
 
         return data;
@@ -120,19 +121,19 @@ public class CertificateImplementation implements CertificateService {
             response.setIsGenerated(true);
             response.setReason(
                     "Congratulations! Certificate re-generation instructions have been updated. " +
-                            "You generated this current certificate on %s, so instructions are being "
+                            "You generated this current uploadCertificate on %s, so instructions are being "
                                     .formatted(date(cert.get().getUpdatedAt())) +
-                            "validated from the day after your certificate was generated.\n\n" +
-                            "This simply enables Serch to update your certificate content based on the " +
+                            "validated from the day after your uploadCertificate was generated.\n\n" +
+                            "This simply enables Serch to update your uploadCertificate content based on the " +
                             "additional information added by users of your service"
             );
             response.setInstructions(instruction(authUtil.getUser(), cert.get()));
         } else {
-            data.setDocument(storageService.buildUrl(HelperUtil.dummyCertificate));
+            data.setDocument(FileBuilderService.instance.supabase(HelperUtil.dummyCertificate));
             response.setIsGenerated(false);
             response.setReason(
-                    "Inorder to generate a skill certificate, you need to fulfill the instructions below. " +
-                            "This enables us to generate certificate content that is personalized for you " +
+                    "Inorder to generate a skill uploadCertificate, you need to fulfill the instructions below. " +
+                            "This enables us to generate uploadCertificate content that is personalized for you " +
                             "based on what users of your service said about you"
             );
             response.setInstructions(instruction(authUtil.getUser(), null));
@@ -152,7 +153,7 @@ public class CertificateImplementation implements CertificateService {
 
         if(certificate != null) {
             instruction.put(
-                    String.format("Generate a new certificate after %s days of current generated certificate", CERTIFICATE_MIN_DAYS),
+                    String.format("Generate a new uploadCertificate after %s days of current generated uploadCertificate", CERTIFICATE_MIN_DAYS),
                     isThirtyDaysAfter(certificate.getCreatedAt())
             );
             instruction.put(
@@ -181,8 +182,7 @@ public class CertificateImplementation implements CertificateService {
 
     @Override
     public ApiResponse<CertificateResponse> upload(FileUploadRequest request) {
-        String bucket = authUtil.getUser().isBusiness() ? "certificate/business" : "certificate/provider";
-        String url = storageService.upload(request, bucket);
+        String url = uploadService.uploadCertificate(request, authUtil.getUser()).getFile();
 
         Certificate certificate = certificateRepository.findByUser(authUtil.getUser().getId())
                 .orElseThrow(() -> new CertificateException("Certificate not found"));
@@ -349,7 +349,7 @@ public class CertificateImplementation implements CertificateService {
         data.setName(name);
         data.setCategory(category.getType());
         data.setImage(category.getImage());
-        data.setSignature(storageService.buildUrl("/storage/v1/object/public/certificate/ceo-sign.png"));
+        data.setSignature(FileBuilderService.instance.supabase("/storage/v1/object/public/uploadCertificate/ceo-sign.png"));
         data.setIssueDate(date(certificate.getUpdatedAt()));
 
         response.setData(data);

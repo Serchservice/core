@@ -7,6 +7,6 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class InitializePaymentResponse extends PaymentResponse {
+public class InitializePaymentResponse extends BasePaymentApiResponse {
     private InitializePaymentData data;
 }

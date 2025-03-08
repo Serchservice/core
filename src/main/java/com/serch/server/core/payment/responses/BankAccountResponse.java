@@ -5,6 +5,6 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class BankAccountResponse extends PaymentResponse{
+public class BankAccountResponse extends BasePaymentApiResponse {
     private BankAccount data;
 }

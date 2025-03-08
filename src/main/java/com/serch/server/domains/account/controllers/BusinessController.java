@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/profile/business")
+@RequestMapping("/api/v1/profile/business")
 @PreAuthorize(value = "hasRole('BUSINESS')")
 public class BusinessController {
     private final BusinessService service;

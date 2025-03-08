@@ -1,8 +1,12 @@
 package com.serch.server.domains.shop.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.core.file.services.FileService;
 import com.serch.server.core.location.services.LocationService;
-import com.serch.server.core.storage.services.StorageService;
+import com.serch.server.domains.shop.requests.*;
+import com.serch.server.domains.shop.responses.SearchShopResponse;
+import com.serch.server.domains.shop.responses.ShopResponse;
+import com.serch.server.domains.shop.responses.ShopWeekdayResponse;
 import com.serch.server.domains.shop.services.ShopService;
 import com.serch.server.enums.shop.DriveScope;
 import com.serch.server.enums.shop.ShopStatus;
@@ -15,13 +19,9 @@ import com.serch.server.models.shop.ShopWeekday;
 import com.serch.server.repositories.shop.ShopRepository;
 import com.serch.server.repositories.shop.ShopServiceRepository;
 import com.serch.server.repositories.shop.ShopWeekdayRepository;
-import com.serch.server.domains.shop.requests.*;
-import com.serch.server.domains.shop.responses.SearchShopResponse;
-import com.serch.server.domains.shop.responses.ShopResponse;
-import com.serch.server.domains.shop.responses.ShopWeekdayResponse;
+import com.serch.server.utils.AuthUtil;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -44,7 +44,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ShopImplementation implements ShopService {
-    private final StorageService storageService;
+    private final FileService uploadService;
     private final LocationService locationService;
     private final AuthUtil authUtil;
     private final ShopRepository shopRepository;
@@ -125,13 +125,14 @@ public class ShopImplementation implements ShopService {
     }
 
     private Shop getShop(CreateShopRequest request) {
-        String logo = storageService.upload(request.getUpload(), "shops");
+        Shop shop = ShopMapper.INSTANCE.shop(request);
+        shop.setUser(authUtil.getUser());
+        shop = shopRepository.save(shop);
 
-        Shop newShop = ShopMapper.INSTANCE.shop(request);
-        newShop.setUser(authUtil.getUser());
-        newShop.setLogo(logo);
+        String logo = uploadService.uploadShop(request.getUpload(), shop.getId()).getFile();
+        shop.setLogo(logo);
 
-        return shopRepository.save(newShop);
+        return shopRepository.save(shop);
     }
 
     @Override

@@ -6,7 +6,7 @@ import com.serch.server.admin.services.account.services.AdminActivityService;
 import com.serch.server.admin.services.account.services.AdminProfileService;
 import com.serch.server.admin.services.team.responses.AdminActivityResponse;
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.core.storage.requests.FileUploadRequest;
+import com.serch.server.core.file.requests.FileUploadRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,7 +16,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/admin/profile")
+@RequestMapping("/api/v1/admin/profile")
 @PreAuthorize("hasRole('SUPER_ADMIN') || hasRole('ADMIN') || hasRole('MANAGER') || hasRole('TEAM')")
 public class AdminProfileController {
     private final AdminProfileService service;

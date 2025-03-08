@@ -58,7 +58,7 @@ public interface AdminAuthService {
     ApiResponse<MFADataResponse> verifyLink(String token);
 
     /**
-     * Confirms the action requests for logging in, finishing signup, or signing up an admin.
+     * Confirms the action dtos for logging in, finishing signup, or signing up an admin.
      *
      * @param request The {@link AdminAuthTokenRequest} containing the token and action details for confirmation.
      * @return {@link ApiResponse} containing {@link AuthResponse} with the resulting authentication details.

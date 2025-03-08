@@ -42,7 +42,7 @@ public class Shop extends BaseDateTime {
     @NotNull(message = "Shop name cannot be null")
     private String name;
 
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(columnDefinition = "TEXT DEFAULT ''", nullable = false)
     @NotNull(message = "Shop logo cannot be null")
     private String logo;
 

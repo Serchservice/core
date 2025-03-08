@@ -17,7 +17,7 @@ public interface RequestSharingScopeService {
     /**
      * Retrieves an overview of the requestSharing feature on the Serch platform.
      * This overview may include key metrics, summaries, and statistics about requestSharing activities,
-     * such as the number of shared requests, user engagement, and performance indicators.
+     * such as the number of shared dtos, user engagement, and performance indicators.
      *
      * @return an {@link ApiResponse} containing a {@link RequestSharingScopeOverviewResponse}
      *         with aggregated response and insights related to the requestSharing feature.
@@ -26,7 +26,7 @@ public interface RequestSharingScopeService {
 
     /**
      * Retrieves chart response for online requestShared trips on the Serch platform for a specified year.
-     * Provides insights into trends and metrics for online shared requests, such as growth, activity
+     * Provides insights into trends and metrics for online shared dtos, such as growth, activity
      * patterns, and other performance indicators over the specified time period.
      *
      * @param year the year for which to fetch the response, represented as an {@link Integer}.
@@ -38,7 +38,7 @@ public interface RequestSharingScopeService {
 
     /**
      * Retrieves chart response for offline requestShared trips on the Serch platform for a specified year.
-     * Provides insights into trends and metrics for offline shared requests, such as growth, activity
+     * Provides insights into trends and metrics for offline shared dtos, such as growth, activity
      * patterns, and other performance indicators over the specified time period.
      *
      * @param year the year for which to fetch the response, represented as an {@link Integer}.

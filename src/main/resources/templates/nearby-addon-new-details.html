@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta name="theme-color" content="#050404">
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" data-tag="font" />
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+        }
+
+        img.logo {
+            width: 50px;
+            height: 50px;
+        }
+
+        img.favicon {
+            height: 25px;
+            max-width: 50%;
+        }
+
+        img.powered {
+            height: 15px;
+            max-width: 40%;
+        }
+
+        .detail-row {
+            display: flex;
+            align-items: baseline;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .detail-title {
+            flex: 0 0 160px;
+            font-weight: 600;
+            color: #4B5563;
+        }
+
+        .detail-description {
+            flex: 1;
+            margin-left: 16px;
+        }
+
+        .status-active {
+            color: #059669;
+            font-weight: 600;
+        }
+
+        .status-failed {
+            color: #DC2626;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            color: #D97706;
+            font-weight: 600;
+        }
+
+        .boolean-true {
+            color: #059669;
+            font-weight: 600;
+        }
+
+        .boolean-false {
+            color: #DC2626;
+            font-weight: 600;
+        }
+
+        @media (max-width: 800px) {
+            img.logo {
+                height: 50px;
+                width: 50px;
+            }
+
+            img.favicon {
+                height: 25px;
+                max-width: 50%;
+            }
+
+            img.powered {
+                height: 15px;
+                max-width: 100%;
+            }
+
+            .detail-title {
+                flex: 0 0 120px;
+            }
+        }
+
+        body, div, p, a, h1, h2, h3, h4, h5, h6, span {
+            font-family: 'Nunito', sans-serif;
+        }
+    </style>
+</head>
+<body>
+<div style='background-color:#F2F5F7;color:#242424;font-family:"Nunito", sans-serif, "Helvetica Neue", "Arial Nova", "Nimbus Sans", Arial;font-size:16px;font-weight:400;letter-spacing:0;line-height:1.5;margin:0;padding:0;min-height:100%;width:100%'>
+    <table align="center" width="100%" style="margin:0 auto;max-width:600px;background-color:#4361EE;border-radius:0" role="presentation" cellspacing="0" cellpadding="0" border="0">
+        <tbody>
+        <tr style="width:100%">
+            <td>
+                <div style="background-color:#ffffff;border-radius:8px;padding:0 0 0 0">
+                    <div style="background-color:#FFFFFF;padding:16px 0 0 0">
+                        <div style="padding-left: 16px;text-align:left">
+                            <img
+                                    class="logo"
+                                    alt="Nearby"
+                                    src="https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/favicon.png"
+                                    style="outline:none;border:none;text-decoration:none;vertical-align:middle;display:inline-block"
+                            />
+                        </div>
+                    </div>
+                    <h3 style="color:#030001;font-weight:bold;margin:0;font-size:20px;padding:32px 24px 16px 24px">
+                        Hello Francis,
+                    </h3>
+                    <div style="font-size:13px;font-weight:normal;padding:16px 24px 16px 24px">
+                        This is just a reminder that your addon subscription plan will be charged again within the next three days. This information helps to provide you with ample time needed to fuel your card's bank with the required amount needed to continue your addon subscription alive.
+                    </div>
+                    <div style="font-size:13px;font-weight:normal;padding:0 24px 16px 24px">
+                        Currently, you have indicated that you will be switching your current plan to a new one. This is to also inform you that your next charge will be coming from the new plan you've requested to switch to.
+                    </div>
+                    <div style="background-color:#0466C8;border:1px solid #03045E;margin:0 24px 16px 24px;border-radius:4px;padding:16px 24px 16px 24px">
+                        <h3 style="color:#EBF2FA;font-weight:bold;margin:0;font-size:16px;margin-bottom:16px">
+                            New Addon Details
+                        </h3>
+                        <div class="detail">
+                            <div class="detail-row">
+                                <span style="color:#EBF2FA;" class="detail-title">Addon</span>
+                                <span style="color:#EBF2FA;" class="detail-description" th:text="${newAddon}"></span>
+                            </div>
+                            <div class="detail-row">
+                                <span style="color:#EBF2FA;" class="detail-title">Plan</span>
+                                <span style="color:#EBF2FA;" class="detail-description" th:text="${newPlan}"></span>
+                            </div>
+                            <div class="detail-row">
+                                <span style="color:#EBF2FA;" class="detail-title">Interval</span>
+                                <span style="color:#EBF2FA;" class="detail-description" th:text="${newInterval}"></span>
+                            </div>
+                            <div class="detail-row">
+                                <span style="color:#EBF2FA;" class="detail-title">Amount</span>
+                                <span style="color:#EBF2FA;" class="detail-description" th:text="${newAmount}"></span>
+                            </div>
+                            <div class="detail-row">
+                                <span style="color:#EBF2FA;" class="detail-title">Auto-Renewal</span>
+                                <span th:class="${newRecurring ? 'detail-description boolean-true' : 'detail-description boolean-false'}" th:text="${newRecurring}"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="background-color:#EDF2FB;border:1px solid #4361EE;margin:0 24px 0 24px;border-radius:4px;padding:16px 24px 16px 24px">
+                        <h3 style="color:#030001;font-weight:bold;margin:0;font-size:16px;margin-bottom:16px">
+                            Current Addon Details
+                        </h3>
+                        <div class="detail">
+                            <div class="detail-row">
+                                <span class="detail-title">Addon</span>
+                                <span class="detail-description" th:text="${addon}"></span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-title">Plan</span>
+                                <span class="detail-description" th:text="${plan}"></span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-title">Interval</span>
+                                <span class="detail-description" th:text="${interval}"></span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-title">Status</span>
+                                <span th:class="${status == 'ACTIVE' ? 'detail-description status-active' : (status == 'FAILED' ? 'detail-description status-failed' : 'detail-description status-pending')}" th:text="${status}"></span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-title">Amount</span>
+                                <span class="detail-description" th:text="${amount}"></span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-title">Auto-Renewal</span>
+                                <span th:class="${recurring ? 'detail-description boolean-true' : 'detail-description boolean-false'}" th:text="${recurring}"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="font-size:13px;font-weight:normal;padding:16px 24px 16px 24px">
+                        We try to be attentive to our user's complaint and as such, we will retry the payment for any failed transaction charge after a series of trials, should your card or bank have any issues. You'll find your addon details below.
+                    </div>
+                    <div style="font-size:13px;font-weight:normal;padding:0 24px 16px 24px">
+                        We appreciate your commitment to this process and are excited to have you on board!
+                    </div>
+                    <div style="color:#6b7280;font-size:12px;font-weight:normal;padding:16px 24px 16px 24px">
+                        Do more of you, nearby
+                    </div>
+                    <div style="color:#6b7280;font-size:12px;font-weight:normal;padding:16px 24px 0 24px">
+                        Best regards,
+                    </div>
+                    <div style="color:#6b7280;font-size:13px;font-weight:normal;padding:0 24px 80px 24px">
+                        The Nearby Team
+                    </div>
+                </div>
+                <div style="background-color:rgba(7,61,255,0.75);padding:16px 24px 16px 24px">
+                    <div style="padding:16px 0 0 0">
+                        <table align="center" width="100%" cellpadding="0" border="0" style="table-layout:fixed;border-collapse:collapse">
+                            <tbody style="width:100%">
+                            <tr style="width:100%">
+                                <td style="box-sizing:content-box;vertical-align:middle;padding-left:0;padding-right:8px">
+                                    <div style="padding:0 0 0 0">
+                                        <img
+                                                class="favicon"
+                                                alt="logo"
+                                                src="https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/logo.png"
+                                                style="outline:none;border:none;text-decoration:none;vertical-align:middle;display:inline-block"
+                                        />
+                                    </div>
+                                </td>
+                                <td style="box-sizing:content-box;vertical-align:middle;padding-left:8px;padding-right:0">
+                                    <div style="height:16px"></div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <table align="center" width="100%" cellpadding="0" border="0" style="table-layout:fixed;border-collapse:collapse">
+                        <tbody style="width:100%">
+                        <tr style="width:100%">
+                            <td style="box-sizing:content-box;vertical-align:middle;padding-left:0;padding-right:8px">
+                                <div style="padding:0 0 0 0">
+                                    <img
+                                            class="powered"
+                                            alt="powered by Serch"
+                                            src="https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/info.png"
+                                            style="outline:none;border:none;text-decoration:none;vertical-align:middle;display:inline-block"
+                                    />
+                                </div>
+                            </td>
+                            <td style="box-sizing:content-box;vertical-align:middle;padding-left:8px;padding-right:0">
+                                <div style="height:16px"></div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <div style="padding:16px 0 16px 0">
+                        <hr style="width:100%;border:none;border-top:1px solid #ffffff;margin:0"/>
+                    </div>
+                    <div style="color:#031f4d;font-size:11px;font-weight:normal;text-align:center;padding:16px 24px 16px 24px">
+                        You are receiving this email because your email address was
+                        used to create an account on our platform.
+                        Ignore this message if you don&#x27;t know what this means.
+                    </div>
+                    <div style="color:#031f4d;font-size:13px;font-weight:normal;text-align:center;padding:16px 24px 16px 0">
+                        Serchservice Inc. © 2025. All rights reserved
+                    </div>
+                    <div style="color:#031f4d;font-size:11px;font-weight:normal;text-align:center;padding:40px 24px 20px 0">
+                        Connect with us on all social media platforms via @serchservice and @serchnearby
+                    </div>
+                </div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

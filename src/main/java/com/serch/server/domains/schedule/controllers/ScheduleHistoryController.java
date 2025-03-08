@@ -17,7 +17,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/schedule/history")
+@RequestMapping("/api/v1/schedule/history")
 public class ScheduleHistoryController {
     private final ScheduleHistoryService service;
 

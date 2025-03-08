@@ -15,14 +15,14 @@ import com.serch.server.admin.services.permission.services.GrantedPermissionServ
 import com.serch.server.admin.services.responses.AccountScopeDetailResponse;
 import com.serch.server.admin.services.team.responses.AdminTeamResponse;
 import com.serch.server.bases.ApiResponse;
-import com.serch.server.core.storage.services.StorageService;
-import com.serch.server.core.storage.requests.FileUploadRequest;
+import com.serch.server.core.file.requests.FileUploadRequest;
+import com.serch.server.core.file.services.FileService;
 import com.serch.server.exceptions.auth.AuthException;
 import com.serch.server.models.auth.User;
 import com.serch.server.repositories.auth.UserRepository;
+import com.serch.server.utils.AuthUtil;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -34,7 +34,7 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 public class AdminProfileImplementation implements AdminProfileService {
-    private final StorageService supabase;
+    private final FileService uploadService;
     private final GrantedPermissionService permissionService;
     private final AdminActivityService activityService;
     private final AdminRepository adminRepository;
@@ -92,7 +92,7 @@ public class AdminProfileImplementation implements AdminProfileService {
         if(HelperUtil.isUploadEmpty(request)) {
             throw new AdminException("There is no upload response");
         } else {
-            admin.setAvatar(supabase.upload(request, "admin"));
+            admin.setAvatar(uploadService.uploadCommon(request, admin.getUser()).getFile());
             admin.setUpdatedAt(TimeUtil.now());
             adminRepository.save(admin);
 

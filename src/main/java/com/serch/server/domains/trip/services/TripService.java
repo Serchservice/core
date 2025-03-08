@@ -150,7 +150,7 @@ public interface TripService {
     ApiResponse<TripResponse> payServiceFee(String id);
 
     /**
-     * Verify a transaction for special trip requests, ensuring the transaction reference is valid.
+     * Verify a transaction for special trip dtos, ensuring the transaction reference is valid.
      *
      * @param id the unique identifier of the trip.
      * @param guest the unique identifier of the guest (optional). Can be used for guest verification.

@@ -17,7 +17,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/scope/sharing/provide")
+@RequestMapping("/api/v1/scope/sharing/provide")
 @PreAuthorize("hasRole('SUPER_ADMIN') || hasRole('ADMIN') || hasRole('MANAGER') || hasRole('TEAM')")
 public class ProvideSharingScopeController {
     private final ProvideSharingScopeService service;

@@ -29,7 +29,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class SchedulePayImplementation implements SchedulePayService {
-    private final NotificationService notificationService;
+    private final NotificationService transactionNotification;
     private final WalletRepository walletRepository;
     private final ProfileRepository profileRepository;
     private final TransactionRepository transactionRepository;
@@ -137,7 +137,7 @@ public class SchedulePayImplementation implements SchedulePayService {
         wallet.setUncleared(wallet.getUncleared().subtract(transaction.getAmount()));
         walletRepository.save(wallet);
 
-        notificationService.send(wallet.getUser().getId(), false, transaction.getAmount(), transaction.getId());
+        transactionNotification.send(wallet.getUser().getId(), false, transaction.getAmount(), transaction.getId());
 
         transaction.setStatus(TransactionStatus.SUCCESSFUL);
         transaction.setUpdatedAt(TimeUtil.now());
@@ -152,7 +152,7 @@ public class SchedulePayImplementation implements SchedulePayService {
             wallet.setBalance(wallet.getBalance().add(transaction.getAmount()));
             wallet.setUpdatedAt(TimeUtil.now());
             walletRepository.save(wallet);
-            notificationService.send(id, true, transaction.getAmount(), transaction.getId());
+            transactionNotification.send(id, true, transaction.getAmount(), transaction.getId());
         }
     }
 }

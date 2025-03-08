@@ -19,7 +19,15 @@ public class PaymentChargeRequest {
         int updatedAmount = Integer.parseInt(getAmount());
         setAmount(String.valueOf(updatedAmount * 100));
 
-        System.out.println("PaymentChargeRequest - " + this);
         return this;
+    }
+
+    public static PaymentChargeRequest build(String email, String amount, String authorizationCode) {
+        PaymentChargeRequest request = new PaymentChargeRequest();
+        request.setEmail(email);
+        request.setAmount(amount);
+        request.setAuthorizationCode(authorizationCode);
+
+        return request;
     }
 }

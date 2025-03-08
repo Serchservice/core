@@ -26,6 +26,41 @@ public class MoneyUtil {
         return result.replace("\u00A0", "");
     }
 
+    /**
+     * Formats the given amount to US Dollar currency format.
+     * @param amount The amount to format.
+     * @return The formatted amount in US Dollar currency.
+     */
+    public static String formatToDollar(BigDecimal amount) {
+        if (amount == null) {
+            amount = BigDecimal.ZERO;
+        }
+
+        String result = NumberFormat.getCurrencyInstance(Locale.US).format(amount);
+        return result.replace("\u00A0", "");
+    }
+
+    /**
+     * Formats the given amount to readable currency format.
+     * @param amount The amount to format.
+     * @return The formatted amount in readable currency.
+     */
+    public static String format(BigDecimal amount, String currency) {
+        if (amount == null) {
+            amount = BigDecimal.ZERO;
+        }
+
+        if(currency == null) {
+            currency = "CNY";
+        }
+
+        if(currency.equalsIgnoreCase("ngn") || currency.equalsIgnoreCase("ng")) {
+            return formatToNaira(amount);
+        } else {
+            return formatToDollar(amount);
+        }
+    }
+
     public static BigDecimal parseFromNaira(String nairaAmount) {
         if(nairaAmount != null && !nairaAmount.isEmpty()) {
             // Remove the naira symbol and any commas from the string

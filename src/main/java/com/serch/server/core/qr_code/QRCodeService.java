@@ -9,14 +9,14 @@ import com.serch.server.enums.auth.Role;
 public interface QRCodeService {
 
     /**
-     * Generates a QR code URL for the platform certificate.
+     * Generates a QR code URL for the platform uploadCertificate.
      * This QR code appears on certificates given to businesses and providers
      * for verification purposes. It includes a secret that is used to verify
-     * the authenticity of the certificate.
+     * the authenticity of the uploadCertificate.
      *
-     * @param secret A unique secret associated with the certificate.
-     *               This secret is used to verify the certificate when the QR code is scanned.
-     * @return A URL as a string representing the QR code that can be used on the certificate.
+     * @param secret A unique secret associated with the uploadCertificate.
+     *               This secret is used to verify the uploadCertificate when the QR code is scanned.
+     * @return A URL as a string representing the QR code that can be used on the uploadCertificate.
      */
     String platformCertificate(String secret);
 

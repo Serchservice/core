@@ -12,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/scope/support/complaint")
+@RequestMapping("/api/v1/scope/support/complaint")
 @PreAuthorize("hasRole('SUPER_ADMIN') || hasRole('ADMIN') || hasRole('MANAGER') || hasRole('TEAM')")
 public class ComplaintScopeController {
     private final ComplaintScopeService service;

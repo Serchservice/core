@@ -39,7 +39,7 @@ public interface TripHistoryService {
      * Prepares the response based on trip response.
      * <p>
      * This method generates a {@link TripResponse} for the specified trip,
-     * incorporating optional payment response and socket update configurations.
+     * incorporating optional payment response and socket update setups.
      * </p>
      *
      * @param userId       The ID of the user requesting the response.

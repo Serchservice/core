@@ -15,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/call")
+@RequestMapping("/api/v1/call")
 @PreAuthorize("hasRole('PROVIDER') || hasRole('USER') || hasRole('ASSOCIATE_PROVIDER')")
 public class CallController {
     private final CallService service;

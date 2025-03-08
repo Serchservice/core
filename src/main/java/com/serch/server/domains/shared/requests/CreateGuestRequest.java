@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.serch.server.annotations.SerchEnum;
 import com.serch.server.enums.account.Gender;
 import com.serch.server.domains.auth.requests.RequestDevice;
-import com.serch.server.core.storage.requests.FileUploadRequest;
+import com.serch.server.core.file.requests.FileUploadRequest;
 import lombok.Data;
 
 @Data

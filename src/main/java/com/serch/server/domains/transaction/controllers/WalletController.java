@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/wallet")
+@RequestMapping("/api/v1/wallet")
 @PreAuthorize("hasRole('BUSINESS') || hasRole('PROVIDER') || hasRole('USER')")
 public class WalletController {
     private final WalletService service;

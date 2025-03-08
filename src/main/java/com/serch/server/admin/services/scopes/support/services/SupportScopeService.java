@@ -15,7 +15,7 @@ public interface SupportScopeService {
 
     /**
      * Retrieves a general overview of support activities on the Serch platform.
-     * This overview may include statistics such as the total number of support requests,
+     * This overview may include statistics such as the total number of support dtos,
      * open cases, resolved cases, and other relevant metrics that provide insights
      * into the overall performance and workload of the support team.
      *

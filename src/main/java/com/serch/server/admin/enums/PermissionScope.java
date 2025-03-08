@@ -13,7 +13,7 @@ public enum PermissionScope {
     PAYMENT("Payment", "Payment Processing", "Grants permissions for payment-related tasks, such as managing transactions, invoices, and refunds."),
     SUPPORT("Support", "Customer Support", "Allows access to support-related tasks, including managing support tickets, customer queries, and communication."),
     PRODUCT("Product", "Product Management", "Enables management of products or services, such as catalog updates, inventory, and product details."),
-    ADMIN("Admin", "Administrative Access", "Grants full access to all system functionalities, including managing users, roles, settings, and configurations."),
+    ADMIN("Admin", "Administrative Access", "Grants full access to all system functionalities, including managing users, roles, settings, and setups."),
     GUEST("Guest", "Guest Access", "Provides limited access to basic functionalities, suitable for unauthenticated or temporary users.");
 
     private final String scope;

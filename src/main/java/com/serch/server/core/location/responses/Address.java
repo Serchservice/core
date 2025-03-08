@@ -1,17 +1,17 @@
 package com.serch.server.core.location.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.serch.server.bases.BaseLocation;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
-public class Address {
+@EqualsAndHashCode(callSuper = true)
+public class Address extends BaseLocation {
     private String id;
-    private String place;
     private String country;
     private String state;
     private String city;
-    private Double latitude;
-    private Double longitude;
 
     @JsonProperty("local_government_area")
     private String localGovernmentArea;

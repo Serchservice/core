@@ -6,4 +6,7 @@ public enum NotificationType {
     SCHEDULE,
     TRIP_MESSAGE,
     TRANSACTION,
+    GO_ACTIVITY,
+    GO_BCAP,
+    GO_TREND
 }

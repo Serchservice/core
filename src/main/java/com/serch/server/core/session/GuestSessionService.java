@@ -8,7 +8,6 @@ import com.serch.server.models.shared.SharedLogin;
  * Interface defining methods for managing guest sessions.
  */
 public interface GuestSessionService {
-
     /**
      * Processes a guest login request and returns a response containing relevant information.
      *

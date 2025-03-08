@@ -94,28 +94,25 @@ public class AuthImplementation implements AuthService {
         String otp = tokenService.generateOtp();
 
         if (user.isPresent()) {
+            int trials;
             if(user.get().getTrials() < MAXIMUM_OTP_TRIALS) {
-                user.get().setToken(passwordEncoder.encode(otp));
-                user.get().setUpdatedAt(TimeUtil.now());
-                user.get().setTrials(user.get().getTrials() + 1);
-                user.get().setTokenExpiresAt(TimeUtil.now().plusMinutes(OTP_EXPIRATION_TIME));
-                incompleteRepository.save(user.get());
-
-                sendEmail(emailAddress, otp);
+                trials = user.get().getTrials() + 1;
             } else if(TimeUtil.isOtpExpired(user.get().getTokenExpiresAt(), "", OTP_EXPIRATION_TIME)) {
-                user.get().setToken(passwordEncoder.encode(otp));
-                user.get().setUpdatedAt(TimeUtil.now());
-                user.get().setTrials(1);
-                user.get().setTokenExpiresAt(TimeUtil.now().plusMinutes(OTP_EXPIRATION_TIME));
-                incompleteRepository.save(user.get());
-
-                sendEmail(emailAddress, otp);
+                trials = 1;
             } else {
                 throw new AuthException(
                         "You can request a new token in %s".formatted(TimeUtil.formatFutureTime(user.get().getTokenExpiresAt(), "")),
                         ExceptionCodes.EMAIL_NOT_VERIFIED
                 );
             }
+
+            user.get().setToken(passwordEncoder.encode(otp));
+            user.get().setUpdatedAt(TimeUtil.now());
+            user.get().setTrials(trials);
+            user.get().setTokenExpiresAt(TimeUtil.now().plusMinutes(OTP_EXPIRATION_TIME));
+            incompleteRepository.save(user.get());
+
+            sendEmail(emailAddress, otp);
         } else {
             createIncomplete(emailAddress, otp);
             sendEmail(emailAddress, otp);
@@ -158,7 +155,7 @@ public class AuthImplementation implements AuthService {
         } else {
             var incomplete = incompleteRepository.findByEmailAddress(email);
 
-            if (incomplete.isPresent()) {
+            if(incomplete.isPresent()) {
                 if (!incomplete.get().isEmailConfirmed()) {
                     sendOtp(email);
 
@@ -181,12 +178,15 @@ public class AuthImplementation implements AuthService {
         Incomplete incomplete = incompleteRepository.findByEmailAddress(request.getEmailAddress())
                 .orElseThrow(() -> new AuthException("User not found", ExceptionCodes.USER_NOT_FOUND));
 
-        if (TimeUtil.isOtpExpired(incomplete.getTokenExpiresAt(), "", OTP_EXPIRATION_TIME)) {
+        if(incomplete.isEmailConfirmed()) {
+            throw new AuthException("User is already verified");
+        } else if(TimeUtil.isOtpExpired(incomplete.getTokenExpiresAt(), "", OTP_EXPIRATION_TIME)) {
             throw new AuthException("OTP is expired. Request for another.", ExceptionCodes.INCORRECT_TOKEN);
         } else {
             if (passwordEncoder.matches(request.getToken(), incomplete.getToken())) {
                 incomplete.setTokenConfirmedAt(TimeUtil.now());
                 incomplete.setUpdatedAt(TimeUtil.now());
+                incomplete.setTrials(0);
                 incompleteRepository.save(incomplete);
 
                 return new ApiResponse<>("OTP confirmed", HttpStatus.OK);

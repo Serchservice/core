@@ -78,7 +78,7 @@ public interface PermissionService {
 
     /**
      * Grants a pending permission request based on its ID and specifies the expiration period.
-     * This method allows for the approval of permission requests, enabling admins to gain
+     * This method allows for the approval of permission dtos, enabling admins to gain
      * the requested access for a defined period.
      *
      * @param expiration The expiration period for the granted permission in ISO format (e.g., "2024-10-15T08:55:00.000Z").
@@ -89,7 +89,7 @@ public interface PermissionService {
 
     /**
      * Declines a pending permission request based on its ID.
-     * This method allows admins to deny permission requests, ensuring that access
+     * This method allows admins to deny permission dtos, ensuring that access
      * is granted only to those who meet the necessary criteria.
      *
      * @param id The ID of the permission request to be declined.
@@ -98,11 +98,11 @@ public interface PermissionService {
     ApiResponse<List<PermissionRequestGroupResponse>> decline(Long id);
 
     /**
-     * Fetches all permission requests for the logged-in admin.
-     * This method allows admins to view pending permission requests that they can
+     * Fetches all permission dtos for the logged-in admin.
+     * This method allows admins to view pending permission dtos that they can
      * either approve or decline, facilitating efficient permission management.
      *
-     * @return {@link ApiResponse} containing a list of {@link PermissionRequestGroupResponse} representing all pending requests.
+     * @return {@link ApiResponse} containing a list of {@link PermissionRequestGroupResponse} representing all pending dtos.
      */
     ApiResponse<List<PermissionRequestGroupResponse>> requests();
 
@@ -118,7 +118,7 @@ public interface PermissionService {
 
     /**
      * Cancels a requested permission based on its ID.
-     * This method allows admins to withdraw permission requests that are no longer needed,
+     * This method allows admins to withdraw permission dtos that are no longer needed,
      * helping to streamline permission management.
      *
      * @param id The ID of the permission request to be canceled.

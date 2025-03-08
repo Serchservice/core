@@ -16,7 +16,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/guest/shared")
+@RequestMapping("/api/v1/guest/shared")
 public class SharedController {
     private final SharedService service;
 

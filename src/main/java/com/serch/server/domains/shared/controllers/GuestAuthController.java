@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/auth/guest")
+@RequestMapping("/api/v1/auth/guest")
 public class GuestAuthController {
     private final GuestAuthService service;
 

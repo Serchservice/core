@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/switch")
+@RequestMapping("/api/v1/switch")
 public class SwitchController {
     private final SwitchService service;
 

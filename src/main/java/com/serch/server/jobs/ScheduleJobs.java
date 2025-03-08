@@ -66,7 +66,7 @@ public class ScheduleJobs {
     }
 
     /**
-     * Notifies the scheduler and scheduled parties when it is time for a scheduled event.
+     * Notifies the scheduler and scheduled parties when it is time for a scheduled activity.
      * <p></p>
      * This runs at the start of every hour
      */

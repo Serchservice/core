@@ -2,6 +2,7 @@ package com.serch.server.core.email;
 
 import com.serch.server.bases.ApiResponse;
 import com.serch.server.core.email.implementations.EmailSender;
+import com.serch.server.domains.nearby.models.go.user.GoUserAddon;
 import com.serch.server.models.email.SendEmail;
 
 /**
@@ -16,7 +17,6 @@ import com.serch.server.models.email.SendEmail;
  * @see EmailSender
  */
 public interface EmailService {
-
     /**
      * Sends an email.
      * <p>
@@ -38,4 +38,47 @@ public interface EmailService {
      * @see ApiResponse
      */
     void send(SendEmail email);
+
+    /**
+     * Sends an email with additional context.
+     * <p>
+     * This method allows sending an email related to a specific {@link GoUserAddon}
+     * with additional information. The implementation should determine how the
+     * extra data and success status influence the email content.
+     * </p>
+     *
+     * @param addon    {@link GoUserAddon} representing the user's addon subscription.
+     * @param extra    Additional context or message to include in the email.
+     * @param isSuccess Boolean flag indicating if the process related to the addon was successful.
+     *
+     * @throws com.serch.server.exceptions.others.EmailException if there is an error while sending the email.
+     */
+    void send(GoUserAddon addon, String extra, boolean isSuccess);
+
+    /**
+     * Sends an email related to a user's addon.
+     * <p>
+     * This method is a simplified version of the previous method, intended to send
+     * an email based solely on the provided {@link GoUserAddon} without extra parameters.
+     * </p>
+     *
+     * @param isSwitch Whether it is for an invoice switch or not
+     * @param addon {@link GoUserAddon} representing the user's addon subscription.
+     *
+     * @throws com.serch.server.exceptions.others.EmailException if there is an error while sending the email.
+     */
+    void send(GoUserAddon addon, boolean isSwitch);
+
+    /**
+     * Sends an email related to a user's addon.
+     * <p>
+     * This method is a simplified version of the previous method, intended to send
+     * an email based solely on the provided {@link GoUserAddon} without extra parameters.
+     * </p>
+     *
+     * @param addon {@link GoUserAddon} representing the user's addon subscription.
+     *
+     * @throws com.serch.server.exceptions.others.EmailException if there is an error while sending the email.
+     */
+    void send(GoUserAddon addon, String link);
 }

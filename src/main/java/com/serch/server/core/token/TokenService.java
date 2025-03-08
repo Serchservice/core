@@ -7,7 +7,7 @@ import com.serch.server.core.token.implementations.TokenImplementation;
  * This interface provides methods for generating one-time passwords (OTPs),
  * numeric codes, alphanumeric codes, and refresh tokens. Implementations
  * of this interface should ensure secure and random generation of these
- * tokens for various use cases such as authentication and authorization.
+ * tokens for various use cases such as authentication and auth.
  *
  * @see TokenImplementation
  */

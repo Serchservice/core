@@ -324,6 +324,26 @@
       "name": "application.access.enc.iv",
       "type": "java.lang.String",
       "description": "The encryption initialization vector."
+    },
+    {
+      "name": "application.cloudinary.url",
+      "type": "java.lang.String",
+      "description": "This is the defined url for cloudinary."
+    },
+    {
+      "name": "application.cloudinary.api-key",
+      "type": "java.lang.String",
+      "description": "This is the defined API KEY for cloudinary."
+    },
+    {
+      "name": "application.cloudinary.secret-key",
+      "type": "java.lang.String",
+      "description": "This is the defined SECRET KEY for cloudinary."
+    },
+    {
+      "name": "application.cloudinary.name",
+      "type": "java.lang.String",
+      "description": "This is the defined name for cloudinary."
     }
   ]
 }

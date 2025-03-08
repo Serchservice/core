@@ -133,7 +133,7 @@ public class ActiveSearchImplementation implements ActiveSearchService {
             if (actives != null && actives.hasContent() && !actives.getContent().isEmpty()) {
                 Set<Active> distinct = new HashSet<>();
                 List<ActiveResponse> list = actives.getContent().stream()
-                        // Filter based on whether certificates are required and whether the certificate exists
+                        // Filter based on whether certificates are required and whether the uploadCertificate exists
                         .filter(active -> {
                             boolean showOnlyCertified = Optional.ofNullable(setting.get().getShowOnlyCertified()).orElse(false);
                             boolean hasCertificate = certificateRepository.existsByUser(active.getProfile().getId());

@@ -21,7 +21,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/scope/account/user")
+@RequestMapping("/api/v1/scope/account/user")
 public class AccountUserScopeController {
     private final AccountUserScopeService service;
 

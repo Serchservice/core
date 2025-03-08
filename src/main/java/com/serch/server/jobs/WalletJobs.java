@@ -24,17 +24,17 @@ public class WalletJobs {
      */
     @Scheduled(cron = "0 0 0 * * ?")
     public void processPayouts() {
-        log.info("Processing paydays in WALLET SERVICE for %s".formatted(TimeUtil.log()));
+        log.info("Processing paydays in WALLET SERVICE for {}", TimeUtil.log());
         service.processPaydays();
     }
 
     /**
      * Executes the remove method periodically, to check and verify pending transactions
-     * This method is scheduled to run every midnight.
+     * This method is scheduled to run every 10 minutes.
      */
     @Scheduled(cron = "0 0/10 * * * ?")
     public void processPendingTransactions() {
-        log.info("Processing pending transactions in WALLET SERVICE for %s".formatted(TimeUtil.log()));
+        log.info("Processing pending transactions in WALLET SERVICE for {}", TimeUtil.log());
         service.processPendingVerifications();
     }
 }

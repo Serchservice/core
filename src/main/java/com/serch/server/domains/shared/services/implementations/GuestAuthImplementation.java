@@ -1,8 +1,8 @@
 package com.serch.server.domains.shared.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.core.file.services.FileService;
 import com.serch.server.core.session.GuestSessionService;
-import com.serch.server.core.storage.services.StorageService;
 import com.serch.server.core.token.TokenService;
 import com.serch.server.domains.auth.services.AuthService;
 import com.serch.server.domains.shared.requests.CreateGuestFromUserRequest;
@@ -42,7 +42,6 @@ import java.util.Optional;
  * This is the class that contains the logic and implementation of its wrapper class {@link GuestAuthService}
  *
  * @see TokenService
- * @see StorageService
  * @see PasswordEncoder
  * @see SharedLinkRepository
  * @see GuestRepository
@@ -56,7 +55,7 @@ public class GuestAuthImplementation implements GuestAuthService {
     private final GuestSessionService sessionService;
     private final SharedService sharedService;
     private final AuthService authService;
-    private final StorageService supabase;
+    private final FileService uploadService;
     private final PasswordEncoder passwordEncoder;
     private final SharedLinkRepository sharedLinkRepository;
     private final GuestRepository guestRepository;
@@ -188,7 +187,7 @@ public class GuestAuthImplementation implements GuestAuthService {
 
     protected Guest getNewGuest(CreateGuestRequest request, String image) {
         Guest guest = SharedMapper.INSTANCE.guest(request);
-        guest.setAvatar(image != null ? image : supabase.upload(request.getUpload(), AuthUtil.getBucket(null)));
+        guest.setAvatar(image != null ? image : uploadService.guest(request.getUpload(), guest.getEmailAddress()).getFile());
 
         return guestRepository.save(guest);
     }
@@ -246,7 +245,7 @@ public class GuestAuthImplementation implements GuestAuthService {
         if(profile.getAvatar() != null && !profile.getAvatar().isEmpty()) {
             return profile.getAvatar();
         } else {
-            String image = supabase.upload(request.getUpload(), AuthUtil.getBucket(null));
+            String image = uploadService.guest(request.getUpload(), profile.getUser().getEmailAddress()).getFile();
             profile.setAvatar(image);
             profile.setUpdatedAt(TimeUtil.now());
             profileRepository.save(profile);

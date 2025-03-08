@@ -1,6 +1,6 @@
 package com.serch.server.utils;
 
-import com.serch.server.core.storage.requests.FileUploadRequest;
+import com.serch.server.core.file.requests.FileUploadRequest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
  * between two geographic points, generating QR codes, and formatting file sizes.
  */
 public class HelperUtil {
-    public static String dummyCertificate = "/storage/v1/object/public/certificate/UnsignedBlur.png";
+    public static String dummyCertificate = "/storage/v1/object/public/uploadCertificate/UnsignedBlur.png";
 
     /**
      * Validates a password based on a regular expression pattern.
@@ -101,5 +101,19 @@ public class HelperUtil {
         } else {
             return "Serch Wallet - %s".formatted(wallet);
         }
+    }
+
+    /**
+     * Convert long numbers to human-readable strings.
+     * Example: 3300 -> "3.3k", 2300000 -> "2.3M", 1200000000 -> "1.2B".
+     * @param number The number to convert.
+     * @return A human-readable string representation of the number.
+     */
+    public static String format(long number) {
+        if (number < 1000) return String.valueOf(number);
+        if (number < 1_000_000) return String.format("%.1fk", number / 1000.0);
+        if (number < 1_000_000_000) return String.format("%.1fM", number / 1_000_000.0);
+
+        return String.format("%.1fB", number / 1_000_000_000.0);
     }
 }

@@ -1,7 +1,7 @@
 package com.serch.server.domains.trip.requests;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.serch.server.core.storage.requests.FileUploadRequest;
+import com.serch.server.core.file.requests.FileUploadRequest;
 import com.serch.server.enums.account.SerchCategory;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

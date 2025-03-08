@@ -1,9 +1,15 @@
 package com.serch.server.domains.trip.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.core.file.services.FileService;
 import com.serch.server.core.notification.services.NotificationService;
 import com.serch.server.core.payment.responses.InitializePaymentData;
-import com.serch.server.core.storage.services.StorageService;
+import com.serch.server.domains.shared.services.SharedService;
+import com.serch.server.domains.trip.requests.*;
+import com.serch.server.domains.trip.responses.ActiveResponse;
+import com.serch.server.domains.trip.responses.MapViewResponse;
+import com.serch.server.domains.trip.responses.TripResponse;
+import com.serch.server.domains.trip.services.*;
 import com.serch.server.enums.account.ProviderStatus;
 import com.serch.server.exceptions.others.TripException;
 import com.serch.server.mappers.TripMapper;
@@ -14,15 +20,9 @@ import com.serch.server.models.trip.*;
 import com.serch.server.repositories.account.PhoneInformationRepository;
 import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.trip.*;
-import com.serch.server.domains.shared.services.SharedService;
-import com.serch.server.domains.trip.requests.*;
-import com.serch.server.domains.trip.responses.ActiveResponse;
-import com.serch.server.domains.trip.responses.MapViewResponse;
-import com.serch.server.domains.trip.responses.TripResponse;
-import com.serch.server.domains.trip.services.*;
+import com.serch.server.utils.AuthUtil;
 import com.serch.server.utils.HelperUtil;
 import com.serch.server.utils.TimeUtil;
-import com.serch.server.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -45,9 +45,9 @@ import static com.serch.server.enums.trip.TripType.SPEAK_TO;
 @Service
 @RequiredArgsConstructor
 public class TripImplementation implements TripService {
-    private final StorageService storageService;
+    private final FileService uploadService;
     private final SharedService sharedService;
-    private final NotificationService notificationService;
+    private final NotificationService tripNotification;
     private final ActiveSearchService activeSearchService;
     private final TripTimelineService timelineService;
     private final TripAuthenticationService authenticationService;
@@ -97,17 +97,22 @@ public class TripImplementation implements TripService {
         trip.setStatus(WAITING);
         trip.setAmount(BigDecimal.valueOf(request.getAmount()));
 
+        trip = tripRepository.save(trip);
+
         if(!HelperUtil.isUploadEmpty(request.getAudio())) {
-            String url = storageService.upload(request.getAudio(), "trip");
+            String url = uploadService.uploadTrip(request.getAudio(), trip.getId()).getFile();
             trip.setAudio(url);
+
+            return tripRepository.save(trip);
+        } else {
+            return trip;
         }
-        return tripRepository.save(trip);
     }
 
     @Transactional
     protected ApiResponse<TripResponse> getRequestResponse(Trip trip, User user) {
         timelineService.create(trip, null, REQUESTED);
-        notificationService.send(
+        tripNotification.send(
                 String.valueOf(trip.getProvider().getId()),
                 String.format("%s is requesting for your %s skill", user.getFullName(), trip.getProvider().getCategory().getType()),
                 "New trip request",
@@ -262,21 +267,21 @@ public class TripImplementation implements TripService {
         activeService.toggle(trip.getProvider().getUser(), ONLINE, TripMapper.INSTANCE.request(trip));
 
         if(!authUtil.getGuestId().isEmpty()) {
-            notificationService.send(
+            tripNotification.send(
                     String.valueOf(trip.getProvider().getId()),
                     "We are sorry to notify you that this trip has been cancelled.",
                     "Trip share cancelled",
                     authUtil.getGuestId(), null, false
             );
         } else if(authUtil.getUser().getRole() == USER) {
-            notificationService.send(
+            tripNotification.send(
                     String.valueOf(trip.getProvider().getId()),
                     "We are sorry to notify you that this trip has been cancelled.",
                     "Trip share cancelled",
                     String.valueOf(authUtil.getUser().getId()), null, false
             );
         } else {
-            notificationService.send(
+            tripNotification.send(
                     trip.getAccount(),
                     "We are sorry to notify you that this trip has been cancelled.",
                     "Trip share cancelled",
@@ -351,14 +356,14 @@ public class TripImplementation implements TripService {
             timelineService.create(trip, null, LEFT);
             activeService.toggle(trip.getProvider().getUser(), ONLINE, TripMapper.INSTANCE.request(trip));
 
-            notificationService.send(
+            tripNotification.send(
                     trip.getAccount(),
                     String.format("%s has left the trip", authUtil.getUser().getFullName()),
                     "Trip Update - Provider left",
                     String.valueOf(authUtil.getUser().getId()), null, false
             );
 
-            notificationService.send(
+            tripNotification.send(
                     String.valueOf(trip.getInvited().getProvider().getId()),
                     String.format("%s has left the trip", authUtil.getUser().getFullName()),
                     "Trip Update - Provider left",
@@ -423,7 +428,7 @@ public class TripImplementation implements TripService {
                 timelineService.create(trip, null, AUTHENTICATED);
                 timelineService.create(trip, null, ON_TRIP);
 
-                notificationService.send(
+                tripNotification.send(
                         String.valueOf(trip.getProvider().getId()),
                         "This trip is now verified",
                         "Trip authentication successful",

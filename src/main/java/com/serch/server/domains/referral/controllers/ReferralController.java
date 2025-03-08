@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/referral")
+@RequestMapping("/api/v1/referral")
 public class ReferralController {
     private final ReferralService service;
     private final ReferralProgramService programService;

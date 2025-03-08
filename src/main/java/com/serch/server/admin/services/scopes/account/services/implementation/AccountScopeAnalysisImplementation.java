@@ -224,7 +224,7 @@ public class AccountScopeAnalysisImplementation implements AccountScopeAnalysisS
             case "gender" -> groupUserMetricsByGender(role, start, end);
             case "status" -> groupUserMetricsByStatus(role, start, end);
             case "trip" -> groupUserMetricsByTrip(role, start, end);
-            case "certificate" -> groupUserMetricsByCertificate(users);
+            case "uploadCertificate" -> groupUserMetricsByCertificate(users);
             case "country" -> users.stream().collect(Collectors.groupingBy(User::getCountry, Collectors.counting()));
             case "state" -> users.stream().collect(Collectors.groupingBy(User::getState, Collectors.counting()));
             default -> users.stream().collect(Collectors.groupingBy(User::getTimezone, Collectors.counting()));

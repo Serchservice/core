@@ -5,7 +5,7 @@ import com.serch.server.domains.certificate.responses.CertificateData;
 import com.serch.server.domains.certificate.responses.CertificateResponse;
 import com.serch.server.domains.certificate.responses.VerifyCertificateResponse;
 import com.serch.server.domains.certificate.services.CertificateService;
-import com.serch.server.core.storage.requests.FileUploadRequest;
+import com.serch.server.core.file.requests.FileUploadRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/certificate")
+@RequestMapping("/api/v1/certificate")
 public class CertificateController {
     private final CertificateService service;
 

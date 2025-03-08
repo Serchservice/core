@@ -8,10 +8,10 @@ import com.serch.server.domains.trip.requests.TripInviteRequest;
 import com.serch.server.domains.trip.responses.TripResponse;
 
 /**
- * Service interface for handling trip requests.
+ * Service interface for handling trip dtos.
  * <p>
  * This interface provides methods for inviting trips, sending quotations,
- * accepting trip requests, and managing trip cancellations. It also supports
+ * accepting trip dtos, and managing trip cancellations. It also supports
  * retrieving the trip request history.
  * </p>
  */

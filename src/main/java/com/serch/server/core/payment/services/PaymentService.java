@@ -57,14 +57,14 @@ public interface PaymentService {
     PaymentVerificationData verify(String reference);
 
     /**
-     * Charges a payment authorization based on the provided request response.
+     * Charges a payment auth based on the provided request response.
      * <p>
      * This method processes a payment charge using the previously authorized payment details,
      * returning the result of the charge operation.
      * </p>
      *
      * @param request The request object containing payment charge response, including the reference
-     *                from the initial payment authorization and the amount to charge.
+     *                from the initial payment auth and the amount to charge.
      * @return An object representing the payment verification response, which includes the result
      *         of the charge, such as confirmation of success or failure, and any relevant details.
      *

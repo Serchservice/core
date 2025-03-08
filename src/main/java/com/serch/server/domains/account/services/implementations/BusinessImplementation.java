@@ -1,6 +1,7 @@
 package com.serch.server.domains.account.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.core.file.services.FileService;
 import com.serch.server.enums.verified.VerificationStatus;
 import com.serch.server.exceptions.account.AccountException;
 import com.serch.server.mappers.AccountMapper;
@@ -25,7 +26,6 @@ import com.serch.server.domains.account.services.ProfileService;
 import com.serch.server.domains.auth.requests.RequestBusinessProfile;
 import com.serch.server.domains.referral.services.ReferralService;
 import com.serch.server.core.token.TokenService;
-import com.serch.server.core.storage.services.StorageService;
 import com.serch.server.domains.transaction.services.WalletService;
 import com.serch.server.utils.DatabaseUtil;
 import com.serch.server.utils.HelperUtil;
@@ -43,7 +43,6 @@ import java.util.List;
  * Service for managing business profiles, including creation, updating, and retrieval.
  * It implements the wrapper class {@link BusinessService}
  *
- * @see StorageService
  * @see ReferralService
  * @see WalletService
  * @see SpecialtyService
@@ -64,7 +63,7 @@ public class BusinessImplementation implements BusinessService {
     private final ReferralService referralService;
     private final WalletService walletService;
     private final ProfileService profileService;
-    private final StorageService supabase;
+    private final FileService uploadService;
     private final SpecialtyService specialtyService;
     private final AuthUtil authUtil;
     private final BusinessProfileRepository businessProfileRepository;
@@ -212,12 +211,12 @@ public class BusinessImplementation implements BusinessService {
 
         profileService.updatePhoneInformation(request.getPhone(), user);
         if(!HelperUtil.isUploadEmpty(request.getUpload())) {
-            String url = supabase.upload(request.getUpload(), AuthUtil.getBucket(user.getRole()));
+            String url = uploadService.uploadCommon(request.getUpload(), user).getFile();
             profile.setAvatar(url);
             updateTimeStamps(profile.getUser(), profile);
         }
         if(!HelperUtil.isUploadEmpty(request.getLogo())) {
-            String url = supabase.upload(request.getLogo(), AuthUtil.getBucket(user.getRole()));
+            String url = uploadService.uploadCommon(request.getLogo(), user).getFile();
             profile.setBusinessLogo(url);
             updateTimeStamps(profile.getUser(), profile);
         }

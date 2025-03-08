@@ -1,13 +1,13 @@
 package com.serch.server.core.payment.responses;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 
-@Getter
-@Setter
-@ToString
+@Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PaymentVerificationData {
     private Long id;
     private String status;
@@ -16,10 +16,30 @@ public class PaymentVerificationData {
     private String message;
     private String channel;
     private String currency;
+    private Integer fees;
 
     @JsonProperty("ip_address")
     private String ipAddress;
 
-    private Integer fees;
     private PaymentAuthorization authorization;
+    private Customer customer;
+
+    private String plan;
+
+    @Data
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Customer {
+        private String email;
+        private Long id;
+
+        @JsonProperty("first_name")
+        private String firstName;
+
+        @JsonProperty("last_name")
+        private String lastName;
+
+        @JsonProperty("customer_code")
+        private String code;
+    }
 }

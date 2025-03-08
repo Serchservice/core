@@ -3,7 +3,7 @@ package com.serch.server.core.validator;
 /**
  * The KeyValidator interface defines methods to handle and validate API keys and request signatures
  * for secure communication between the client app and server. This includes verifying the authenticity of incoming
- * requests by validating API keys, signatures, and optionally the request path.
+ * dtos by validating API keys, signatures, and optionally the request path.
  */
 public interface KeyValidatorService {
     /**

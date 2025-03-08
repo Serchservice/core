@@ -8,7 +8,6 @@ package com.serch.server.core.validator;
  * users and guests.
  */
 public interface EndpointValidatorService {
-
     /**
      * Checks if the specified path is permitted for drive users.
      *
@@ -46,11 +45,20 @@ public interface EndpointValidatorService {
     boolean isSocketPermitted(String path);
 
     /**
-     * Checks if the specified path is permitted for common api key access.
+     * Checks if the specified path is permitted for authenticated nearby/drive - go access only.
      *
      * @param path the path to validate
-     * @return {@code true} if the path is permitted for common api key access;
+     * @return {@code true} if the path is permitted for authenticated nearby/drive - go access only;
      *         {@code false} otherwise
      */
-    boolean isApiKeyPermitted(String path);
+    boolean isGoAuthenticatedOnly(String path);
+
+    /**
+     * Checks if the specified path is permitted for nearby/drive - go access only.
+     *
+     * @param path the path to validate
+     * @return {@code true} if the path is permitted for nearby/drive - go access only;
+     *         {@code false} otherwise
+     */
+    boolean isGoAllowedOnly(String path);
 }

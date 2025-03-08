@@ -137,7 +137,7 @@ public interface WalletService {
      * ensuring that the appropriate amount is charged from the sender's wallet and
      * credited to the receiver's profile. It also manages any related financial operations.
      *
-     * @param channel The call channel for the event, which may determine specific payment rules.
+     * @param channel The call channel for the activity, which may determine specific payment rules.
      * @param sender The sender's UUID, identifying the user initiating the payment.
      * @param receiver The receiver's profile, which contains information about the user receiving the payment.
      */

@@ -12,10 +12,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Service class implementing PaymentService interface, providing functionality
- * for initializing payments, verifying payments, and charging authorization for payments.
+ * for initializing payments, verifying payments, and charging auth for payments.
  * This class interacts with the Paystack API to perform payment-related operations.
  * <p></p>
  * This wraps it interface class {@link PaymentService}
@@ -27,25 +28,41 @@ public class Payment implements PaymentService {
     private final RestTemplate rest;
 
     @Value("${application.payment.api-key}")
-    private String TEST_SECRET_KEY;
+    private String SECRET_KEY;
+
     @Value("${application.payment.base-url}")
     private String BASE_API_ENDPOINT;
 
     /**
-     * Constructs and returns HTTP headers for making API requests.
+     * Constructs and returns HTTP headers for making API dtos.
      *
-     * @return HttpHeaders containing the necessary headers for API requests.
+     * @return HttpHeaders containing the necessary headers for API dtos.
      */
     private HttpHeaders headers() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.add("Authorization", "Bearer "+ TEST_SECRET_KEY);
+        headers.add("Authorization", "Bearer "+ SECRET_KEY);
+
         return headers;
+    }
+
+    private String buildEndpoint(String endpoint) {
+        return BASE_API_ENDPOINT + endpoint;
+    }
+
+    private boolean qualify(ResponseEntity<?> response) {
+        return response.getStatusCode().is2xxSuccessful() && response.getBody() != null;
     }
 
     @Override
     public InitializePaymentData initialize(InitializePaymentRequest request) {
-        ResponseEntity<InitializePaymentResponse> response = getInitializeResponse(request);
+        InitializePaymentRequest payment = request.validate();
+
+        ResponseEntity<InitializePaymentResponse> response = rest.postForEntity(
+                buildEndpoint("/transaction/initialize"),
+                new HttpEntity<>(payment, headers()),
+                InitializePaymentResponse.class
+        );
 
         if(response.getStatusCode().is2xxSuccessful()) {
             InitializePaymentResponse body = response.getBody();
@@ -56,40 +73,15 @@ public class Payment implements PaymentService {
         throw new PaymentException("Error processing verification. Check your internet and try again.");
     }
 
-    private ResponseEntity<InitializePaymentResponse> getInitializeResponse(InitializePaymentRequest request) {
-        InitializePaymentRequest payment = request.validate();
-        HttpEntity<InitializePaymentRequest> entity = new HttpEntity<>(payment, headers());
-        String endpoint = BASE_API_ENDPOINT + "/transaction/initialize";
-
-        return rest.postForEntity(endpoint, entity, InitializePaymentResponse.class);
-    }
-
     @Override
     public PaymentVerificationData verify(String reference) {
-        return getPaymentVerificationData(getVerifyResponse(reference));
-    }
+        ResponseEntity<PaymentVerificationResponse> response = rest.exchange(
+                buildEndpoint("/transaction/verify/" + reference),
+                HttpMethod.GET,
+                new HttpEntity<>(headers()),
+                PaymentVerificationResponse.class
+        );
 
-    private ResponseEntity<PaymentVerificationResponse> getVerifyResponse(String reference) {
-        HttpEntity<Object> entity = new HttpEntity<>(headers());
-        String endpoint = BASE_API_ENDPOINT + "/transaction/verify/" + reference;
-
-        return rest.exchange(endpoint, HttpMethod.GET, entity, PaymentVerificationResponse.class);
-    }
-
-    @Override
-    public PaymentVerificationData charge(PaymentChargeRequest request) {
-        return getPaymentVerificationData(getChargeResponse(request));
-    }
-
-    private ResponseEntity<PaymentVerificationResponse> getChargeResponse(PaymentChargeRequest request) {
-        PaymentChargeRequest charge = request.validate();
-        HttpEntity<Object> entity = new HttpEntity<>(charge, headers());
-        String endpoint = BASE_API_ENDPOINT + "/transaction/charge_authorization";
-
-        return rest.postForEntity(endpoint, entity, PaymentVerificationResponse.class);
-    }
-
-    private PaymentVerificationData getPaymentVerificationData(ResponseEntity<PaymentVerificationResponse> response) {
         if(response.getStatusCode().is2xxSuccessful()) {
             PaymentVerificationResponse body = response.getBody();
             assert body != null : "Couldn't verify payment";
@@ -105,31 +97,51 @@ public class Payment implements PaymentService {
     }
 
     @Override
-    public List<Bank> banks() {
-        ResponseEntity<Banks> response = getListOfBankResponse();
+    public PaymentVerificationData charge(PaymentChargeRequest request) {
+        PaymentChargeRequest charge = request.validate();
 
-        if(response.getStatusCode().is2xxSuccessful() && response.getBody() != null && response.getBody().getData() != null) {
-            return response.getBody().getData();
+        ResponseEntity<PaymentVerificationResponse> response = rest.postForEntity(
+                buildEndpoint("/transaction/charge_authorization"),
+                new HttpEntity<>(charge, headers()),
+                PaymentVerificationResponse.class
+        );
+
+        if(response.getStatusCode().is2xxSuccessful()) {
+            PaymentVerificationResponse body = response.getBody();
+            assert body != null : "Couldn't complete payment";
+
+            if(body.getData().getStatus().equalsIgnoreCase("success")) {
+                return body.getData();
+            } else {
+                throw new PaymentException("Couldn't verify your transaction. Try again");
+            }
         }
-        return List.of();
+
+        throw new PaymentException("Error processing verification. Check your internet and try again.");
     }
 
-    private ResponseEntity<Banks> getListOfBankResponse() {
-        HttpEntity<Object> entity = new HttpEntity<>(headers());
-        String endpoint = BASE_API_ENDPOINT + "/bank" ;
+    @Override
+    public List<Bank> banks() {
+        ResponseEntity<Banks> response = rest.exchange(buildEndpoint("/bank"), HttpMethod.GET, new HttpEntity<>(headers()), Banks.class);
 
-        return rest.exchange(endpoint, HttpMethod.GET, entity, Banks.class);
+        if(qualify(response) && Objects.requireNonNull(response.getBody()).getData() != null) {
+            return response.getBody().getData();
+        } else {
+            return List.of();
+        }
     }
 
     @Override
     public BankAccount verify(String accountNumber, String code) {
-        HttpEntity<Object> entity = new HttpEntity<>(headers());
-        String endpoint = BASE_API_ENDPOINT + "/bank/resolve?account_number=%s&bank_code=%s".formatted(accountNumber, code);
-
         try {
-            ResponseEntity<BankAccountResponse> response = rest.exchange(endpoint, HttpMethod.GET, entity, BankAccountResponse.class);
+            ResponseEntity<BankAccountResponse> response = rest.exchange(
+                    buildEndpoint("/bank/resolve?account_number=%s&bank_code=%s".formatted(accountNumber, code)),
+                    HttpMethod.GET,
+                    new HttpEntity<>(headers()),
+                    BankAccountResponse.class
+            );
 
-            if(response.getStatusCode().is2xxSuccessful() && response.getBody() != null && response.getBody().getData() != null) {
+            if(qualify(response) && Objects.requireNonNull(response.getBody()).getData() != null) {
                 return response.getBody().getData();
             } else {
                 throw new PaymentException("Bank account not found. Verify your details");

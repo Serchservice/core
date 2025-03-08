@@ -15,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/scope/account/analysis")
+@RequestMapping("/api/v1/scope/account/analysis")
 @PreAuthorize("hasRole('SUPER_ADMIN') || hasRole('ADMIN') || hasRole('MANAGER') || hasRole('TEAM')")
 public class AccountScopeAnalysisController {
     private final AccountScopeAnalysisService service;

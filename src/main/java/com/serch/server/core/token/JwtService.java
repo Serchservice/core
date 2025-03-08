@@ -11,7 +11,7 @@ import java.util.Map;
  * This interface provides methods for generating, validating, and extracting information
  * from JWT tokens. Implementations of this interface should ensure secure handling of
  * token-related operations, providing a reliable way to manage authentication and
- * authorization within the application.
+ * auth within the application.
  * </p>
  *
  * @see JwtImplementation
@@ -59,7 +59,7 @@ public interface JwtService {
      * <p>
      * This method validates the expiration of the given JWT token by examining its
      * claims. If the token has expired, it should not be accepted for further
-     * authentication or authorization operations.
+     * authentication or auth operations.
      * </p>
      *
      * @param token The JWT token to be checked.

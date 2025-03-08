@@ -8,7 +8,7 @@ import com.serch.server.admin.services.permission.responses.GrantedPermissionSco
 import com.serch.server.admin.services.permission.responses.PermissionResponse;
 import com.serch.server.admin.services.permission.responses.SpecificPermissionResponse;
 import com.serch.server.admin.services.permission.services.GrantedPermissionService;
-import com.serch.server.core.notification.repository.NotificationRepository;
+import com.serch.server.core.notification.repository.implementations.NotificationRepository;
 import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

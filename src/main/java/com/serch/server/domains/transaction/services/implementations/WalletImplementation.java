@@ -55,7 +55,7 @@ import static com.serch.server.enums.transaction.TransactionStatus.SUCCESSFUL;
 @RequiredArgsConstructor
 public class WalletImplementation implements WalletService {
     private final PaymentService paymentService;
-    private final NotificationService notificationService;
+    private final NotificationService transactionNotification;
     private final AuthUtil authUtil;
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
@@ -166,34 +166,32 @@ public class WalletImplementation implements WalletService {
     }
 
     protected void creditWallet(BigDecimal amount, UUID receiver) {
-        walletRepository.findByUser_Id(receiver)
-                .ifPresent(wallet -> {
-                    wallet.setDeposit(wallet.getDeposit().add(amount));
-                    wallet.setUpdatedAt(TimeUtil.now());
-                    walletRepository.save(wallet);
+        walletRepository.findByUser_Id(receiver).ifPresent(wallet -> {
+            wallet.setDeposit(wallet.getDeposit().add(amount));
+            wallet.setUpdatedAt(TimeUtil.now());
+            walletRepository.save(wallet);
 
-                    processUnclearedDebts(wallet.getId());
-                });
+            processUnclearedDebts(wallet.getId());
+        });
     }
 
     @Override
     public void processUnclearedDebts(String id) {
-        walletRepository.findById(id)
-                .ifPresent(wallet -> {
-                    if(wallet.getUncleared().compareTo(BigDecimal.ZERO) > 0) {
-                        BigDecimal amount = wallet.getUncleared();
+        walletRepository.findById(id).ifPresent(wallet -> {
+            if(wallet.getUncleared().compareTo(BigDecimal.ZERO) > 0) {
+                BigDecimal amount = wallet.getUncleared();
 
-                        if(wallet.getDeposit().compareTo(amount) > 0) {
-                            wallet.setDeposit(wallet.getDeposit().subtract(amount));
-                            wallet.setUncleared(BigDecimal.ZERO);
-                            wallet.setUpdatedAt(TimeUtil.now());
-                            walletRepository.save(wallet);
+                if(wallet.getDeposit().compareTo(amount) > 0) {
+                    wallet.setDeposit(wallet.getDeposit().subtract(amount));
+                    wallet.setUncleared(BigDecimal.ZERO);
+                    wallet.setUpdatedAt(TimeUtil.now());
+                    walletRepository.save(wallet);
 
-                            Transaction transaction = getDebitTransaction(amount, wallet, SUCCESSFUL, "Debt Payment", String.valueOf(wallet.getUser().getId()));
-                            notificationService.send(wallet.getUser().getId(), amount, transaction.getId());
-                        }
-                    }
-                });
+                    Transaction transaction = getDebitTransaction(amount, wallet, SUCCESSFUL, "Debt Payment", String.valueOf(wallet.getUser().getId()));
+                    transactionNotification.send(wallet.getUser().getId(), amount, transaction.getId());
+                }
+            }
+        });
     }
 
     @Override
@@ -330,7 +328,7 @@ public class WalletImplementation implements WalletService {
             wallet.setUpdatedAt(TimeUtil.now());
             walletRepository.save(wallet);
 
-            notificationService.send(sender, false, transaction.getAmount(), transaction.getId());
+            transactionNotification.send(sender, false, transaction.getAmount(), transaction.getId());
         }, () -> {
             throw new WalletException("Couldn't process Tip2Fix payment. Try again");
         });
@@ -340,7 +338,7 @@ public class WalletImplementation implements WalletService {
             wallet.setUpdatedAt(TimeUtil.now());
             walletRepository.save(wallet);
 
-            notificationService.send(wallet.getUser().getId(), true, transaction.getAmount(), transaction.getId());
+            transactionNotification.send(wallet.getUser().getId(), true, transaction.getAmount(), transaction.getId());
         }, () -> {
             throw new WalletException("Couldn't process Tip2Fix payment. Try again");
         });
@@ -424,7 +422,7 @@ public class WalletImplementation implements WalletService {
         walletRepository.save(wallet);
 
         /// Send Notification
-        notificationService.send(
+        transactionNotification.send(
                 wallet.getUser().getId(),
                 wallet.getPayout(),
                 status == SUCCESSFUL,
@@ -463,7 +461,7 @@ public class WalletImplementation implements WalletService {
                     transaction.setUpdatedAt(TimeUtil.now());
                     transactionRepository.save(transaction);
 
-                    notificationService.send(UUID.fromString(transaction.getSender()), true, transaction.getAmount(), transaction.getId());
+                    transactionNotification.send(UUID.fromString(transaction.getSender()), true, transaction.getAmount(), transaction.getId());
                 } catch (Exception e) {
                     transaction.setStatus(FAILED);
                     transaction.setVerified(false);

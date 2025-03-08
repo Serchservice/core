@@ -11,7 +11,7 @@ import com.serch.server.core.location.services.LocationService;
 import com.serch.server.domains.shop.responses.SearchShopResponse;
 import com.serch.server.enums.ServerHeader;
 import com.serch.server.mappers.CoreMapper;
-import com.serch.server.nearby.services.drive.services.NearbyDriveService;
+import com.serch.server.domains.nearby.services.drive.services.NearbyDriveService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
@@ -44,9 +44,9 @@ public class LocationImplementation implements LocationService {
     private String MAP_API_KEY;
 
     /**
-     * Constructs and returns HTTP headers for making API requests.
+     * Constructs and returns HTTP headers for making API dtos.
      *
-     * @return HttpHeaders containing the necessary headers for API requests.
+     * @return HttpHeaders containing the necessary headers for API dtos.
      */
     private HttpHeaders headers() {
         HttpHeaders headers = new HttpHeaders();
@@ -129,9 +129,12 @@ public class LocationImplementation implements LocationService {
             if(response.getStatusCode().is2xxSuccessful()) {
                 if(ObjectUtils.isNotEmpty(Objects.requireNonNull(response.getBody()))) {
                     if(response.getBody().getPlaces() != null && !response.getBody().getPlaces().isEmpty()) {
-                        response.getBody().getPlaces().forEach(place ->
-                                shops.add(CoreMapper.instance.response(place, latitude, longitude, getCategory(keyword, category)))
-                        );
+                        response.getBody().getPlaces().forEach(place -> shops.add(CoreMapper.instance.response(
+                                place,
+                                latitude,
+                                longitude,
+                                getCategory(keyword, category)
+                        )));
                     }
                 }
             }
@@ -149,7 +152,7 @@ public class LocationImplementation implements LocationService {
         request.getLocationRestriction().getCircle().setRadius(radius);
         request.getLocationRestriction().getCircle().getCenter().setLatitude(latitude);
         request.getLocationRestriction().getCircle().getCenter().setLongitude(longitude);
-        log.info(String.format("Nearby Search for - %s", request));
+        log.info("Nearby Search for - {}", request);
 
         driveService.search(getCategory(keyword, category));
 

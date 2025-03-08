@@ -15,7 +15,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('BUSINESS')")
-@RequestMapping("/business/associate")
+@RequestMapping("/api/v1/business/associate")
 public class BusinessAssociateController {
     private final BusinessAssociateService service;
 

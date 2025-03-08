@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/company/newsletter")
+@RequestMapping("/api/v1/company/newsletter")
 public class NewsletterController {
     private final NewsletterService service;
 

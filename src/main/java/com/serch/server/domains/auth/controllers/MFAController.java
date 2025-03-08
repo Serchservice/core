@@ -16,7 +16,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/auth/mfa")
+@RequestMapping("/api/v1/auth/mfa")
 public class MFAController {
     private final MFAService mfaService;
 

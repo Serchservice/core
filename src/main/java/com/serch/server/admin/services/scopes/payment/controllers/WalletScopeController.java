@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/scope/payment/wallet")
+@RequestMapping("/api/v1/scope/payment/wallet")
 @PreAuthorize("hasRole('SUPER_ADMIN') || hasRole('ADMIN') || hasRole('MANAGER') || hasRole('TEAM')")
 public class WalletScopeController {
     private final WalletScopeService service;

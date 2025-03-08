@@ -1,5 +1,6 @@
 package com.serch.server.core.payment.responses;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 @Getter
@@ -8,7 +9,11 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class InitializePaymentData {
-    private String authorization_url;
-    private String access_code;
+    @JsonProperty("authorization_url")
+    private String authorizationUrl;
+
+    @JsonProperty("access_code")
+    private String accessCode;
+
     private String reference;
 }

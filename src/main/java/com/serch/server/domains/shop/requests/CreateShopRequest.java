@@ -2,7 +2,7 @@ package com.serch.server.domains.shop.requests;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.serch.server.enums.account.SerchCategory;
-import com.serch.server.core.storage.requests.FileUploadRequest;
+import com.serch.server.core.file.requests.FileUploadRequest;
 import lombok.Data;
 
 import java.util.List;

@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/shop/drive")
+@RequestMapping("/api/v1/shop/drive")
 public class ShopDriveController {
     private final ShopDriveService service;
 

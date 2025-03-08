@@ -26,4 +26,7 @@ public class SendEmail {
 
     @JsonProperty("first_name")
     private String firstName;
+
+    @JsonProperty("is_nearby")
+    private Boolean isNearby = false;
 }

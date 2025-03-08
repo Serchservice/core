@@ -16,7 +16,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/scope/payment/transaction")
+@RequestMapping("/api/v1/scope/payment/transaction")
 @PreAuthorize("hasRole('SUPER_ADMIN') || hasRole('ADMIN') || hasRole('MANAGER') || hasRole('TEAM')")
 public class TransactionScopeController {
     private final TransactionScopeService service;

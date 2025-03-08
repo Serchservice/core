@@ -145,7 +145,7 @@ public class PermissionImplementation implements PermissionService {
             request(request.getSpecific().getScopes(), admin, request.getSpecific().getAccount());
         }
 
-        return new ApiResponse<>("Your permission requests are being evaluated. Wait a moment", HttpStatus.OK);
+        return new ApiResponse<>("Your permission dtos are being evaluated. Wait a moment", HttpStatus.OK);
     }
 
     private void validate(List<PermissionScopeRequest> scopes, Admin admin, String account) {

@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/active/search")
+@RequestMapping("/api/v1/active/search")
 public class ActiveSearchController {
     private final ActiveSearchService service;
 

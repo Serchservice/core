@@ -50,7 +50,7 @@ public class TripPayImplementation implements TripPayService {
 
     private final PaymentService paymentService;
     private final TripTimelineService timelineService;
-    private final NotificationService notificationService;
+    private final NotificationService transactionNotification;
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
     private final TripRepository tripRepository;
@@ -84,7 +84,7 @@ public class TripPayImplementation implements TripPayService {
                                 userWallet.setUpdatedAt(TimeUtil.now());
                                 walletRepository.save(userWallet);
 
-                                notificationService.send(
+                                transactionNotification.send(
                                         trip.getShared().getSharedLink().getUser().getId(),
                                         true,
                                         BigDecimal.valueOf(TRIP_SERVICE_USER),
@@ -138,7 +138,7 @@ public class TripPayImplementation implements TripPayService {
         trip.setServiceFeeReference(reference);
         tripRepository.save(trip);
 
-        notificationService.send(wallet.getUser().getId(), false, debit, reference);
+        transactionNotification.send(wallet.getUser().getId(), false, debit, reference);
 
         return getTransaction(trip, reference);
     }

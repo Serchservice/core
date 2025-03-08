@@ -3,8 +3,8 @@ package com.serch.server.annotations.implementations;
 import com.serch.server.annotations.CoreID;
 import com.serch.server.annotations.TransactionID;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.generator.BeforeExecutionGenerator;
 import org.hibernate.generator.EventType;
+import org.hibernate.id.IdentifierGenerator;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -16,19 +16,20 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * The TransactionID class generates unique identifiers for transactions.
  */
-public class CoreIdGenerator implements BeforeExecutionGenerator {
+public class CoreIdGenerator implements IdentifierGenerator {
     /**
      * Generates a unique identifier for transactions.
      *
-     * @param sharedSessionContractImplementor The session implementor
-     * @param o                                 The object
+     * @param session The session implementor
+     * @param object The object
      * @return A generated unique identifier
      */
-    public Object generate(SharedSessionContractImplementor sharedSessionContractImplementor, Object o, Object o1, EventType eventType) {
+    @Override
+    public Object generate(SharedSessionContractImplementor session, Object object) {
         AtomicReference<String> prefix = new AtomicReference<>("");
         AtomicReference<String> uuid = new AtomicReference<>(UUID.randomUUID().toString());
 
-        Optional<Field> field = Optional.of(o.getClass())
+        Optional<Field> field = Optional.of(object.getClass())
                 .map(Class::getDeclaredFields)
                 .flatMap(fields -> Arrays.stream(fields)
                         .filter(f -> f.isAnnotationPresent(CoreID.class) || f.isAnnotationPresent(TransactionID.class))

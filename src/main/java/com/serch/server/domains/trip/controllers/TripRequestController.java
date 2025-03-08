@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/trip/invite")
+@RequestMapping("/api/v1/trip/invite")
 public class TripRequestController {
     private final TripRequestService service;
 

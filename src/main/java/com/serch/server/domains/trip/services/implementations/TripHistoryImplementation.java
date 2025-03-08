@@ -235,12 +235,12 @@ public class TripHistoryImplementation implements TripHistoryService {
         if(payment != null) {
             response.setPendingPaymentData(payment);
             if(trip.getPayment() != null) {
-                trip.getPayment().setUrl(DatabaseUtil.encode(payment.getAuthorization_url()));
+                trip.getPayment().setUrl(DatabaseUtil.encode(payment.getAuthorizationUrl()));
                 tripPaymentRepository.save(trip.getPayment());
             }
         } else if(trip.getPayment() != null && trip.getPayment().getStatus() != SUCCESSFUL) {
             InitializePaymentData paymentData = new InitializePaymentData();
-            paymentData.setAuthorization_url(DatabaseUtil.decodeData(trip.getPayment().getUrl()));
+            paymentData.setAuthorizationUrl(DatabaseUtil.decodeData(trip.getPayment().getUrl()));
             paymentData.setReference(trip.getPayment().getReference());
             response.setPendingPaymentData(paymentData);
         } else {

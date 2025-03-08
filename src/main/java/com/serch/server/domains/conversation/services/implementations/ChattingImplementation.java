@@ -1,6 +1,12 @@
 package com.serch.server.domains.conversation.services.implementations;
 
 import com.serch.server.core.notification.services.NotificationService;
+import com.serch.server.domains.conversation.requests.MessageTypingRequest;
+import com.serch.server.domains.conversation.requests.SendMessageRequest;
+import com.serch.server.domains.conversation.requests.UpdateMessageRequest;
+import com.serch.server.domains.conversation.responses.ChatRoomResponse;
+import com.serch.server.domains.conversation.services.ChatService;
+import com.serch.server.domains.conversation.services.ChattingService;
 import com.serch.server.enums.chat.MessageState;
 import com.serch.server.enums.chat.MessageStatus;
 import com.serch.server.mappers.ConversationMapper;
@@ -12,14 +18,8 @@ import com.serch.server.repositories.account.ProfileRepository;
 import com.serch.server.repositories.auth.UserRepository;
 import com.serch.server.repositories.conversation.ChatMessageRepository;
 import com.serch.server.repositories.conversation.ChatRoomRepository;
-import com.serch.server.domains.conversation.requests.MessageTypingRequest;
-import com.serch.server.domains.conversation.requests.SendMessageRequest;
-import com.serch.server.domains.conversation.requests.UpdateMessageRequest;
-import com.serch.server.domains.conversation.responses.ChatRoomResponse;
-import com.serch.server.domains.conversation.services.ChatService;
-import com.serch.server.domains.conversation.services.ChattingService;
-import com.serch.server.utils.TimeUtil;
 import com.serch.server.utils.AuthUtil;
+import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -33,12 +33,12 @@ import java.util.UUID;
 public class ChattingImplementation implements ChattingService {
     private final SimpMessagingTemplate template;
     private final ChatService chatService;
-    private final NotificationService notificationService;
     private final ChatMessageRepository chatMessageRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ProfileRepository profileRepository;
     private final UserRepository userRepository;
     private final AuthUtil authUtil;
+    private final NotificationService chatNotification;
 
     private boolean isCurrentUser(UUID id, UUID current) {
         return id.equals(current);
@@ -180,7 +180,7 @@ public class ChattingImplementation implements ChattingService {
         template.convertAndSend("/platform/%s/chat".formatted(String.valueOf(id)), chatService.rooms(id));
 
         if(notify) {
-            notificationService.send(id, response);
+            chatNotification.send(id, response);
         }
     }
 

@@ -7,12 +7,12 @@
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.2.8</version>
 <!--		<version>3.4.1</version>-->
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath/> <!-- lookup parent from repositories -->
 	</parent>
 
 	<groupId>com.serch</groupId>
 	<artifactId>server</artifactId>
-	<version>1.4.0</version>
+	<version>1.4.1</version>
 	<name>server</name>
 	<description>Backend server for Serch platform</description>
 	<url>https://www.serchservice.com</url>
@@ -193,6 +193,18 @@
 		<dependency>
 			<groupId>org.thymeleaf.extras</groupId>
 			<artifactId>thymeleaf-extras-springsecurity6</artifactId>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.cloudinary/cloudinary-http5 -->
+		<dependency>
+			<groupId>com.cloudinary</groupId>
+			<artifactId>cloudinary-http5</artifactId>
+			<version>2.2.0</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.cloudinary/cloudinary-taglib -->
+		<dependency>
+			<groupId>com.cloudinary</groupId>
+			<artifactId>cloudinary-taglib</artifactId>
+			<version>2.2.0</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/com.atomikos/transactions-spring-boot3-starter -->
 <!--		<dependency>-->

@@ -114,11 +114,39 @@ public class TimeUtil {
 
     /**
      * Formats the time based on the provided date and time.
+     *
+     * @param timezone The timezone of the user
+     * @param time The time to format {@link LocalTime}
+     * @param date The date to format {@link LocalDate}.
+     *
+     * @return The formatted time.
+     */
+    public static String formatTime(LocalDate date, LocalTime time, String timezone) {
+        ZoneId zoneId = zoneId(timezone);
+        ZonedDateTime dateTime = ZonedDateTime.of(date, time, zoneId);
+
+        return formatTime(dateTime, timezone);
+    }
+
+    /**
+     * Formats the time based on the provided date and time.
      * @param dateTime The date and time to format.
      * @return The formatted time.
      */
     public static String formatTime(ZonedDateTime dateTime, String timezone) {
         return toUserTimeZone(dateTime, timezone).format(DateTimeFormatter.ofPattern("h:mma"));
+    }
+
+    public static String formatDate(String timezone, LocalDate date) {
+        LocalDate now = LocalDate.now(zoneId(timezone));
+
+        if (date.equals(now)) {
+            return "Today, " + date.format(DateTimeFormatter.ofPattern("d MMMM, yyyy"));
+        } else if (date.equals(now.minusDays(1))) {
+            return "Yesterday, " + date.format(DateTimeFormatter.ofPattern("d MMMM, yyyy"));
+        } else {
+            return date.format(DateTimeFormatter.ofPattern("EEEE, d MMMM, yyyy"));
+        }
     }
 
     /**
@@ -158,7 +186,10 @@ public class TimeUtil {
     }
 
     public static String formatChatLabel(LocalDateTime time, String timezone) {
-        ZonedDateTime date = ZonedDateTime.of(time, zoneId(timezone));
+        return getLabel(ZonedDateTime.of(time, zoneId(timezone)), timezone);
+    }
+
+    public static String getLabel(ZonedDateTime date, String timezone) {
         ZonedDateTime today = now(zoneId(timezone)).truncatedTo(ChronoUnit.DAYS);
 
         if (date.truncatedTo(ChronoUnit.DAYS).isEqual(today)) {
@@ -214,6 +245,10 @@ public class TimeUtil {
 
     public static ZonedDateTime now() {
         return ZonedDateTime.now(ZoneOffset.UTC);
+    }
+
+    public static ZonedDateTime now(String timezone) {
+        return ZonedDateTime.now(zoneId(timezone));
     }
 
     public static ZonedDateTime now(ZoneId zoneId) {

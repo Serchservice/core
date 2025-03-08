@@ -1,6 +1,7 @@
 package com.serch.server.core.location.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.serch.server.bases.BaseLocation;
 import lombok.Data;
 
 import java.util.List;
@@ -14,7 +15,7 @@ public class MapAddress {
     private List<AddressComponent> addressComponents;
 
     @JsonProperty("location")
-    private Location location;
+    private BaseLocation location;
 
     @JsonProperty("displayName")
     private DisplayName displayName;
@@ -35,15 +36,6 @@ public class MapAddress {
 
         @JsonProperty("languageCode")
         private String languageCode;
-    }
-
-    @Data
-    public static class Location {
-        @JsonProperty("latitude")
-        private double latitude;
-
-        @JsonProperty("longitude")
-        private double longitude;
     }
 
     @Data

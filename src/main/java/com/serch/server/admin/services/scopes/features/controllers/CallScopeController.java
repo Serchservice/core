@@ -17,7 +17,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/scope/call")
+@RequestMapping("/api/v1/scope/call")
 @PreAuthorize("hasRole('SUPER_ADMIN') || hasRole('ADMIN') || hasRole('MANAGER') || hasRole('TEAM')")
 public class CallScopeController {
     private final CallScopeService service;

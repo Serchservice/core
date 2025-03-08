@@ -17,7 +17,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/schedule")
+@RequestMapping("/api/v1/schedule")
 public class ScheduleController {
     private final ScheduleService service;
 

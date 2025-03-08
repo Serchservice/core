@@ -165,7 +165,7 @@ public class GoAddonLifecycle {
         InitializePaymentRequest payment = new InitializePaymentRequest();
         payment.setAmount(change.getPlan().getAmt());
         payment.setEmail(change.getAddon().getUser().getEmailAddress());
-        payment.setCallbackUrl("https://nearby.serchservice.com");
+        payment.setCallbackUrl("https://nearby.serchservice.com/tx-verify");
 
         return payment;
     }

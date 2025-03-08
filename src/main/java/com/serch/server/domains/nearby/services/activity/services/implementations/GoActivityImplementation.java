@@ -138,7 +138,7 @@ public class GoActivityImplementation implements GoActivityService {
             response.setRating(goActivityRatingRepository.findAverageRatingByActivity(activity.getId()));
         }
         response.setLink(urlService.generate(LinkedDynamicUrlDto.nearby(
-                "bcap",
+                "activity",
                 activity.getId(),
                 activity.getName(),
                 activity.getDescription(),

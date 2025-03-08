@@ -93,76 +93,76 @@ INSERT INTO nearby.go_interest_categories (id, name, created_at, updated_at) VAL
 (8, 'Special Interests', NOW(), NOW());
 
 -- Insert Interests for "Sports & Physical Activities"
-INSERT INTO nearby.go_interests (id, name, emoji, popularity, category_id, verb, created_at, updated_at) VALUES
-(101, 'Basketball', '🏀', 0, 1, 'playing', NOW(), NOW()),
-(102, 'Football/Soccer', '⚽', 0, 1, 'playing', NOW(), NOW()),
-(103, 'American Football', '🏈', 0, 1, 'playing', NOW(), NOW()),
-(104, 'Volleyball', '🏐', 0, 1, 'playing', NOW(), NOW()),
-(105, 'Hockey', '🏒', 0, 1, 'playing', NOW(), NOW()),
-(106, 'Tennis', '🎾', 0, 1, 'playing', NOW(), NOW()),
-(107, 'Table Tennis', '🏓', 0, 1, 'playing', NOW(), NOW()),
-(108, 'Badminton', '🏸', 0, 1, 'playing', NOW(), NOW()),
-(109, 'Golf', '⛳', 0, 1, 'playing', NOW(), NOW()),
-(110, 'Swimming', '🏊', 0, 1, '', NOW(), NOW()),
-(111, 'Cycling', '🚴', 0, 1, '', NOW(), NOW()),
-(112, 'Running & Jogging', '🏃', 0, 1, '', NOW(), NOW()),
-(113, 'Martial Arts', '🥋', 0, 1, '', NOW(), NOW()),
-(114, 'Gym & Fitness', '🏋️', 0, 1, '', NOW(), NOW()),
-(115, 'Hiking & Trekking', '🥾', 0, 1, '', NOW(), NOW()),
-(116, 'Rock Climbing', '🧗', 0, 1, '', NOW(), NOW()),
-(117, 'Surfing', '🏄', 0, 1, '', NOW(), NOW()),
-(118, 'Skiing & Snowboarding', '⛷️', 0, 1, '', NOW(), NOW()),
-(119, 'Water Sports', '🚣', 0, 1, '', NOW(), NOW());
+INSERT INTO nearby.go_interests (id, name, emoji, popularity, category_id, verb, created_at, updated_at, image) VALUES
+(101, 'Basketball', '🏀', 0, 1, 'playing', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png"),
+(102, 'Football/Soccer', '⚽', 0, 1, 'playing', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png"),
+(103, 'American Football', '🏈', 0, 1, 'playing', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png"),
+(104, 'Volleyball', '🏐', 0, 1, 'playing', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png"),
+(105, 'Hockey', '🏒', 0, 1, 'playing', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png"),
+(106, 'Tennis', '🎾', 0, 1, 'playing', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png"),
+(107, 'Table Tennis', '🏓', 0, 1, 'playing', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png"),
+(108, 'Badminton', '🏸', 0, 1, 'playing', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png"),
+(109, 'Golf', '⛳', 0, 1, 'playing', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png"),
+(110, 'Swimming', '🏊', 0, 1, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png"),
+(111, 'Cycling', '🚴', 0, 1, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png"),
+(112, 'Running & Jogging', '🏃', 0, 1, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png"),
+(113, 'Martial Arts', '🥋', 0, 1, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png"),
+(114, 'Gym & Fitness', '🏋️', 0, 1, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png"),
+(115, 'Hiking & Trekking', '🥾', 0, 1, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png"),
+(116, 'Rock Climbing', '🧗', 0, 1, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png"),
+(117, 'Surfing', '🏄', 0, 1, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png"),
+(118, 'Skiing & Snowboarding', '⛷️', 0, 1, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png"),
+(119, 'Water Sports', '🚣', 0, 1, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png");
 
 -- Insert Interests for "Entertainment & Fun"
-INSERT INTO nearby.go_interests (id, name, emoji, popularity, category_id, verb, created_at, updated_at) VALUES
-(201, 'Movie Night', '🎬', 0, 2, '', NOW(), NOW()),
-(202, 'Gaming', '🎮', 0, 2, '', NOW(), NOW()),
-(203, 'Board Games', '🎲', 0, 2, 'playing', NOW(), NOW()),
-(204, 'Karaoke', '🎤', 0, 2, '', NOW(), NOW()),
-(205, 'Live Music & Concerts', '🎸', 0, 2, '', NOW(), NOW());
+INSERT INTO nearby.go_interests (id, name, emoji, popularity, category_id, verb, created_at, updated_at, image) VALUES
+(201, 'Movie Night', '🎬', 0, 2, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byac.png"),
+(202, 'Gaming', '🎮', 0, 2, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byac.png"),
+(203, 'Board Games', '🎲', 0, 2, 'playing', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byac.png"),
+(204, 'Karaoke', '🎤', 0, 2, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byac.png"),
+(205, 'Live Music & Concerts', '🎸', 0, 2, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byac.png");
 
 -- Insert Interests for "Food & Drink"
-INSERT INTO nearby.go_interests (id, name, emoji, popularity, category_id, verb, created_at, updated_at) VALUES
-(301, 'Foodie Meetups', '🍕', 0, 3, '', NOW(), NOW()),
-(302, 'Cooking & Baking', '👨‍🍳', 0, 3, '', NOW(), NOW()),
-(303, 'Coffee Meetups', '☕', 0, 3, '', NOW(), NOW()),
-(304, 'Wine & Beer Tasting', '🍷', 0, 3, '', NOW(), NOW());
+INSERT INTO nearby.go_interests (id, name, emoji, popularity, category_id, verb, created_at, updated_at, image) VALUES
+(301, 'Foodie Meetups', '🍕', 0, 3, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png"),
+(302, 'Cooking & Baking', '👨‍🍳', 0, 3, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png"),
+(303, 'Coffee Meetups', '☕', 0, 3, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png"),
+(304, 'Wine & Beer Tasting', '🍷', 0, 3, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png");
 
 -- Insert Interests for "Travel & Outdoor Adventures"
-INSERT INTO nearby.go_interests (id, name, emoji, popularity, category_id, verb, created_at, updated_at) VALUES
-(401, 'Beach Days', '🏖️', 0, 4, '', NOW(), NOW()),
-(402, 'Road Trips', '🚗', 0, 4, '', NOW(), NOW()),
-(403, 'Camping', '🏕️', 0, 4, '', NOW(), NOW()),
-(404, 'Motorcycle & Car Clubs', '🏍️', 0, 4, '', NOW(), NOW()),
-(405, 'Theme Parks', '🎢', 0, 4, '', NOW(), NOW());
+INSERT INTO nearby.go_interests (id, name, emoji, popularity, category_id, verb, created_at, updated_at, image) VALUES
+(401, 'Beach Days', '🏖️', 0, 4, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byac.png"),
+(402, 'Road Trips', '🚗', 0, 4, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byac.png"),
+(403, 'Camping', '🏕️', 0, 4, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byac.png"),
+(404, 'Motorcycle & Car Clubs', '🏍️', 0, 4, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byac.png"),
+(405, 'Theme Parks', '🎢', 0, 4, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byac.png");
 
 -- Insert Interests for "Learning & Creativity"
-INSERT INTO nearby.go_interests (id, name, emoji, popularity, category_id, verb, created_at, updated_at) VALUES
-(501, 'Art & Painting', '🖌️', 0, 5, '', NOW(), NOW()),
-(502, 'Photography', '📷', 0, 5, '', NOW(), NOW()),
-(503, 'Theater & Improv', '🎭', 0, 5, '', NOW(), NOW()),
-(504, 'Writing & Poetry', '✍️', 0, 5, '', NOW(), NOW()),
-(505, 'Coding & Tech', '💻', 0, 5, '', NOW(), NOW());
+INSERT INTO nearby.go_interests (id, name, emoji, popularity, category_id, verb, created_at, updated_at, image) VALUES
+(501, 'Art & Painting', '🖌️', 0, 5, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png"),
+(502, 'Photography', '📷', 0, 5, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png"),
+(503, 'Theater & Improv', '🎭', 0, 5, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png"),
+(504, 'Writing & Poetry', '✍️', 0, 5, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png"),
+(505, 'Coding & Tech', '💻', 0, 5, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png");
 
 -- Insert Interests for "Pet & Animal Lovers"
-INSERT INTO nearby.go_interests (id, name, emoji, popularity, category_id, verb, created_at, updated_at) VALUES
-(601, 'Dog Walking & Playdates', '🐕', 0, 6, '', NOW(), NOW()),
-(602, 'Birdwatching', '🦜', 0, 6, '', NOW(), NOW()),
-(603, 'Aquarium Enthusiasts', '🐠', 0, 6, '', NOW(), NOW());
+INSERT INTO nearby.go_interests (id, name, emoji, popularity, category_id, verb, created_at, updated_at, image) VALUES
+(601, 'Dog Walking & Playdates', '🐕', 0, 6, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byac.png"),
+(602, 'Birdwatching', '🦜', 0, 6, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byac.png"),
+(603, 'Aquarium Enthusiasts', '🐠', 0, 6, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byac.png");
 
 -- Insert Interests for "DIY & Social Causes"
-INSERT INTO nearby.go_interests (id, name, emoji, popularity, category_id, verb, created_at, updated_at) VALUES
-(701, 'DIY & Woodworking', '🛠️', 0, 7, '', NOW(), NOW()),
-(702, 'Gardening', '🌿', 0, 7, '', NOW(), NOW()),
-(703, 'Volunteering', '🤝', 0, 7, '', NOW(), NOW());
+INSERT INTO nearby.go_interests (id, name, emoji, popularity, category_id, verb, created_at, updated_at, image) VALUES
+(701, 'DIY & Woodworking', '🛠️', 0, 7, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png"),
+(702, 'Gardening', '🌿', 0, 7, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png"),
+(703, 'Volunteering', '🤝', 0, 7, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byact.png");
 
 -- Insert Interests for "Special Interests"
-INSERT INTO nearby.go_interests (id, name, emoji, popularity, category_id, verb, created_at, updated_at) VALUES
-(801, 'Stargazing & Astronomy', '🔭', 0, 8, '', NOW(), NOW()),
-(802, 'Escape Rooms', '🕵️', 0, 8, '', NOW(), NOW()),
-(803, 'History & Mythology', '🏛️', 0, 8, '', NOW(), NOW()),
-(804, 'Flea Markets & Thrift Shopping', '🛍️', 0, 8, '', NOW(), NOW());
+INSERT INTO nearby.go_interests (id, name, emoji, popularity, category_id, verb, created_at, updated_at, image) VALUES
+(801, 'Stargazing & Astronomy', '🔭', 0, 8, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byac.png"),
+(802, 'Escape Rooms', '🕵️', 0, 8, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byac.png"),
+(803, 'History & Mythology', '🏛️', 0, 8, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byac.png"),
+(804, 'Flea Markets & Thrift Shopping', '🛍️', 0, 8, '', NOW(), NOW(), "https://chxpalpeslofqzeulcjr.supabase.co/storage/v1/object/public/serch/nearby/byac.png");
 
 CREATE OR REPLACE FUNCTION notify_interest_growth()
     RETURNS TRIGGER AS $$

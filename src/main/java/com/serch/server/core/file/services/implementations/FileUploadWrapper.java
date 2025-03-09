@@ -8,16 +8,11 @@ import com.serch.server.core.file.data.repositories.FileUploadAccountRepository;
 import com.serch.server.core.file.data.repositories.FileUploadMapper;
 import com.serch.server.core.file.data.repositories.FileUploadRepository;
 import com.serch.server.core.file.requests.FileUploadRequest;
+import com.serch.server.core.file.requests.UploadRequest;
 import com.serch.server.core.file.responses.CloudinaryResponse;
 import com.serch.server.core.file.responses.FileUploadResponse;
-import com.serch.server.domains.nearby.models.go.activity.GoActivity;
 import com.serch.server.domains.nearby.models.go.user.GoUser;
 import com.serch.server.exceptions.others.SerchException;
-import com.serch.server.models.auth.User;
-import com.serch.server.domains.nearby.models.go.GoBCap;
-import com.serch.server.domains.nearby.repositories.go.GoUserRepository;
-import com.serch.server.utils.TimeUtil;
-import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,12 +23,11 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.UUID;
-import java.util.function.Consumer;
 
 /**
- * {@code FileUploadWrapper} is a component class designed to encapsulate file upload operations
- * to Cloudinary, along with related database interactions and post-processing tasks.
- * It provides a fluent API to upload, delete, and manage file metadata, catering to various
+ * {@code FileUploadWrapper} is a component class designed copyWith encapsulate file upload operations
+ * copyWith Cloudinary, along with related database interactions and post-processing tasks.
+ * It provides a fluent API copyWith upload, delete, and manage file metadata, catering copyWith various
  * file types and associated entity relationships within the application.
  *
  * <p>This class abstracts the complexity of Cloudinary API interactions and database persistence,
@@ -41,13 +35,13 @@ import java.util.function.Consumer;
  * including basic uploads, uploads with entity association, and uploads followed by entity updates.
  *
  * <p>It leverages repositories for {@link FileUploadAccount}, {@link FileUpload}, and {@link GoUser}
- * to manage data persistence. It also uses {@link Cloudinary} for cloud-based file storage and
+ * copyWith manage data persistence. It also uses {@link Cloudinary} for cloud-based file storage and
  * retrieval.
  *
- * <p>The class provides methods to:
+ * <p>The class provides methods copyWith:
  * <ul>
  * <li>Initialize upload parameters with file, folder, and entity details.</li>
- * <li>Upload files to Cloudinary and store metadata.</li>
+ * <li>Upload files copyWith Cloudinary and store metadata.</li>
  * <li>Delete files from Cloudinary and the database.</li>
  * <li>Cache upload results and associate them with entities.</li>
  * <li>Update entity attributes based on successful uploads.</li>
@@ -58,40 +52,11 @@ import java.util.function.Consumer;
  */
 @Component
 public class FileUploadWrapper {
-
     private static final Logger log = LoggerFactory.getLogger(FileUploadWrapper.class);
 
     private final Cloudinary cloudinary;
     private final FileUploadAccountRepository fileUploadAccountRepository;
     private final FileUploadRepository fileUploadRepository;
-    private final GoUserRepository goUserRepository;
-
-    /**
-     * Stores the {@link FileUploadResponse} object, providing details about the uploaded file.
-     * This response includes the file's URL, type, size, and duration.
-     */
-    @Getter
-    private FileUploadResponse response;
-
-    /**
-     * Stores arbitrary data associated with the upload, typically an entity
-     * like {@link User}, {@link GoActivity}, or {@link GoBCap}. This allows for
-     * context-specific processing after the upload.
-     */
-    @Getter
-    private Object data;
-
-    /**
-     * Stores the raw {@link CloudinaryResponse} object, which contains detailed
-     * information returned by the Cloudinary API after a successful upload.
-     */
-    @Getter
-    private CloudinaryResponse details;
-
-    private FileUploadRequest file;
-    private String folder;
-    private String type;
-    private String id;
 
     /**
      * Constructs a new {@code FileUploadWrapper} with the specified dependencies.
@@ -99,213 +64,55 @@ public class FileUploadWrapper {
      * @param cloudinary                The {@link Cloudinary} instance for file uploads.
      * @param fileUploadAccountRepository The repository for managing {@link FileUploadAccount}.
      * @param fileUploadRepository      The repository for managing {@link FileUpload}.
-     * @param goUserRepository          The repository for managing {@link GoUser}.
      */
     @Autowired
     public FileUploadWrapper(
             Cloudinary cloudinary,
             FileUploadAccountRepository fileUploadAccountRepository,
-            FileUploadRepository fileUploadRepository,
-            GoUserRepository goUserRepository
+            FileUploadRepository fileUploadRepository
     ) {
         this.cloudinary = cloudinary;
         this.fileUploadAccountRepository = fileUploadAccountRepository;
         this.fileUploadRepository = fileUploadRepository;
-        this.goUserRepository = goUserRepository;
     }
 
     /**
      * Initializes the {@code FileUploadWrapper} with the given file, folder, entity ID, and type.
      * This method prepares the wrapper for an upload operation associated with a specific entity.
      *
-     * @param file   The {@link FileUploadRequest} object representing the file to be uploaded.
-     * @param folder The desired folder in Cloudinary for storing the uploaded file.
-     * @param id     The ID of the entity associated with the file upload.
-     * @param type   The type of the entity associated with the file upload.
+     * @param request   The {@link UploadRequest} object representing the file copyWith be uploaded.
      * @return This {@code FileUploadWrapper} instance for method chaining.
-     */
-    public FileUploadWrapper upload(FileUploadRequest file, String folder, String id, String type) {
-        registerDependencies(file, folder, id, type);
-        return upload();
-    }
-
-    /**
-     * Initializes the {@code FileUploadWrapper} with the given file, folder, and associated data.
-     * This method prepares the wrapper for an upload operation and stores the associated data
-     * for post-processing.
-     *
-     * @param <T>    The type of the associated data.
-     * @param data   The data to be associated with the file upload.
-     * @param file   The {@link FileUploadRequest} object representing the file to be uploaded.
-     * @param folder The desired folder in Cloudinary for storing the uploaded file.
-     * @return This {@code FileUploadWrapper} instance for method chaining.
-     */
-    public <T> FileUploadWrapper upload(FileUploadRequest file, String folder, T data) {
-        registerDependencies(file, folder, data);
-        return upload();
-    }
-
-    /**
-     * Initializes the {@code FileUploadWrapper} with the given file, folder, entity ID, and type,
-     * and then performs an upload followed by an entity update.
-     *
-     * @param file   The {@link FileUploadRequest} object representing the file to be uploaded.
-     * @param folder The desired folder in Cloudinary for storing the uploaded file.
-     * @param id     The ID of the entity associated with the file upload.
-     * @param type   The type of the entity associated with the file upload.
-     * @return This {@code FileUploadWrapper} instance for method chaining.
-     */
-    public FileUploadWrapper uploadAndPut(FileUploadRequest file, String folder, String id, String type) {
-        registerDependencies(file, folder, id, type);
-        return uploadAndPut();
-    }
-
-    /**
-     * Initializes the {@code FileUploadWrapper} with the given file, folder, and associated data,
-     * and then performs an upload followed by an entity update.
-     *
-     * @param <T>    The type of the associated data.
-     * @param data   The data to be associated with the file upload.
-     * @param file   The {@link FileUploadRequest} object representing the file to be uploaded.
-     * @param folder The desired folder in Cloudinary for storing the uploaded file.
-     * @return This {@code FileUploadWrapper} instance for method chaining.
-     */
-    public <T> FileUploadWrapper uploadAndPut(FileUploadRequest file, String folder, T data) {
-        registerDependencies(file, folder, data);
-        return uploadAndPut();
-    }
-
-    /**
-     * Deletes a file from Cloudinary and the database by its ID.
-     *
-     * @param id The ID of the file to delete.
-     * @return This {@code FileUploadWrapper} instance for method chaining.
-     */
-    public FileUploadWrapper delete(String id) {
-        fileUploadRepository.findByAssetIdOrPublicId(id).ifPresent(upload -> {
-            if (fileUploadRepository.existsByAssetId(id)) {
-                try {
-                    cloudinary.uploader().destroy(upload.getAssetId(), ObjectUtils.emptyMap());
-                } catch (IOException e) {
-                    log.error(e.getMessage(), e);
-
-                    throw new SerchException("An error occurred while deleting your %s".formatted(getType(file.getPath())));
-                }
-            } else if (fileUploadRepository.existsByPublicId(id)) {
-                try {
-                    cloudinary.uploader().destroy(upload.getPublicId(), ObjectUtils.emptyMap());
-                } catch (IOException e) {
-                    log.error(e.getMessage(), e);
-
-                    throw new SerchException("An error occurred while deleting your %s".formatted(getType(file.getPath())));
-                }
-            }
-
-            fileUploadRepository.delete(upload);
-        });
-
-        return this;
-    }
-
-    /**
-     * Registers the dependencies required for a file upload operation when the upload is associated
-     * with a specific entity identified by an ID and type. This method initializes the file, folder,
-     * entity ID, and type, and resets the response, details, and data fields.
-     *
-     * @param file   The {@link FileUploadRequest} object representing the file to be uploaded.
-     * @param folder The desired folder in Cloudinary for storing the uploaded file.
-     * @param id     The ID of the entity associated with the file upload.
-     * @param type   The type of the entity associated with the file upload.
-     */
-    private void registerDependencies(FileUploadRequest file, String folder, String id, String type) {
-        this.file = file;
-        this.folder = folder;
-        this.response = null;
-        this.details = null;
-        this.id = id;
-        this.type = type;
-        this.data = null;
-    }
-
-    /**
-     * Registers the dependencies required for a file upload operation when the upload is associated
-     * with arbitrary data. This method initializes the file, folder, and data fields, and resets
-     * the response and details fields. It also infers the type of the upload based on the folder name
-     * or defaults to "avatar" if no specific type can be determined.
-     *
-     * @param <T>    The type of the associated data.
-     * @param file   The {@link FileUploadRequest} object representing the file to be uploaded.
-     * @param folder The desired folder in Cloudinary for storing the uploaded file.
-     * @param data   The data to be associated with the file upload.
-     */
-    private <T> void registerDependencies(FileUploadRequest file, String folder, T data) {
-        this.file = file;
-        this.folder = folder;
-        this.response = null;
-        this.details = null;
-        this.data = data;
-
-        if (folder.startsWith("certificate")) {
-            this.type = "certificate";
-        }
-
-        register(data);
-    }
-
-    private <T> void register(T data) {
-        if (data instanceof User) {
-            id = ((User) data).getId().toString();
-
-            if(this.type == null) {
-                this.type = String.format("%s-avatar", ((User) data).getRole().getType());
-            }
-        } else if(data instanceof GoActivity) {
-            this.type = "go-activity";
-            this.id = ((GoActivity) data).getId();
-        } else if(data instanceof GoBCap) {
-            this.type = "go-bcap";
-            this.id = ((GoBCap) data).getId();
-        }
-    }
-
-    /**
-     * Uploads the file to Cloudinary and processes the response. This method constructs upload
-     * parameters, uploads the file, parses the Cloudinary response, and creates a
-     * {@link FileUploadResponse} object.
-     *
-     * @return This {@code FileUploadWrapper} instance for method chaining.
-     * @throws SerchException If an error occurs during the upload process.
      */
     @SuppressWarnings("unchecked")
-    private FileUploadWrapper uploader() {
+    public FileUploadResponse upload(UploadRequest request) {
         try {
             HashMap<String, Object> params = new HashMap<>();
-            params.put("asset_folder", folder);
+            params.put("asset_folder", request.getFolder());
             params.put("use_asset_folder_as_public_id_prefix", true);
 
-            if (isVideo(file.getPath()) || isAudio(file.getPath()) || isImage(file.getPath())) {
-                params.put("display_name", generateName(file.getPath()));
+            if (isVideo(request.getUpload().getPath()) || isAudio(request.getUpload().getPath()) || isImage(request.getUpload().getPath())) {
+                params.put("display_name", generateName(request.getUpload().getPath()));
             } else {
                 params.put("use_filename_as_display_name", true);
             }
 
-            if(isVideo(file.getPath())) {
+            if(isVideo(request.getUpload().getPath())) {
                 params.put("resource_type", "video");
             }
 
-            var result = cloudinary.uploader().upload(file.get(), params);
-            CloudinaryResponse cloudResponse = CloudinaryResponse.fromJson(result);
+            var result = cloudinary.uploader().upload(request.getUpload().get(), params);
+            CloudinaryResponse cloud = CloudinaryResponse.fromJson(result);
 
-            details = cloudResponse;
-            response = toResponse(cloudResponse.getSecureUrl(), file);
-            response.setPublicId(cloudResponse.getPublicId());
-            response.setAssetId(cloudResponse.getAssetId());
+            FileUploadResponse response = copyWith(cloud.getSecureUrl(), request.getUpload());
+            response.setPublicId(cloud.getPublicId());
+            response.setAssetId(cloud.getAssetId());
+            cache(cloud, response, request);
 
-            return this;
+            return response;
         } catch (IOException e) {
             log.error(e.getMessage(), e);
 
-            throw new SerchException("An error occurred while uploading your %s".formatted(getType(file.getPath())));
+            throw new SerchException("An error occurred while uploading your %s".formatted(getType(request.getUpload().getPath())));
         }
     }
 
@@ -317,7 +124,7 @@ public class FileUploadWrapper {
      * @param file The {@link FileUploadRequest} object.
      * @return A {@link FileUploadResponse} object.
      */
-    private FileUploadResponse toResponse(String result, FileUploadRequest file) {
+    private FileUploadResponse copyWith(String result, FileUploadRequest file) {
         FileUploadResponse response = new FileUploadResponse();
         response.setFile(result);
         response.setDuration(file.getDuration());
@@ -328,59 +135,19 @@ public class FileUploadWrapper {
     }
 
     /**
-     * Uploads the file and caches the result. This method calls the {@code uploader()} method
-     * to upload the file and then calls the {@code cache()} method to persist the upload details.
-     *
-     * @return This {@code FileUploadWrapper} instance for method chaining.
-     */
-    private FileUploadWrapper upload() {
-        FileUploadWrapper result = uploader();
-        result.cache();
-
-        return result;
-    }
-
-    /**
-     * Uploads the file, caches the result, and updates the associated entity. This method calls
-     * the {@code uploader()} method to upload the file, then calls the {@code cache()} method
-     * to persist the upload details, and finally updates the entity using the provided action.
-     *
-     * @return This {@code FileUploadWrapper} instance for method chaining.
-     */
-    private FileUploadWrapper uploadAndPut() {
-        return uploader().cache(update -> {
-            if (details != null) {
-                if (type.equalsIgnoreCase("nearby")) {
-                    goUserRepository.findById(UUID.fromString(id)).ifPresent(user -> {
-                        user.setAvatar(update.getFile());
-                        user.setUpdatedAt(TimeUtil.now());
-                        goUserRepository.save(user);
-                    });
-                }
-            }
-        });
-    }
-
-    /**
-     * Caches the upload result by persisting the file upload details to the database.
+     * Caches the upload result by persisting the file upload details copyWith the database.
      * This method associates the upload with an entity account and saves the upload details.
-     *
-     * @return The persisted {@link FileUpload} object, or {@code null} if caching fails.
      */
-    private FileUpload cache() {
-        if (response != null && details != null && type != null && !type.isEmpty() && id != null && !id.isEmpty()) {
-            FileUpload upload = FileUploadMapper.instance.upload(details);
+    private void cache(CloudinaryResponse cloud, FileUploadResponse response, UploadRequest request) {
+        if (response != null) {
+            FileUpload upload = FileUploadMapper.instance.upload(cloud);
             upload.setSize(response.getSize());
             upload.setType(response.getType());
             upload.setDuration(response.getDuration());
             upload.setFile(response.getFile());
-            upload.setAccount(getFileUploadAccount());
-            upload = fileUploadRepository.save(upload);
-
-            return upload;
+            upload.setAccount(getFileUploadAccount(request));
+            fileUploadRepository.save(upload);
         }
-
-        return null;
     }
 
     /**
@@ -388,26 +155,42 @@ public class FileUploadWrapper {
      *
      * @return The persisted {@link FileUploadAccount} object.
      */
-    private FileUploadAccount getFileUploadAccount() {
+    private FileUploadAccount getFileUploadAccount(UploadRequest request) {
         FileUploadAccount account = new FileUploadAccount();
-        account.setType(type);
-        account.setAccount(id);
+        account.setType(request.getType());
+        account.setAccount(request.getId());
 
         return fileUploadAccountRepository.save(account);
     }
 
     /**
-     * Caches the upload result and executes the provided action on the persisted
-     * {@link FileUpload} object.
+     * Deletes a file from Cloudinary and the database by its ID.
      *
-     * @param action The action to be executed with the persisted {@link FileUpload} object.
+     * @param id The ID of the file copyWith delete.
      * @return This {@code FileUploadWrapper} instance for method chaining.
      */
-    private FileUploadWrapper cache(Consumer<FileUpload> action) {
-        FileUpload upload = cache();
-        if (upload != null) {
-            action.accept(upload);
-        }
+    public FileUploadWrapper delete(String id) {
+        fileUploadRepository.findByAssetIdOrPublicId(id).ifPresent(upload -> {
+            if (fileUploadRepository.existsByAssetId(id)) {
+                try {
+                    cloudinary.uploader().destroy(upload.getAssetId(), ObjectUtils.emptyMap());
+                } catch (IOException e) {
+                    log.error(e.getMessage(), e);
+
+                    throw new SerchException("An error occurred while deleting your %s".formatted(upload.getType()));
+                }
+            } else if (fileUploadRepository.existsByPublicId(id)) {
+                try {
+                    cloudinary.uploader().destroy(upload.getPublicId(), ObjectUtils.emptyMap());
+                } catch (IOException e) {
+                    log.error(e.getMessage(), e);
+
+                    throw new SerchException("An error occurred while deleting your %s".formatted(upload.getType()));
+                }
+            }
+
+            fileUploadRepository.delete(upload);
+        });
 
         return this;
     }

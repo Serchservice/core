@@ -1,11 +1,12 @@
 package com.serch.server.core.file.services.implementations;
 
 import com.serch.server.core.file.requests.FileUploadRequest;
+import com.serch.server.core.file.requests.UploadRequest;
 import com.serch.server.core.file.responses.FileUploadResponse;
 import com.serch.server.core.file.services.FileService;
+import com.serch.server.domains.nearby.models.go.GoBCap;
 import com.serch.server.domains.nearby.models.go.activity.GoActivity;
 import com.serch.server.models.auth.User;
-import com.serch.server.domains.nearby.models.go.GoBCap;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,37 +19,79 @@ public class FileImplementation implements FileService {
 
     @Override
     public FileUploadResponse uploadCommon(FileUploadRequest file, User user) {
-        return service.uploadAndPut(file, user.getRole().getType(), user).getResponse();
+        UploadRequest request = new UploadRequest();
+        request.setFolder(user.getRole().getType());
+        request.setId(user.getId().toString());
+        request.setType(String.format("%s-avatar", user.getRole().getType()));
+        request.setUpload(file);
+
+        return service.upload(request);
     }
 
     @Override
     public FileUploadResponse uploadCertificate(FileUploadRequest file, User user) {
-        return service.uploadAndPut(file, "/uploadCertificate/%s".formatted(user.getRole().getType()), user).getResponse();
+        UploadRequest request = new UploadRequest();
+        request.setFolder("/certificate/%s".formatted(user.getRole().getType()));
+        request.setId(user.getId().toString());
+        request.setType("certificate");
+        request.setUpload(file);
+
+        return service.upload(request);
     }
 
     @Override
     public FileUploadResponse guest(FileUploadRequest file, String id) {
-        return service.upload(file, "/guest/%s".formatted(id), id, "guest").getResponse();
+        UploadRequest request = new UploadRequest();
+        request.setFolder("/guest/%s".formatted(id));
+        request.setId(id);
+        request.setType("guest");
+        request.setUpload(file);
+
+        return service.upload(request);
     }
 
     @Override
     public FileUploadResponse uploadTrip(FileUploadRequest file, String id) {
-        return service.upload(file, "/trip/%s".formatted(id), id, "trip").getResponse();
+        UploadRequest request = new UploadRequest();
+        request.setFolder("/trip/%s".formatted(id));
+        request.setId(id);
+        request.setType("trip");
+        request.setUpload(file);
+
+        return service.upload(request);
     }
 
     @Override
     public FileUploadResponse uploadShop(FileUploadRequest file, String id) {
-        return service.upload(file, "/shop/%s".formatted(id), id, "shop").getResponse();
+        UploadRequest request = new UploadRequest();
+        request.setFolder("/shop/%s".formatted(id));
+        request.setId(id);
+        request.setType("shop");
+        request.setUpload(file);
+
+        return service.upload(request);
     }
 
     @Override
     public FileUploadResponse uploadGo(FileUploadRequest file, UUID id) {
-        return service.uploadAndPut(file, "/go/%s".formatted(id), id.toString(), "nearby").getResponse();
+        UploadRequest request = new UploadRequest();
+        request.setFolder("/go/%s".formatted(id));
+        request.setId(id.toString());
+        request.setType("go");
+        request.setUpload(file);
+
+        return service.upload(request);
     }
 
     @Override
     public FileUploadResponse uploadGo(FileUploadRequest file, GoActivity event) {
-        return service.uploadAndPut(file, "/go/activity/%s".formatted(event.getId()), event).getResponse();
+        UploadRequest request = new UploadRequest();
+        request.setFolder("/go-activity/%s".formatted(event.getId()));
+        request.setId(event.getId());
+        request.setType("go-activity");
+        request.setUpload(file);
+
+        return service.upload(request);
     }
 
     @Override
@@ -58,6 +101,12 @@ public class FileImplementation implements FileService {
 
     @Override
     public FileUploadResponse uploadGo(FileUploadRequest file, GoBCap cap) {
-        return service.uploadAndPut(file, "/go/bcap/%s".formatted(cap.getId()), cap).getResponse();
+        UploadRequest request = new UploadRequest();
+        request.setFolder("/go-bcap/%s".formatted(cap.getId()));
+        request.setId(cap.getId());
+        request.setType("go-bcap");
+        request.setUpload(file);
+
+        return service.upload(request);
     }
 }

@@ -1,14 +1,15 @@
 package com.serch.server.domains.nearby.services.account.services.implementations;
 
 import com.serch.server.bases.ApiResponse;
+import com.serch.server.core.file.responses.FileUploadResponse;
 import com.serch.server.core.file.services.FileService;
 import com.serch.server.domains.nearby.mappers.GoMapper;
 import com.serch.server.domains.nearby.models.go.user.GoUser;
 import com.serch.server.domains.nearby.repositories.go.GoUserRepository;
-import com.serch.server.domains.nearby.services.account.services.GoLocationService;
 import com.serch.server.domains.nearby.services.account.requests.GoAccountUpdateRequest;
 import com.serch.server.domains.nearby.services.account.responses.GoAccountResponse;
 import com.serch.server.domains.nearby.services.account.services.GoAccountService;
+import com.serch.server.domains.nearby.services.account.services.GoLocationService;
 import com.serch.server.utils.AuthUtil;
 import com.serch.server.utils.TimeUtil;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +29,13 @@ public class GoAccountImplementation implements GoAccountService {
 
         String image = null;
         if(request.getUpload() != null) {
-            image = fileService.uploadGo(request.getUpload(), user.getId()).getFile();
+            FileUploadResponse response = fileService.uploadGo(request.getUpload(), user.getId());
+
+            user.setAvatar(response.getFile());
+            user.setUpdatedAt(TimeUtil.now());
+            goUserRepository.save(user);
+
+            image = response.getFile();
         }
 
         GoMapper.instance.update(request, user);

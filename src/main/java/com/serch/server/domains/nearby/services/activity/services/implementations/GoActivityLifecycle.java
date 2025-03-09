@@ -18,7 +18,7 @@ public class GoActivityLifecycle implements GoActivityLifecycleService {
     @Override
     public void onCreated(GoActivity event) {
         GoActivityLifecycleResponse response = GoMapper.instance.lifecycle(event);
-        response.setTitle("NEW! Nearby %s activity".formatted(event.getInterest().getTitle().toLowerCase()));
+        response.setTitle("NEW! Nearby %s activity".formatted(event.getInterest().getTitle()));
         response.setSummary("From %s".formatted(event.getUser().getFullName()));
 
         goUserInterestRepository.findNearbyUsersWithSameInterest(
@@ -38,7 +38,7 @@ public class GoActivityLifecycle implements GoActivityLifecycleService {
             response.setSummary(event.getInterest().getTitle());
             response.setMessage("Your interest can be someone else's interest too, and the person might be nearby!");
         } else {
-            response.setTitle("Exciting! Your %s activity is getting crowded".formatted(event.getInterest().getTitle().toLowerCase()));
+            response.setTitle("Exciting! Your %s activity is getting crowded".formatted(event.getInterest().getTitle()));
             response.setSummary("%s attending".formatted(event.getAttendingUsers().size()));
             response.setMessage("Hope you're ready to have fun, this is looking real good!");
         }
@@ -49,7 +49,7 @@ public class GoActivityLifecycle implements GoActivityLifecycleService {
     @Override
     public void onStarted(GoActivity event) {
         GoActivityLifecycleResponse response = GoMapper.instance.lifecycle(event);
-        response.setTitle("%s activity is live now!".formatted(event.getInterest().getTitle().toLowerCase()));
+        response.setTitle("%s activity is live now!".formatted(event.getInterest().getTitle()));
         response.setSummary("From %s".formatted(event.getUser().getFullName()));
         response.setMessage("Happening live at %s".formatted(event.getLocation().getPlace()));
 
@@ -66,7 +66,7 @@ public class GoActivityLifecycle implements GoActivityLifecycleService {
     @Override
     public void onEnded(GoActivity event) {
         GoActivityLifecycleResponse response = GoMapper.instance.lifecycle(event);
-        response.setTitle("%s activity has ended".formatted(event.getInterest().getTitle().toLowerCase()));
+        response.setTitle("%s activity has ended".formatted(event.getInterest().getTitle()));
         response.setSummary("From %s".formatted(event.getUser().getFullName()));
 
         event.getAttendingUsers().forEach(user -> {
@@ -78,7 +78,7 @@ public class GoActivityLifecycle implements GoActivityLifecycleService {
     @Override
     public void onDeleted(GoActivity event) {
         GoActivityLifecycleResponse response = GoMapper.instance.lifecycle(event);
-        response.setMessage("Just in! Nearby %s activity is now cancelled".formatted(event.getInterest().getTitle().toLowerCase()));
+        response.setMessage("Just in! Nearby %s activity is now cancelled".formatted(event.getInterest().getTitle()));
         response.setSummary("From %s".formatted(event.getUser().getFullName()));
 
         event.getAttendingUsers().forEach(user -> {

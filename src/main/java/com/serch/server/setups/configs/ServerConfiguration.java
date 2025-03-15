@@ -1,4 +1,4 @@
-package com.serch.server.setups.server;
+package com.serch.server.setups.configs;
 
 import com.cloudinary.Cloudinary;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,6 +11,7 @@ import com.serch.server.core.sms.SmsConfig;
 import com.serch.server.core.validator.AllowedOriginValidatorService;
 import com.serch.server.domains.nearby.repositories.go.GoUserRepository;
 import com.serch.server.repositories.auth.UserRepository;
+import com.serch.server.setups.server.NotificationKey;
 import com.serch.server.utils.ServerUtil;
 import com.twilio.Twilio;
 import io.getstream.chat.java.services.framework.DefaultClient;
@@ -183,10 +184,10 @@ public class ServerConfiguration {
         configuration.setAllowedHeaders(ServerUtil.HEADERS);
         configuration.setAllowCredentials(true);
 
-        log.info(String.format("SERCH::: SERVER CORS | Allowed Origins | %s", configuration.getAllowedOrigins()));
-        log.info(String.format("SERCH::: SERVER CORS | Allowed Origin Patterns | %s", configuration.getAllowedOriginPatterns()));
-        log.info(String.format("SERCH::: SERVER CORS | Allowed Headers | %s", configuration.getAllowedHeaders()));
-        log.info(String.format("SERCH::: SERVER CORS | Allowed Methods | %s", configuration.getAllowedMethods()));
+        log.info("SERCH::: SERVER CORS | Allowed Origins | {}", configuration.getAllowedOrigins());
+        log.info("SERCH::: SERVER CORS | Allowed Origin Patterns | {}", configuration.getAllowedOriginPatterns());
+        log.info("SERCH::: SERVER CORS | Allowed Headers | {}", configuration.getAllowedHeaders());
+        log.info("SERCH::: SERVER CORS | Allowed Methods | {}", configuration.getAllowedMethods());
         
         return configuration;
     }
@@ -231,7 +232,7 @@ public class ServerConfiguration {
     @Bean
     public FirebaseApp firebase() {
         FirebaseApp app = FirebaseApp.initializeApp(getFirebaseOptions());
-        log.info(String.format("SERCH::: Firebase Initialized with app - %s", app.getName()));
+        log.info("SERCH::: Firebase Initialized with app - {}", app.getName());
 
         return app;
     }
@@ -244,7 +245,7 @@ public class ServerConfiguration {
     public DefaultClient defaultClient() {
         var client = new DefaultClient(getStreamProperties());
         DefaultClient.setInstance(client);
-        log.info(String.format("SERCH::: (AGORA INITIALIZATION) Agora initialized with api key %s", client.getApiKey()));
+        log.info("SERCH::: (AGORA INITIALIZATION) Agora initialized with api key {}", client.getApiKey());
 
         return client;
     }
@@ -268,7 +269,7 @@ public class ServerConfiguration {
     @Bean
     public SmsConfig smsConfig() {
         Twilio.init(SMS_SECRET, SMS_AUTH_TOKEN);
-        log.info(String.format("SERCH::: (Twilio) Initialized with account %s", SMS_SECRET));
+        log.info("SERCH::: (Twilio) Initialized with account {}", SMS_SECRET);
 
         SmsConfig config = new SmsConfig();
         config.setPhoneNumber(SMS_PHONE_NUMBER);
@@ -295,7 +296,7 @@ public class ServerConfiguration {
             cloud = new Cloudinary(CLOUDINARY_URL);
         }
 
-        log.info("Cloudinary is now initialized with %s".formatted(cloud.config.cloudName));
+        log.info("Cloudinary is now initialized with {}", cloud.config.cloudName);
 
         return cloud;
     }

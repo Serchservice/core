@@ -40,14 +40,15 @@ public class ServerUtil {
             "https://www.serchservice.com", "https://serchservice.com",
             "https://help.serchservice.com", "https://portal.serchservice.com",
             "https://*.serchservice.com",
-            "flutter-app://com.serch.user", "flutter-app://com.serch.business",
-            "flutter-app://com.serch.provider", "capacitor://localhost"
+            "flutter-app://com.serchservice.user", "flutter-app://com.serchservice.business",
+            "flutter-app://com.serchservice.provider", "capacitor://localhost"
     );
 
     public static final List<String> ALLOWED_PRODUCTION_ORIGINS = List.of(
             "https://www.serchservice.com", "https://serchservice.com",
             "https://help.serchservice.com", "https://portal.serchservice.com",
-            "https://*.serchservice.com"
+            "https://nearby.serchservice.com", "https://card.serchservice.com",
+            "https://to.serchservice.com", "https://*.serchservice.com"
     );
 
     public static final List<String> ALLOWED_ORIGIN_PATTERNS = List.of(

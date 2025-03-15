@@ -29,13 +29,13 @@ public class GoLocation extends BaseModel {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String place;
 
-    @Column(nullable = false, columnDefinition = "TEXT default ''")
+    @Column(columnDefinition = "TEXT default ''")
     private String localGovernmentArea = "";
 
-    @Column(nullable = false, columnDefinition = "TEXT default ''")
+    @Column(columnDefinition = "TEXT default ''")
     private String streetNumber = "";
 
-    @Column(nullable = false, columnDefinition = "TEXT default ''")
+    @Column(columnDefinition = "TEXT default ''")
     private String streetName = "";
 
     @Column(nullable = false)
